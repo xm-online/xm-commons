@@ -9,6 +9,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 
 import java.util.concurrent.TimeUnit;
 
@@ -17,27 +19,31 @@ import java.util.concurrent.TimeUnit;
  */
 @Aspect
 @Slf4j
+@Order(Ordered.HIGHEST_PRECEDENCE + 2)
 public class ServiceLoggingAspect {
 
     @SuppressWarnings("squid:S1186") //suppress empty method warning
-    @Pointcut("@annotation(com.icthh.xm.commons.logging.aop.IgnoreLogginAspect) || within(@com.icthh.xm.commons.logging.aop.IgnoreLogginAspect *)")
+    @Pointcut("@annotation(com.icthh.xm.commons.logging.aop.IgnoreLogginAspect) "
+        + "|| within(@com.icthh.xm.commons.logging.aop.IgnoreLogginAspect *)")
     public void excluded() {
     }
 
-    @SuppressWarnings("squid:S1186") //suppress enpty method warning
-    @Pointcut("within(com.icthh.xm..*) && within(@org.springframework.stereotype.Service *)")
+    @SuppressWarnings("squid:S1186") //suppress empty method warning
+    @Pointcut("within(com.icthh.xm..*) && (within(@org.springframework.stereotype.Service *) "
+              + "|| within(@com.icthh.xm.commons.lep.*.LepService *))")
     public void servicePointcut() {
     }
 
     /**
-     * Aspect for logging before rest calls.
+     * Aspect for logging before service calls.
+     *
      * @param joinPoint joinPoint
      * @return method result
      * @throws Throwable throwable
      */
     @SneakyThrows
     @Around("servicePointcut() && !excluded()")
-    public Object logBeforeRest(ProceedingJoinPoint joinPoint) {
+    public Object logBeforeService(ProceedingJoinPoint joinPoint) {
 
         StopWatch stopWatch = StopWatch.createStarted();
 
@@ -65,7 +71,7 @@ public class ServiceLoggingAspect {
     private void logStop(final JoinPoint joinPoint, final Object result, final StopWatch stopWatch) {
         log.info("srv:stop:  {}, result: {}, time = {} ms",
                  LogObjectPrinter.getCallMethod(joinPoint),
-                 LogObjectPrinter.printCollectionAware(result),
+                 LogObjectPrinter.printResult(joinPoint, result),
                  stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 

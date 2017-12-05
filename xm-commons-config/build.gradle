@@ -1,0 +1,50 @@
+buildscript {
+    repositories {
+        maven { url "http://repo.spring.io/plugins-release" }
+    }
+
+    dependencies {
+        classpath "org.springframework.build.gradle:propdeps-plugin:${versions.propdepsPlugin}"
+    }
+}
+
+apply plugin: 'propdeps'
+apply plugin: 'io.spring.dependency-management'
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
+    }
+}
+
+dependencies {
+
+    compile project(':xm-commons-logging')
+    compile project(':xm-commons-tenant')
+
+    optional("org.springframework.boot:spring-boot-configuration-processor") {
+        exclude group: 'com.vaadin.external.google', module: 'android-json'
+    }
+
+    compileOnly "org.projectlombok:lombok:${versions.lombok}"
+
+    compile 'commons-collections:commons-collections'
+    compile 'com.hazelcast:hazelcast'
+    compile 'org.springframework.cloud:spring-cloud-commons'
+    compile('org.springframework.boot:spring-boot-starter-web') {
+        exclude module: 'spring-boot-starter-tomcat'
+    }
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-json-org'
+
+    compile "org.bitsofinfo:hazelcast-consul-discovery-spi:${versions.hazelcastConsulDiscoverySpi}"
+    compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+    compile "org.springframework.security.oauth:spring-security-oauth2:${versions.springSecurityOAuth2}"
+    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+
+
+    testCompile 'junit:junit'
+    testCompile 'org.mockito:mockito-core'
+}
+
+compileJava.dependsOn(processResources)

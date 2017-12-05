@@ -1,0 +1,18 @@
+apply plugin: 'io.spring.dependency-management'
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:$versions.springBoot")
+    }
+}
+
+dependencies {
+    compile project(":xm-commons-security")
+
+    compile "org.slf4j:slf4j-api"
+    compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+
+    testCompile "junit:junit"
+    testCompile "org.mockito:mockito-core"
+    testCompile "org.hamcrest:hamcrest-library"
+    testCompile "nl.jqno.equalsverifier:equalsverifier:${versions.equalsverifier}"
+}

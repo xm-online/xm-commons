@@ -1,0 +1,27 @@
+apply plugin: 'io.spring.dependency-management'
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:$versions.springBoot")
+    }
+}
+
+dependencies {
+    compileOnly "org.projectlombok:lombok:${versions.lombok}"
+
+    compile "org.springframework:spring-context"
+
+    compile "org.slf4j:slf4j-api"
+    compile "ch.qos.logback:logback-classic"
+    compile "org.aspectj:aspectjweaver"
+
+    compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+    compile "commons-codec:commons-codec:${versions.commonsCodec}"
+    compile ("net.logstash.logback:logstash-logback-encoder:${versions.logstashLogbackEncoder}") {
+        exclude(group: 'ch.qos.logback')
+    }
+
+    testCompile "junit:junit"
+    testCompile "org.mockito:mockito-core"
+    testCompile 'org.springframework:spring-test'
+
+}

@@ -1,0 +1,7 @@
+---
+config:
+    testProperty: value1
+    testList:
+        - item1
+        - item2
+        - item3

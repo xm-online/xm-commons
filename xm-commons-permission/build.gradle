@@ -1,0 +1,34 @@
+apply plugin: 'io.spring.dependency-management'
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:$versions.springBoot")
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
+    }
+}
+
+dependencies {
+    compile project(":xm-commons-config")
+    compile project(":xm-commons-tenant")
+    compile project(":xm-commons-exceptions")
+
+    compileOnly "org.projectlombok:lombok:${versions.lombok}"
+
+    compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+    compile "org.reflections:reflections:${versions.reflections}"
+
+    compile 'org.springframework.security:spring-security-core'
+    compile 'org.springframework:spring-context'
+    compile 'org.springframework.kafka:spring-kafka'
+
+    compile 'org.slf4j:slf4j-api'
+    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    compile 'com.fasterxml.jackson.core:jackson-databind'
+    compile "org.aspectj:aspectjweaver"
+
+    compile "org.hibernate:hibernate-entitymanager:${versions.hibernate}"
+    compile "org.springframework.data:spring-data-commons:${versions.springData}"
+
+    testCompile "junit:junit"
+    testCompile "org.mockito:mockito-core"
+}

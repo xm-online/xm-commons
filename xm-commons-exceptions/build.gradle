@@ -1,0 +1,25 @@
+apply plugin: 'io.spring.dependency-management'
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:$versions.springBoot")
+    }
+}
+
+dependencies {
+    compileOnly "org.projectlombok:lombok:${versions.lombok}"
+    compileOnly 'javax.servlet:javax.servlet-api'
+
+    compile 'org.slf4j:slf4j-api'
+    compile('org.springframework.boot:spring-boot-starter-web') {
+        exclude module: 'spring-boot-starter-tomcat'
+    }
+    compile 'org.springframework:spring-tx'
+    compile 'org.springframework.security:spring-security-core'
+    compile 'org.glassfish:javax.el'
+    compile 'com.jayway.jsonpath:json-path'
+
+    testCompile 'javax.servlet:javax.servlet-api'
+    testCompile 'junit:junit'
+    testCompile 'org.mockito:mockito-core'
+    testCompile 'org.springframework:spring-test'
+}

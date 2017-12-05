@@ -1,10 +1,10 @@
 package com.icthh.xm.commons.config.client.utils;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 @UtilityClass
 public class RequestUtils {

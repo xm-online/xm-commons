@@ -7,20 +7,22 @@ import static org.mockito.Mockito.when;
 import com.icthh.xm.commons.logging.util.LogObjectPrinter;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * Test for log object printer.
- * Created by medved on 27.06.17.
+ * Test for log object printer. Created by medved on 27.06.17.
  */
 public class LogObjectPrinterUnitTest {
 
@@ -28,27 +30,12 @@ public class LogObjectPrinterUnitTest {
     JoinPoint joinPoint;
 
     @Mock
-    Signature signature;
-
-    @Mock
     MethodSignature ms;
-
-    @Mock
-    JoinPoint.StaticPart staticPart;
-
-    @Mock
-    ResponseEntity responseEntity;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        when(joinPoint.getSignature()).thenReturn(signature);
-        when(joinPoint.getStaticPart()).thenReturn(staticPart);
-
-        when(staticPart.getSignature()).thenReturn(ms);
-        when(ms.getParameterNames()).thenReturn(new String[] {"param1", "param2", "param3"});
-        when(joinPoint.getArgs()).thenReturn(new Object[] {"val1", "val2", "val3"});
-
+        when(joinPoint.getSignature()).thenReturn(ms);
     }
 
     @Test
@@ -61,32 +48,33 @@ public class LogObjectPrinterUnitTest {
     @Test
     public void testPrintExceptionWithStacktraceInfo() {
         assertEquals("null", LogObjectPrinter.printExceptionWithStackInfo(null));
-        assertTrue(StringUtils.contains(LogObjectPrinter.printExceptionWithStackInfo(new RuntimeException("Some error")),
+        assertTrue(StringUtils.contains(LogObjectPrinter.printExceptionWithStackInfo(new RuntimeException("Some "
+                                                                                                          + "error")),
                                         "java.lang.RuntimeException: Some error com.icthh.xm.commons.logging."
-                                            + "LogObjectPrinterUnitTest.testPrintExceptionWithStacktraceInfo"));
+                                        + "LogObjectPrinterUnitTest.testPrintExceptionWithStacktraceInfo"));
     }
 
     @Test
     public void testComposeUrl() {
 
-        String[] arr1 = new String[] {"/first", "/second"};
-        String[] arr2 = new String[] {"/third", "/forth"};
+        String[] arr1 = new String[]{"/first", "/second"};
+        String[] arr2 = new String[]{"/third", "/forth"};
 
-        assertEquals("", LogObjectPrinter.composeUrl(null));
-        assertEquals("", LogObjectPrinter.composeUrl(null, null));
+        assertEquals("", LogObjectPrinter.joinUrlPaths(null));
+        assertEquals("", LogObjectPrinter.joinUrlPaths(null, (Object[]) null));
 
-        assertEquals("/first/second", LogObjectPrinter.composeUrl(arr1));
-        assertEquals("/third/forth", LogObjectPrinter.composeUrl(arr2));
+        assertEquals("/first/second", LogObjectPrinter.joinUrlPaths(arr1));
+        assertEquals("/third/forth", LogObjectPrinter.joinUrlPaths(arr2));
 
-        assertEquals("/first/second", LogObjectPrinter.composeUrl(arr1, null));
-        assertEquals("/third/forth", LogObjectPrinter.composeUrl(null, arr2));
+        assertEquals("/first/second", LogObjectPrinter.joinUrlPaths(arr1, (Object[]) null));
+        assertEquals("/third/forth", LogObjectPrinter.joinUrlPaths(null, arr2));
 
-        Integer[] arrInt = new Integer[] {1, 2, 3};
+        Integer[] arrInt = new Integer[]{1, 2, 3};
 
         assertEquals(
-            "printerror:java.lang.IllegalArgumentException: Cannot store java.lang.Integer in an array " +
-                      "of java.lang.String",
-                      LogObjectPrinter.composeUrl(arr1, arrInt));
+            "printerror:java.lang.IllegalArgumentException: Cannot store java.lang.Integer in an array "
+            + "of java.lang.String",
+            LogObjectPrinter.joinUrlPaths(arr1, arrInt));
 
     }
 
@@ -95,51 +83,403 @@ public class LogObjectPrinterUnitTest {
 
         assertEquals("?:?", LogObjectPrinter.getCallMethod(null));
 
-        when(signature.getDeclaringType()).thenReturn(null);
+        when(ms.getDeclaringType()).thenReturn(null);
         assertEquals("?:null", LogObjectPrinter.getCallMethod(joinPoint));
 
-        when(signature.getDeclaringType()).thenReturn(String.class);
-        when(signature.getName()).thenReturn("toString");
+        when(ms.getDeclaringType()).thenReturn(String.class);
+        when(ms.getName()).thenReturn("toString");
         assertEquals("String:toString", LogObjectPrinter.getCallMethod(joinPoint));
 
     }
 
     @Test
     public void testPrintInputParams() {
+
+        when(ms.getParameterNames()).thenReturn(new String[]{"param1", "param2", "param3"});
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"val1", "val2", "val3"});
+
         assertEquals("joinPoint is null", LogObjectPrinter.printInputParams(null));
         assertEquals("param1=val1,param2=val2,param3=val3", LogObjectPrinter.printInputParams(joinPoint));
 
-        when(ms.getParameterNames()).thenReturn(new String[] {"param1", "password", "param3"});
+        when(ms.getParameterNames()).thenReturn(new String[]{"param1", "password", "param3"});
         assertEquals("param1=val1,password=*****,param3=val3", LogObjectPrinter.printInputParams(joinPoint));
-
+        assertEquals("param3=val3,password=*****", LogObjectPrinter.printInputParams(joinPoint, "param3", "password"));
     }
 
     @Test
     public void testPrintCollectionAware() {
-        assertEquals("", LogObjectPrinter.printCollectionAware(null));
+        assertEquals("null", LogObjectPrinter.printCollectionAware(null));
         assertEquals("string1", LogObjectPrinter.printCollectionAware("string1"));
         assertEquals("[<ArrayList> size = 5]", LogObjectPrinter.printCollectionAware(Arrays.asList(1, 2, 3, 4, 5)));
     }
 
     @Test
-    public void testPrintRestResult() {
-        assertEquals("status=OK, body=null", LogObjectPrinter.printRestResult(null).toString());
-        assertEquals("status=OK, body=value1", LogObjectPrinter.printRestResult("value1").toString());
-        assertEquals("status=OK, body=[<ArrayList> size = 5]",
-                     LogObjectPrinter.printRestResult(Arrays.asList(1, 2, 3, 4, 5)).toString());
+    public void testPrintInputParamsNoDetail() throws NoSuchMethodException {
 
-        when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
+        Class<?> aClass = TestServiceInput.class;
+        Method method = aClass.getMethod("methodNoDetail", String.class, int.class);
 
-        when(responseEntity.getBody()).thenReturn(null);
-        assertEquals("status=200, body=", LogObjectPrinter.printRestResult(responseEntity).toString());
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+        when(ms.getParameterNames()).thenReturn(getParamNames(method));
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"value1", 42});
 
-        when(responseEntity.getBody()).thenReturn("value1");
-        assertEquals("status=200, body=value1", LogObjectPrinter.printRestResult(responseEntity).toString());
+        assertEquals("joinPoint is null", LogObjectPrinter.printInputParams(null));
+        assertEquals("#hidden#", LogObjectPrinter.printInputParams(joinPoint));
 
-        when(responseEntity.getBody()).thenReturn(Arrays.asList(1, 2, 3, 4, 5));
-        assertEquals("status=200, body=[<ArrayList> size = 5]",
-                     LogObjectPrinter.printRestResult(responseEntity).toString());
+    }
 
+    @Test
+    public void testPrintInputParamsNoDefatul() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceInput.class;
+        Method method = aClass.getMethod("methodDefaultDetails", String.class, int.class, Double.class);
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+        when(ms.getParameterNames()).thenReturn(new String[]{"param1", "param2", "param3"});
+
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"value1", 42, 35.5});
+
+        assertEquals("param1=value1,param2=42,param3=35.5", LogObjectPrinter.printInputParams(joinPoint));
+
+    }
+
+    @Test
+    public void testPrintInputParamsIncludeParams() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceInput.class;
+        Method method = aClass.getMethod("methodIncludeParams", String.class, int.class, Double.class);
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+        when(ms.getParameterNames()).thenReturn(new String[]{"param1", "param2", "param3"});
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"value1", 42, 35.5});
+
+        assertEquals("param2=42,param3=35.5", LogObjectPrinter.printInputParams(joinPoint));
+
+    }
+
+    @Test
+    public void testPrintInputParamsIncludeNonExistentParams() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceInput.class;
+        Method method = aClass.getMethod("methodIncludeNonExistentParams", String.class, int.class, Double.class);
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+        when(ms.getParameterNames()).thenReturn(new String[]{"param1", "param2", "param3"});
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"value1", 42, 35.5});
+
+        assertEquals("param2=42", LogObjectPrinter.printInputParams(joinPoint));
+
+    }
+
+    @Test
+    public void testPrintInputParamsExclude() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceInput.class;
+        Method method = aClass.getMethod("methodExcludeParams", String.class, int.class, Double.class);
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+        when(ms.getParameterNames()).thenReturn(new String[]{"param1", "param2", "param3"});
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"value1", 42, 35.5});
+
+        assertEquals("param1=value1,param3=35.5", LogObjectPrinter.printInputParams(joinPoint));
+
+    }
+
+    @Test
+    public void testPrintInputParamsIncludeAndExclude() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceInput.class;
+        Method method = aClass.getMethod("methodIncludeAndExcludeParams", String.class, int.class, Double.class);
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+        when(ms.getParameterNames()).thenReturn(new String[]{"param1", "param2", "param3"});
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"value1", 42, 35.5});
+
+        assertEquals("param2=42,param3=35.5", LogObjectPrinter.printInputParams(joinPoint));
+
+    }
+
+
+    @Test
+    public void testPrintInputCollectionDefault() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceInput.class;
+        Method method = aClass.getMethod("methodInputCollectionDefault", String.class, List.class, Map.class);
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+        when(ms.getParameterNames()).thenReturn(new String[]{"param1", "list", "map"});
+
+        Map<String, Integer> map = new LinkedHashMap<>();
+        map.put("one", 1);
+        map.put("two", 2);
+
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"value1", Arrays.asList(1, 2, 3), map});
+
+        assertEquals("param1=value1,list=[1, 2, 3],map={one=1, two=2}", LogObjectPrinter.printInputParams(joinPoint));
+
+    }
+
+    @Test
+    public void testPrintInputCollectionAware() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceInput.class;
+        Method method = aClass.getMethod("methodInputCollectionAware", String.class, List.class, Map.class);
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+        when(ms.getParameterNames()).thenReturn(new String[]{"param1", "list", "map"});
+
+        Map<String, Integer> map = new LinkedHashMap<>();
+        map.put("one", 1);
+        map.put("two", 2);
+
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"value1", Arrays.asList(1, 2, 3), map});
+
+        assertEquals("param1=value1,list=[<ArrayList> size = 3],map={one=1, two=2}",
+                     LogObjectPrinter.printInputParams(joinPoint));
+
+    }
+
+    @Test
+    public void testPrintMethodConfigOverridesClassConfig() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceInput2.class;
+        Method method = aClass.getMethod("methodIncludeParams", String.class, int.class, Double.class);
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+        when(ms.getParameterNames()).thenReturn(new String[]{"param1", "param2", "param3"});
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"value1", 42, 35.5});
+
+        assertEquals("param2=42,param3=35.5", LogObjectPrinter.printInputParams(joinPoint));
+
+    }
+
+    @Test
+    public void testPrintMehodGetConfigFromClassLever() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceInput2.class;
+        Method method = aClass.getMethod("methodDefaultDetails", String.class, int.class, Double.class);
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+        when(ms.getParameterNames()).thenReturn(new String[]{"param1", "param2", "param3"});
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"value1", 42, 35.5});
+
+        assertEquals("#hidden#", LogObjectPrinter.printInputParams(joinPoint));
+
+    }
+
+
+    @Test
+    public void testPrintConfigOverridesParamsToPrint() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceInput2.class;
+        Method method = aClass.getMethod("methodIncludeParams", String.class, int.class, Double.class);
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+        when(ms.getParameterNames()).thenReturn(new String[]{"param1", "param2", "param3"});
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"value1", 42, 35.5});
+
+        assertEquals("param2=42,param3=35.5", LogObjectPrinter.printInputParams(joinPoint, "param1"));
+
+    }
+
+    @Test
+    public void testPrintParamsNoConfigToPrint() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceInput.class;
+        Method method = aClass.getMethod("methodWithoutLogConfig", String.class, int.class, Double.class);
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+        when(ms.getParameterNames()).thenReturn(new String[]{"param1", "param2", "param3"});
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"value1", 42, 35.5});
+
+        //test LogObjectPrinter.printInputParams(joinPoint, "param1", "param3")
+        assertEquals("param1=value1,param3=35.5", LogObjectPrinter.printInputParams(joinPoint, "param1", "param3"));
+
+    }
+
+    @Test
+    public void testPrintParamsWithConfigToPrint() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceInput.class;
+        Method method = aClass.getMethod("methodDefaultDetails", String.class, int.class, Double.class);
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+        when(ms.getParameterNames()).thenReturn(new String[]{"param1", "param2", "param3"});
+        when(joinPoint.getArgs()).thenReturn(new Object[]{"value1", 42, 35.5});
+
+        //test LogObjectPrinter.printInputParams(joinPoint, "param1", "param3")
+        assertEquals("param1=value1,param3=35.5", LogObjectPrinter.printInputParams(joinPoint, "param1", "param3"));
+
+    }
+
+    @Test
+    public void testPrintResultNoConfig() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceResult.class;
+        Method method = aClass.getMethod("methodReturnNoConfig");
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+
+        assertEquals("null", LogObjectPrinter.printResult(null, null));
+        assertEquals("null", LogObjectPrinter.printResult(joinPoint, null));
+        assertEquals("String value", LogObjectPrinter.printResult(joinPoint, "String value"));
+        assertEquals("[<ArrayList> size = 3]", LogObjectPrinter.printResult(joinPoint, Arrays.asList(1, 2, 3)));
+        assertEquals("String value", LogObjectPrinter.printResult(joinPoint, "String value", true));
+        assertEquals("#hidden#", LogObjectPrinter.printResult(joinPoint, "String value", false));
+
+    }
+
+    @Test
+    public void testPrintResultDefaultConfig() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceResult.class;
+        Method method = aClass.getMethod("methodReturnDefaultConfig");
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+
+        assertEquals("null", LogObjectPrinter.printResult(null, null));
+        assertEquals("null", LogObjectPrinter.printResult(joinPoint, null));
+        assertEquals("String value", LogObjectPrinter.printResult(joinPoint, "String value"));
+        assertEquals("[<ArrayList> size = 3]", LogObjectPrinter.printResult(joinPoint, Arrays.asList(1, 2, 3)));
+        assertEquals("String value", LogObjectPrinter.printResult(joinPoint, "String value", true));
+        // printResultDetail input parameter is overridden by @LoggingAspectConfig
+        assertEquals("String value", LogObjectPrinter.printResult(joinPoint, "String value", false));
+
+    }
+
+
+    @Test
+    public void testPrintResultDetailsSuppressed() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceResult.class;
+        Method method = aClass.getMethod("methodReturnDetailsSuppressed");
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+
+        assertEquals("null", LogObjectPrinter.printResult(null, null));
+        assertEquals("#hidden#", LogObjectPrinter.printResult(joinPoint, null));
+        assertEquals("#hidden#", LogObjectPrinter.printResult(joinPoint, "String value"));
+        assertEquals("#hidden#", LogObjectPrinter.printResult(joinPoint, Arrays.asList(1, 2, 3)));
+        assertEquals("#hidden#", LogObjectPrinter.printResult(joinPoint, "String value", true));
+        assertEquals("#hidden#", LogObjectPrinter.printResult(joinPoint, "String value", false));
+
+    }
+
+    @Test
+    public void testPrintResultPrintCollection() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceResult.class;
+        Method method = aClass.getMethod("methodReturnPrintWholeCollection");
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+
+        assertEquals("null", LogObjectPrinter.printResult(null, null));
+        assertEquals("null", LogObjectPrinter.printResult(joinPoint, null));
+        assertEquals("String value", LogObjectPrinter.printResult(joinPoint, "String value"));
+        assertEquals("[1, 2, 3]", LogObjectPrinter.printResult(joinPoint, Arrays.asList(1, 2, 3)));
+        assertEquals("String value", LogObjectPrinter.printResult(joinPoint, "String value", true));
+        // printResultDetail input parameter is overridden by @LoggingAspectConfig
+        assertEquals("String value", LogObjectPrinter.printResult(joinPoint, "String value", false));
+
+    }
+
+    // do not use this method for test where real parameter names should appear.
+    // Because it will require -parameter compiler option
+    private String[] getParamNames(Method method) {
+        List<String> params = Arrays.stream(method.getParameters())
+                                    .map(Parameter::getName)
+                                    .collect(Collectors.toList());
+        return params.toArray(new String[0]);
+    }
+
+    static class TestServiceInput {
+
+        @LoggingAspectConfig(inputDetails = false)
+        public void methodNoDetail(String param1, int param2) {
+        }
+
+        @LoggingAspectConfig
+        public void methodDefaultDetails(String param1, int param2, Double param3) {
+        }
+
+        public void methodWithoutLogConfig(String param1, int param2, Double param3) {
+        }
+
+        @LoggingAspectConfig(inputIncludeParams = {"param2", "param3"})
+        public void methodIncludeParams(String param1, int param2, Double param3) {
+        }
+
+        @LoggingAspectConfig(inputIncludeParams = {"param2", "paramNonExist"})
+        public void methodIncludeNonExistentParams(String param1, int param2, Double param3) {
+        }
+
+        @LoggingAspectConfig(inputExcludeParams = {"param2"})
+        public void methodExcludeParams(String param1, int param2, Double param3) {
+        }
+
+        @LoggingAspectConfig(inputIncludeParams = {"param2", "param3"}, inputExcludeParams = {"param2"})
+        public void methodIncludeAndExcludeParams(String param1, int param2, Double param3) {
+        }
+
+
+        public void methodInputCollectionDefault(String param1, List<Integer> list, Map<String, Integer> map) {
+        }
+
+        @LoggingAspectConfig(inputCollectionAware = true)
+        public void methodInputCollectionAware(String param1, List<Integer> list, Map<String, Integer> map) {
+        }
+
+    }
+
+    @LoggingAspectConfig(inputDetails = false)
+    static class TestServiceInput2 {
+
+        public void methodDefaultDetails(String param1, int param2, Double param3) {
+        }
+
+        @LoggingAspectConfig(inputIncludeParams = {"param2", "param3"})
+        public void methodIncludeParams(String param1, int param2, Double param3) {
+        }
+
+    }
+
+    static class TestServiceResult {
+
+        public Object methodReturnNoConfig(){
+            throw new UnsupportedOperationException("not supported!");
+        }
+
+        @LoggingAspectConfig
+        public Object methodReturnDefaultConfig(){
+            throw new UnsupportedOperationException("not supported!");
+        }
+
+        @LoggingAspectConfig(resultDetails = false)
+        public Object methodReturnDetailsSuppressed(){
+            throw new UnsupportedOperationException("not supported!");
+        }
+
+        @LoggingAspectConfig(resultCollectionAware = false)
+        public Object methodReturnPrintWholeCollection(){
+            throw new UnsupportedOperationException("not supported!");
+        }
     }
 
 }

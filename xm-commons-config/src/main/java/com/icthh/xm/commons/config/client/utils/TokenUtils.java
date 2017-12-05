@@ -17,7 +17,13 @@ public class TokenUtils {
         if (auth.getDetails() == null) {
             return null;
         }
-        return (OAuth2AuthenticationDetails.class.cast(auth.getDetails())).getTokenValue();
+        if (auth.getDetails() instanceof OAuth2AuthenticationDetails) {
+            return (OAuth2AuthenticationDetails.class.cast(auth.getDetails())).getTokenValue();
+        }
+        if (auth.getDetails() instanceof String) {
+            return String.valueOf(auth.getDetails());
+        }
+        return null;
     }
 
     private static OAuth2Authentication getAuthentication() {

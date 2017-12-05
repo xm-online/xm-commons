@@ -1,0 +1,16 @@
+apply plugin: 'io.spring.dependency-management'
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:$versions.springBoot")
+    }
+}
+
+dependencies {
+    compileOnly "javax.servlet:javax.servlet-api"
+
+    compile "org.springframework:spring-context"
+    compile "org.springframework.security.oauth:spring-security-oauth2:${versions.springSecurityOAuth2}"
+
+    testCompile "junit:junit"
+    testCompile "org.mockito:mockito-core"
+}

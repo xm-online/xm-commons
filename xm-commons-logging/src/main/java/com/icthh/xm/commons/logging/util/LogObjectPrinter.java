@@ -1,7 +1,6 @@
 package com.icthh.xm.commons.logging.util;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.icthh.xm.commons.logging.LoggingAspectConfig;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.ArrayUtils;
@@ -9,59 +8,87 @@ import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.http.ResponseEntity;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 /**
  * Utility class for object printing in Logging aspects.
  */
 @Slf4j
-public class LogObjectPrinter {
+public final class LogObjectPrinter {
 
     private static final String XM_PACKAGE_NAME = "com.icthh.xm";
-    private static final String PSWRD_MASK = "*****";
+    private static final String PASSWORD_MASK = "*****";
     private static final Set<String> MASK_SET = new HashSet<>();
-    public static final String EMPTY_LIST_STRING = "[]";
+    private static final String[] EMPTY_ARRAY = new String[0];
+    private static final String PRINT_EMPTY_LIST = "[]";
+    private static final String PRINT_HIDDEN = "#hidden#";
+    private static final String PRINT_QUESTION = "?";
+    private static final String PRINT_SEMICOLON = ":";
+    private static final String PRINT_EMPTY_METHOD = PRINT_QUESTION + PRINT_SEMICOLON + PRINT_QUESTION;
+
 
     static {
         MASK_SET.add("newPassword");
         MASK_SET.add("password");
         MASK_SET.add("defaultPassword");
+        MASK_SET.add("secret");
     }
 
     private LogObjectPrinter() {
     }
 
-    public static String printException(Throwable e) {
-        return String.valueOf(e);
+    /**
+     * Builds log string for exception.
+     *
+     * @param throwable the exception
+     * @return exception description string
+     */
+    public static String printException(Throwable throwable) {
+        return String.valueOf(throwable);
     }
 
-    public static String printExceptionWithStackInfo(Throwable e) {
+    /**
+     * Builds log string for exception with stack trace.
+     *
+     * @param throwable the exception
+     * @return exception description string with stack trace
+     */
+    public static String printExceptionWithStackInfo(Throwable throwable) {
         StringBuilder out = new StringBuilder();
-        printExceptionWithStackInfo(e, out);
+        printExceptionWithStackInfo(throwable, out);
         return out.toString();
     }
 
-    private static void printExceptionWithStackInfo(Throwable e, StringBuilder out) {
-        out.append(e);
-        if (e != null) {
-            appendStackTrace(e, out);
-            if (e.getCause() != null) {
+    private static void printExceptionWithStackInfo(Throwable throwable, StringBuilder out) {
+        out.append(throwable);
+        if (throwable != null) {
+            appendStackTrace(throwable, out);
+            if (throwable.getCause() != null) {
                 out.append(" -> ");
-                printExceptionWithStackInfo(e.getCause(), out);
+                printExceptionWithStackInfo(throwable.getCause(), out);
             }
         }
     }
 
-    private static void appendStackTrace(Throwable e, StringBuilder out) {
-        val stackTrace = e.getStackTrace();
+    private static void appendStackTrace(Throwable throwable, StringBuilder out) {
+        val stackTrace = throwable.getStackTrace();
         if (stackTrace == null || stackTrace.length < 1) {
             return;
         }
 
-        out.append(" ").append(stackTrace[0]);
+        out.append(' ').append(stackTrace[0]);
 
         for (int i = 1; i < stackTrace.length; i++) {
             String stackTraceLine = String.valueOf(stackTrace[i]);
@@ -72,65 +99,114 @@ public class LogObjectPrinter {
         }
     }
 
-    public static <T> String composeUrl(T[] arr, T... arr2) {
+    /**
+     * Join URL path into one string.
+     *
+     * @param arr  first url paths
+     * @param arr2 other url paths
+     * @param <T>  url part path type
+     * @return URL representation string
+     */
+    @SafeVarargs
+    public static <T> String joinUrlPaths(final T[] arr, final T... arr2) {
         try {
             T[] url = ArrayUtils.addAll(arr, arr2);
             String res = StringUtils.join(url);
-            return res == null ? "" : res;
-        } catch (Exception e) {
-            log.warn("error while compose URL from: {}, {}", arr, arr2);
+            return (res == null) ? "" : res;
+        } catch (IndexOutOfBoundsException | IllegalArgumentException | ArrayStoreException e) {
+            log.warn("Error while join URL paths from: {}, {}", arr, arr2);
             return "printerror:" + e;
         }
-
     }
 
+    /**
+     * Gets method description string from join point.
+     *
+     * @param joinPoint aspect join point
+     * @return method description string from join point
+     */
     public static String getCallMethod(JoinPoint joinPoint) {
         if (joinPoint != null && joinPoint.getSignature() != null) {
-            Class<?> c = joinPoint.getSignature().getDeclaringType();
-            String className = c != null ? c.getSimpleName() : "?";
+            Class<?> declaringType = joinPoint.getSignature().getDeclaringType();
+            String className = (declaringType != null) ? declaringType.getSimpleName() : PRINT_QUESTION;
             String methodName = joinPoint.getSignature().getName();
-            return className + ":" + methodName;
+            return className + PRINT_SEMICOLON + methodName;
         }
-        return "?:?";
+        return PRINT_EMPTY_METHOD;
     }
 
-    public static String printInputParams(JoinPoint joinPoint, String... paramNames) {
+    /**
+     * Gets join point input params description string.
+     *
+     * @param joinPoint         aspect join point
+     * @param includeParamNames input parameters names to be printed. NOTE! can be overridden with @{@link
+     *                          LoggingAspectConfig}
+     * @return join point input params description string
+     */
+    public static String printInputParams(JoinPoint joinPoint, String... includeParamNames) {
         try {
-
             if (joinPoint == null) {
                 return "joinPoint is null";
             }
 
-            Signature signature = joinPoint.getStaticPart().getSignature();
+            Signature signature = joinPoint.getSignature();
             if (!(signature instanceof MethodSignature)) {
-                return EMPTY_LIST_STRING;
+                return PRINT_EMPTY_LIST;
+            }
+
+            Optional<LoggingAspectConfig> config = AopAnnotationUtils.getConfigAnnotation(joinPoint);
+
+            String[] includeParams = includeParamNames;
+            String[] excludeParams = EMPTY_ARRAY;
+            boolean inputCollectionAware = LoggingAspectConfig.DEFAULT_INPUT_COLLECTION_AWARE;
+
+            if (config.isPresent()) {
+                if (!config.get().inputDetails()) {
+                    return PRINT_HIDDEN;
+                }
+                inputCollectionAware = config.get().inputCollectionAware();
+                if (ArrayUtils.isNotEmpty(config.get().inputIncludeParams())) {
+                    includeParams = config.get().inputIncludeParams();
+                }
+                if (ArrayUtils.isEmpty(includeParams) && ArrayUtils.isNotEmpty(config.get().inputExcludeParams())) {
+                    excludeParams = config.get().inputExcludeParams();
+                }
             }
 
             MethodSignature ms = (MethodSignature) signature;
             String[] params = ms.getParameterNames();
-            if (ArrayUtils.isEmpty(params)) {
-                return EMPTY_LIST_STRING;
-            }
-
-            return renderParams(joinPoint, params, paramNames);
-
-        } catch (Exception e) {
-            log.warn("error while print params: {}, params = {}", e, joinPoint.getArgs());
+            return ArrayUtils.isNotEmpty(params) ? renderParams(joinPoint,
+                                                                params,
+                                                                includeParams,
+                                                                excludeParams,
+                                                                inputCollectionAware) : PRINT_EMPTY_LIST;
+        } catch (IndexOutOfBoundsException | IllegalArgumentException e) {
+            log.warn("Error while print params: {}, params = {}", e, joinPoint.getArgs());
             return "printerror: " + e;
         }
-
     }
 
-    private static String renderParams(JoinPoint joinPoint, String[] params, String[] paramNames) {
-        Set<String> namesSet = prepareNameSet(paramNames);
+    private static String renderParams(JoinPoint joinPoint, String[] params, String[] includeParamNames,
+                                       String[] excludeParamNames, boolean inputCollectionAware) {
+
+        Set<String> includeSet = prepareNameSet(includeParamNames);
+        Set<String> excludeSet = prepareNameSet(excludeParamNames);
         List<String> requestList = new ArrayList<>();
 
-        Map<String, Object> map = joinPointToParamMap(joinPoint, params);
+        Map<String, Object> paramMap = joinPointToParamMap(joinPoint, params);
 
-        if (!namesSet.isEmpty()) {
-            namesSet.forEach(key -> requestList.add(buildParam(key, map.get(key))));
+        if (!includeSet.isEmpty()) {
+            includeSet
+                .stream().filter(paramMap::containsKey)
+                .forEach(key -> requestList.add(buildParam(key, paramMap.get(key), inputCollectionAware)));
+        } else if (!excludeSet.isEmpty()) {
+            paramMap.forEach((key, value) -> {
+                if (!excludeSet.contains(key)) {
+                    requestList.add(buildParam(key, value, inputCollectionAware));
+                }
+            });
         } else {
-            map.forEach((key, value) -> requestList.add(buildParam(key, value)));
+            paramMap.forEach((key, value) -> requestList.add(buildParam(key, value, inputCollectionAware)));
         }
 
         return StringUtils.join(requestList, ',');
@@ -138,84 +214,106 @@ public class LogObjectPrinter {
 
     private static Map<String, Object> joinPointToParamMap(JoinPoint joinPoint, String[] params) {
         val map = new LinkedHashMap<String, Object>();
-        IntStream.range(0, params.length).boxed().forEach(i -> map.put(params[i], joinPoint.getArgs()[i]));
+        IntStream.range(0, params.length).boxed().forEach(index -> map.put(params[index], joinPoint.getArgs()[index]));
         return map;
     }
 
     private static Set<String> prepareNameSet(String[] paramNames) {
-        Set<String> namesSet = new LinkedHashSet<>();
-        if (paramNames != null) {
-            namesSet.addAll(Arrays.asList(paramNames));
-        }
-        return namesSet;
+        return !ArrayUtils.isEmpty(paramNames) ? new LinkedHashSet<>(Arrays.asList(paramNames)) : Collections
+            .emptySet();
     }
 
+    private static String buildParam(String name, Object value, boolean inputCollectionAware) {
 
-    private static String buildParam(String name, Object value) {
-        return name + "=" + (MASK_SET.contains(name) ? "*****" : value);
-    }
-
-    public static RestResp printRestResult(final Object res) {
-        return printRestResult(res, true);
-    }
-
-    public static RestResp printRestResult(final Object res, final boolean printBody) {
-
-        if (res == null) {
-            return new RestResp("OK", "null", printBody);
-        }
-
-        Class<?> respClass = res.getClass();
-        String status;
-        Object bodyToPrint;
-
-        if (ResponseEntity.class.isAssignableFrom(respClass)) {
-            ResponseEntity<?> respEn = ResponseEntity.class.cast(res);
-
-            status = String.valueOf(respEn.getStatusCode());
-
-            Object body = respEn.getBody();
-            bodyToPrint = printCollectionAware(body, printBody);
-
+        StringBuilder builder = new StringBuilder(name).append("=");
+        if (MASK_SET.contains(name)) {
+            builder.append(PASSWORD_MASK);
+        } else if (inputCollectionAware) {
+            builder.append(printCollectionAware(value));
         } else {
-            status = "OK";
-            bodyToPrint = printCollectionAware(res, printBody);
+            builder.append(value);
         }
-        return new RestResp(status, bodyToPrint, printBody);
+        return builder.toString();
+    }
+
+    /**
+     * Print Result object according to input parameters and {@link LoggingAspectConfig}.
+     * @param joinPoint         - intercepting join point
+     * @param object            - result value to be printed
+     */
+    public static String printResult(final JoinPoint joinPoint, final Object object) {
+        return printResult(joinPoint, object, LoggingAspectConfig.DEFAULT_RESULT_DETAILS);
+    }
+
+    /**
+     * Print Result object according to input parameters and {@link LoggingAspectConfig}.
+     *
+     * @param joinPoint         - intercepting join point
+     * @param object            - result value to be printed
+     * @param printResultDetail - print result detail flag for programming approach. NOTE! can me overridden with {@link
+     *                          LoggingAspectConfig}
+     */
+    public static String printResult(final JoinPoint joinPoint, final Object object, final boolean printResultDetail) {
+
+        Optional<LoggingAspectConfig> config = AopAnnotationUtils.getConfigAnnotation(joinPoint);
+
+        boolean resultDetails = printResultDetail;
+        boolean resultCollectionAware = LoggingAspectConfig.DEFAULT_RESULT_COLLECTION_AWARE;
+
+        if (config.isPresent()) {
+            resultDetails = config.get().resultDetails();
+            resultCollectionAware = config.get().resultCollectionAware();
+        }
+
+        if (!resultDetails) {
+            return PRINT_HIDDEN;
+        }
+
+        if (resultCollectionAware) {
+            return printCollectionAware(object);
+        }
+
+        return String.valueOf(object);
 
     }
 
-    @AllArgsConstructor
-    @Getter
-    public static class RestResp {
-        private String status;
-        private Object bodyToPrint;
-        private boolean printBody;
-
-        @Override
-        public String toString() {
-            return "status=" + status + (printBody ? ", body=" + bodyToPrint : "");
-        }
-    }
-
-    public static Object printCollectionAware(final Object object) {
+    /**
+     * Gets object representation with size for collection case.
+     *
+     * @param object object instance to log
+     * @return object representation with size for collection case
+     */
+    public static String printCollectionAware(final Object object) {
         return printCollectionAware(object, true);
     }
 
-    public static Object printCollectionAware(final Object object, final boolean printBody) {
-        if (object == null || !printBody) {
-            return "";
+    /**
+     * Gets object representation with size for collection case.
+     *
+     * @param object    object instance to log
+     * @param printBody if {@code true} then prevent object string representation
+     * @return object representation with size for collection case
+     */
+    public static String printCollectionAware(final Object object, final boolean printBody) {
+
+        if (!printBody) {
+            return PRINT_HIDDEN;
         }
+
+        if (object == null) {
+            return String.valueOf(object);
+        }
+
         Class<?> clazz = object.getClass();
         if (!Collection.class.isAssignableFrom(clazz)) {
-            return object;
+            return String.valueOf(object);
         }
-        return new StringBuilder().append("[<")
-                .append(clazz.getSimpleName())
-                .append("> size = ")
-                .append(Collection.class.cast(object).size()).append("]")
-                .toString();
 
+        return new StringBuilder().append("[<")
+                                  .append(clazz.getSimpleName())
+                                  .append("> size = ")
+                                  .append(Collection.class.cast(object).size()).append("]")
+                                  .toString();
     }
 
 }

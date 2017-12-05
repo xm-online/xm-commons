@@ -1,11 +1,22 @@
 package com.icthh.xm.commons.timeline;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.timeline.domain.ApiMaskConfig;
 import com.icthh.xm.commons.timeline.domain.ApiMaskRule;
-import com.icthh.xm.commons.timeline.utils.MDCUtil;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.web.util.ContentCachingRequestWrapper;
+import org.springframework.web.util.ContentCachingResponseWrapper;
+
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -18,16 +29,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
-import org.springframework.web.util.ContentCachingRequestWrapper;
-import org.springframework.web.util.ContentCachingResponseWrapper;
 
 @Slf4j
 @Component
@@ -50,7 +51,8 @@ public class TimelineEventProducer {
 
     /**
      * Create event json string.
-     * @param request the http request
+     *
+     * @param request  the http request
      * @param response the http response
      */
     public String createEventJson(HttpServletRequest request,
@@ -62,8 +64,10 @@ public class TimelineEventProducer {
             String requestBody = getRequestContent(request);
             String responseBody = getResponseContent(response);
 
+            Instant startDate = Instant.ofEpochMilli(System.currentTimeMillis() - MdcUtils.getExecTimeMs());
+
             Map<String, Object> data = new LinkedHashMap<>();
-            data.put("rid", MDCUtil.getRid());
+            data.put("rid", MdcUtils.getRid());
             data.put("login", userLogin);
             data.put("userKey", userKey);
             data.put("tenant", tenant);
@@ -71,7 +75,7 @@ public class TimelineEventProducer {
             data.put("operationName", getResourceName(request.getRequestURI())
                 + " " + getOperation(request.getMethod()));
             data.put("operationUrl", request.getRequestURI());
-            data.put("startDate", Instant.ofEpochMilli(System.currentTimeMillis() - MDCUtil.getExecTime()).toString());
+            data.put("startDate", startDate.toString());
             data.put("httpMethod", request.getMethod());
             data.put("requestBody", maskContent(requestBody, request.getRequestURI(), true, request.getMethod()));
             data.put("requestLength", requestBody.length());
@@ -84,7 +88,7 @@ public class TimelineEventProducer {
             data.put("entityId", getEntityField(responseBody, "id"));
             data.put("entityKey", getEntityField(responseBody, "key"));
             data.put("entityTypeKey", getEntityField(responseBody, "typeKey"));
-            data.put("execTime", MDCUtil.getExecTime());
+            data.put("execTime", MdcUtils.getExecTimeMs());
 
             return mapper.writeValueAsString(data);
         } catch (Exception e) {
@@ -95,7 +99,8 @@ public class TimelineEventProducer {
 
     /**
      * Send event to kafka.
-     * @param topic the kafka topic
+     *
+     * @param topic   the kafka topic
      * @param content the event content
      */
     @Async
@@ -235,7 +240,7 @@ public class TimelineEventProducer {
             try {
                 maskedContent = JsonPath.parse(maskedContent).set(path, rule.getMask()).jsonString();
             } catch (PathNotFoundException e) {
-                log.warn("Path {} not found, when masking content data", e);
+                log.debug("Path {} not found, when masking content data", path);
             } catch (Exception e) {
                 log.warn("Failed to mask content data", e);
             }

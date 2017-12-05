@@ -6,6 +6,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bitsofinfo.hazelcast.discovery.consul.BaseRegistrator;
 import org.springframework.cloud.commons.util.InetUtils;
+import org.springframework.cloud.commons.util.InetUtilsProperties;
 
 import java.util.Map;
 
@@ -18,6 +19,8 @@ public class CustomDiscoveryNodeRegistrator extends BaseRegistrator {
      */
     public static final String CONFIG_PROP_PREFER_PUBLIC_ADDRESS = "preferPublicAddress";
 
+    private static final InetUtils INET_UTILS_INSTANCE = new InetUtils(new InetUtilsProperties());
+
     @Override
     @SneakyThrows
     public Address determineMyLocalAddress(DiscoveryNode localDiscoveryNode, Map<String, Object> registratorConfig) {
@@ -25,13 +28,15 @@ public class CustomDiscoveryNodeRegistrator extends BaseRegistrator {
         Address myLocalAddress = localDiscoveryNode.getPrivateAddress();
 
         Object usePublicAddress = registratorConfig.get(CONFIG_PROP_PREFER_PUBLIC_ADDRESS);
-        if (usePublicAddress != null && usePublicAddress instanceof Boolean && (Boolean) usePublicAddress) {
-            log.info("Registrator config property: {}:{} attempting to use it...", CONFIG_PROP_PREFER_PUBLIC_ADDRESS, usePublicAddress);
+        if (usePublicAddress instanceof Boolean && Boolean.class.cast(usePublicAddress)) {
+            log.info("Registrator config property: {}:{} attempting to use it...",
+                     CONFIG_PROP_PREFER_PUBLIC_ADDRESS,
+                     usePublicAddress);
             Address publicAddress = localDiscoveryNode.getPublicAddress();
-            myLocalAddress = publicAddress != null ? publicAddress : myLocalAddress;
+            myLocalAddress = (publicAddress != null) ? publicAddress : myLocalAddress;
         }
 
-        return new Address(InetUtils.getFirstNonLoopbackHostInfo().getIpAddress(), myLocalAddress.getPort());
+        return new Address(INET_UTILS_INSTANCE.findFirstNonLoopbackHostInfo().getIpAddress(), myLocalAddress.getPort());
     }
 
 

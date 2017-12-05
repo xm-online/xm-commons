@@ -1,0 +1,36 @@
+ext.versions = [
+    gradle                     : '4.0',
+    grgit                      : '2.0.0',
+    sonarqube                  : '2.5',
+    checkstyle                 : '7.6.1',
+    findbugs                   : '3.0.1',
+    pmd                        : '5.5.4',
+
+    equalsverifier             : '2.3.3',
+    commonsLang3               : '3.5',
+    commonsCodec               : '1.10+',
+    commonsIo                  : '2.5',
+
+    springBoot                 : '1.5.4.RELEASE',
+    springCloud                : 'Dalston.RELEASE',
+    springSecurityOAuth2       : '2.0.12.RELEASE',
+    springData                 : '1.13.4.RELEASE',
+
+    lep                        : '0.1.0',
+    jsr305                     : '3.0.1',
+
+    jhipster                   : '1.1.8',
+    lombok                     : '1.16.16',
+    logstashLogbackEncoder     : '4.9',
+
+    propdepsPlugin             : '0.0.7',
+    hazelcastConsulDiscoverySpi: '1.0-RC7',
+
+    swaggerCodegen             : '2.2.3',
+    springfoxSwagger           : '2.7.0',
+    reflections                : '0.9.11',
+
+    systemRules                : '1.16.0',
+
+    hibernate                  : '5.2.8.Final',
+]

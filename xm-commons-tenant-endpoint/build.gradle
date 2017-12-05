@@ -1,0 +1,86 @@
+import io.swagger.codegen.DefaultGenerator
+import io.swagger.codegen.config.CodegenConfigurator
+
+buildscript {
+
+    repositories {
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+
+    dependencies {
+        classpath("io.swagger:swagger-codegen:${versions.swaggerCodegen}")
+    }
+}
+
+apply plugin: 'io.spring.dependency-management'
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:$versions.springBoot")
+    }
+}
+
+dependencies {
+    compile("io.springfox:springfox-swagger2:${versions.springfoxSwagger}") {
+        exclude module: 'mapstruct'
+    }
+
+    compile("org.springframework.boot:spring-boot-starter-web") {
+        exclude module: 'spring-boot-starter-tomcat'
+    }
+
+}
+
+
+def swaggerSourceFile = 'src/main/resources/swagger-spec/tenant/swagger-tenant-spec.yaml'
+def swaggerTargetFolder = 'src/main/java'
+
+task generateApi {
+
+    inputs.file("$projectDir/$swaggerSourceFile")
+    outputs.dir("$projectDir/$swaggerTargetFolder")
+
+    doLast {
+        def config = new CodegenConfigurator()
+        config.setInputSpec("file:///$projectDir/$swaggerSourceFile")
+        config.setOutputDir("$projectDir")
+        config.setLang('spring')
+        config.setAdditionalProperties([
+            //'interfaceOnly': 'true',
+            'delegatePattern': 'true',
+            'apiPackage'     : 'com.icthh.xm.commons.gen.api',
+            'modelPackage'   : 'com.icthh.xm.commons.gen.model',
+            'sourceFolder'   : swaggerTargetFolder
+        ])
+        new DefaultGenerator().opts(config.toClientOptInput()).generate()
+    }
+}
+
+compileJava {
+    dependsOn generateApi
+}
+
+clean.doFirst {
+    delete("${projectDir}/$swaggerTargetFolder/com/icthh/xm/commons/gen")
+    delete("${projectDir}/$swaggerTargetFolder/io/swagger")
+    delete("${projectDir}/src/main/resources/application.properties")
+}
+
+// disable QA for generated code project
+
+findbugs {
+    sourceSets = []
+}
+
+checkstyle {
+    sourceSets = []
+}
+
+pmd {
+    sourceSets = []
+}
+
+//sonarqube {
+//    skipProject = true
+//}
+
