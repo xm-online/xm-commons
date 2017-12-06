@@ -1,0 +1,1 @@
+return "ScriptWithAround.groovy default"

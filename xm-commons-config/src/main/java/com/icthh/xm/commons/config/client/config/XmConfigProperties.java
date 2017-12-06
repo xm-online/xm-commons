@@ -20,4 +20,6 @@ public class XmConfigProperties {
 
     private String xmConfigUrl;
 
+    private String tenantConfigPattern;
+
 }

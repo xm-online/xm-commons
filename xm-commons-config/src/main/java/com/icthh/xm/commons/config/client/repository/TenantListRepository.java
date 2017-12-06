@@ -4,7 +4,6 @@ import static com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance;
 import static com.icthh.xm.commons.config.client.config.XmConfigAutoConfigration.XM_CONFIG_REST_TEMPLATE;
 import static com.icthh.xm.commons.config.client.utils.RequestUtils.createAuthHeaders;
 import static java.util.Collections.unmodifiableSet;
-import static org.apache.commons.lang.StringUtils.isBlank;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
@@ -15,6 +14,7 @@ import com.icthh.xm.commons.config.domain.TenantState;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -77,17 +77,17 @@ public class TenantListRepository implements RefreshableConfiguration {
     public void deleteTenant(String tenantName) {
         HttpEntity<String> entity = new HttpEntity<>(createAuthHeaders());
         restTemplate.exchange(xmConfigUrl + applicationName + "/" + tenantName.toLowerCase(),
-                HttpMethod.DELETE, entity, Void.class);
+                              HttpMethod.DELETE, entity, Void.class);
     }
 
     public void updateTenant(String tenantName, String state) {
         HttpEntity<String> entity = new HttpEntity<>(state, createAuthHeaders());
         restTemplate.exchange(xmConfigUrl + applicationName + "/" + tenantName.toLowerCase(),
-                HttpMethod.PUT, entity, Void.class);
+                              HttpMethod.PUT, entity, Void.class);
     }
 
     @SneakyThrows
-    private void updateTenants(String key, String config)  {
+    private void updateTenants(String key, String config) {
         log.info("Tenants list was updated");
 
         if (!TENANTS_LIST_CONFIG_KEY.equals(key)) {
@@ -105,7 +105,7 @@ public class TenantListRepository implements RefreshableConfiguration {
 
         this.tenants = tenantKeys;
         this.suspendedTenants = tenantKeys.stream().filter(tenant -> SUSPENDED_STATE.equals(tenant.getState()))
-                .map(TenantState::getName).collect(Collectors.toSet());
+            .map(TenantState::getName).collect(Collectors.toSet());
     }
 
     private void assertExistTenants(Set<TenantState> tenantKeys) {
@@ -117,7 +117,7 @@ public class TenantListRepository implements RefreshableConfiguration {
     }
 
     private void assertExistsTenantsListConfig(String config) {
-        if (isBlank(config)) {
+        if (StringUtils.isBlank(config)) {
             log.error(ERROR);
             throw new IllegalStateException(ERROR);
         }

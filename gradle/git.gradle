@@ -1,0 +1,18 @@
+ext.gitBranch = getBranchName()
+ext.gitRevision = getRevision()
+ext.gitAbbreviatedRevision = getAbbreviatedRevision()
+
+String getBranchName() {
+    def jGit = grgit.repository.jgit
+    def objectId = jGit.getRepository().exactRef("HEAD").getObjectId()
+
+    return jGit.nameRev().add(objectId).call().get(objectId)
+}
+
+String getRevision() {
+    return grgit.head().id
+}
+
+String getAbbreviatedRevision() {
+    return grgit.head().abbreviatedId
+}

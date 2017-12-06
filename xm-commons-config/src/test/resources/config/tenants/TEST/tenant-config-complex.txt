@@ -1,0 +1,1 @@
+{config={first={second=value2}, list1=[item1, item2, item3], list2=[{attr1=val1.1, attr2=val1.2}, {attr1=val2.1, attr2=val2.2}], list3=[{obj1={attr1=val3.1.1, attr2=val3.1.2}}, {obj1={attr1=val3.2.1, attr2=val3.2.2}}], matrix=[[a00, a01], [a10, a11]]}}

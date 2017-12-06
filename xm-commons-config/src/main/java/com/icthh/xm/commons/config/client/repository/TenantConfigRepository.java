@@ -2,17 +2,13 @@ package com.icthh.xm.commons.config.client.repository;
 
 import static com.icthh.xm.commons.config.client.config.XmConfigAutoConfigration.XM_CONFIG_REST_TEMPLATE;
 import static com.icthh.xm.commons.config.client.utils.RequestUtils.createAuthHeaders;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
-import com.icthh.xm.commons.config.client.utils.TokenUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 
 @Slf4j
@@ -21,7 +17,7 @@ public class TenantConfigRepository {
     public static final String URL = "/api/config/tenants/{tenantName}/";
 
     private final RestTemplate restTemplate;
-    
+
     private final String applicationName;
 
     private final String xmConfigUrl;
@@ -64,10 +60,16 @@ public class TenantConfigRepository {
         restTemplate.exchange(xmConfigUrl + fullPath, HttpMethod.DELETE, entity, Void.class, tenantName);
     }
 
+    public String getConfigFullPath(String tenantName, String path) {
+        HttpEntity<String> entity = new HttpEntity<>(createAuthHeaders());
+        return  restTemplate.exchange(xmConfigUrl + path, HttpMethod.GET,
+                                      entity, String.class, tenantName).getBody();
+    }
+
+
     private String getServiceConfigUrl() {
         return xmConfigUrl + URL + applicationName;
     }
-
 
 
 }

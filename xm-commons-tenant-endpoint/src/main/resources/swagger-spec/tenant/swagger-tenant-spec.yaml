@@ -1,0 +1,157 @@
+swagger: "2.0"
+info:
+  version: "0.0.1"
+  title: "Swagger Tenant Specification"
+host: "host"
+basePath: "/api"
+tags:
+- name: "tenant"
+  description: "Endpoint for tenant management on service level"
+
+schemes:
+- "https"
+- "http"
+paths:
+  /tenants:
+    get:
+      tags:
+      - "tenant"
+      operationId: "getAllTenantInfo"
+      summary: "Get all tenant info"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Tenant"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+    post:
+      tags:
+      - "tenant"
+      operationId: "addTenant"
+      summary: "Create tenant"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Tenant object that needs to be added to the store"
+        required: true
+        schema:
+          $ref: "#/definitions/Tenant"
+      responses:
+        200:
+          description: "Tenant create successful"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+  /tenants/{tenantKey}:
+    delete:
+      tags:
+      - "tenant"
+      operationId: "deleteTenant"
+      summary: "Delete tenant by passed name"
+      description: ""
+      parameters:
+      - name: "tenantKey"
+        in: "path"
+        description: "Name of tenant to delete"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Tenant delete successful"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+    get:
+      tags:
+      - "tenant"
+      operationId: "getTenant"
+      summary: "Get tenant info by name"
+      description: "Request return tenants info which find by passed tenants name"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "tenantKey"
+        in: "path"
+        description: "Name of tenant to find"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Tenant delete successful"
+          schema:
+            $ref: "#/definitions/Tenant"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+    put:
+      tags:
+      - "tenant"
+      operationId: "manageTenant"
+      summary: "Tenant management"
+      description: "Request for managing tenants info by passed tenant name"
+      consumes:
+      - "application/json"
+      parameters:
+      - name: "tenantKey"
+        in: "path"
+        description: "Name of tenant to manage"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Updated status for tenant"
+        required: true
+        schema:
+          $ref: "#/definitions/Status"
+      responses:
+        200:
+          description: "Tenant changed successful"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+definitions:
+  Tenant:
+    type: "object"
+    required:
+      - tenantKey
+    properties:
+      tenantKey:
+        type: "string"
+        pattern: '^(?!pg_)(?!_)[a-zA-Z][a-zA-Z0-9_]{0,47}$'
+        description: "Unique tenant key. Alpha-numeric string with underscores. First alpha character. Not start with 'pg_'. Max length is 48"
+      name:
+        type: "string"
+        description: "Tenant name"
+      description:
+        type: "string"
+        description: "Tenant desciption"
+      data:
+        type: "object"
+        description: "Tenant additional data"
+  Status:
+    type: "string"

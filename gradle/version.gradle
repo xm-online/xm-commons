@@ -1,0 +1,37 @@
+import java.util.regex.Pattern
+
+version = "0.2.0"//detectSemVersion()
+logger.lifecycle("Project  version: $version")
+
+String detectSemVersion() {
+    String semVersion = String.valueOf(project.version)
+    if (!SemVersion.valueOf(semVersion).isRelease()) {
+        semVersion += "-SNAPSHOT"
+    }
+    return semVersion
+}
+
+public class SemVersion {
+
+    private static final String NUMERIC_ID = "(?:0|[1-9]\\d*)"
+    private static final String MAIN_VERSION = "(" + NUMERIC_ID + ")\\.(" + NUMERIC_ID + ")\\.(" + NUMERIC_ID + ")"
+
+    private static final Pattern MAIN_VERSION_REG = Pattern.compile(MAIN_VERSION);
+
+    private final String value
+
+    public SemVersion(String value) {
+        this.value = value;
+    }
+
+    public static SemVersion valueOf(String value) {
+        return new SemVersion(value);
+    }
+
+    public boolean isRelease() {
+        return !"0.0.0".equals(value) && MAIN_VERSION_REG.matcher(value).matches();
+    }
+
+}
+
+ext.SemVersion = SemVersion

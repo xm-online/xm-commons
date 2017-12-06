@@ -3,11 +3,6 @@ package com.icthh.xm.commons.timeline.config;
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 
 import com.icthh.xm.commons.timeline.TimelineEventProducer;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -17,6 +12,12 @@ import org.springframework.security.oauth2.provider.authentication.OAuth2Authent
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @Slf4j
 @Component
@@ -32,14 +33,14 @@ public class TimelineInterceptor extends HandlerInterceptorAdapter {
     private final List<String> ignoredPatterns;
 
     public TimelineInterceptor(TimelineEventProducer eventProducer,
-                             @Value("${application.tenant-ignored-path-list:true}") List<String> ignoredPatterns) {
+                               @Value("${application.tenant-ignored-path-list:true}") List<String> ignoredPatterns) {
         this.eventProducer = eventProducer;
         this.ignoredPatterns = ignoredPatterns;
     }
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
-            throws Exception {
+        throws Exception {
 
         if (isIgnoredRequest(request)) {
             return;
