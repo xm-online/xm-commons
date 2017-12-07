@@ -41,6 +41,8 @@ allprojects {
     group = property('app.group')
 }
 
+apply from: rootProject.file('gradle/nexus-staging.gradle')
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'maven'

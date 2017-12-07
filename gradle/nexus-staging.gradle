@@ -1,0 +1,6 @@
+
+nexusStaging {
+    username = ossrhUsername
+    password = ossrhPassword
+    packageGroup = "com.icthh"
+}
