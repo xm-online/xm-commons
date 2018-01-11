@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.permission.inspector;
 
-import com.icthh.xm.commons.permission.domain.mapper.PrivilegeMapper;
 import com.icthh.xm.commons.permission.inspector.kafka.PrivilegeEventProducer;
 import com.icthh.xm.commons.permission.inspector.scanner.PrivilegeScanner;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +20,6 @@ public class PrivilegeInspector {
      */
     @Async
     public void readPrivileges(String eventId) {
-        eventProducer.sendEvent(eventId, PrivilegeMapper.privilegesToYml(scanner.scan()));
+        eventProducer.sendEvent(eventId, scanner.scan());
     }
 }

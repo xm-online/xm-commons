@@ -1,0 +1,13 @@
+apply plugin: 'io.spring.dependency-management'
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
+    }
+}
+
+dependencies {
+    compile 'org.slf4j:slf4j-api'
+    compile 'org.springframework:spring-webmvc'
+    compileOnly 'javax.servlet:javax.servlet-api'
+}

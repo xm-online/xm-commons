@@ -7,13 +7,14 @@ import static org.junit.Assert.assertTrue;
 import com.icthh.xm.commons.permission.domain.Permission;
 import com.icthh.xm.commons.permission.domain.ReactionStrategy;
 import com.icthh.xm.commons.permission.domain.mapper.PermissionMapper;
+import org.junit.Test;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.junit.Test;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 public class PermissionMapperUnitTest {
 
@@ -22,12 +23,14 @@ public class PermissionMapperUnitTest {
         + "  ROLE1:\n"
         + "  - privilegeKey: \"PRIVILEGE_KEY1\"\n"
         + "    disabled: false\n"
+        + "    deleted: false\n"
         + "    envCondition: \"ENV_COND1\"\n"
         + "    resourceCondition: \"RESOLUTION_STRAT1\"\n"
         + "    reactionStrategy: \"SKIP\"\n"
         + "  ROLE2:\n"
         + "  - privilegeKey: \"PRIVILEGE_KEY2\"\n"
         + "    disabled: false\n"
+        + "    deleted: false\n"
         + "    envCondition: \"ENV_COND2\"\n"
         + "    resourceCondition: \"RESOLUTION_STRAT2\"\n"
         + "    reactionStrategy: \"SKIP\"\n"
@@ -35,6 +38,7 @@ public class PermissionMapperUnitTest {
         + "  ROLE3:\n"
         + "  - privilegeKey: \"PRIVILEGE_KEY3\"\n"
         + "    disabled: false\n"
+        + "    deleted: false\n"
         + "    envCondition: \"ENV_COND3\"\n"
         + "    resourceCondition: \"RESOLUTION_STRAT3\"\n"
         + "    reactionStrategy: \"SKIP\"\n";
@@ -78,6 +82,7 @@ public class PermissionMapperUnitTest {
         perm.setRoleKey("ROLE" + num);
         perm.setMsName("MS" + msNum);
         perm.setDisabled(false);
+        perm.setDeleted(false);
         perm.setEnvCondition(parser.parseExpression("ENV_COND" + num));
         perm.setPrivilegeKey("PRIVILEGE_KEY" + num);
         perm.setReactionStrategy(ReactionStrategy.SKIP);
