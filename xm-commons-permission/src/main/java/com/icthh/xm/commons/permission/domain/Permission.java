@@ -16,7 +16,7 @@ import org.springframework.expression.Expression;
 @Setter
 @EqualsAndHashCode(of = {"msName", "roleKey", "privilegeKey"})
 @ToString
-@JsonPropertyOrder( {"privilegeKey", "disabled", "envCondition", "resourceCondition", "reactionStrategy"})
+@JsonPropertyOrder( {"privilegeKey", "disabled", "deleted", "envCondition", "resourceCondition", "reactionStrategy"})
 public class Permission implements Comparable<Permission> {
 
     @JsonIgnore
@@ -25,6 +25,7 @@ public class Permission implements Comparable<Permission> {
     private String roleKey;
     private String privilegeKey;
     private boolean disabled;
+    private boolean deleted;
     private ReactionStrategy reactionStrategy;
     @JsonSerialize(using = SpelSerializer.class)
     @JsonDeserialize(using = SpelDeserializer.class)

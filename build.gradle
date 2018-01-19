@@ -231,6 +231,11 @@ subprojects {
                             }
 
                             developer {
+                                id 'amedvedchuk'
+                                name 'Anatoliy Medvedchuk'
+                            }
+
+                            developer {
                                 id 'bonertale'
                                 name 'Alexander Bonert'
                             }

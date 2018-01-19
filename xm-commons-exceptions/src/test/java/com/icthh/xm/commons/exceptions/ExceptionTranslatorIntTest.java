@@ -5,11 +5,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.exceptions.spring.web.ExceptionTranslator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -98,5 +100,31 @@ public class ExceptionTranslatorIntTest {
             .andExpect(status().isInternalServerError())
             .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_INTERNAL_SERVER_ERROR))
             .andExpect(jsonPath("$.error_description").value("Internal server error, please try later"));
+    }
+
+    @Test
+    public void testFieldValidationError() throws Exception {
+        mockMvc.perform(post("/test/field-validation-error")
+            .content(new ObjectMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
+            .contentType(MediaType.APPLICATION_JSON_UTF8))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_VALIDATION))
+            .andExpect(jsonPath("$.error_description").value("Input parameters error"))
+            .andExpect(jsonPath("$.fieldErrors.[0].objectName").value("testFieldValidation"))
+            .andExpect(jsonPath("$.fieldErrors.[0].field").value("dummy"))
+            .andExpect(jsonPath("$.fieldErrors.[0].message").value("NotNull"));
+    }
+
+    @Test
+    public void testClassValidationError() throws Exception {
+        mockMvc.perform(post("/test/class-validation-error")
+            .content(new ObjectMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
+            .contentType(MediaType.APPLICATION_JSON_UTF8))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_VALIDATION))
+            .andExpect(jsonPath("$.error_description").value("Input parameters error"))
+            .andExpect(jsonPath("$.fieldErrors.[0].objectName").value("testClassValidation"))
+            .andExpect(jsonPath("$.fieldErrors.[0].field").value("testClassValidation"))
+            .andExpect(jsonPath("$.fieldErrors.[0].message").value("NotCool"));
     }
 }

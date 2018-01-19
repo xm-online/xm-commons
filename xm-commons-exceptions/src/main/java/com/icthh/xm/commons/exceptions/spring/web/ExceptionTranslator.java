@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -80,10 +81,12 @@ public class ExceptionTranslator {
     @ResponseBody
     public ErrorVM processValidationError(MethodArgumentNotValidException ex) {
         BindingResult result = ex.getBindingResult();
-        List<FieldError> fieldErrors = result.getFieldErrors();
         FieldErrorVM dto = new FieldErrorVM(ErrorConstants.ERR_VALIDATION, translate(ErrorConstants.ERR_VALIDATION));
-        for (FieldError fieldError : fieldErrors) {
+        for (FieldError fieldError : result.getFieldErrors()) {
             dto.add(fieldError.getObjectName(), fieldError.getField(), fieldError.getCode());
+        }
+        for (ObjectError globalError : result.getGlobalErrors()) {
+            dto.add(globalError.getObjectName(), globalError.getObjectName(), globalError.getCode());
         }
         return dto;
     }
