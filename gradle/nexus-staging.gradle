@@ -1,6 +1,10 @@
 
-nexusStaging {
-    username = ossrhUsername
-    password = ossrhPassword
-    packageGroup = "com.icthh"
+if (hasProperty('ossrhUsername') && hasProperty('ossrhPassword')) {
+
+    nexusStaging {
+        username = ossrhUsername
+        password = ossrhPassword
+        packageGroup = "com.icthh"
+    }
+
 }
