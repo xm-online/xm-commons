@@ -16,8 +16,6 @@ public class XmConfigProperties {
 
     private Boolean enabled;
 
-    private Map<String, String> hazelcast = new HashMap<>();
-
     private String xmConfigUrl;
 
     private String tenantConfigPattern;

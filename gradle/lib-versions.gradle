@@ -24,7 +24,6 @@ ext.versions = [
     logstashLogbackEncoder     : '4.9',
 
     propdepsPlugin             : '0.0.7',
-    hazelcastConsulDiscoverySpi: '1.0-RC7',
 
     swaggerCodegen             : '2.2.3',
     springfoxSwagger           : '2.7.0',

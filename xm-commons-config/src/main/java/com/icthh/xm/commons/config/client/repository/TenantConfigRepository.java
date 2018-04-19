@@ -1,12 +1,9 @@
 package com.icthh.xm.commons.config.client.repository;
 
-import static com.icthh.xm.commons.config.client.config.XmConfigAutoConfigration.XM_CONFIG_REST_TEMPLATE;
 import static com.icthh.xm.commons.config.client.utils.RequestUtils.createAuthHeaders;
 
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestTemplate;
@@ -29,8 +26,8 @@ public class TenantConfigRepository {
 
     private final String xmConfigUrl;
 
-    public TenantConfigRepository(@Qualifier(XM_CONFIG_REST_TEMPLATE) RestTemplate restTemplate,
-                                  @Value("${spring.application.name}") String applicationName,
+    public TenantConfigRepository(RestTemplate restTemplate,
+                                  String applicationName,
                                   XmConfigProperties applicationProperties) {
         this.restTemplate = restTemplate;
         this.xmConfigUrl = applicationProperties.getXmConfigUrl();
