@@ -64,6 +64,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
                  getBeanName(refreshableConfiguration), configMap.size());
     }
 
+    //TODO:hazel this is called by event listener
     private void onEntryChange(RefreshableConfiguration refreshableConfiguration,
                                Map.Entry<String, String> entry,
                                Map<String, String> configMap) {

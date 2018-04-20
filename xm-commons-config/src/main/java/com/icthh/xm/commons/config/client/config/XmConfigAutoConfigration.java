@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.config.client.config;
 
-import static com.icthh.xm.commons.config.client.config.XmConfigConfiguration.XM_CONFIG_REST_TEMPLATE;
+import static com.icthh.xm.commons.config.client.config.XmRestTemplateConfiguration.XM_CONFIG_REST_TEMPLATE;
 
 import com.icthh.xm.commons.config.client.repository.TenantConfigRepository;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
@@ -11,9 +11,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
+@Import({
+    XmConfigConfiguration.class
+})
 @ConditionalOnExpression("${xm-config.enabled} && ${tenant.reject-suspended:true}")
 public class XmConfigAutoConfigration {
 
