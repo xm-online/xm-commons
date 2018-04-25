@@ -27,7 +27,7 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-databind'
     compile "org.aspectj:aspectjweaver"
 
-    compile "org.hibernate:hibernate-entitymanager:${versions.hibernate}"
+    compile "org.hibernate:hibernate-core:${versions.hibernate}"
     compile "org.springframework.data:spring-data-commons:${versions.springData}"
 
     testCompile 'junit:junit'

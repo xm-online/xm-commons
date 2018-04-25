@@ -1,10 +1,14 @@
 package com.icthh.xm.commons.permission.repository;
 
+import static java.lang.String.format;
+
 import com.icthh.xm.commons.permission.service.PermissionCheckService;
 import com.icthh.xm.commons.permission.service.translator.SpelToJpqlTranslator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.jpa.QueryHints;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -13,10 +17,13 @@ import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Subgraph;
 import javax.persistence.TypedQuery;
 
 @Slf4j
@@ -29,6 +36,7 @@ public class PermittedRepository {
     public static final String WHERE_SQL = " where ";
     public static final String AND_SQL = " and ";
     public static final String ORDER_BY_SQL = " order by ";
+    private static final String GRAPH_DELIMETER = ".";
 
     private final SpelToJpqlTranslator spelToJpqlTranslator = new SpelToJpqlTranslator();
 
@@ -57,8 +65,8 @@ public class PermittedRepository {
      * @return page of permitted entities
      */
     public <T> Page<T> findAll(Pageable pageable, Class<T> entityClass, String privilegeKey) {
-        String selectSql = String.format(SELECT_ALL_SQL, entityClass.getSimpleName());
-        String countSql = String.format(COUNT_ALL_SQL, entityClass.getSimpleName());
+        String selectSql = format(SELECT_ALL_SQL, entityClass.getSimpleName());
+        String countSql = format(COUNT_ALL_SQL, entityClass.getSimpleName());
 
         String permittedCondition = createPermissionCondition(privilegeKey);
         if (StringUtils.isNotBlank(permittedCondition)) {
@@ -102,8 +110,28 @@ public class PermittedRepository {
                                        Pageable pageable,
                                        Class<T> entityClass,
                                        String privilegeKey) {
-        String selectSql = String.format(SELECT_ALL_SQL, entityClass.getSimpleName());
-        String countSql = String.format(COUNT_ALL_SQL, entityClass.getSimpleName());
+        return findByCondition(whereCondition, conditionParams, null, pageable, entityClass, privilegeKey);
+    }
+
+    /**
+     * Find permitted entities by parameters with embed graph.
+     * @param whereCondition the parameters condition
+     * @param conditionParams the parameters map
+     * @param embed the embed list
+     * @param pageable the page info
+     * @param entityClass the entity class to get
+     * @param privilegeKey the privilege key for permission lookup
+     * @param <T> the type of entity
+     * @return page of permitted entities
+     */
+    public <T> Page<T> findByCondition(String whereCondition,
+                                        Map<String, Object> conditionParams,
+                                        Collection<String> embed,
+                                        Pageable pageable,
+                                        Class<T> entityClass,
+                                        String privilegeKey) {
+        String selectSql = format(SELECT_ALL_SQL, entityClass.getSimpleName());
+        String countSql = format(COUNT_ALL_SQL, entityClass.getSimpleName());
 
         selectSql += WHERE_SQL + whereCondition;
         countSql += WHERE_SQL + whereCondition;
@@ -115,6 +143,9 @@ public class PermittedRepository {
         }
 
         TypedQuery<T> selectQuery = createSelectQuery(selectSql, pageable, entityClass);
+        if (CollectionUtils.isNotEmpty(embed)) {
+            selectQuery.setHint(QueryHints.HINT_LOADGRAPH, createEnitityGraph(embed, entityClass));
+        }
         TypedQuery<Long> countQuery = createCountQuery(countSql);
 
         conditionParams.forEach((paramName, paramValue) -> {
@@ -183,5 +214,35 @@ public class PermittedRepository {
         }
 
         return total;
+    }
+
+    private <T> EntityGraph<T> createEnitityGraph(Collection<String> embed, Class<T> domainClass) {
+        EntityGraph<T> graph = em.createEntityGraph(domainClass);
+        if (CollectionUtils.isNotEmpty(embed)) {
+            embed.forEach(f -> addAttributeNodes(f, graph));
+        }
+        return graph;
+    }
+
+    private static void addAttributeNodes(String fieldName, EntityGraph<?> graph) {
+        int pos = fieldName.indexOf(GRAPH_DELIMETER);
+        if (pos < 0) {
+            graph.addAttributeNodes(fieldName);
+            return;
+        }
+
+        String subgraphName = fieldName.substring(0, pos);
+        Subgraph<?> subGraph = graph.addSubgraph(subgraphName);
+        String nextFieldName = fieldName.substring(pos + 1);
+        pos = nextFieldName.indexOf(GRAPH_DELIMETER);
+
+        while (pos > 0) {
+            subgraphName = nextFieldName.substring(0, pos);
+            subGraph = graph.addSubgraph(subgraphName);
+            nextFieldName = nextFieldName.substring(pos + 1);
+            pos = nextFieldName.indexOf(GRAPH_DELIMETER);
+        }
+
+        subGraph.addAttributeNodes(nextFieldName);
     }
 }
