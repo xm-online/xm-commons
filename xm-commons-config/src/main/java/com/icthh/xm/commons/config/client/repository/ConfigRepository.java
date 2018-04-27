@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.config.client.repository;
 
-import static com.icthh.xm.commons.config.client.utils.RequestUtils.createAuthHeaders;
 import static com.icthh.xm.commons.config.client.utils.RequestUtils.createSimpleHeaders;
 
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
@@ -20,7 +19,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ConfigRepository {
 
-    private static final String URL = "/api/config/";
+    private static final String URL = "/api/config_map";
     private final RestTemplate restTemplate;
     private final XmConfigProperties xmConfigProperties;
 
