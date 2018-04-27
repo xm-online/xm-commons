@@ -2,9 +2,12 @@ package com.icthh.xm.commons.permission.repository;
 
 import static java.lang.String.format;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.icthh.xm.commons.permission.service.PermissionCheckService;
 import com.icthh.xm.commons.permission.service.translator.SpelToJpqlTranslator;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +45,8 @@ public class PermittedRepository {
 
     private final PermissionCheckService permissionCheckService;
 
+    @Setter(AccessLevel.PACKAGE)
+    @VisibleForTesting
     @PersistenceContext
     private EntityManager em;
 
