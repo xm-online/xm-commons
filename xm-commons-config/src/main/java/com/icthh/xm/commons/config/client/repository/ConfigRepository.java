@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.config.client.repository;
 
 import static com.icthh.xm.commons.config.client.utils.RequestUtils.createAuthHeaders;
+import static com.icthh.xm.commons.config.client.utils.RequestUtils.createSimpleHeaders;
 
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.domain.ConfigurationFile;
@@ -37,7 +38,7 @@ public class ConfigRepository {
     private List<ConfigurationFile> readFromConfigService() {
         ParameterizedTypeReference<List<ConfigurationFile>> typeRef = new ParameterizedTypeReference<List<ConfigurationFile>>() {
         };
-        HttpEntity<String> entity = new HttpEntity<>(createAuthHeaders());
+        HttpEntity<String> entity = new HttpEntity<>(createSimpleHeaders());
         return restTemplate.exchange(getServiceConfigUrl(), HttpMethod.GET, entity, typeRef).getBody();
     }
 
