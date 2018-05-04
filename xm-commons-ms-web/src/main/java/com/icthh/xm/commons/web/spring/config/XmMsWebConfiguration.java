@@ -16,6 +16,7 @@ import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import com.icthh.xm.commons.web.spring.TenantInterceptor;
 import com.icthh.xm.commons.web.spring.TenantVerifyInterceptor;
 import com.icthh.xm.commons.web.spring.XmLoggingInterceptor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 
 /**
@@ -42,7 +43,7 @@ public class XmMsWebConfiguration {
     @Bean
     @Order(2)
     @ConditionalOnExpression("${xm-config.enabled} && ${tenant.reject-suspended:true}")
-    TenantVerifyInterceptor tenantVerifyInterceptor(TenantListRepository tenantListRepository,
+    TenantVerifyInterceptor tenantVerifyInterceptor(@Lazy TenantListRepository tenantListRepository,
                                                     TenantContextHolder tenantContextHolder) {
         return new TenantVerifyInterceptor(tenantListRepository, tenantContextHolder);
     }
