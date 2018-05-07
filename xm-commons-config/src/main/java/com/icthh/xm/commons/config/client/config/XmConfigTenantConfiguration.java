@@ -16,10 +16,10 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration
 @Import({
-    XmConfigConfiguration.class
+    XmRestTemplateConfiguration.class
 })
 @ConditionalOnExpression("${xm-config.enabled} && ${tenant.reject-suspended:true}")
-public class XmConfigAutoConfigration {
+public class XmConfigTenantConfiguration {
 
     @Bean
     public TenantListRepository tenantListRepository(@Qualifier(XM_CONFIG_REST_TEMPLATE) RestTemplate restTemplate,

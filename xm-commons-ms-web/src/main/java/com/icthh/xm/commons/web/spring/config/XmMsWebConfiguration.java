@@ -1,12 +1,13 @@
 package com.icthh.xm.commons.web.spring.config;
 
+import com.icthh.xm.commons.config.client.config.XmConfigConfiguration;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import com.icthh.xm.commons.config.client.config.XmConfigAutoConfigration;
+import com.icthh.xm.commons.config.client.config.XmConfigTenantConfiguration;
 import com.icthh.xm.commons.logging.spring.config.ServiceLoggingAspectConfiguration;
 import com.icthh.xm.commons.logging.web.spring.config.RestLoggingAspectConfiguration;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
@@ -29,7 +30,8 @@ import org.springframework.core.annotation.Order;
     TenantContextConfiguration.class,
     ServiceLoggingAspectConfiguration.class,
     RestLoggingAspectConfiguration.class,
-    XmConfigAutoConfigration.class
+    XmConfigConfiguration.class,
+    XmConfigTenantConfiguration.class
 })
 public class XmMsWebConfiguration {
 

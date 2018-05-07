@@ -11,8 +11,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.client.RestTemplate;
 
-@Import({XmRestTemplateConfiguration.class})
 @Configuration
+@Import({
+    XmRestTemplateConfiguration.class
+})
 @ConditionalOnProperty("xm-config.enabled")
 public class XmConfigConfiguration {
 
