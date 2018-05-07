@@ -2,6 +2,7 @@ package com.icthh.xm.commons.config.client.config;
 
 import static com.icthh.xm.commons.config.client.config.XmRestTemplateConfiguration.XM_CONFIG_REST_TEMPLATE;
 
+import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.repository.ConfigRepository;
 import com.icthh.xm.commons.config.client.service.ConfigServiceImpl;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,7 +26,7 @@ public class XmConfigConfiguration {
     }
 
     @Bean
-    public ConfigServiceImpl configService(ConfigRepository configRepository) {
+    public ConfigService configService(ConfigRepository configRepository) {
         return new ConfigServiceImpl(configRepository);
     }
 }
