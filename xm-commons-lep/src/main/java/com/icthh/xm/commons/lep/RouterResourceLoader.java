@@ -19,6 +19,10 @@ public class RouterResourceLoader implements ResourceLoader {
         this.urlPrefixToResourceLoader = Objects.requireNonNull(urlPrefixToResourceLoader);
     }
 
+    public ResourceLoader getResourceLoader(String prefix) {
+        return urlPrefixToResourceLoader.get(prefix);
+    }
+
     private static String getUrlPrefix(String location) {
         if (StringUtils.isBlank(location)) {
             return null;
