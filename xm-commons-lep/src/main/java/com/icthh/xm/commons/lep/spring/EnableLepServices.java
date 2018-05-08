@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
  * Scans for interfaces that declare they are LEP services (via {@link LepService
  * <code>@LepService</code>}). Configures component scanning directives for use with
  * {@link org.springframework.context.annotation.Configuration
- * <code>@ConfigurationFile</code>} classes.
+ * <code>@Configuration</code>} classes.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

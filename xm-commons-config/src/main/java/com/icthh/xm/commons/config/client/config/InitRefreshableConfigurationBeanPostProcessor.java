@@ -1,7 +1,8 @@
 package com.icthh.xm.commons.config.client.config;
 
-import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.config.client.api.ConfigService;
+import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -44,7 +45,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
     }
 
     private void initBean(RefreshableConfiguration refreshableConfiguration) {
-        Map<String, String> configMap = configService.getConfig();
+        Map<String, Configuration> configMap = configService.getConfig();
 
         configMap.forEach((key, value) -> {
             if (refreshableConfiguration.isListeningConfiguration(key)) {
@@ -52,46 +53,45 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
                 log.info(
                     "Process config init event: [key = {}, size = {}, newHash = {}] in bean: [{}]",
                     key,
-                    StringUtils.length(value),
-                    getValueHash(value),
+                    StringUtils.length(value.getContent()),
+                    getValueHash(value.getContent()),
                     getBeanName(refreshableConfiguration));
 
-                refreshableConfiguration.onInit(key, value);
+                refreshableConfiguration.onInit(key, value.getContent());
             }
         });
 
         log.info("refreshable configuration bean [{}] initialized by configMap with {} entries",
-                 getBeanName(refreshableConfiguration), configMap.size());
+            getBeanName(refreshableConfiguration), configMap.size());
     }
 
-    //TODO:hazel this is called by event listener
-    private void onEntryChange(RefreshableConfiguration refreshableConfiguration,
-                               Map.Entry<String, String> entry,
-                               Map<String, String> configMap) {
+    public void onConfigurationChanged(String key, String commit) {
+        Map<String, Configuration> configMap = configService.getConfig();
+        refreshableConfigurations.values().forEach(entry -> onEntryChange(entry, key, commit, configMap));
+    }
 
-        String entryKey = entry.getKey();
-        String configContent = configMap.get(entryKey);
+    private void onEntryChange(RefreshableConfiguration refreshableConfiguration, String path, String commit,
+        Map<String, Configuration> configMap) {
+        Configuration configuration = configMap.getOrDefault(path, new Configuration(path, null, commit));
+        String configContent = configuration.getContent();
 
-        if (refreshableConfiguration.isListeningConfiguration(entryKey)) {
-
-            refreshableConfiguration.onRefresh(entryKey, configContent);
+        if (refreshableConfiguration.isListeningConfiguration(path)) {
+            refreshableConfiguration.onRefresh(path, configContent);
 
             log.info(
                 "Process config update event: "
-                + "[key = {}, evtType = {}, size = {}, newHash = {}, oldHash = {}] in bean: [{}]",
-                entryKey,
-                //entry.getEventType(),
+                    + "[path = {}, size = {}, commit = {}, hash = {}] in bean: [{}]",
+                path,
                 StringUtils.length(configContent),
+                commit,
                 getValueHash(configContent),
-                //getValueHash(entry.getOldValue()),
                 getBeanName(refreshableConfiguration));
 
         } else {
-            log.debug("Ignored config update event: [key = {}, evtType = {}, configSize = {} in bean [{}]",
-                      entryKey,
-                      //entry.getEventType(),
-                      StringUtils.length(configContent),
-                      getBeanName(refreshableConfiguration));
+            log.debug("Ignored config update event: [path = {}, configSize = {} in bean [{}]",
+                path,
+                StringUtils.length(configContent),
+                getBeanName(refreshableConfiguration));
         }
     }
 
@@ -101,7 +101,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
 
     private String getValueHash(final String configContent) {
         return StringUtils.isEmpty(configContent) ? LOG_CONFIG_EMPTY :
-               DigestUtils.md5Hex(configContent);
+            DigestUtils.md5Hex(configContent);
     }
 
 }
