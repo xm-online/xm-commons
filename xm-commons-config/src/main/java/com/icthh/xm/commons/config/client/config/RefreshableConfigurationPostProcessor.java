@@ -2,6 +2,8 @@ package com.icthh.xm.commons.config.client.config;
 
 import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.config.client.repository.ConfigurationListener;
+import com.icthh.xm.commons.config.client.repository.ConfigurationModel;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,13 +19,12 @@ import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
-@Component
-@ConditionalOnProperty("xm-config.enabled")
-public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostProcessor {
+public class RefreshableConfigurationPostProcessor implements BeanPostProcessor, ConfigurationListener {
 
     public static final String LOG_CONFIG_EMPTY = "<CONFIG_EMPTY>";
 
     private final ConfigService configService;
+    private final ConfigurationModel configurationModel;
 
     private final Map<String, RefreshableConfiguration> refreshableConfigurations = new HashMap<>();
 
@@ -63,33 +64,34 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
 
         log.info("refreshable configuration bean [{}] initialized by configMap with {} entries",
             getBeanName(refreshableConfiguration), configMap.size());
+        configurationModel.setConfigurationListener(this);
     }
 
-    public void onConfigurationChanged(String key, String commit) {
+    @Override
+    public void onConfigurationChanged(String path) {
         Map<String, Configuration> configMap = configService.getConfig();
-        refreshableConfigurations.values().forEach(entry -> onEntryChange(entry, key, commit, configMap));
+        Configuration configuration = configMap.getOrDefault(path, new Configuration(path, null, null));
+        refreshableConfigurations.values().forEach(entry -> onEntryChange(entry, configuration));
     }
 
-    private void onEntryChange(RefreshableConfiguration refreshableConfiguration, String path, String commit,
-        Map<String, Configuration> configMap) {
-        Configuration configuration = configMap.getOrDefault(path, new Configuration(path, null, commit));
+    private void onEntryChange(RefreshableConfiguration refreshableConfiguration, Configuration configuration) {
         String configContent = configuration.getContent();
 
-        if (refreshableConfiguration.isListeningConfiguration(path)) {
-            refreshableConfiguration.onRefresh(path, configContent);
+        if (refreshableConfiguration.isListeningConfiguration(configuration.getPath())) {
+            refreshableConfiguration.onRefresh(configuration.getPath(), configContent);
 
             log.info(
                 "Process config update event: "
                     + "[path = {}, size = {}, commit = {}, hash = {}] in bean: [{}]",
-                path,
+                configuration.getPath(),
                 StringUtils.length(configContent),
-                commit,
+                configuration.getCommit(),
                 getValueHash(configContent),
                 getBeanName(refreshableConfiguration));
 
         } else {
             log.debug("Ignored config update event: [path = {}, configSize = {} in bean [{}]",
-                path,
+                configuration.getPath(),
                 StringUtils.length(configContent),
                 getBeanName(refreshableConfiguration));
         }
@@ -103,5 +105,4 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
         return StringUtils.isEmpty(configContent) ? LOG_CONFIG_EMPTY :
             DigestUtils.md5Hex(configContent);
     }
-
 }
