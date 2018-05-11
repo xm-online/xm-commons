@@ -41,10 +41,10 @@ public class XmConfigConfiguration {
     }
 
     @Bean
-    public RefreshableConfigurationPostProcessor refreshableConfigurationPostProcessor(
+    public InitRefreshableConfigurationBeanPostProcessor refreshableConfigurationPostProcessor(
         ConfigService configService,
         ConfigurationModel configurationModel) {
-        return new RefreshableConfigurationPostProcessor(configService, configurationModel);
+        return new InitRefreshableConfigurationBeanPostProcessor(configService, configurationModel);
     }
 
     @Bean

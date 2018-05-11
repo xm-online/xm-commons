@@ -19,7 +19,7 @@ import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
-public class RefreshableConfigurationPostProcessor implements BeanPostProcessor, ConfigurationListener {
+public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostProcessor, ConfigurationListener {
 
     public static final String LOG_CONFIG_EMPTY = "<CONFIG_EMPTY>";
 
