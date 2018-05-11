@@ -12,24 +12,24 @@ import java.util.concurrent.locks.Lock;
 public class LockUtils {
 
     @SneakyThrows
-    public static <R, E extends Exception> R runWithLock(Lock lock, long maxWaitTime, ReturnableTask<R, E> task) {
-        log.info("Try to lock object");
+    public static <R, E extends Exception> R runWithLock(String objectName, Lock lock, long maxWaitTime, ReturnableTask<R, E> task) {
+        log.info("Try to lock {}", objectName);
         if (lock.tryLock(maxWaitTime, TimeUnit.SECONDS)) {
             log.info("Object locked");
             try {
                 return task.execute();
             } finally {
-                log.info("Try to unlock object");
+                log.info("Try to unlock {}", objectName);
                 lock.unlock();
-                log.info("Object unlocked");
+                log.info("{} unlocked", objectName);
             }
         } else {
-            throw new IllegalMonitorStateException("Object already locked");
+            throw new IllegalMonitorStateException(objectName + " already locked");
         }
     }
 
-    public static <E extends Exception> void runWithLock(Lock lock, long maxWaitTime, Task<E> task) {
-        runWithLock(lock, maxWaitTime, () -> {
+    public static <E extends Exception> void runWithLock(String objectName, Lock lock, long maxWaitTime, Task<E> task) {
+        runWithLock(objectName, lock, maxWaitTime, () -> {
             task.execute();
             return null;
         });

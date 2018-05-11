@@ -36,7 +36,7 @@ public class ConfigServiceImpl implements ConfigService, ConfigurationModel {
 
     @Override
     public void updateConfiguration(Configuration configuration) {
-        runWithLock(lock, xmConfigProperties.getMaxWaitTimeSecond(), () -> {
+        runWithLock("ConfigService", lock, xmConfigProperties.getMaxWaitTimeSecond(), () -> {
             log.debug("Try to update configuration {} {}", configuration.getPath(), configuration.getCommit());
             Configuration old = configRepository.getConfig()
                 .getOrDefault(configuration.getPath(), new Configuration(configuration.getPath(), null, null));
