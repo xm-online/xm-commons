@@ -1,22 +1,27 @@
 package com.icthh.xm.commons.config.client.service;
 
+import static com.icthh.xm.commons.config.client.utils.LockUtils.runWithLock;
+
 import com.icthh.xm.commons.config.client.api.ConfigService;
+import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.client.repository.ConfigRepository;
 import com.icthh.xm.commons.config.client.repository.ConfigurationListener;
 import com.icthh.xm.commons.config.client.repository.ConfigurationModel;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.annotation.Order;
 
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
 
 @Slf4j
 @RequiredArgsConstructor
 public class ConfigServiceImpl implements ConfigService, ConfigurationModel {
 
+    private final XmConfigProperties xmConfigProperties;
     private final ConfigRepository configRepository;
+    private final Lock lock;
+
     private ConfigurationListener configurationListener;
 
     @Override
@@ -31,13 +36,16 @@ public class ConfigServiceImpl implements ConfigService, ConfigurationModel {
 
     @Override
     public void updateConfiguration(Configuration configuration) {
-        log.debug("Try to update configuration {} {}", configuration.getPath(), configuration.getCommit());
-        Configuration old = configRepository.getConfig().getOrDefault(configuration.getPath(), new Configuration(configuration.getPath(), null, null));
-        log.debug("Existing configuration {} {}", old.getPath(), old.getCommit());
-        if (!configuration.getCommit().equals(old.getCommit())) {
-            configRepository.refreshConfig();
-        }
-        notifyUpdated(configuration.getPath());
+        runWithLock(lock, xmConfigProperties.getMaxWaitTimeSecond(), () -> {
+            log.debug("Try to update configuration {} {}", configuration.getPath(), configuration.getCommit());
+            Configuration old = configRepository.getConfig()
+                .getOrDefault(configuration.getPath(), new Configuration(configuration.getPath(), null, null));
+            log.debug("Existing configuration {} {}", old.getPath(), old.getCommit());
+            if (!configuration.getCommit().equals(old.getCommit())) {
+                configRepository.refreshConfig();
+            }
+            notifyUpdated(configuration.getPath());
+        });
     }
 
     private void notifyUpdated(String path) {

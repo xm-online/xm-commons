@@ -13,6 +13,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 @Configuration
 @Import({
     XmRestTemplateConfiguration.class
@@ -20,20 +23,33 @@ import org.springframework.web.client.RestTemplate;
 @ConditionalOnProperty("xm-config.enabled")
 public class XmConfigConfiguration {
 
+    public static final String CONFIG_SERVICE_LOCK = "config-service-lock";
+
     @Bean
-    public ConfigRepository configRepository(@Qualifier(XM_CONFIG_REST_TEMPLATE) RestTemplate restTemplate,
+    public ConfigRepository configRepository(
+        @Qualifier(XM_CONFIG_REST_TEMPLATE) RestTemplate restTemplate,
         XmConfigProperties xmConfigProperties) {
         return new ConfigRepository(restTemplate, xmConfigProperties);
     }
 
     @Bean
-    public ConfigService configService(ConfigRepository configRepository) {
-        return new ConfigServiceImpl(configRepository);
+    public ConfigService configService(
+        XmConfigProperties xmConfigProperties,
+        ConfigRepository configRepository,
+        @Qualifier(CONFIG_SERVICE_LOCK) Lock lock) {
+        return new ConfigServiceImpl(xmConfigProperties, configRepository, lock);
     }
 
     @Bean
-    public RefreshableConfigurationPostProcessor refreshableConfigurationPostProcessor(ConfigService configService,
+    public RefreshableConfigurationPostProcessor refreshableConfigurationPostProcessor(
+        ConfigService configService,
         ConfigurationModel configurationModel) {
         return new RefreshableConfigurationPostProcessor(configService, configurationModel);
+    }
+
+    @Bean
+    @Qualifier(CONFIG_SERVICE_LOCK)
+    public Lock configServiceLock() {
+        return new ReentrantLock();
     }
 }

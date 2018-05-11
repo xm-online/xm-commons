@@ -15,9 +15,7 @@ import java.util.Map;
 public class XmConfigProperties {
 
     private Boolean enabled;
-
     private String xmConfigUrl;
-
     private String tenantConfigPattern;
-
+    private Integer maxWaitTimeSecond;
 }
