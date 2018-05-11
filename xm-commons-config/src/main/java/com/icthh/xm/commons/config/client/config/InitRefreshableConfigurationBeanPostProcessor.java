@@ -2,7 +2,6 @@ package com.icthh.xm.commons.config.client.config;
 
 import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
-import com.icthh.xm.commons.config.client.repository.ConfigurationListener;
 import com.icthh.xm.commons.config.client.repository.ConfigurationModel;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.RequiredArgsConstructor;
@@ -11,15 +10,13 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
-public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostProcessor, ConfigurationListener {
+public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostProcessor {
 
     public static final String LOG_CONFIG_EMPTY = "<CONFIG_EMPTY>";
 
@@ -64,17 +61,13 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
 
         log.info("refreshable configuration bean [{}] initialized by configMap with {} entries",
             getBeanName(refreshableConfiguration), configMap.size());
-        configurationModel.setConfigurationListener(this);
+
+        configurationModel.onConfigurationChanged(path -> onEntryChange(refreshableConfiguration, path));
     }
 
-    @Override
-    public void onConfigurationChanged(String path) {
+    private void onEntryChange(RefreshableConfiguration refreshableConfiguration, String path) {
         Map<String, Configuration> configMap = configService.getConfig();
         Configuration configuration = configMap.getOrDefault(path, new Configuration(path, null, null));
-        refreshableConfigurations.values().forEach(entry -> onEntryChange(entry, configuration));
-    }
-
-    private void onEntryChange(RefreshableConfiguration refreshableConfiguration, Configuration configuration) {
         String configContent = configuration.getContent();
 
         if (refreshableConfiguration.isListeningConfiguration(configuration.getPath())) {

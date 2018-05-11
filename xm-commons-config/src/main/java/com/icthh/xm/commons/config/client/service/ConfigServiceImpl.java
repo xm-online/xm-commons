@@ -5,7 +5,6 @@ import static com.icthh.xm.commons.config.client.utils.LockUtils.runWithLock;
 import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.client.repository.ConfigRepository;
-import com.icthh.xm.commons.config.client.repository.ConfigurationListener;
 import com.icthh.xm.commons.config.client.repository.ConfigurationModel;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
+import java.util.function.Consumer;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -22,7 +22,7 @@ public class ConfigServiceImpl implements ConfigService, ConfigurationModel {
     private final ConfigRepository configRepository;
     private final Lock lock;
 
-    private ConfigurationListener configurationListener;
+    private Consumer<String> configurationListener;
 
     @Override
     public Map<String, Configuration> getConfig() {
@@ -30,7 +30,7 @@ public class ConfigServiceImpl implements ConfigService, ConfigurationModel {
     }
 
     @Override
-    public void setConfigurationListener(ConfigurationListener configurationListener) {
+    public void onConfigurationChanged(Consumer<String> configurationListener) {
         this.configurationListener = configurationListener;
     }
 
@@ -51,7 +51,7 @@ public class ConfigServiceImpl implements ConfigService, ConfigurationModel {
     private void notifyUpdated(String path) {
         if (configurationListener != null) {
             log.debug("Notify configuration changed [{}]", path);
-            configurationListener.onConfigurationChanged(path);
+            configurationListener.accept(path);
         }
     }
 }
