@@ -3,7 +3,7 @@ package com.icthh.xm.commons.config.client.repository.kafka;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.icthh.xm.commons.config.client.repository.ConfigurationModel;
+import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.domain.ConfigEvent;
 import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.config.domain.ConfigurationEvent;
@@ -26,7 +26,7 @@ public class ConfigTopicConsumer {
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         .registerModule(new JavaTimeModule());
 
-    private final ConfigurationModel configurationModel;
+    private final ConfigService configService;
 
     /**
      * Consume tenant command event message.
@@ -56,7 +56,7 @@ public class ConfigTopicConsumer {
 
     private void onSaveConfiguration(ConfigEvent event) {
         List<ConfigurationEvent> configurations = event.getConfigurations();
-        configurationModel.updateConfiguration(configurations.stream().map(
+        configService.updateConfigurations(configurations.stream().map(
             configurationEvent -> new Configuration(configurationEvent.getPath(), null,
                 configurationEvent.getCommit())).collect(Collectors.toList()));
     }

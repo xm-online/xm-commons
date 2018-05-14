@@ -2,7 +2,6 @@ package com.icthh.xm.commons.config.client.config;
 
 import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
-import com.icthh.xm.commons.config.client.repository.ConfigurationModel;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +20,6 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
     public static final String LOG_CONFIG_EMPTY = "<CONFIG_EMPTY>";
 
     private final ConfigService configService;
-    private final ConfigurationModel configurationModel;
 
     private final Map<String, RefreshableConfiguration> refreshableConfigurations = new HashMap<>();
     private Map<String, Configuration> configMap;
@@ -45,7 +43,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
 
     private Map<String, Configuration> getConfig() {
         if (configMap == null) {
-            configMap = configService.getConfig();
+            configMap = configService.getConfigurationMap();
         }
         return configMap;
     }
@@ -67,7 +65,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
         log.info("refreshable configuration bean [{}] initialized by configMap with {} entries",
             getBeanName(refreshableConfiguration), configMap.size());
 
-        configurationModel.onConfigurationChanged(configuration -> onEntryChange(refreshableConfiguration, configuration));
+        configService.onConfigurationChanged(configuration -> onEntryChange(refreshableConfiguration, configuration));
     }
 
     private void onEntryChange(RefreshableConfiguration refreshableConfiguration, Configuration configuration) {

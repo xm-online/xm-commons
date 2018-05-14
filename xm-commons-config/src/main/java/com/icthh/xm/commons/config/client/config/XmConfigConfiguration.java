@@ -5,7 +5,6 @@ import static com.icthh.xm.commons.config.client.config.XmRestTemplateConfigurat
 import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.listener.ApplicationReadyEventListener;
 import com.icthh.xm.commons.config.client.repository.ConfigRepository;
-import com.icthh.xm.commons.config.client.repository.ConfigurationModel;
 import com.icthh.xm.commons.config.client.repository.kafka.ConfigTopicConsumer;
 import com.icthh.xm.commons.config.client.service.ConfigServiceImpl;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -41,14 +40,13 @@ public class XmConfigConfiguration {
 
     @Bean
     public InitRefreshableConfigurationBeanPostProcessor refreshableConfigurationPostProcessor(
-        ConfigService configService,
-        ConfigurationModel configurationModel) {
-        return new InitRefreshableConfigurationBeanPostProcessor(configService, configurationModel);
+        ConfigService configService) {
+        return new InitRefreshableConfigurationBeanPostProcessor(configService);
     }
 
     @Bean
-    public ConfigTopicConsumer configTopicConsumer(ConfigurationModel configurationModel) {
-        return new ConfigTopicConsumer(configurationModel);
+    public ConfigTopicConsumer configTopicConsumer(ConfigService configService) {
+        return new ConfigTopicConsumer(configService);
     }
 
     @Bean
