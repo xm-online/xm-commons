@@ -59,18 +59,6 @@ public final class SystemEventType {
     // TODO refactor event name and constant name
     public static final String DELETE_COMMAND = "DELETE";
 
-    /**
-     * Event source: MS-CONFIG.
-     * Description: inform about one Configuration saved.
-     */
-    public static final String SAVE_CONFIGURATION = "SAVE_CONFIGURATION";
-
-    /**
-     * Event source: MS-CONFIG.
-     * Description: inform about one Configuration deleted.
-     */
-    public static final String DELETE_CONFIGURATION = "DELETE_CONFIGURATION";
-
     private SystemEventType() {
         throw new UnsupportedOperationException();
     }
