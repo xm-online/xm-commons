@@ -44,7 +44,7 @@ public class ConfigTopicConsumer {
                 ConfigEvent event = mapper.readValue(message.value(), ConfigEvent.class);
 
                 log.info("Process event from topic [{}], source='{}', event_id ='{}'",
-                    message.topic(), event.getMessageSource(), event.getEventId());
+                    message.topic(), event.getEventId());
                 onSaveConfiguration(event);
             } catch (IOException e) {
                 log.error("System queue message has incorrect format: '{}'", message.value(), e);
@@ -58,7 +58,6 @@ public class ConfigTopicConsumer {
         List<ConfigurationEvent> configurations = event.getConfigurations();
         configurationModel.updateConfiguration(configurations.stream().map(
             configurationEvent -> new Configuration(configurationEvent.getPath(), null,
-                configurationEvent.getCommit())).collect(Collectors
-            .toList()));
+                configurationEvent.getCommit())).collect(Collectors.toList()));
     }
 }

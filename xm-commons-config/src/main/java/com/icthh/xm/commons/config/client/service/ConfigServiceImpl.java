@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 @Slf4j
@@ -37,9 +38,8 @@ public class ConfigServiceImpl implements ConfigService, ConfigurationModel {
     }
 
     private void notifyUpdated(Configuration configuration) {
-        if (configurationListener != null) {
-            log.debug("Notify configuration changed [{}]", configuration.getPath());
-            configurationListener.accept(configuration);
-        }
+        log.debug("Notify configuration changed [{}]", configuration.getPath());
+        Optional.ofNullable(configurationListener)
+            .ifPresent(configurationListener -> configurationListener.accept(configuration));
     }
 }
