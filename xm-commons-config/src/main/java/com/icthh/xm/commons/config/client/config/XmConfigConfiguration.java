@@ -3,18 +3,21 @@ package com.icthh.xm.commons.config.client.config;
 import static com.icthh.xm.commons.config.client.config.XmRestTemplateConfiguration.XM_CONFIG_REST_TEMPLATE;
 
 import com.icthh.xm.commons.config.client.api.ConfigService;
+import com.icthh.xm.commons.config.client.listener.ApplicationReadyEventListener;
 import com.icthh.xm.commons.config.client.repository.ConfigRepository;
 import com.icthh.xm.commons.config.client.repository.ConfigurationModel;
+import com.icthh.xm.commons.config.client.repository.kafka.ConfigTopicConsumer;
 import com.icthh.xm.commons.config.client.service.ConfigServiceImpl;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Optional;
 
 @Configuration
 @Import({
@@ -22,8 +25,6 @@ import java.util.concurrent.locks.ReentrantLock;
 })
 @ConditionalOnProperty("xm-config.enabled")
 public class XmConfigConfiguration {
-
-    public static final String CONFIG_SERVICE_LOCK = "config-service-lock";
 
     @Bean
     public ConfigRepository configRepository(
@@ -34,10 +35,8 @@ public class XmConfigConfiguration {
 
     @Bean
     public ConfigService configService(
-        XmConfigProperties xmConfigProperties,
-        ConfigRepository configRepository,
-        @Qualifier(CONFIG_SERVICE_LOCK) Lock lock) {
-        return new ConfigServiceImpl(xmConfigProperties, configRepository, lock);
+        ConfigRepository configRepository) {
+        return new ConfigServiceImpl(configRepository);
     }
 
     @Bean
@@ -48,8 +47,16 @@ public class XmConfigConfiguration {
     }
 
     @Bean
-    @Qualifier(CONFIG_SERVICE_LOCK)
-    public Lock configServiceLock() {
-        return new ReentrantLock();
+    public ConfigTopicConsumer configTopicConsumer(ConfigurationModel configurationModel) {
+        return new ConfigTopicConsumer(configurationModel);
+    }
+
+    @Bean
+    public ApplicationReadyEventListener applicationReadyEventListener(
+        ConsumerFactory<String, String> consumerFactory,
+        ConfigTopicConsumer configTopicConsumer,
+        KafkaProperties kafkaProperties,
+        XmConfigProperties xmConfigProperties) {
+        return new ApplicationReadyEventListener(consumerFactory, configTopicConsumer, kafkaProperties, xmConfigProperties);
     }
 }

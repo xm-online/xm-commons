@@ -21,29 +21,12 @@ public class ConfigRepository {
     private final RestTemplate restTemplate;
     private final XmConfigProperties xmConfigProperties;
 
-    private Map<String, Configuration> configMap;
-
     public Map<String, Configuration> getConfig() {
-        Map<String, Configuration> configuration = configMap;
-        if (configuration == null) {
-            refreshConfig();
-        }
-        return configMap;
-    }
-
-    public void refreshConfig() {
-        configMap = readFromConfigService();
+        return readFromConfigService();
     }
 
     private Map<String, Configuration> readFromConfigService() {
         ParameterizedTypeReference<Map<String, Configuration>> typeRef = new ParameterizedTypeReference<Map<String, Configuration>>() {
-        };
-        HttpEntity<String> entity = new HttpEntity<>(createSimpleHeaders());
-        return restTemplate.exchange(getServiceConfigUrl(), HttpMethod.GET, entity, typeRef).getBody();
-    }
-
-    private Configuration readFromConfigService(String path) {
-        ParameterizedTypeReference<Configuration> typeRef = new ParameterizedTypeReference<Configuration>() {
         };
         HttpEntity<String> entity = new HttpEntity<>(createSimpleHeaders());
         return restTemplate.exchange(getServiceConfigUrl(), HttpMethod.GET, entity, typeRef).getBody();

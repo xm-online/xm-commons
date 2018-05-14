@@ -62,12 +62,10 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
         log.info("refreshable configuration bean [{}] initialized by configMap with {} entries",
             getBeanName(refreshableConfiguration), configMap.size());
 
-        configurationModel.onConfigurationChanged(path -> onEntryChange(refreshableConfiguration, path));
+        configurationModel.onConfigurationChanged(configuration -> onEntryChange(refreshableConfiguration, configuration));
     }
 
-    private void onEntryChange(RefreshableConfiguration refreshableConfiguration, String path) {
-        Map<String, Configuration> configMap = configService.getConfig();
-        Configuration configuration = configMap.getOrDefault(path, new Configuration(path, null, null));
+    private void onEntryChange(RefreshableConfiguration refreshableConfiguration, Configuration configuration) {
         String configContent = configuration.getContent();
 
         if (refreshableConfiguration.isListeningConfiguration(configuration.getPath())) {

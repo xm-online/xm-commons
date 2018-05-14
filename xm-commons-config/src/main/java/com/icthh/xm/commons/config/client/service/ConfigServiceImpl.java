@@ -1,28 +1,23 @@
 package com.icthh.xm.commons.config.client.service;
 
-import static com.icthh.xm.commons.config.client.utils.LockUtils.runWithLock;
-
 import com.icthh.xm.commons.config.client.api.ConfigService;
-import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.client.repository.ConfigRepository;
 import com.icthh.xm.commons.config.client.repository.ConfigurationModel;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
 
 @Slf4j
 @RequiredArgsConstructor
 public class ConfigServiceImpl implements ConfigService, ConfigurationModel {
 
-    private final XmConfigProperties xmConfigProperties;
     private final ConfigRepository configRepository;
-    private final Lock lock;
 
-    private Consumer<String> configurationListener;
+    private Consumer<Configuration> configurationListener;
 
     @Override
     public Map<String, Configuration> getConfig() {
@@ -30,28 +25,21 @@ public class ConfigServiceImpl implements ConfigService, ConfigurationModel {
     }
 
     @Override
-    public void onConfigurationChanged(Consumer<String> configurationListener) {
+    public void onConfigurationChanged(Consumer<Configuration> configurationListener) {
         this.configurationListener = configurationListener;
     }
 
     @Override
-    public void updateConfiguration(Configuration configuration) {
-        runWithLock("ConfigService", lock, xmConfigProperties.getMaxWaitTimeSecond(), () -> {
-            log.debug("Try to update configuration {} {}", configuration.getPath(), configuration.getCommit());
-            Configuration old = configRepository.getConfig()
-                .getOrDefault(configuration.getPath(), new Configuration(configuration.getPath(), null, null));
-            log.debug("Existing configuration {} {}", old.getPath(), old.getCommit());
-            if (!configuration.getCommit().equals(old.getCommit())) {
-                configRepository.refreshConfig();
-            }
-            notifyUpdated(configuration.getPath());
-        });
+    public void updateConfiguration(Collection<Configuration> configurations) {
+        Map<String, Configuration> configurationsMap = configRepository.getConfig();
+        configurations.forEach(configuration -> notifyUpdated(configurationsMap
+            .getOrDefault(configuration.getPath(), new Configuration(configuration.getPath(), null, null))));
     }
 
-    private void notifyUpdated(String path) {
+    private void notifyUpdated(Configuration configuration) {
         if (configurationListener != null) {
-            log.debug("Notify configuration changed [{}]", path);
-            configurationListener.accept(path);
+            log.debug("Notify configuration changed [{}]", configuration.getPath());
+            configurationListener.accept(configuration);
         }
     }
 }
