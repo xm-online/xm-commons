@@ -10,5 +10,5 @@ public interface ConfigService {
 
     Map<String, Configuration> getConfigurationMap();
     void onConfigurationChanged(Consumer<Configuration> listener);
-    void updateConfigurations(Collection<Configuration> configurations);
+    void updateConfigurations(String commit, Collection<String> paths);
 }

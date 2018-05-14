@@ -5,7 +5,7 @@ import lombok.Data;
 
 @AllArgsConstructor
 @Data
-public class ConfigurationEvent {
+public class ConfigurationEventData {
     private String path;
     private String commit;
 }

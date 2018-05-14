@@ -9,5 +9,6 @@ import java.util.List;
 public class ConfigEvent {
 
     private String eventId;
-    private List<ConfigurationEvent> configurations = Collections.emptyList();
+    private String commit;
+    private List<String> paths = Collections.emptyList();
 }

@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.domain.ConfigEvent;
-import com.icthh.xm.commons.config.domain.Configuration;
-import com.icthh.xm.commons.config.domain.ConfigurationEvent;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,8 +13,6 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -43,21 +39,14 @@ public class ConfigTopicConsumer {
             try {
                 ConfigEvent event = mapper.readValue(message.value(), ConfigEvent.class);
 
-                log.info("Process event from topic [{}], source='{}', event_id ='{}'",
+                log.info("Process event from topic [{}], event_id ='{}'",
                     message.topic(), event.getEventId());
-                onSaveConfiguration(event);
+                configService.updateConfigurations(event.getCommit(), event.getPaths());
             } catch (IOException e) {
-                log.error("System queue message has incorrect format: '{}'", message.value(), e);
+                log.error("Config topic message has incorrect format: '{}'", message.value(), e);
             }
         } finally {
             MdcUtils.removeRid();
         }
-    }
-
-    private void onSaveConfiguration(ConfigEvent event) {
-        List<ConfigurationEvent> configurations = event.getConfigurations();
-        configService.updateConfigurations(configurations.stream().map(
-            configurationEvent -> new Configuration(configurationEvent.getPath(), null,
-                configurationEvent.getCommit())).collect(Collectors.toList()));
     }
 }
