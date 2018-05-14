@@ -24,6 +24,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
     private final ConfigurationModel configurationModel;
 
     private final Map<String, RefreshableConfiguration> refreshableConfigurations = new HashMap<>();
+    private Map<String, Configuration> configMap;
 
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -37,17 +38,21 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         if (refreshableConfigurations.containsKey(beanName)) {
-            initBean(refreshableConfigurations.get(beanName));
+            initBean(refreshableConfigurations.get(beanName), getConfig());
         }
         return bean;
     }
 
-    private void initBean(RefreshableConfiguration refreshableConfiguration) {
-        Map<String, Configuration> configMap = configService.getConfig();
+    private Map<String, Configuration> getConfig() {
+        if (configMap == null) {
+            configMap = configService.getConfig();
+        }
+        return configMap;
+    }
 
+    private void initBean(RefreshableConfiguration refreshableConfiguration, Map<String, Configuration> configMap) {
         configMap.forEach((key, value) -> {
             if (refreshableConfiguration.isListeningConfiguration(key)) {
-
                 log.info(
                     "Process config init event: [key = {}, size = {}, newHash = {}] in bean: [{}]",
                     key,
