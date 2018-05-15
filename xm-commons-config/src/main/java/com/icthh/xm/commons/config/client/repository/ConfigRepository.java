@@ -10,6 +10,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Map;
 
@@ -18,22 +19,20 @@ import java.util.Map;
 public class ConfigRepository {
 
     private static final String URL = "/api/config_map";
+    private static final String COMMIT = "commit";
     private final RestTemplate restTemplate;
     private final XmConfigProperties xmConfigProperties;
 
-    public Map<String, Configuration> getConfig() {
-        return readFromConfigService();
-    }
-
-    private Map<String, Configuration> readFromConfigService() {
+    public Map<String, Configuration> getConfig(String commit) {
         ParameterizedTypeReference<Map<String, Configuration>> typeRef = new ParameterizedTypeReference<Map<String, Configuration>>() {
         };
         HttpEntity<String> entity = new HttpEntity<>(createSimpleHeaders());
-        return restTemplate.exchange(getServiceConfigUrl(), HttpMethod.GET, entity, typeRef).getBody();
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl())
+            .queryParam(COMMIT, commit);
+        return restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, typeRef).getBody();
     }
 
     private String getServiceConfigUrl() {
         return xmConfigProperties.getXmConfigUrl() + URL;
     }
-
 }

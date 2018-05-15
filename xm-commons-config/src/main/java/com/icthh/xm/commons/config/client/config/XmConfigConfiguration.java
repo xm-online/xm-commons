@@ -6,7 +6,7 @@ import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.listener.ApplicationReadyEventListener;
 import com.icthh.xm.commons.config.client.repository.ConfigRepository;
 import com.icthh.xm.commons.config.client.repository.kafka.ConfigTopicConsumer;
-import com.icthh.xm.commons.config.client.service.ConfigServiceImpl;
+import com.icthh.xm.commons.config.client.service.CommonConfigService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -15,8 +15,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Optional;
 
 @Configuration
 @Import({
@@ -35,7 +33,7 @@ public class XmConfigConfiguration {
     @Bean
     public ConfigService configService(
         ConfigRepository configRepository) {
-        return new ConfigServiceImpl(configRepository);
+        return new CommonConfigService(configRepository);
     }
 
     @Bean

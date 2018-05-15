@@ -43,7 +43,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
 
     private Map<String, Configuration> getConfig() {
         if (configMap == null) {
-            configMap = configService.getConfigurationMap();
+            configMap = configService.getConfigurationMap(null);
         }
         return configMap;
     }

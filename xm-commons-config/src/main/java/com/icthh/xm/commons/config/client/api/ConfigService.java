@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 
 public interface ConfigService {
 
-    Map<String, Configuration> getConfigurationMap();
+    Map<String, Configuration> getConfigurationMap(String commit);
     void onConfigurationChanged(Consumer<Configuration> listener);
     void updateConfigurations(String commit, Collection<String> paths);
 }

@@ -14,15 +14,15 @@ import java.util.function.Consumer;
 
 @Slf4j
 @RequiredArgsConstructor
-public class ConfigServiceImpl implements ConfigService {
+public class CommonConfigService implements ConfigService {
 
     private final ConfigRepository configRepository;
 
     private Consumer<Configuration> configurationListener;
 
     @Override
-    public Map<String, Configuration> getConfigurationMap() {
-        return configRepository.getConfig();
+    public Map<String, Configuration> getConfigurationMap(String commit) {
+        return configRepository.getConfig(commit);
     }
 
     @Override
@@ -38,7 +38,7 @@ public class ConfigServiceImpl implements ConfigService {
     @Override
     public void updateConfigurations(String commit, Collection<String> paths) {
         if (StringUtils.isNotEmpty(commit)) {
-            Map<String, Configuration> configurationsMap = configRepository.getConfig();
+            Map<String, Configuration> configurationsMap = configRepository.getConfig(commit);
             paths.forEach(path -> notifyUpdated(configurationsMap
                 .getOrDefault(path, new Configuration(path, null, null))));
         } else {
