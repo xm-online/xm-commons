@@ -5,7 +5,6 @@ import com.icthh.xm.commons.config.client.repository.ConfigRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 import java.util.Map;
@@ -32,18 +31,15 @@ public class CommonConfigService implements ConfigService {
 
     /**
      * Update configuration from config service
+     *
      * @param commit commit hash, will be empty if configuration deleted
      * @param paths collection of paths updated
      */
     @Override
     public void updateConfigurations(String commit, Collection<String> paths) {
-        if (StringUtils.isNotEmpty(commit)) {
-            Map<String, Configuration> configurationsMap = configRepository.getConfig(commit);
-            paths.forEach(path -> notifyUpdated(configurationsMap
-                .getOrDefault(path, new Configuration(path, null, null))));
-        } else {
-            paths.forEach(path -> notifyUpdated(new Configuration(path, null, null)));
-        }
+        Map<String, Configuration> configurationsMap = configRepository.getConfig(commit);
+        paths.forEach(path -> notifyUpdated(configurationsMap
+            .getOrDefault(path, new Configuration(path, null, null))));
     }
 
     private void notifyUpdated(Configuration configuration) {
