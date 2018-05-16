@@ -12,13 +12,11 @@ import lombok.NoArgsConstructor;
 public class Configuration {
     private String path;
     private String content;
-    private String commit;
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Configuration{");
         sb.append("path='").append(path).append('\'');
-        sb.append(", commit='").append(commit).append('\'');
         if (content != null && content.length() > 100) {
             sb.append(", content.length='").append(content.length()).append('\'');
         } else {

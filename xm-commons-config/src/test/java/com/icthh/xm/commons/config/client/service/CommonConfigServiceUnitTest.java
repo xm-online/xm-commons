@@ -29,7 +29,7 @@ public class CommonConfigServiceUnitTest {
 
     @Test
     public void getConfigurationMap() {
-        Map<String, Configuration> config = Collections.singletonMap("path", new Configuration("path", "content", "commit"));
+        Map<String, Configuration> config = Collections.singletonMap("path", new Configuration("path", "content"));
         when(commonConfigRepository.getConfig("commit"))
             .thenReturn(config);
 
@@ -38,7 +38,7 @@ public class CommonConfigServiceUnitTest {
 
     @Test
     public void updateConfigurations() {
-        Map<String, Configuration> config = Collections.singletonMap("path", new Configuration("path", "content", "commit"));
+        Map<String, Configuration> config = Collections.singletonMap("path", new Configuration("path", "content"));
         when(commonConfigRepository.getConfig("commit")).thenReturn(config);
 
         configService.onConfigurationChanged(configurationListener);

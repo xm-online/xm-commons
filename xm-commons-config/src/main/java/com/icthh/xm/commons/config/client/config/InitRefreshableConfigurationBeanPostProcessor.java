@@ -76,13 +76,11 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
 
             log.info(
                 "Process config update event: "
-                    + "[path = {}, size = {}, commit = {}, hash = {}] in bean: [{}]",
+                    + "[path = {}, size = {}, hash = {}] in bean: [{}]",
                 configuration.getPath(),
                 StringUtils.length(configContent),
-                configuration.getCommit(),
                 getValueHash(configContent),
                 getBeanName(refreshableConfiguration));
-
         } else {
             log.debug("Ignored config update event: [path = {}, configSize = {} in bean [{}]",
                 configuration.getPath(),
