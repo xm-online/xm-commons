@@ -25,7 +25,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
     private Map<String, Configuration> configMap;
 
     @Override
-    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+    public Object postProcessBeforeInitialization(Object bean, String beanName) {
         if (bean instanceof RefreshableConfiguration) {
             refreshableConfigurations.put(beanName, (RefreshableConfiguration) bean);
             log.info("refreshable configuration bean added: {} = {}", beanName, bean.getClass());
@@ -34,7 +34,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
     }
 
     @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+    public Object postProcessAfterInitialization(Object bean, String beanName) {
         if (refreshableConfigurations.containsKey(beanName)) {
             initBean(refreshableConfigurations.get(beanName), getConfig());
         }
@@ -89,11 +89,11 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
         }
     }
 
-    private String getBeanName(final RefreshableConfiguration refreshableConfiguration) {
+    private static String getBeanName(final RefreshableConfiguration refreshableConfiguration) {
         return refreshableConfiguration.getClass().getSimpleName();
     }
 
-    private String getValueHash(final String configContent) {
+    private static String getValueHash(final String configContent) {
         return StringUtils.isEmpty(configContent) ? LOG_CONFIG_EMPTY :
             DigestUtils.md5Hex(configContent);
     }
