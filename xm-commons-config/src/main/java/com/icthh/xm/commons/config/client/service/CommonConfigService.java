@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.config.client.service;
 
 import com.icthh.xm.commons.config.client.api.ConfigService;
-import com.icthh.xm.commons.config.client.repository.ConfigRepository;
+import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,13 +15,13 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class CommonConfigService implements ConfigService {
 
-    private final ConfigRepository configRepository;
+    private final CommonConfigRepository commonConfigRepository;
 
     private Consumer<Configuration> configurationListener;
 
     @Override
     public Map<String, Configuration> getConfigurationMap(String commit) {
-        return configRepository.getConfig(commit);
+        return commonConfigRepository.getConfig(commit);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class CommonConfigService implements ConfigService {
      */
     @Override
     public void updateConfigurations(String commit, Collection<String> paths) {
-        Map<String, Configuration> configurationsMap = configRepository.getConfig(commit);
+        Map<String, Configuration> configurationsMap = commonConfigRepository.getConfig(commit);
         paths.forEach(path -> notifyUpdated(configurationsMap
             .getOrDefault(path, new Configuration(path, null, null))));
     }

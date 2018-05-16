@@ -4,7 +4,7 @@ import static com.icthh.xm.commons.config.client.config.XmRestTemplateConfigurat
 
 import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.listener.ApplicationReadyEventListener;
-import com.icthh.xm.commons.config.client.repository.ConfigRepository;
+import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.repository.kafka.ConfigTopicConsumer;
 import com.icthh.xm.commons.config.client.service.CommonConfigService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,16 +24,16 @@ import org.springframework.web.client.RestTemplate;
 public class XmConfigConfiguration {
 
     @Bean
-    public ConfigRepository configRepository(
+    public CommonConfigRepository commonConfigRepository(
         @Qualifier(XM_CONFIG_REST_TEMPLATE) RestTemplate restTemplate,
         XmConfigProperties xmConfigProperties) {
-        return new ConfigRepository(restTemplate, xmConfigProperties);
+        return new CommonConfigRepository(restTemplate, xmConfigProperties);
     }
 
     @Bean
     public ConfigService configService(
-        ConfigRepository configRepository) {
-        return new CommonConfigService(configRepository);
+        CommonConfigRepository commonConfigRepository) {
+        return new CommonConfigService(commonConfigRepository);
     }
 
     @Bean

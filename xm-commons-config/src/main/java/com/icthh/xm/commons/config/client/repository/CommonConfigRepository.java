@@ -16,7 +16,7 @@ import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
-public class ConfigRepository {
+public class CommonConfigRepository {
 
     private static final String URL = "/api/config_map";
     private static final String COMMIT = "commit";
