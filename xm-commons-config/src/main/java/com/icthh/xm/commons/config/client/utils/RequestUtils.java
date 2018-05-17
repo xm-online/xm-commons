@@ -16,4 +16,11 @@ public class RequestUtils {
         headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + TokenUtils.extractCurrentToken());
         return headers;
     }
+
+    public static HttpHeaders createSimpleHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        MediaType mediaType = new MediaType(MediaType.TEXT_PLAIN, UTF_8);
+        headers.setContentType(mediaType);
+        return headers;
+    }
 }

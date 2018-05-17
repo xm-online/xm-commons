@@ -1,7 +1,6 @@
 package com.icthh.xm.commons.config.client.repository;
 
 import static com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance;
-import static com.icthh.xm.commons.config.client.config.XmConfigAutoConfigration.XM_CONFIG_REST_TEMPLATE;
 import static com.icthh.xm.commons.config.client.utils.RequestUtils.createAuthHeaders;
 import static java.util.Collections.unmodifiableSet;
 
@@ -15,8 +14,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestTemplate;
@@ -49,8 +46,8 @@ public class TenantListRepository implements RefreshableConfiguration {
     private volatile Set<TenantState> tenants = new HashSet<>();
     private volatile Set<String> suspendedTenants = new HashSet<>();
 
-    public TenantListRepository(@Qualifier(XM_CONFIG_REST_TEMPLATE) RestTemplate restTemplate,
-                                @Value("${spring.application.name}") String applicationName,
+    public TenantListRepository(RestTemplate restTemplate,
+                                String applicationName,
                                 XmConfigProperties applicationProperties) {
         this.restTemplate = restTemplate;
         this.applicationName = applicationName;

@@ -30,20 +30,22 @@ dependencies {
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
 
     compile 'commons-collections:commons-collections'
-    compile 'com.hazelcast:hazelcast'
     compile 'org.springframework.cloud:spring-cloud-commons'
+    compile 'org.springframework.cloud:spring-cloud-netflix-core'
     compile('org.springframework.boot:spring-boot-starter-web') {
         exclude module: 'spring-boot-starter-tomcat'
     }
+    compile 'org.springframework.kafka:spring-kafka'
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-json-org'
 
-    compile "org.bitsofinfo:hazelcast-consul-discovery-spi:${versions.hazelcastConsulDiscoverySpi}"
     compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
     compile "org.springframework.security.oauth:spring-security-oauth2:${versions.springSecurityOAuth2}"
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
 
     testCompile 'junit:junit'
+    testCompile 'org.assertj:assertj-core'
     testCompile 'org.mockito:mockito-core'
 }
 

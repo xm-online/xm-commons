@@ -68,6 +68,7 @@ public class PermissionMapper {
                 });
             map.entrySet().stream()
                 .filter(entry -> StringUtils.isBlank(msName) || StringUtils.equalsIgnoreCase(msName, entry.getKey()))
+                .filter(entry -> entry.getValue() != null)
                 .forEach(entry -> entry.getValue()
                     .forEach((roleKey, permissions) ->
                                  permissions.forEach(permission -> {

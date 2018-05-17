@@ -15,6 +15,7 @@ import com.icthh.xm.lep.api.commons.DefaultLepResourceDescriptor;
 import com.icthh.xm.lep.api.commons.UrlLepResourceKey;
 import com.icthh.xm.lep.script.InputStreamSupplier;
 import com.icthh.xm.lep.script.ScriptLepResource;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +44,7 @@ public class XmLepResourceService implements LepResourceService {
 
     private final TenantScriptStorage tenantScriptStorage;
     private final String appName;
+    @Getter
     private final ResourceLoader routerResourceLoader;
 
     public XmLepResourceService(String appName,
