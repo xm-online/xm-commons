@@ -18,9 +18,11 @@ import com.icthh.xm.lep.api.LepResourceService;
 import com.icthh.xm.lep.groovy.DefaultScriptNameLepResourceKeyMapper;
 import com.icthh.xm.lep.groovy.ScriptNameLepResourceKeyMapper;
 import com.icthh.xm.lep.groovy.StrategyGroovyLepExecutor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.FileSystemResourceLoader;
 import org.springframework.core.io.ResourceLoader;
@@ -41,6 +43,8 @@ public abstract class LepSpringConfiguration {
     private final String appName;
     private final ApplicationEventPublisher eventPublisher;
     private final ResourceLoader resourceLoader;
+    @Autowired @Lazy
+    private XmLepScriptConfigServerResourceLoader xmLepScriptConfigServerResourceLoader;
 
     protected LepSpringConfiguration(String appName,
                                      ApplicationEventPublisher eventPublisher,
@@ -59,47 +63,56 @@ public abstract class LepSpringConfiguration {
             lepResourceService());
     }
 
-    private ScriptNameLepResourceKeyMapper scriptNameLepResourceKeyMapper() {
+    @Bean
+    public ScriptNameLepResourceKeyMapper scriptNameLepResourceKeyMapper() {
         return new DefaultScriptNameLepResourceKeyMapper();
     }
 
-    private XmGroovyScriptEngineProviderStrategy xmGroovyScriptEngineProviderStrategy() {
+    @Bean
+    public XmGroovyScriptEngineProviderStrategy xmGroovyScriptEngineProviderStrategy() {
         return new XmGroovyScriptEngineProviderStrategy(scriptNameLepResourceKeyMapper());
     }
 
-    private XmGroovyExecutionStrategy xmGroovyExecutionStrategy() {
+    @Bean
+    public XmGroovyExecutionStrategy xmGroovyExecutionStrategy() {
         return new XmGroovyExecutionStrategy();
     }
 
-    private LepExecutor lepExecutor() {
+    @Bean
+    public LepExecutor lepExecutor() {
         return new StrategyGroovyLepExecutor(scriptNameLepResourceKeyMapper(),
                                              xmGroovyScriptEngineProviderStrategy(),
                                              xmGroovyExecutionStrategy());
     }
 
-    private ExtensionService extensionService() {
+    @Bean
+    public ExtensionService extensionService() {
         return new XmExtensionService();
     }
 
-    private ApplicationLepProcessingEventPublisher applicationLepProcessingEventPublisher() {
+    @Bean
+    public ApplicationLepProcessingEventPublisher applicationLepProcessingEventPublisher() {
         return new ApplicationLepProcessingEventPublisher(eventPublisher);
     }
 
-    private XmLepScriptConfigServerResourceLoader cfgResourceLoader() {
+    @Bean
+    public XmLepScriptConfigServerResourceLoader cfgResourceLoader() {
         return new XmLepScriptConfigServerResourceLoader(appName);
     }
 
-    private RouterResourceLoader routerResourceLoader() {
+    @Bean
+    public RouterResourceLoader routerResourceLoader() {
         Map<String, ResourceLoader> routerMap = new HashMap<>(RESOURCE_LOADERS_CAPACITY);
         routerMap.put(CLASSPATH_URL_PREFIX, resourceLoader);
-        routerMap.put(XM_MS_CONFIG_URL_PREFIX, cfgResourceLoader());
+        routerMap.put(XM_MS_CONFIG_URL_PREFIX, xmLepScriptConfigServerResourceLoader);
         routerMap.put(FILE_URL_PREFIX, new FileSystemResourceLoader());
         return new RouterResourceLoader(routerMap);
     }
 
     protected abstract TenantScriptStorage getTenantScriptStorageType();
 
-    private LepResourceService lepResourceService() {
+    @Bean
+    public LepResourceService lepResourceService() {
         return new XmLepResourceService(appName,
                                         getTenantScriptStorageType(),
                                         routerResourceLoader());
