@@ -12,10 +12,10 @@ import java.util.function.Consumer;
 @Slf4j
 public abstract class AbstractConfigService implements ConfigService {
 
-    private final List<Consumer<Configuration>> configurationListeners = new ArrayList<>();
+    private final List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
 
     @Override
-    public void addConfigurationChangedListener(Consumer<Configuration> configurationListener) {
+    public void addConfigurationChangedListener(ConfigurationChangedListener configurationListener) {
         this.configurationListeners.add(configurationListener);
     }
 
@@ -34,6 +34,6 @@ public abstract class AbstractConfigService implements ConfigService {
 
     protected void notifyUpdated(Configuration configuration) {
         log.debug("Notify configuration changed [{}]", configuration.getPath());
-        configurationListeners.forEach(configurationListener -> configurationListener.accept(configuration));
+        configurationListeners.forEach(configurationListener -> configurationListener.onConfigurationChanged(configuration));
     }
 }

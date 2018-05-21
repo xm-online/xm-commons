@@ -5,6 +5,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.icthh.xm.commons.config.client.api.ConfigurationChangedListener;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
 import org.junit.Test;
@@ -41,13 +42,13 @@ public class CommonConfigServiceUnitTest {
     public void updateConfigurations() {
         Map<String, Configuration> config = Collections.singletonMap("path", new Configuration("path", "content"));
         when(commonConfigRepository.getConfig("commit")).thenReturn(config);
-        List<Consumer<Configuration>> configurationListeners = new ArrayList<>();
-        configurationListeners.add(mock(Consumer.class));
-        configurationListeners.add(mock(Consumer.class));
+        List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
+        configurationListeners.add(mock(ConfigurationChangedListener.class));
+        configurationListeners.add(mock(ConfigurationChangedListener.class));
 
         configurationListeners.forEach(configService::addConfigurationChangedListener);
         configService.updateConfigurations("commit", Collections.singletonList("path"));
 
-        configurationListeners.forEach(configurationListener -> verify(configurationListener).accept(config.get("path")));
+        configurationListeners.forEach(configurationListener -> verify(configurationListener).onConfigurationChanged(config.get("path")));
     }
 }
