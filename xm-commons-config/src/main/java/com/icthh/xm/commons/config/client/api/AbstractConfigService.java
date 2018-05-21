@@ -15,7 +15,7 @@ public abstract class AbstractConfigService implements ConfigService {
     private final List<Consumer<Configuration>> configurationListeners = new ArrayList<>();
 
     @Override
-    public void onConfigurationChanged(Consumer<Configuration> configurationListener) {
+    public void addConfigurationChangedListener(Consumer<Configuration> configurationListener) {
         this.configurationListeners.add(configurationListener);
     }
 

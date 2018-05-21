@@ -45,7 +45,7 @@ public class CommonConfigServiceUnitTest {
         configurationListeners.add(mock(Consumer.class));
         configurationListeners.add(mock(Consumer.class));
 
-        configurationListeners.forEach(configService::onConfigurationChanged);
+        configurationListeners.forEach(configService::addConfigurationChangedListener);
         configService.updateConfigurations("commit", Collections.singletonList("path"));
 
         configurationListeners.forEach(configurationListener -> verify(configurationListener).accept(config.get("path")));

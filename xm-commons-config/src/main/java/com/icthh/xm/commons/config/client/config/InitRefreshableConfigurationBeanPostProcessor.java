@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 
 import java.util.HashMap;
@@ -65,7 +64,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
         log.info("refreshable configuration bean [{}] initialized by configMap with {} entries",
             getBeanName(refreshableConfiguration), configMap.size());
 
-        configService.onConfigurationChanged(configuration -> onEntryChange(refreshableConfiguration, configuration));
+        configService.addConfigurationChangedListener(configuration -> onEntryChange(refreshableConfiguration, configuration));
     }
 
     private void onEntryChange(RefreshableConfiguration refreshableConfiguration, Configuration configuration) {
