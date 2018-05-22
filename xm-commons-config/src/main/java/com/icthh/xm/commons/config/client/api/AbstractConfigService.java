@@ -27,7 +27,7 @@ public abstract class AbstractConfigService implements ConfigService {
      */
     @Override
     public void updateConfigurations(String commit, Collection<String> paths) {
-        Map<String, Configuration> configurationsMap = getConfigurationMap(commit);
+        Map<String, Configuration> configurationsMap = getConfigurationMap(commit, paths);
         paths.forEach(path -> notifyUpdated(configurationsMap
             .getOrDefault(path, new Configuration(path, null))));
     }
