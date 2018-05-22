@@ -36,7 +36,8 @@ public class CommonConfigRepositoryUnitTest {
         Map<String, Configuration> config = Collections
             .singletonMap("path", new Configuration("path", "content"));
         when(xmConfigProperties.getXmConfigUrl()).thenReturn("configUrl");
-        when(restTemplate.exchange(eq("configUrl/api/config_map?commit=commit"), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class))).thenReturn(ResponseEntity.ok(config));
+        when(restTemplate.exchange(eq("configUrl/api/private/config_map?version=commit"), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+            .thenReturn(ResponseEntity.ok(config));
 
         assertThat(configRepository.getConfig("commit")).isEqualTo(config);
     }
