@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.config.client.repository;
 
+import static com.icthh.xm.commons.config.client.utils.RequestUtils.createApplicationJsonHeaders;
 import static com.icthh.xm.commons.config.client.utils.RequestUtils.createAuthHeaders;
 import static com.icthh.xm.commons.config.client.utils.RequestUtils.createSimpleHeaders;
 
@@ -50,7 +51,7 @@ public class CommonConfigRepository {
 
     public Map<String,Configuration> getConfig(String version, Collection<String> paths) {
         ParameterizedTypeReference<Map<String, Configuration>> typeRef = new ParameterizedTypeReference<Map<String, Configuration>>() {};
-        HttpEntity<GetConfigRequest> entity = new HttpEntity<>(new GetConfigRequest(version, paths), createSimpleHeaders());
+        HttpEntity<GetConfigRequest> entity = new HttpEntity<>(new GetConfigRequest(version, paths), createApplicationJsonHeaders());
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl());
         return restTemplate.exchange(builder.toUriString(), HttpMethod.POST, entity, typeRef).getBody();
     }
