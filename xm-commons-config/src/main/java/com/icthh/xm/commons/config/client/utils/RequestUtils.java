@@ -23,4 +23,11 @@ public class RequestUtils {
         headers.setContentType(mediaType);
         return headers;
     }
+
+    public static HttpHeaders createApplicationJsonHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        MediaType mediaType = new MediaType(MediaType.APPLICATION_JSON, UTF_8);
+        headers.setContentType(mediaType);
+        return headers;
+    }
 }
