@@ -1,5 +1,7 @@
 package com.icthh.xm.commons.config.client.service;
 
+import static java.util.Collections.emptyMap;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
@@ -49,7 +51,7 @@ public class TenantConfigService implements RefreshableConfiguration {
     }
 
     private Map<String, Object> getTenantConfig() {
-        return tenantConfig.getOrDefault(getTenantKeyValue(), Collections.emptyMap());
+        return tenantConfig.getOrDefault(getTenantKeyValue(), emptyMap());
     }
 
     private String getTenantKeyValue() {
@@ -62,7 +64,7 @@ public class TenantConfigService implements RefreshableConfiguration {
     }
 
     private void processMap(Map<String, Object> map) {
-        map.entrySet().forEach(e -> {
+        nullSafe(map).entrySet().forEach(e -> {
             Object value = e.getValue();
             if (value instanceof Map) {
                 Map inner = Map.class.cast(value);
@@ -74,6 +76,10 @@ public class TenantConfigService implements RefreshableConfiguration {
                 processList(inner);
             }
         });
+    }
+
+    private Map<String, Object> nullSafe(Map<String, Object> map) {
+        return map == null ? emptyMap() : map;
     }
 
     private void processList(List<Object> list) {
