@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.exceptions.domain.vm;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import org.slf4j.MDC;
 
 import java.io.Serializable;
 
@@ -15,6 +15,7 @@ public class ErrorVM implements Serializable {
     private static final long serialVersionUID = 1L;
     protected final String error;
     protected final String error_description;
+    protected final String requestId = MDC.get("rid");
 
     public ErrorVM(String error) {
         this(error, null);
