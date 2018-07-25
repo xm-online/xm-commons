@@ -33,6 +33,8 @@ public class Permission implements Comparable<Permission> {
     @JsonSerialize(using = SpelSerializer.class)
     @JsonDeserialize(using = SpelDeserializer.class)
     private Expression resourceCondition;
+    @JsonIgnore
+    private PermissionType permissionType;
 
     @Override
     public int compareTo(Permission o) {
