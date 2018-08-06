@@ -14,6 +14,7 @@ import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.AntPathMatcher;
@@ -35,6 +36,7 @@ public class LocalizationMessageService implements RefreshableConfiguration {
     private static final String TENANT_NAME = "tenantName";
 
     private final LocalizationMessageProperties localizationMessageProperties;
+    private final MessageSource messageSource;
     private final TenantContextHolder tenantContextHolder;
     private final XmAuthenticationContextHolder authContextHolder;
 
@@ -46,24 +48,43 @@ public class LocalizationMessageService implements RefreshableConfiguration {
     private final AntPathMatcher matcher = new AntPathMatcher();
     private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
-    public String getMessage(String messageCode, Locale locale) {
-        Map<String, Map<Locale, String>> localizedMessageConfig = tenantLocalizedMessageConfig
-                        .get(getRequiredTenantKeyValue(tenantContextHolder.getContext()));
-        if (localizedMessageConfig == null) {
-            return null;
-        }
-
-        Map<Locale, String> messages = localizedMessageConfig.get(messageCode);
-        if (messages == null) {
-            return null;
-        }
-        return messages.get(locale);
-    }
-
-    public String getMessage(String messageCode) {
+    /**
+     * Finds localization message by code and current locale from config. If not found it takes
+     * message from message bundle or from default message first, depends on flag.
+     * @param code the message code
+     * @param firstFindInMessageBundle indicates where try to find message first when config has
+     *            returned NULL
+     * @param defaultMessage the default message
+     * @return localized message
+     */
+    public String getMessage(String code,
+                             boolean firstFindInMessageBundle,
+                             String defaultMessage) {
         Locale locale = authContextHolder.getContext().getDetailsValue(LANGUAGE)
                         .map(Locale::forLanguageTag).orElse(LocaleContextHolder.getLocale());
-        return getMessage(messageCode, locale);
+
+        String localizedMessage = getFromConfig(code, locale);
+
+        if (localizedMessage == null) {
+            if (firstFindInMessageBundle) {
+                localizedMessage = messageSource.getMessage(code, null, locale);
+            } else {
+                localizedMessage = defaultMessage != null ? defaultMessage : messageSource
+                                .getMessage(code, null, locale);
+            }
+        }
+
+        return localizedMessage;
+    }
+
+    /**
+     * Finds localization message by code and current locale from config. If not found it takes
+     * message from message bundle.
+     * @param code the message code
+     * @return localized message
+     */
+    public String getMessage(String code) {
+        return getMessage(code, true, null);
     }
 
     @Override
@@ -93,5 +114,19 @@ public class LocalizationMessageService implements RefreshableConfiguration {
     @Override
     public void onInit(String configKey, String configValue) {
         onRefresh(configKey, configValue);
+    }
+
+    private String getFromConfig(String messageCode, Locale locale) {
+        Map<String, Map<Locale, String>> localizedMessageConfig = tenantLocalizedMessageConfig
+            .get(getRequiredTenantKeyValue(tenantContextHolder.getContext()));
+        if (localizedMessageConfig == null) {
+            return null;
+        }
+
+        Map<Locale, String> messages = localizedMessageConfig.get(messageCode);
+        if (messages == null) {
+            return null;
+        }
+        return messages.get(locale);
     }
 }
