@@ -167,6 +167,14 @@ public class ExceptionTranslator {
         return builder.body(errorVM);
     }
 
+    /**
+     * Method finds localization message by code and current locale from config. If not found it
+     * takes message from message bundle or from default message first, depends on flag.
+     * @param code the message code
+     * @param firstFindInMessageBundle indicates where try to find message first when config has returned NULL
+     * @param defaultMessage the default message
+     * @return localized message
+     */
     private String translate(String code, boolean firstFindInMessageBundle, String defaultMessage) {
         Locale locale = authContextHolder.getContext().getDetailsValue(LANGUAGE)
                         .map(Locale::forLanguageTag).orElse(LocaleContextHolder.getLocale());
@@ -183,6 +191,12 @@ public class ExceptionTranslator {
         return translatedMessage;
     }
 
+    /**
+     * Method finds localization message by code and current locale from config. If not found it
+     * takes message from message bundle.
+     * @param code the message code
+     * @return localized message
+     */
     private String translate(String code) {
         return translate(code, true, null);
     }
