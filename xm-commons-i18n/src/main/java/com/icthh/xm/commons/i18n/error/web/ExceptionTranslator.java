@@ -121,17 +121,8 @@ public class ExceptionTranslator {
     public ParameterizedErrorVM processParameterizedValidationError(BusinessException ex) {
         String code = ex.getCode() == null ? ErrorConstants.ERR_BUSINESS : ex.getCode();
 
-        //get locale from access token or else from the current thread
-        Locale locale = authContextHolder.getContext().getDetailsValue(LANGUAGE)
-                        .map(Locale::forLanguageTag).orElse(LocaleContextHolder.getLocale());
-
-        //get localized message from config
-        String message = localizationErrorMessageService.getMessage(code, locale);
-        if (message == null) {
-            //get message from exception or else from message bundle
-            message = ex.getMessage() != null ? ex.getMessage() : translate(ex.getCode(), false, locale);
-        }
-        return new ParameterizedErrorVM(code, message, ex.getParamMap());
+        return new ParameterizedErrorVM(code, translate(code, false, ex.getMessage()),
+                        ex.getParamMap());
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
@@ -176,19 +167,23 @@ public class ExceptionTranslator {
         return builder.body(errorVM);
     }
 
-    private String translate(String code, boolean getFromConfig, Locale locale) {
-        String translatedMessage = getFromConfig ? localizationErrorMessageService.getMessage(code,
-                        locale) : null;
+    private String translate(String code, boolean firstFindInMessageBundle, String defaultMessage) {
+        Locale locale = authContextHolder.getContext().getDetailsValue(LANGUAGE)
+                        .map(Locale::forLanguageTag).orElse(LocaleContextHolder.getLocale());
+        String translatedMessage = localizationErrorMessageService.getMessage(code, locale);
         if (translatedMessage == null) {
-            return messageSource.getMessage(code, null, locale);
-        } else {
-            return translatedMessage;
+            if (firstFindInMessageBundle) {
+                translatedMessage = messageSource.getMessage(code, null, locale);
+            } else {
+                translatedMessage = defaultMessage != null ? defaultMessage : messageSource
+                                .getMessage(code, null, locale);
+            }
         }
+
+        return translatedMessage;
     }
 
     private String translate(String code) {
-        Locale locale = authContextHolder.getContext().getDetailsValue(LANGUAGE)
-                        .map(Locale::forLanguageTag).orElse(LocaleContextHolder.getLocale());
-        return translate(code, true, locale);
+        return translate(code, true, null);
     }
 }
