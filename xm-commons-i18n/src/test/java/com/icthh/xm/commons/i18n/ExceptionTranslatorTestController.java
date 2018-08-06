@@ -1,8 +1,9 @@
-package com.icthh.xm.commons.exceptions;
+package com.icthh.xm.commons.i18n;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+import com.icthh.xm.commons.exceptions.BusinessException;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -122,4 +123,8 @@ public class ExceptionTranslatorTestController {
         }
     }
 
+    @GetMapping("/test/message-from-config")
+    public void businessErrorWithMessageFromConfig() {
+        throw new BusinessException("error.code", "test message");
+    }
 }

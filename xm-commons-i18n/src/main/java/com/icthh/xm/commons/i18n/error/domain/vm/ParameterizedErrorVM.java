@@ -1,9 +1,8 @@
-package com.icthh.xm.commons.exceptions.domain.vm;
+package com.icthh.xm.commons.i18n.error.domain.vm;
 
 import lombok.Getter;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 
 /**

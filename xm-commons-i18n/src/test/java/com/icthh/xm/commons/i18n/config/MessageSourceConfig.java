@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.exceptions;
+package com.icthh.xm.commons.i18n.config;
 
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;

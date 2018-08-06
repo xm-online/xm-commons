@@ -1,16 +1,31 @@
-package com.icthh.xm.commons.exceptions;
+package com.icthh.xm.commons.i18n;
 
+import static com.icthh.xm.commons.i18n.I18nConstants.LANGUAGE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.icthh.xm.commons.exceptions.spring.web.ExceptionTranslator;
+import com.icthh.xm.commons.exceptions.ErrorConstants;
+import com.icthh.xm.commons.i18n.config.MessageSourceConfig;
+import com.icthh.xm.commons.i18n.config.MockXmAuthenticationContextConfiguration;
+import com.icthh.xm.commons.i18n.error.web.ExceptionTranslator;
+import com.icthh.xm.commons.i18n.spring.config.LocalizationMessageProperties;
+import com.icthh.xm.commons.i18n.spring.service.LocalizationMessageService;
+import com.icthh.xm.commons.security.XmAuthenticationContext;
+import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
+import com.icthh.xm.commons.tenant.TenantContextUtils;
+import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -18,15 +33,28 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.nio.charset.Charset;
+import java.util.Optional;
+
 /**
  * Test class for the ExceptionTranslator controller advice.
  *
  * @see ExceptionTranslator
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {MessageSourceConfig.class, ExceptionTranslatorTestController.class, ExceptionTranslator.class})
+@ContextConfiguration(classes = {MessageSourceConfig.class,
+        ExceptionTranslatorTestController.class, ExceptionTranslator.class,
+        LocalizationMessageService.class, LocalizationMessageProperties.class,
+        TenantContextConfiguration.class, MockXmAuthenticationContextConfiguration.class})
 @WebAppConfiguration
 public class ExceptionTranslatorIntTest {
+
+    private static final String DEFAULT_TENANT_KEY = "TEST";
+    private static final String DEFAULT_CONFIG_PATH = "config/tenants/" + DEFAULT_TENANT_KEY + "/i18n-message.yml";
+    private static final String DEFAULT_CONFIG_KEY = "/" + DEFAULT_CONFIG_PATH;
+
+    @Value("classpath:" + DEFAULT_CONFIG_PATH)
+    private Resource configFile;
 
     @Autowired
     private ExceptionTranslatorTestController controller;
@@ -34,10 +62,25 @@ public class ExceptionTranslatorIntTest {
     @Autowired
     private ExceptionTranslator exceptionTranslator;
 
+    @Autowired
+    private TenantContextHolder tenantContextHolder;
+
+    @Autowired
+    private LocalizationMessageService localizationMessageService;
+
+    @Autowired
+    private XmAuthenticationContextHolder authContextHolder;
+
     private MockMvc mockMvc;
 
     @Before
     public void setup() {
+        XmAuthenticationContext authContext = Mockito.mock(XmAuthenticationContext.class);
+        Mockito.when(authContextHolder.getContext()).thenReturn(authContext);
+        Mockito.when(authContextHolder.getContext().getDetailsValue(LANGUAGE)).thenReturn(Optional.of("en"));
+
+
+        TenantContextUtils.setTenant(tenantContextHolder, DEFAULT_TENANT_KEY);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
             .setControllerAdvice(exceptionTranslator)
             .build();
@@ -126,5 +169,16 @@ public class ExceptionTranslatorIntTest {
             .andExpect(jsonPath("$.fieldErrors.[0].objectName").value("testClassValidation"))
             .andExpect(jsonPath("$.fieldErrors.[0].field").value("testClassValidation"))
             .andExpect(jsonPath("$.fieldErrors.[0].message").value("NotCool"));
+    }
+
+    @Test
+    public void testBusinessErrorWithMessageFromConfig() throws Exception {
+        //init config
+        localizationMessageService.onInit(DEFAULT_CONFIG_KEY,
+                        FileUtils.readFileToString(configFile.getFile(), Charset.forName("UTF-8")));
+
+        mockMvc.perform(get("/test/message-from-config"))
+            .andExpect(jsonPath("$.error").value("error.code"))
+            .andExpect(jsonPath("$.error_description").value("Dummy error message"));
     }
 }

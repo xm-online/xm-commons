@@ -1,15 +1,19 @@
-package com.icthh.xm.commons.exceptions.spring.web;
+package com.icthh.xm.commons.i18n.error.web;
+
+import static com.icthh.xm.commons.i18n.I18nConstants.LANGUAGE;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import com.icthh.xm.commons.exceptions.ErrorConstants;
 import com.icthh.xm.commons.exceptions.NoContentException;
 import com.icthh.xm.commons.exceptions.SkipPermissionException;
-import com.icthh.xm.commons.exceptions.domain.vm.ErrorVM;
-import com.icthh.xm.commons.exceptions.domain.vm.FieldErrorVM;
-import com.icthh.xm.commons.exceptions.domain.vm.ParameterizedErrorVM;
+import com.icthh.xm.commons.i18n.error.domain.vm.ErrorVM;
+import com.icthh.xm.commons.i18n.error.domain.vm.FieldErrorVM;
+import com.icthh.xm.commons.i18n.error.domain.vm.ParameterizedErrorVM;
+import com.icthh.xm.commons.i18n.spring.service.LocalizationMessageService;
+import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -30,19 +34,21 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.client.HttpServerErrorException;
 
-import java.util.List;
+import java.util.Locale;
 
 /**
  * Controller advice to translate the server side exceptions to client-friendly json structures.
  */
 @Slf4j
 @ControllerAdvice
+@RequiredArgsConstructor
 public class ExceptionTranslator {
 
     private static final String ERROR_PREFIX = "error.";
 
-    @Autowired
-    private MessageSource messageSource;
+    private final MessageSource messageSource;
+    private final LocalizationMessageService localizationErrorMessageService;
+    private final XmAuthenticationContextHolder authContextHolder;
 
     @ExceptionHandler(ConcurrencyFailureException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
@@ -113,9 +119,19 @@ public class ExceptionTranslator {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public ParameterizedErrorVM processParameterizedValidationError(BusinessException ex) {
-        return new ParameterizedErrorVM(ex.getCode() == null ? ErrorConstants.ERR_BUSINESS : ex.getCode(),
-                                        ex.getMessage() != null ? ex.getMessage() : translate(ex.getCode()),
-                                        ex.getParamMap());
+        String code = ex.getCode() == null ? ErrorConstants.ERR_BUSINESS : ex.getCode();
+
+        //get locale from access token or else from the current thread
+        Locale locale = authContextHolder.getContext().getDetailsValue(LANGUAGE)
+                        .map(Locale::forLanguageTag).orElse(LocaleContextHolder.getLocale());
+
+        //get localized message from config
+        String message = localizationErrorMessageService.getMessage(code, locale);
+        if (message == null) {
+            //get message from exception or else from message bundle
+            message = ex.getMessage() != null ? ex.getMessage() : translate(ex.getCode(), false, locale);
+        }
+        return new ParameterizedErrorVM(code, message, ex.getParamMap());
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
@@ -160,7 +176,19 @@ public class ExceptionTranslator {
         return builder.body(errorVM);
     }
 
+    private String translate(String code, boolean getFromConfig, Locale locale) {
+        String translatedMessage = getFromConfig ? localizationErrorMessageService.getMessage(code,
+                        locale) : null;
+        if (translatedMessage == null) {
+            return messageSource.getMessage(code, null, locale);
+        } else {
+            return translatedMessage;
+        }
+    }
+
     private String translate(String code) {
-        return messageSource.getMessage(code, null, LocaleContextHolder.getLocale());
+        Locale locale = authContextHolder.getContext().getDetailsValue(LANGUAGE)
+                        .map(Locale::forLanguageTag).orElse(LocaleContextHolder.getLocale());
+        return translate(code, true, locale);
     }
 }
