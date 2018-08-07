@@ -127,4 +127,12 @@ public class ExceptionTranslatorTestController {
     public void businessErrorWithMessageFromConfig() {
         throw new BusinessException("error.code", "test message");
     }
+
+    @GetMapping("/test/template-message-from-config")
+    public void businessErrorWithTemplateMessageFromConfig() {
+        Map<String, String> substitutes = new HashMap<>();
+        substitutes.put("fullName", "John Doe");
+        substitutes.put("language", "Java");
+        throw new BusinessException("error.code.with.placeholders", "test message", substitutes);
+    }
 }

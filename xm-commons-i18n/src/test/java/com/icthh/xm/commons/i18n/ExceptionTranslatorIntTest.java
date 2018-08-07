@@ -181,4 +181,24 @@ public class ExceptionTranslatorIntTest {
             .andExpect(jsonPath("$.error").value("error.code"))
             .andExpect(jsonPath("$.error_description").value("Dummy error message"));
     }
+
+
+    @Test
+    public void testBusinessErrorWithTemplateMessageFromConfig() throws Exception {
+        //init config
+        localizationMessageService.onInit(DEFAULT_CONFIG_KEY,
+            FileUtils.readFileToString(configFile.getFile(), Charset.forName("UTF-8")));
+
+        mockMvc.perform(get("/test/template-message-from-config"))
+                        .andExpect(jsonPath("$.error").value("error.code.with.placeholders"))
+                        .andExpect(jsonPath("$.error_description").value(
+                                        "My name is John Doe. I'm Java developer"));
+
+        Mockito.when(authContextHolder.getContext().getDetailsValue(LANGUAGE)).thenReturn(
+                        Optional.of("ru"));
+        mockMvc.perform(get("/test/template-message-from-config"))
+                        .andExpect(jsonPath("$.error").value("error.code.with.placeholders"))
+                        .andExpect(jsonPath("$.error_description").value(
+                                        "Меня зовут ${FULLName}. Я ${LANG} разработчик"));
+    }
 }

@@ -118,7 +118,7 @@ public class ExceptionTranslator {
     @ResponseBody
     public ParameterizedErrorVM processParameterizedValidationError(BusinessException ex) {
         String code = ex.getCode() == null ? ErrorConstants.ERR_BUSINESS : ex.getCode();
-        String message = localizationErrorMessageService.getMessage(code, false, ex.getMessage());
+        String message = localizationErrorMessageService.getMessage(code, ex.getParamMap(), false, ex.getMessage());
         return new ParameterizedErrorVM(code, message, ex.getParamMap());
     }
 

@@ -13,7 +13,9 @@ import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
@@ -49,8 +51,8 @@ public class LocalizationMessageService implements RefreshableConfiguration {
     private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
     /**
-     * Finds localization message by code and current locale from config. If not found it takes
-     * message from message bundle or from default message first, depends on flag.
+     * Finds localized message template by code and current locale from config. If not found it
+     * takes message from message bundle or from default message first, depends on flag.
      * @param code the message code
      * @param firstFindInMessageBundle indicates where try to find message first when config has
      *            returned NULL
@@ -58,6 +60,7 @@ public class LocalizationMessageService implements RefreshableConfiguration {
      * @return localized message
      */
     public String getMessage(String code,
+                             Map<String, String> substitutes,
                              boolean firstFindInMessageBundle,
                              String defaultMessage) {
         Locale locale = authContextHolder.getContext().getDetailsValue(LANGUAGE)
@@ -74,17 +77,33 @@ public class LocalizationMessageService implements RefreshableConfiguration {
             }
         }
 
+        if (MapUtils.isNotEmpty(substitutes)) {
+            localizedMessage = new StrSubstitutor(substitutes).replace(localizedMessage);
+        }
+
         return localizedMessage;
     }
 
     /**
-     * Finds localization message by code and current locale from config. If not found it takes
-     * message from message bundle.
+     * Finds localized message by code and current locale from config. If not found it takes message
+     * from message bundle.
      * @param code the message code
      * @return localized message
      */
     public String getMessage(String code) {
-        return getMessage(code, true, null);
+        return getMessage(code, null, true, null);
+    }
+
+    /**
+     * Finds localized message template by code and current locale from config. If not found it
+     * takes message from message bundle and replaces all the occurrences of variables with their
+     * matching values from the substitute map.
+     * @param code the message code
+     * @param substitutes the substitute map for message template
+     * @return localized message
+     */
+    public String getMessage(String code, Map<String, String> substitutes) {
+        return getMessage(code, substitutes, true, null);
     }
 
     @Override
