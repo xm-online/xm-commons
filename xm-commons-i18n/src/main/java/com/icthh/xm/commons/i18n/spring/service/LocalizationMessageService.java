@@ -70,7 +70,7 @@ public class LocalizationMessageService implements RefreshableConfiguration {
 
         if (localizedMessage == null) {
             if (firstFindInMessageBundle) {
-                localizedMessage = messageSource.getMessage(code, null, locale);
+                localizedMessage = messageSource.getMessage(code, null, defaultMessage, locale);
             } else {
                 localizedMessage = defaultMessage != null ? defaultMessage : messageSource
                                 .getMessage(code, null, locale);
