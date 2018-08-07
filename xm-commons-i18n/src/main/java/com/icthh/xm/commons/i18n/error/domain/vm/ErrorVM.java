@@ -1,6 +1,5 @@
-package com.icthh.xm.commons.exceptions.domain.vm;
+package com.icthh.xm.commons.i18n.error.domain.vm;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 import java.io.Serializable;

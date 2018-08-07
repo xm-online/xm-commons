@@ -1,5 +1,6 @@
 include ':xm-commons-config'
 include ':xm-commons-exceptions'
+include ':xm-commons-i18n'
 include ':xm-commons-lep'
 include ':xm-commons-logging'
 include ':xm-commons-logging-web'

@@ -1,0 +1,3 @@
+---
+error.code: { en: "Dummy error message",  ru: "Сообщение об ошибке" }
+error.code.with.placeholders: { en: "My name is ${fullName}. I'm ${language} developer",  ru: "Меня зовут ${FULLName}. Я ${LANG} разработчик" }
