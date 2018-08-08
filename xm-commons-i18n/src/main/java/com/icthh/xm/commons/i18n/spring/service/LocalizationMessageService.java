@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.i18n.spring.service;
 
 import static com.icthh.xm.commons.i18n.I18nConstants.LANGUAGE;
-import static com.icthh.xm.commons.tenant.TenantContextUtils.getRequiredTenantKeyValue;
+import static com.icthh.xm.commons.tenant.TenantContextUtils.getTenantKey;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,6 +11,7 @@ import com.icthh.xm.commons.i18n.spring.config.LocalizationMessageProperties;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
+import com.icthh.xm.commons.tenant.TenantKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
@@ -24,6 +25,7 @@ import org.springframework.util.AntPathMatcher;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -66,16 +68,13 @@ public class LocalizationMessageService implements RefreshableConfiguration {
         Locale locale = authContextHolder.getContext().getDetailsValue(LANGUAGE)
                         .map(Locale::forLanguageTag).orElse(LocaleContextHolder.getLocale());
 
-        String localizedMessage = getFromConfig(code, locale);
-
-        if (localizedMessage == null) {
+        String localizedMessage = getFromConfig(code, locale).orElseGet(() -> {
             if (firstFindInMessageBundle) {
-                localizedMessage = messageSource.getMessage(code, null, defaultMessage, locale);
+                return messageSource.getMessage(code, null, defaultMessage, locale);
             } else {
-                localizedMessage = defaultMessage != null ? defaultMessage : messageSource
-                                .getMessage(code, null, locale);
+                return defaultMessage != null ? defaultMessage : messageSource.getMessage(code, null, locale);
             }
-        }
+        });
 
         if (MapUtils.isNotEmpty(substitutes)) {
             localizedMessage = new StrSubstitutor(substitutes).replace(localizedMessage);
@@ -135,17 +134,12 @@ public class LocalizationMessageService implements RefreshableConfiguration {
         onRefresh(configKey, configValue);
     }
 
-    private String getFromConfig(String messageCode, Locale locale) {
-        Map<String, Map<Locale, String>> localizedMessageConfig = tenantLocalizedMessageConfig
-            .get(getRequiredTenantKeyValue(tenantContextHolder.getContext()));
-        if (localizedMessageConfig == null) {
-            return null;
-        }
+    private Optional<String> getFromConfig(String messageCode, Locale locale) {
 
-        Map<Locale, String> messages = localizedMessageConfig.get(messageCode);
-        if (messages == null) {
-            return null;
-        }
-        return messages.get(locale);
+        return getTenantKey(tenantContextHolder)
+            .map(TenantKey::getValue)
+            .map(tenantLocalizedMessageConfig::get)
+            .map(localizedMessageConfig -> localizedMessageConfig.get(messageCode))
+            .map(localizedMessages -> localizedMessages.get(locale));
     }
 }
