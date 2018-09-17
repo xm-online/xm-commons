@@ -3,7 +3,9 @@ package com.icthh.xm.commons.config.client.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.refEq;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.domain.Configuration;
@@ -40,5 +42,15 @@ public class CommonConfigRepositoryUnitTest {
             .thenReturn(ResponseEntity.ok(config));
 
         assertThat(configRepository.getConfig("commit")).isEqualTo(config);
+    }
+
+    @Test
+    public void updateConfig() {
+        when(xmConfigProperties.getXmConfigUrl()).thenReturn("configUrl");
+
+        configRepository.updateConfigFullPath(new Configuration("path", "content"), "hash");
+
+        HttpEntity<Configuration> expected = new HttpEntity<>(new Configuration("path", "content"));
+        verify(restTemplate).exchange(eq("configUrl/api/private/config?oldConfigHash=hash"), eq(HttpMethod.PUT), refEq(expected), eq(Void.class));
     }
 }
