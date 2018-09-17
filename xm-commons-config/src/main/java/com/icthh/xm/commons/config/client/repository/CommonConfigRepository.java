@@ -1,9 +1,7 @@
 package com.icthh.xm.commons.config.client.repository;
 
 import static com.icthh.xm.commons.config.client.repository.TenantConfigRepository.OLD_CONFIG_HASH;
-import static com.icthh.xm.commons.config.client.repository.TenantConfigRepository.TENANT_NAME;
 import static com.icthh.xm.commons.config.client.utils.RequestUtils.createApplicationJsonHeaders;
-import static com.icthh.xm.commons.config.client.utils.RequestUtils.createAuthHeaders;
 import static com.icthh.xm.commons.config.client.utils.RequestUtils.createSimpleHeaders;
 
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
@@ -20,8 +18,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -36,7 +32,7 @@ public class CommonConfigRepository {
     public Map<String, Configuration> getConfig(String commit) {
         ParameterizedTypeReference<Map<String, Configuration>> typeRef = new ParameterizedTypeReference<Map<String, Configuration>>() {};
         HttpEntity<String> entity = new HttpEntity<>(createSimpleHeaders());
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl()).queryParam(VERSION, commit);
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + "/config_map").queryParam(VERSION, commit);
         return restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, typeRef).getBody();
     }
 
@@ -60,12 +56,10 @@ public class CommonConfigRepository {
     }
 
     public void updateConfigFullPath(Configuration configuration, String oldConfigHash) {
-        HttpEntity<Configuration> entity = new HttpEntity<>(configuration, createAuthHeaders());
-
+        HttpEntity<Configuration> entity = new HttpEntity<>(configuration);
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + "/config")
             .queryParam(OLD_CONFIG_HASH, oldConfigHash);
-
-        restTemplate.exchange(builder.build().toUri(), HttpMethod.PUT, entity, Void.class);
+        restTemplate.exchange(builder.toUriString(), HttpMethod.PUT, entity, Void.class);
     }
 
 }
