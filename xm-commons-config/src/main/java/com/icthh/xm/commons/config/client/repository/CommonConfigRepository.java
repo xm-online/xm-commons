@@ -1,5 +1,7 @@
 package com.icthh.xm.commons.config.client.repository;
 
+import static com.icthh.xm.commons.config.client.repository.TenantConfigRepository.OLD_CONFIG_HASH;
+import static com.icthh.xm.commons.config.client.repository.TenantConfigRepository.TENANT_NAME;
 import static com.icthh.xm.commons.config.client.utils.RequestUtils.createApplicationJsonHeaders;
 import static com.icthh.xm.commons.config.client.utils.RequestUtils.createAuthHeaders;
 import static com.icthh.xm.commons.config.client.utils.RequestUtils.createSimpleHeaders;
@@ -18,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +28,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CommonConfigRepository {
 
-    private static final String URL = "/api/private/config_map";
+    private static final String URL = "/api/private";
     private static final String VERSION = "version";
     private final RestTemplate restTemplate;
     private final XmConfigProperties xmConfigProperties;
@@ -52,7 +55,17 @@ public class CommonConfigRepository {
     public Map<String,Configuration> getConfig(String version, Collection<String> paths) {
         ParameterizedTypeReference<Map<String, Configuration>> typeRef = new ParameterizedTypeReference<Map<String, Configuration>>() {};
         HttpEntity<GetConfigRequest> entity = new HttpEntity<>(new GetConfigRequest(version, paths), createApplicationJsonHeaders());
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl());
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + "/config_map");
         return restTemplate.exchange(builder.toUriString(), HttpMethod.POST, entity, typeRef).getBody();
     }
+
+    public void updateConfigFullPath(Configuration configuration, String oldConfigHash) {
+        HttpEntity<Configuration> entity = new HttpEntity<>(configuration, createAuthHeaders());
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + "/config")
+            .queryParam(OLD_CONFIG_HASH, oldConfigHash);
+
+        restTemplate.exchange(builder.build().toUri(), HttpMethod.PUT, entity, Void.class);
+    }
+
 }
