@@ -9,18 +9,27 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 
 /**
  * Aspect for Service logging.
  */
+@Component
 @Aspect
 @Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE + 2)
 public class ServiceLoggingAspect {
+
+    private static final String XM_BASE_PACKAGE = "com.icthh.xm";
+
+    @Value("${base-package:'-'}")
+    private String basePackage;
 
     @SuppressWarnings("squid:S1186") //suppress empty method warning
     @Pointcut("@annotation(com.icthh.xm.commons.logging.aop.IgnoreLogginAspect) "
@@ -29,7 +38,7 @@ public class ServiceLoggingAspect {
     }
 
     @SuppressWarnings("squid:S1186") //suppress empty method warning
-    @Pointcut("within(com.icthh.xm..*) && (within(@org.springframework.stereotype.Service *) "
+    @Pointcut("(within(@org.springframework.stereotype.Service *) "
               + "|| within(@com.icthh.xm.commons.lep.*.LepService *))")
     public void servicePointcut() {
     }
@@ -44,6 +53,12 @@ public class ServiceLoggingAspect {
     @SneakyThrows
     @Around("servicePointcut() && !excluded()")
     public Object logBeforeService(ProceedingJoinPoint joinPoint) {
+
+        String className = joinPoint.getSignature().getDeclaringTypeName();
+
+        if (!withLogging(className)) {
+            return joinPoint.proceed();
+        }
 
         StopWatch stopWatch = StopWatch.createStarted();
 
@@ -60,6 +75,10 @@ public class ServiceLoggingAspect {
             throw e;
         }
 
+    }
+
+    private boolean withLogging(String className) {
+        return className.startsWith(XM_BASE_PACKAGE) || className.startsWith(basePackage);
     }
 
     private void logStart(final JoinPoint joinPoint) {
