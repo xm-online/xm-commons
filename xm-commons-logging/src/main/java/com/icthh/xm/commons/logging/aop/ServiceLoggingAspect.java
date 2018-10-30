@@ -26,6 +26,8 @@ import java.util.concurrent.TimeUnit;
 @Order(Ordered.HIGHEST_PRECEDENCE + 2)
 public class ServiceLoggingAspect {
 
+    private static final String XM_BASE_PACKAGE = "com.icthh.xm";
+
     @Value("${base-package:'-'}")
     private String basePackage;
 
@@ -52,11 +54,9 @@ public class ServiceLoggingAspect {
     @Around("servicePointcut() && !excluded()")
     public Object logBeforeService(ProceedingJoinPoint joinPoint) {
 
-        //com.icthh.xm
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        if (!signature.getDeclaringTypeName().startsWith("com.icthh.xm")
-            && !signature.getDeclaringTypeName().startsWith(basePackage)
-            ) {
+        String className = joinPoint.getSignature().getDeclaringTypeName();
+
+        if (!withLogging(className)) {
             return joinPoint.proceed();
         }
 
@@ -75,6 +75,10 @@ public class ServiceLoggingAspect {
             throw e;
         }
 
+    }
+
+    private boolean withLogging(String className) {
+        return className.startsWith(XM_BASE_PACKAGE) || className.startsWith(basePackage);
     }
 
     private void logStart(final JoinPoint joinPoint) {
