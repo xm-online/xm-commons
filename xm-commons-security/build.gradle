@@ -1,16 +1,4 @@
-buildscript {
-    repositories {
-        maven { url "http://repo.spring.io/plugins-release" }
-    }
-
-    dependencies {
-        classpath "org.springframework.build.gradle:propdeps-plugin:${versions.propdepsPlugin}"
-    }
-}
-
-apply plugin: 'propdeps'
 apply plugin: 'io.spring.dependency-management'
-
 dependencyManagement {
     imports {
         mavenBom("org.springframework.boot:spring-boot-dependencies:$versions.springBoot")
@@ -18,10 +6,6 @@ dependencyManagement {
 }
 
 dependencies {
-    optional("org.springframework.boot:spring-boot-configuration-processor") {
-        exclude group: 'com.vaadin.external.google', module: 'android-json'
-    }
-
     compileOnly "javax.servlet:javax.servlet-api"
 
     compile project(":xm-commons-logging-web")
