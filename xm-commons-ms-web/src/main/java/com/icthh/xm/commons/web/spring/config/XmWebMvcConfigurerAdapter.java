@@ -4,7 +4,6 @@ import com.icthh.xm.commons.web.spring.TenantInterceptor;
 import com.icthh.xm.commons.web.spring.XmLoggingInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -12,15 +11,13 @@ import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 /**
  * The {@link XmWebMvcConfigurerAdapter} class.
  */
-@Component
-public class XmWebMvcConfigurerAdapter extends WebMvcConfigurerAdapter {
+public abstract class XmWebMvcConfigurerAdapter extends WebMvcConfigurerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(XmWebMvcConfigurerAdapter.class);
 
@@ -51,9 +48,7 @@ public class XmWebMvcConfigurerAdapter extends WebMvcConfigurerAdapter {
      *
      * @see WebMvcConfigurer#addInterceptors(org.springframework.web.servlet.config.annotation.InterceptorRegistry)
      */
-    protected void xmAddInterceptors(InterceptorRegistry registry) {
-
-    }
+    protected abstract void xmAddInterceptors(InterceptorRegistry registry);
 
     /**
      * {@inheritDoc}
@@ -77,9 +72,7 @@ public class XmWebMvcConfigurerAdapter extends WebMvcConfigurerAdapter {
      *
      * @see WebMvcConfigurer#configurePathMatch(org.springframework.web.servlet.config.annotation.PathMatchConfigurer)
      */
-    protected void xmConfigurePathMatch(PathMatchConfigurer configurer) {
-
-    }
+    protected abstract void xmConfigurePathMatch(PathMatchConfigurer configurer);
 
     /**
      * Registered interceptor to all request except passed urls.
@@ -107,9 +100,7 @@ public class XmWebMvcConfigurerAdapter extends WebMvcConfigurerAdapter {
      *
      * @return non {@code null} list of tenant context ignore URL patterns, can be empty
      */
-    protected List<String> getTenantIgnorePathPatterns() {
-        return Collections.emptyList();
-    }
+    protected abstract List<String> getTenantIgnorePathPatterns();
 
     private void registerXmLoggingInterceptor(InterceptorRegistry registry) {
         registry.addInterceptor(xmLoggingInterceptor).addPathPatterns("/**");
