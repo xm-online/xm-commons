@@ -35,4 +35,5 @@ dependencies {
     testCompile 'org.assertj:assertj-core'
     testCompile 'org.springframework:spring-test'
     testCompile 'org.springframework.kafka:spring-kafka-test'
+    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
 }
