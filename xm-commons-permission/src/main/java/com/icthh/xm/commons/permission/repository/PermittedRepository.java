@@ -187,7 +187,7 @@ public class PermittedRepository {
     private static String applyOrder(String sql, Sort sort) {
         StringBuilder builder = new StringBuilder(sql);
 
-        if (sort != null) {
+        if (sort != null && !sort.equals(Sort.unsorted())) {
             builder.append(ORDER_BY_SQL);
             String sep = "";
             for (Sort.Order order : sort) {
@@ -203,7 +203,7 @@ public class PermittedRepository {
     }
 
     private <T> Page<T> readPage(TypedQuery<Long> countQuery, TypedQuery<T> query, Pageable pageable) {
-        query.setFirstResult(pageable.getOffset());
+        query.setFirstResult(Math.toIntExact(pageable.getOffset()));
         query.setMaxResults(pageable.getPageSize());
 
         return PageableExecutionUtils.getPage(query.getResultList(), pageable,
