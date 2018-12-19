@@ -24,6 +24,7 @@ import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.provider.expression.OAuth2SecurityExpressionMethods;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
@@ -146,6 +147,7 @@ public class PermissionCheckService {
             resources.putAll((Map<String, Object>) resource);
         }
         resources.put("subject", getSubject(roleKey));
+        resources.put("oauth2", new OAuth2SecurityExpressionMethods(authentication));
 
         Map<String, String> env = new HashMap<>();
         env.put(EnvironmentVariable.IP.getName(), xmAuthenticationContextHolder
