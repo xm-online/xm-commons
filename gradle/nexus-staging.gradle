@@ -4,8 +4,8 @@ if (hasProperty('ossrhUsername') && hasProperty('ossrhPassword')) {
     nexusStaging {
         username = ossrhUsername
         password = ossrhPassword
-        numberOfRetries = 40
-        delayBetweenRetriesInMillis = 4000
+        numberOfRetries = 100
+        delayBetweenRetriesInMillis = 10000
         packageGroup = "com.icthh"
     }
 
