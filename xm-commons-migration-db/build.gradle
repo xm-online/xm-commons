@@ -8,6 +8,8 @@ dependencyManagement {
 dependencies {
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
 
+    compile project(':xm-commons-config')
+
     compile 'org.slf4j:slf4j-api'
     compile 'org.liquibase:liquibase-core'
     compile 'org.springframework:spring-context'
