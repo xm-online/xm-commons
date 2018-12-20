@@ -1,11 +1,13 @@
-package com.icthh.xm.commons.migration.db;
+package com.icthh.xm.commons.migration.db.util;
 
-import lombok.experimental.UtilityClass;
+import com.icthh.xm.commons.migration.db.Constants;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import javax.sql.DataSource;
+
+import lombok.experimental.UtilityClass;
 
 /**
  * Utility for database operations.
