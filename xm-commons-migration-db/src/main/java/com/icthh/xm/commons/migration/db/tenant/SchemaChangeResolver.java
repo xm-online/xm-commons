@@ -1,5 +1,8 @@
 package com.icthh.xm.commons.migration.db.tenant;
 
+import static com.icthh.xm.commons.migration.db.Constants.DB_SCHEMA_SUFFIX;
+import static com.icthh.xm.commons.migration.db.Constants.JPA_VENDOR;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -27,7 +30,7 @@ public class SchemaChangeResolver {
      */
     public SchemaChangeResolver(Environment env) {
         initDbCommands(env);
-        String db = env.getProperty("spring.jpa.database");
+        String db = env.getProperty(JPA_VENDOR);
         this.dbSchemaChangeCommand = DB_COMMANDS.getOrDefault(db, DEFAULT_COMMAND);
         log.info("Database {} will use command '{}' for schema changing", db, dbSchemaChangeCommand);
     }
@@ -37,7 +40,7 @@ public class SchemaChangeResolver {
     }
 
     private void initDbCommands(Environment env) {
-        String schemaSuffix = env.getProperty("application.tenant.suffix");
+        String schemaSuffix = env.getProperty(DB_SCHEMA_SUFFIX);
         String schema = "%s";
 
         schema += StringUtils.isEmpty(schemaSuffix) ? "" : schemaSuffix;
