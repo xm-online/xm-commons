@@ -42,7 +42,7 @@ public class SchemaResolver {
         }
     }
 
-    private List<String> getSchemas() {
+    public List<String> getSchemas() {
         String suffix = env.getProperty(DB_SCHEMA_SUFFIX);
         List<String> schemas = new ArrayList<>(tenantListRepository.getTenants());
 
