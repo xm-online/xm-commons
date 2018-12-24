@@ -4,13 +4,15 @@ import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ReflectionConfig {
 
-    private static final String SCAN_PACKAGE = "com.icthh.xm";
+    @Value("${base-package: com.icthh.xm}")
+    private String scanPackage;
 
     /**
      * {@link Reflections} bean.
@@ -20,7 +22,7 @@ public class ReflectionConfig {
     @Bean
     public Reflections reflections() {
         return new Reflections(new ConfigurationBuilder()
-                                   .setUrls(ClasspathHelper.forPackage(SCAN_PACKAGE))
-                                   .setScanners(new MethodAnnotationsScanner()));
+                                    .setUrls(ClasspathHelper.forPackage(scanPackage))
+                                    .setScanners(new MethodAnnotationsScanner()));
     }
 }
