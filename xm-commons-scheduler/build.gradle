@@ -43,6 +43,8 @@ dependencies {
     compile "org.springframework.security.oauth:spring-security-oauth2:${versions.springSecurityOAuth2}"
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
+    implementation('org.springframework.cloud:spring-cloud-stream')
+    implementation('org.springframework.cloud:spring-cloud-stream-binder-kafka')
 
     testCompile "org.springframework.boot:spring-boot-test"
     testCompile "org.springframework.cloud:spring-cloud-stream-test-support"
