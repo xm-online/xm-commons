@@ -1,5 +1,7 @@
 package com.icthh.xm.commons.scheduler.service;
 
+import static java.util.stream.Collectors.toList;
+
 import com.icthh.xm.commons.scheduler.domain.ScheduledEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -25,8 +28,16 @@ public class SchedulerEventService {
             return;
         }
 
-        handlers.stream().filter(this::isHandlersForAll).forEach(handler -> handler.onEvent(event));
+        List<SchedulerEventHandler> eventHandlers = handlers.stream()
+            .filter(handler -> Objects.equals(handler.eventType(), event.getTypeKey()) || isHandlersForAll(handler))
+            .collect(toList());
+        if (eventHandlers.isEmpty()) {
+            log.warn("No handlers found. Event: {} skipper.", event);
+        } else {
+            log.warn("Fount {} handlers found. Event: {} skipper.", eventHandlers.size(), event);
+        }
 
+        eventHandlers.forEach(handler -> handler.onEvent(event));
     }
 
     private boolean isHandlersForAll(SchedulerEventHandler handler) {
