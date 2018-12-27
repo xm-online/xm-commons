@@ -13,5 +13,6 @@ include ':xm-commons-security'
 include ':xm-commons-tenant'
 include ':xm-commons-tenant-endpoint'
 include ':xm-commons-timeline'
+include ':xm-commons-scheduler'
 
 rootProject.name = String.valueOf(getProperty("app.name"))
