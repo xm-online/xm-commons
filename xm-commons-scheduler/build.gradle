@@ -22,6 +22,7 @@ dependencies {
 
     compile project(':xm-commons-logging')
     compile project(':xm-commons-tenant')
+    compile project(":xm-commons-config")
 
     optional("org.springframework.boot:spring-boot-configuration-processor") {
         exclude group: 'com.vaadin.external.google', module: 'android-json'

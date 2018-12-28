@@ -19,8 +19,9 @@ public class SchedulerEventService {
     private final List<SchedulerEventHandler> handlers;
 
     public void processSchedulerEvent(ScheduledEvent event) {
-        if (event.getEndDate().isBefore(Instant.now())) {
+        if (event.getEndDate() != null && event.getEndDate().isBefore(Instant.now())) {
             log.warn("Event skipped because it expired. Event: {}", event);
+            return;
         }
 
         if (handlers == null) {
@@ -37,7 +38,16 @@ public class SchedulerEventService {
             log.warn("Fount {} handlers found. Event: {} skipper.", eventHandlers.size(), event);
         }
 
-        eventHandlers.forEach(handler -> handler.onEvent(event));
+        try {
+            eventHandlers.forEach(handler -> handler.onEvent(event));
+        } catch (Exception e) {
+            log.error("Error process message {}", event);
+            if (event.getEndDate() != null) {
+                throw e;
+            } else {
+                log.info("End date in null. Error will be skiped");
+            }
+        }
     }
 
     private boolean isHandlersForAll(SchedulerEventHandler handler) {
