@@ -2,7 +2,10 @@ package com.icthh.xm.commons.scheduler.adapter;
 
 import static com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance;
 import static com.icthh.xm.commons.config.client.repository.TenantListRepository.TENANTS_LIST_CONFIG_KEY;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.UUID.randomUUID;
 import static org.apache.commons.lang3.StringUtils.lowerCase;
+import static org.apache.commons.lang3.StringUtils.upperCase;
 import static org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties.StartOffset.earliest;
 import static org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties.StartOffset.latest;
 
@@ -11,13 +14,18 @@ import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.config.domain.TenantState;
+import com.icthh.xm.commons.scheduler.domain.ScheduledEvent;
+import com.icthh.xm.commons.scheduler.service.SchedulerEventService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.binder.ConsumerProperties;
+import org.springframework.cloud.stream.binder.HeaderMode;
 import org.springframework.cloud.stream.binder.kafka.KafkaMessageChannelBinder;
+import org.springframework.cloud.stream.binder.kafka.config.KafkaBinderConfiguration;
 import org.springframework.cloud.stream.binder.kafka.properties.KafkaBindingProperties;
 import org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties.StartOffset;
 import org.springframework.cloud.stream.binder.kafka.properties.KafkaExtendedBindingProperties;
@@ -25,20 +33,24 @@ import org.springframework.cloud.stream.binding.BindingService;
 import org.springframework.cloud.stream.binding.BindingTargetFactory;
 import org.springframework.cloud.stream.config.BindingProperties;
 import org.springframework.cloud.stream.config.BindingServiceProperties;
+import org.springframework.context.annotation.Import;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.stereotype.Component;
 
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
 @EnableBinding
+@EnableIntegration
 @RequiredArgsConstructor
+@Import(KafkaBinderConfiguration.class)
 public class Bindings implements RefreshableConfiguration {
 
     private static final String PREFIX = "scheduler_";
@@ -52,37 +64,46 @@ public class Bindings implements RefreshableConfiguration {
     private final BindingService bindingService;
     private final KafkaExtendedBindingProperties kafkaExtendedBindingProperties = new KafkaExtendedBindingProperties();
     private final Map<String, SubscribableChannel> channels = new ConcurrentHashMap<>();
+    private final SchedulerEventService schedulerEventService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${spring.application.name}")
     private String appName;
 
+    @Autowired
     public Bindings(BindingServiceProperties bindingServiceProperties,
                                         BindingTargetFactory bindingTargetFactory,
                                         BindingService bindingService,
-                                        KafkaMessageChannelBinder kafkaMessageChannelBinder) {
+                                        KafkaMessageChannelBinder kafkaMessageChannelBinder,
+                                        SchedulerEventService schedulerEventService) {
         this.bindingServiceProperties = bindingServiceProperties;
         this.bindingTargetFactory = bindingTargetFactory;
         this.bindingService = bindingService;
+        this.schedulerEventService = schedulerEventService;
         kafkaMessageChannelBinder.setExtendedBindingProperties(kafkaExtendedBindingProperties);
     }
 
     private void createChannels(String tenantName) {
         try {
             String tenant = lowerCase(tenantName);
-            createHandler(PREFIX + tenant + QUEUE, GENERALGROUP, earliest);
-            createHandler(PREFIX + tenant + TOPIC, UUID.randomUUID().toString(), latest);
-            createHandler(PREFIX + tenant + DELIMITER + appName + QUEUE, appName, earliest);
-            createHandler(PREFIX + tenant + DELIMITER + appName + TOPIC, UUID.randomUUID().toString(), latest);
+            String tenantKey = upperCase(tenantName);
+            String id = randomUUID().toString();
+
+            createHandler(PREFIX + tenant + QUEUE, GENERALGROUP, tenantKey, earliest);
+            createHandler(PREFIX + tenant + TOPIC, id, tenantKey, latest);
+            createHandler(PREFIX + tenant + DELIMITER + appName + QUEUE, appName, tenantKey, earliest);
+            createHandler(PREFIX + tenant + DELIMITER + appName + TOPIC, id, tenantKey, latest);
         } catch (Exception e) {
             log.error("Error create scheduler channels for tenant " + tenantName, e);
             throw e;
         }
     }
 
-    private synchronized void createHandler(String chanelName, String consumerGroup, StartOffset startOffset) {
+    private synchronized void createHandler(String chanelName, String consumerGroup, String tenantName, StartOffset startOffset) {
         if (!channels.containsKey(chanelName)) {
+
+            log.info("Create binding to {}. Consumer group {}", chanelName, consumerGroup);
 
             KafkaBindingProperties props = new KafkaBindingProperties();
             props.getConsumer().setAutoCommitOffset(false);
@@ -91,6 +112,7 @@ public class Bindings implements RefreshableConfiguration {
 
             ConsumerProperties consumerProperties = new ConsumerProperties();
             consumerProperties.setMaxAttempts(Integer.MAX_VALUE);
+            consumerProperties.setHeaderMode(HeaderMode.raw);
             BindingProperties bindingProperties = new BindingProperties();
             bindingProperties.setConsumer(consumerProperties);
             bindingProperties.setDestination(chanelName);
@@ -103,9 +125,18 @@ public class Bindings implements RefreshableConfiguration {
             channels.put(chanelName, channel);
 
             channel.subscribe(message -> {
-                // TODO add message handler
+                byte[] payload = (byte[]) message.getPayload();
+                String eventBody = new String(Base64.getDecoder().decode(payload), UTF_8);
+                log.info("Consume message {}", eventBody);
+                mapToEvent(eventBody);
+                schedulerEventService.processSchedulerEvent(new ScheduledEvent(), tenantName);
             });
         }
+    }
+
+    @SneakyThrows
+    private void mapToEvent(String eventBody) {
+        objectMapper.readValue(eventBody, ScheduledEvent.class);
     }
 
     @SneakyThrows

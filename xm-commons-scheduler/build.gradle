@@ -24,19 +24,8 @@ dependencies {
     compile project(':xm-commons-tenant')
     compile project(":xm-commons-config")
 
-    optional("org.springframework.boot:spring-boot-configuration-processor") {
-        exclude group: 'com.vaadin.external.google', module: 'android-json'
-    }
-
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
 
-    compile 'commons-collections:commons-collections'
-    compile 'org.springframework.cloud:spring-cloud-commons'
-    compile 'org.springframework.cloud:spring-cloud-netflix-core'
-    compile('org.springframework.boot:spring-boot-starter-web') {
-        exclude module: 'spring-boot-starter-tomcat'
-    }
-    compile 'org.springframework.kafka:spring-kafka'
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-json-org'
 
@@ -44,7 +33,6 @@ dependencies {
     compile "org.springframework.security.oauth:spring-security-oauth2:${versions.springSecurityOAuth2}"
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
-    implementation('org.springframework.cloud:spring-cloud-stream')
     implementation('org.springframework.cloud:spring-cloud-stream-binder-kafka')
 
     testCompile "org.springframework.boot:spring-boot-test"

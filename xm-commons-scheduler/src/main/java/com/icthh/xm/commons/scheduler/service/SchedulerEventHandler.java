@@ -6,7 +6,7 @@ public interface SchedulerEventHandler {
 
     String ALL = "ALL";
 
-    void onEvent(ScheduledEvent scheduledEvent);
+    void onEvent(ScheduledEvent scheduledEvent, String tenantKey);
     default String eventType() {
         return ALL;
     }

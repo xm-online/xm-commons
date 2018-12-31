@@ -18,7 +18,7 @@ public class SchedulerEventService {
 
     private final List<SchedulerEventHandler> handlers;
 
-    public void processSchedulerEvent(ScheduledEvent event) {
+    public void processSchedulerEvent(ScheduledEvent event, String tenantKey) {
         if (event.getEndDate() != null && event.getEndDate().isBefore(Instant.now())) {
             log.warn("Event skipped because it expired. Event: {}", event);
             return;
@@ -39,7 +39,7 @@ public class SchedulerEventService {
         }
 
         try {
-            eventHandlers.forEach(handler -> handler.onEvent(event));
+            eventHandlers.forEach(handler -> handler.onEvent(event, tenantKey));
         } catch (Exception e) {
             log.error("Error process message {}", event);
             if (event.getEndDate() != null) {
