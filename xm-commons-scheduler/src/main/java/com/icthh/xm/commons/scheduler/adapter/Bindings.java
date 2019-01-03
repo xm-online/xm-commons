@@ -21,6 +21,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.binder.ConsumerProperties;
 import org.springframework.cloud.stream.binder.HeaderMode;
@@ -51,6 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @EnableIntegration
 @RequiredArgsConstructor
 @Import(KafkaBinderConfiguration.class)
+@ConditionalOnProperty("application.scheduler-enabled")
 public class Bindings implements RefreshableConfiguration {
 
     private static final String PREFIX = "scheduler_";
