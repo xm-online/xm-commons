@@ -134,7 +134,7 @@ public class Bindings implements RefreshableConfiguration {
                 log.info("Consume message {}", eventBody);
                 mapToEvent(eventBody);
                 schedulerEventService.processSchedulerEvent(new ScheduledEvent(), tenantName);
-                message.getHeaders().get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class);
+                message.getHeaders().get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class).acknowledge();
             });
         }
     }
