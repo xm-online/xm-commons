@@ -36,6 +36,8 @@ import org.springframework.cloud.stream.config.BindingProperties;
 import org.springframework.cloud.stream.config.BindingServiceProperties;
 import org.springframework.context.annotation.Import;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.stereotype.Component;
 
@@ -132,6 +134,7 @@ public class Bindings implements RefreshableConfiguration {
                 log.info("Consume message {}", eventBody);
                 mapToEvent(eventBody);
                 schedulerEventService.processSchedulerEvent(new ScheduledEvent(), tenantName);
+                message.getHeaders().get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class);
             });
         }
     }
