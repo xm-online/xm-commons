@@ -1,14 +1,5 @@
 package com.icthh.xm.commons.scheduler.adapter;
 
-import static com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance;
-import static com.icthh.xm.commons.config.client.repository.TenantListRepository.TENANTS_LIST_CONFIG_KEY;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.UUID.randomUUID;
-import static org.apache.commons.lang3.StringUtils.lowerCase;
-import static org.apache.commons.lang3.StringUtils.upperCase;
-import static org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties.StartOffset.earliest;
-import static org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties.StartOffset.latest;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.MapType;
@@ -19,6 +10,8 @@ import com.icthh.xm.commons.scheduler.service.SchedulerEventService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -41,12 +34,16 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.stereotype.Component;
 
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance;
+import static com.icthh.xm.commons.config.client.repository.TenantListRepository.TENANTS_LIST_CONFIG_KEY;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.UUID.randomUUID;
+import static org.apache.commons.lang3.StringUtils.*;
+import static org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties.StartOffset.earliest;
+import static org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties.StartOffset.latest;
 
 @Slf4j
 @Component
@@ -70,7 +67,7 @@ public class Bindings implements RefreshableConfiguration {
     private final Map<String, SubscribableChannel> channels = new ConcurrentHashMap<>();
     private final SchedulerEventService schedulerEventService;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Value("${spring.application.name}")
     private String appName;
@@ -80,11 +77,13 @@ public class Bindings implements RefreshableConfiguration {
                                         BindingTargetFactory bindingTargetFactory,
                                         BindingService bindingService,
                                         KafkaMessageChannelBinder kafkaMessageChannelBinder,
+                                        ObjectMapper objectMapper,
                                         SchedulerEventService schedulerEventService) {
         this.bindingServiceProperties = bindingServiceProperties;
         this.bindingTargetFactory = bindingTargetFactory;
         this.bindingService = bindingService;
         this.schedulerEventService = schedulerEventService;
+        this.objectMapper = objectMapper;
         kafkaMessageChannelBinder.setExtendedBindingProperties(kafkaExtendedBindingProperties);
     }
 
@@ -129,19 +128,27 @@ public class Bindings implements RefreshableConfiguration {
             channels.put(chanelName, channel);
 
             channel.subscribe(message -> {
-                byte[] payload = (byte[]) message.getPayload();
-                String eventBody = new String(Base64.getDecoder().decode(payload), UTF_8);
-                log.info("Consume message {}", eventBody);
-                mapToEvent(eventBody);
-                schedulerEventService.processSchedulerEvent(new ScheduledEvent(), tenantName);
-                message.getHeaders().get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class).acknowledge();
+                try {
+                    StopWatch stopWatch = StopWatch.createStarted();
+                    byte[] payload = (byte[]) message.getPayload();
+                    String payloadString = new String(payload, UTF_8);
+                    payloadString = unwrap(payloadString, "\"");
+                    log.info("start processign message for tenant: [{}], body = {}", tenantName, payloadString);
+                    String eventBody = new String(Base64.getDecoder().decode(payloadString), UTF_8);
+                    schedulerEventService.processSchedulerEvent(mapToEvent(eventBody), tenantName);
+                    message.getHeaders().get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class).acknowledge();
+                    log.info("stop processign message for tenant: [{}], time = {}", tenantName, stopWatch.getTime());
+                } catch (Exception e) {
+                    log.error("Error processign event", e);
+                    throw e;
+                }
             });
         }
     }
 
     @SneakyThrows
-    private void mapToEvent(String eventBody) {
-        objectMapper.readValue(eventBody, ScheduledEvent.class);
+    private ScheduledEvent mapToEvent(String eventBody) {
+        return objectMapper.readValue(eventBody, ScheduledEvent.class);
     }
 
     @SneakyThrows
@@ -174,4 +181,22 @@ public class Bindings implements RefreshableConfiguration {
     public void onInit(String key, String config) {
         updateTenants(key, config);
     }
+
+    private static String unwrap(final String str, final String wrapToken) {
+        if (isEmpty(str) || isEmpty(wrapToken)) {
+            return str;
+        }
+
+        if (startsWith(str, wrapToken) && endsWith(str, wrapToken)) {
+            final int startIndex = str.indexOf(wrapToken);
+            final int endIndex = str.lastIndexOf(wrapToken);
+            final int wrapLength = wrapToken.length();
+            if (startIndex != -1 && endIndex != -1) {
+                return str.substring(startIndex + wrapLength, endIndex);
+            }
+        }
+
+        return str;
+    }
+
 }
