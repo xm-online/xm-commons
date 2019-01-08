@@ -54,7 +54,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @EnableIntegration
 @RequiredArgsConstructor
 @Import(KafkaBinderConfiguration.class)
-@ConditionalOnProperty("scheduler-enabled")
+@ConditionalOnProperty("application.scheduler-enabled")
 public class Bindings implements RefreshableConfiguration {
 
     private static final String PREFIX = "scheduler_";
