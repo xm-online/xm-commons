@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.config.domain.TenantState;
+import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.scheduler.domain.ScheduledEvent;
 import com.icthh.xm.commons.scheduler.service.SchedulerEventService;
 import lombok.RequiredArgsConstructor;
@@ -129,22 +130,28 @@ public class Bindings implements RefreshableConfiguration {
 
             channel.subscribe(message -> {
                 try {
+                    MdcUtils.putRid(MdcUtils.getRid() + ":" + tenantName);
                     StopWatch stopWatch = StopWatch.createStarted();
                     byte[] payload = (byte[]) message.getPayload();
                     String payloadString = new String(payload, UTF_8);
                     payloadString = unwrap(payloadString, "\"");
                     log.info("start processign message for tenant: [{}], body = {}", tenantName, payloadString);
                     String eventBody = new String(Base64.getDecoder().decode(payloadString), UTF_8);
+
                     schedulerEventService.processSchedulerEvent(mapToEvent(eventBody), tenantName);
+
                     message.getHeaders().get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class).acknowledge();
                     log.info("stop processign message for tenant: [{}], time = {}", tenantName, stopWatch.getTime());
                 } catch (Exception e) {
                     log.error("Error processign event", e);
                     throw e;
+                } finally {
+                    MdcUtils.removeRid();
                 }
             });
         }
     }
+
 
     @SneakyThrows
     private ScheduledEvent mapToEvent(String eventBody) {
