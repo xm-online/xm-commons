@@ -11,7 +11,6 @@ import com.icthh.xm.commons.scheduler.service.SchedulerEventService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -143,7 +142,7 @@ public class Bindings implements RefreshableConfiguration {
                     message.getHeaders().get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class).acknowledge();
                     log.info("stop processign message for tenant: [{}], time = {}", tenantName, stopWatch.getTime());
                 } catch (Exception e) {
-                    log.error("Error processign event", e);
+                    log.error("error processign event for tenant [{}]", tenantName, e);
                     throw e;
                 } finally {
                     MdcUtils.removeRid();
