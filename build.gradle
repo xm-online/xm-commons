@@ -283,18 +283,6 @@ subprojects {
         }
     }
 
-//    commented but useful for local development
-//    apply plugin: 'maven-publish'
-//
-//    publishing {
-//        publications {
-//            maven(MavenPublication) {
-//                from components.java
-//            }
-//        }
-//    }
-
-
 }
 
 boolean isRelease(Project project) {
