@@ -75,6 +75,7 @@ public class TimelineEventProducer {
             data.put("operationName", getResourceName(request.getRequestURI())
                 + " " + getOperation(request.getMethod()));
             data.put("operationUrl", request.getRequestURI());
+            data.put("operationQueryString", request.getQueryString());
             data.put("startDate", startDate.toString());
             data.put("httpMethod", request.getMethod());
             data.put("requestBody", maskContent(requestBody, request.getRequestURI(), true, request.getMethod()));
