@@ -129,6 +129,7 @@ public class Bindings implements RefreshableConfiguration {
 
             channel.subscribe(message -> {
                 try {
+                    MdcUtils.generateRid();
                     MdcUtils.putRid(MdcUtils.getRid() + ":" + tenantName);
                     StopWatch stopWatch = StopWatch.createStarted();
                     byte[] payload = (byte[]) message.getPayload();
