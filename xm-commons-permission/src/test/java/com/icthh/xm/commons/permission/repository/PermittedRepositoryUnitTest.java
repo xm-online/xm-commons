@@ -3,10 +3,8 @@ package com.icthh.xm.commons.permission.repository;
 import static com.google.common.collect.ImmutableSet.of;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.anyOf;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -68,7 +66,7 @@ public class PermittedRepositoryUnitTest {
         Page<TestEntity> result = repository.findByCondition("a = :b",
             Collections.singletonMap("b", "bbb"),
             null,
-            new PageRequest(5, 10, new Sort(Sort.DEFAULT_DIRECTION, "d")),
+            PageRequest.of(5, 10, new Sort(Sort.DEFAULT_DIRECTION, "d")),
             TestEntity.class,
             "TEST");
 
@@ -96,7 +94,7 @@ public class PermittedRepositoryUnitTest {
         Page result = repository.findByCondition("a = :b",
             Collections.singletonMap("b", "bbb"),
             of("c", "d.e"),
-            new PageRequest(5, 10, new Sort(Sort.DEFAULT_DIRECTION, "d")),
+            PageRequest.of(5, 10, new Sort(Sort.DEFAULT_DIRECTION, "d")),
             TestEntity.class,
             "TEST");
 
