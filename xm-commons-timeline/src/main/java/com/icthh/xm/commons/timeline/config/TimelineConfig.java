@@ -5,12 +5,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @RequiredArgsConstructor
 @ConditionalOnProperty("application.timelines-enabled")
-public class TimelineConfig extends WebMvcConfigurerAdapter {
+public class TimelineConfig implements WebMvcConfigurer {
 
     private final TimelineInterceptor timelineInterceptor;
 

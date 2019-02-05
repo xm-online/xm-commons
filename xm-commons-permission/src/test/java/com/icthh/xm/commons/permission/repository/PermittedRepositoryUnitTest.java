@@ -20,7 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -57,7 +57,6 @@ public class PermittedRepositoryUnitTest {
 
     @Test
     public void findByConditionWithoutEmbed() {
-        when(em.createEntityGraph(TestEntity.class)).thenReturn(entityGraph);
         when(em.createQuery("select distinct returnObject from TestEntity returnObject where a = :b and (f = g) order by d ASC", TestEntity.class)).thenReturn(selectQuery);
         when(em.createQuery("select distinct count(returnObject) from TestEntity returnObject where a = :b and (f = g)", Long.class)).thenReturn(countQuery);
         when(permissionCheckService.createCondition(
@@ -65,7 +64,6 @@ public class PermittedRepositoryUnitTest {
             eq("TEST"),
             any(SpelToJpqlTranslator.class))).thenReturn("f = g");
         when(selectQuery.getResultList()).thenReturn(asList(new TestEntity(1), new TestEntity(2)));
-        when(countQuery.getResultList()).thenReturn(Collections.singletonList(100));
 
         Page<TestEntity> result = repository.findByCondition("a = :b",
             Collections.singletonMap("b", "bbb"),
@@ -94,7 +92,6 @@ public class PermittedRepositoryUnitTest {
             eq("TEST"),
             any(SpelToJpqlTranslator.class))).thenReturn("f = g");
         when(selectQuery.getResultList()).thenReturn(asList(new TestEntity(1), new TestEntity(2)));
-        when(countQuery.getResultList()).thenReturn(Collections.singletonList(100));
 
         Page result = repository.findByCondition("a = :b",
             Collections.singletonMap("b", "bbb"),

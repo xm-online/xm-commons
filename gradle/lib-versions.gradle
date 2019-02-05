@@ -7,29 +7,31 @@ ext.versions = [
     pmd                        : '5.5.4',
 
     equalsverifier             : '2.3.3',
-    commonsLang3               : '3.5',
-    commonsCodec               : '1.10',
-    commonsIo                  : '2.5',
+    commonsLang3               : '3.7',
+    commonsCodec               : '1.11',
+    commonsIo                  : '2.6',
+    commonsCollections         : '3.2.2',
 
-    springBoot                 : '1.5.4.RELEASE',
-    springCloud                : 'Dalston.RELEASE',
-    springSecurityOAuth2       : '2.0.12.RELEASE',
+    springBoot                 : '2.0.6.RELEASE',
+    springCloud                : 'Finchley.RELEASE',
+    springSecurityOAuth2       : '2.3.4.RELEASE',
+    springSecurityJwt          : '1.0.9.RELEASE',
     springData                 : '2.1.3.RELEASE',
 
     lep                        : '0.1.0',
-    jsr305                     : '3.0.1',
+    jsr305                     : '3.0.2',
 
-    jhipster                   : '1.1.8',
-    lombok                     : '1.16.16',
-    logstashLogbackEncoder     : '4.9',
+    jhipster                   : '2.0.28',
+    lombok                     : '1.18.2',
+    logstashLogbackEncoder     : '5.2',
 
     propdepsPlugin             : '0.0.7',
 
     swaggerCodegen             : '2.2.3',
-    springfoxSwagger           : '2.7.0',
+    springfoxSwagger           : '2.9.2',
     reflections                : '0.9.11',
 
     systemRules                : '1.16.0',
 
-    hibernate                  : '5.2.8.Final',
+    hibernate                  : '5.2.17.Final'
 ]
