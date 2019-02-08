@@ -11,6 +11,7 @@ ext.versions = [
     commonsCodec               : '1.11',
     commonsIo                  : '2.6',
     commonsCollections         : '3.2.2',
+    commonsText                : '1.6',
 
     springBoot                 : '2.0.6.RELEASE',
     springCloud                : 'Finchley.RELEASE',
