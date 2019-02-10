@@ -29,7 +29,7 @@ dependencies {
 
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
 
-    compile 'commons-collections:commons-collections'
+    compile "commons-collections:commons-collections:${versions.commonsCollections}"
     compile 'org.springframework.cloud:spring-cloud-commons'
     compile 'org.springframework.cloud:spring-cloud-netflix-core'
     compile('org.springframework.boot:spring-boot-starter-web') {

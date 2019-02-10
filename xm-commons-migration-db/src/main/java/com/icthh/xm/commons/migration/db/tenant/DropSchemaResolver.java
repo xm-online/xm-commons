@@ -11,12 +11,12 @@ import java.util.Map;
 @Component
 public class DropSchemaResolver {
 
-    private static final String DEFAULT_COMMAND = "DROP SCHEMA IF EXISTS %s";
+    private static final String DEFAULT_COMMAND = "DROP SCHEMA IF EXISTS %s CASCADE";
 
     private static final Map<String, String> DB_COMMANDS = new HashMap<>();
 
     static {
-        DB_COMMANDS.put("POSTGRESQL", DEFAULT_COMMAND + " CASCADE");
+        DB_COMMANDS.put("POSTGRESQL", DEFAULT_COMMAND);
         DB_COMMANDS.put("H2", DEFAULT_COMMAND);
     }
 

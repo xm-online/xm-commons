@@ -123,6 +123,8 @@ subprojects {
         archives javadocJar, sourcesJar
     }
 
+    task allDeps(type: DependencyReportTask) {}
+    
     signing {
         // We only want to require signing if we are building a release version and we are going to publish it.
         // Because we are inspecting the task graph to determine if we are going to be publishing,

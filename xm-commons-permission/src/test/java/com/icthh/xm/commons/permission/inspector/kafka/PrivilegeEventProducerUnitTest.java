@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.permission.inspector.kafka;
 
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -12,7 +12,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.icthh.xm.commons.messaging.event.system.SystemEvent;
 import com.icthh.xm.commons.permission.domain.Privilege;
 import com.icthh.xm.commons.permission.domain.mapper.PrivilegeMapper;
-import org.hamcrest.Description;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
@@ -72,7 +71,7 @@ public class PrivilegeEventProducerUnitTest {
     /**
      * Custom matcher for verifying actual and expected ValueObjects match.
      */
-    private static class SysEventPrivilegeMatcher extends ArgumentMatcher<String> {
+    private static class SysEventPrivilegeMatcher implements ArgumentMatcher<String> {
 
         private final ObjectMapper jsonMapper = new ObjectMapper()
             .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
@@ -96,12 +95,12 @@ public class PrivilegeEventProducerUnitTest {
         }
 
         @Override
-        public boolean matches(Object actualObj) {
-            if (!(actualObj instanceof String)) {
+        public boolean matches(String actualObj) {
+            if (actualObj == null) {
                 return false;
             }
 
-            SystemEvent actual = toEvent((String) actualObj);
+            SystemEvent actual = toEvent(actualObj);
 
             Privilege actualPrivilege = getFirstPrivilege(actual);
 
@@ -117,10 +116,10 @@ public class PrivilegeEventProducerUnitTest {
         }
 
         @Override
-        public void describeTo(Description description) {
-            description.appendText(privilegeKey);
-            description.appendText(appName);
+        public String toString() {
+            return privilegeKey + "/" + appName;
         }
+
     }
 
 }

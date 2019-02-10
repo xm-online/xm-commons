@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
@@ -77,7 +77,7 @@ public class LocalizationMessageService implements RefreshableConfiguration {
         });
 
         if (MapUtils.isNotEmpty(substitutes)) {
-            localizedMessage = new StrSubstitutor(substitutes).replace(localizedMessage);
+            localizedMessage = new StringSubstitutor(substitutes).replace(localizedMessage);
         }
 
         return localizedMessage;

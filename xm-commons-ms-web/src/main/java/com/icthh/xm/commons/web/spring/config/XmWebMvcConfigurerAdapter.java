@@ -9,7 +9,6 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistration
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import java.util.List;
 import java.util.Objects;
@@ -17,7 +16,7 @@ import java.util.Objects;
 /**
  * The {@link XmWebMvcConfigurerAdapter} class.
  */
-public abstract class XmWebMvcConfigurerAdapter extends WebMvcConfigurerAdapter {
+public abstract class XmWebMvcConfigurerAdapter implements WebMvcConfigurer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(XmWebMvcConfigurerAdapter.class);
 

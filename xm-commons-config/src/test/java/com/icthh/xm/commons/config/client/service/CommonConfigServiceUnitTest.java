@@ -12,13 +12,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CommonConfigServiceUnitTest {
@@ -41,7 +40,6 @@ public class CommonConfigServiceUnitTest {
     @Test
     public void updateConfigurations() {
         Map<String, Configuration> config = Collections.singletonMap("path", new Configuration("path", "content"));
-        when(commonConfigRepository.getConfig("commit")).thenReturn(config);
         List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
         configurationListeners.add(mock(ConfigurationChangedListener.class));
         configurationListeners.add(mock(ConfigurationChangedListener.class));
