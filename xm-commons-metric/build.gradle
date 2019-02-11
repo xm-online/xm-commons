@@ -8,8 +8,8 @@ dependencyManagement {
 dependencies {
 
     compile "org.springframework:spring-context"
-    compile "io.dropwizard.metrics:metrics-core:3.2.6"
-    compile "io.dropwizard.metrics:metrics-jvm:3.2.6"
+    compile "io.dropwizard.metrics:metrics-core:${versions.dropwizardMetrics}"
+    compile "io.dropwizard.metrics:metrics-jvm:${versions.dropwizardMetrics}"
     compile "com.ryantenney.metrics:metrics-spring:${versions.springMetrics}"
 
     compileOnly "io.github.jhipster:jhipster:${versions.jhipster}"

@@ -33,4 +33,6 @@ ext.versions = [
     systemRules                : '1.16.0',
 
     hibernate                  : '5.2.8.Final',
+
+    dropwizardMetrics          : '3.2.6'
 ]
