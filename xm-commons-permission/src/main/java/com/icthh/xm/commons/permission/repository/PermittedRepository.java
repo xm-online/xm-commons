@@ -9,7 +9,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.data.domain.Page;
@@ -19,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -148,7 +148,7 @@ public class PermittedRepository {
         }
 
         TypedQuery<T> selectQuery = createSelectQuery(selectSql, pageable, entityClass);
-        if (CollectionUtils.isNotEmpty(embed)) {
+        if (!CollectionUtils.isEmpty(embed)) {
             selectQuery.setHint(QueryHints.HINT_LOADGRAPH, createEnitityGraph(embed, entityClass));
         }
         TypedQuery<Long> countQuery = createCountQuery(countSql);
@@ -223,7 +223,7 @@ public class PermittedRepository {
 
     private <T> EntityGraph<T> createEnitityGraph(Collection<String> embed, Class<T> domainClass) {
         EntityGraph<T> graph = em.createEntityGraph(domainClass);
-        if (CollectionUtils.isNotEmpty(embed)) {
+        if (!CollectionUtils.isEmpty(embed)) {
             embed.forEach(f -> addAttributeNodes(f, graph));
         }
         return graph;

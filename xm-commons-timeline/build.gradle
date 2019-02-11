@@ -29,7 +29,7 @@ dependencies {
     compileOnly 'javax.servlet:javax.servlet-api'
 
     compile 'org.slf4j:slf4j-api'
-    compile 'commons-collections:commons-collections'
+    compile "commons-collections:commons-collections:${versions.commonsCollections}"
     compile 'com.jayway.jsonpath:json-path'
     compile 'org.springframework.kafka:spring-kafka'
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-json-org'

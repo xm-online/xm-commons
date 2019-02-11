@@ -65,11 +65,11 @@ public class TenantConfigService implements RefreshableConfiguration {
         map.entrySet().forEach(e -> {
             Object value = e.getValue();
             if (value instanceof Map) {
-                Map inner = Map.class.cast(value);
+                Map inner = (Map) value;
                 e.setValue(Collections.unmodifiableMap(inner));
                 processMap(inner);
             } else if (value instanceof List) {
-                List inner = List.class.cast(value);
+                List inner = (List) value;
                 e.setValue(Collections.unmodifiableList(inner));
                 processList(inner);
             }
@@ -81,11 +81,11 @@ public class TenantConfigService implements RefreshableConfiguration {
             Object item = list.get(i);
 
             if (item instanceof Map) {
-                Map inner = Map.class.cast(item);
+                Map inner = (Map) item;
                 list.set(i, Collections.unmodifiableMap(inner));
                 processMap(inner);
             } else if (item instanceof List) {
-                List inner = List.class.cast(item);
+                List inner = (List) item;
                 list.set(i, Collections.unmodifiableList(inner));
                 processList(inner);
             }

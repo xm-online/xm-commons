@@ -13,7 +13,7 @@ dependencies {
     compile project(":xm-commons-tenant")
     compile project(":xm-commons-config")
 
-    compileOnly "io.github.jhipster:jhipster:${versions.jhipster}"
+    compileOnly "io.github.jhipster:jhipster-framework:${versions.jhipster}"
     compile("org.springframework.boot:spring-boot-starter-web") {
         exclude module: 'spring-boot-starter-tomcat'
     }
