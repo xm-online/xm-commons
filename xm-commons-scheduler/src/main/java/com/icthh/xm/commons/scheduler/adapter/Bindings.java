@@ -24,7 +24,7 @@ import org.springframework.cloud.stream.binder.kafka.properties.KafkaBindingProp
 import org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties.StartOffset;
 import org.springframework.cloud.stream.binder.kafka.properties.KafkaExtendedBindingProperties;
 import org.springframework.cloud.stream.binding.BindingService;
-import org.springframework.cloud.stream.binding.BindingTargetFactory;
+import org.springframework.cloud.stream.binding.SubscribableChannelBindingTargetFactory;
 import org.springframework.cloud.stream.config.BindingProperties;
 import org.springframework.cloud.stream.config.BindingServiceProperties;
 import org.springframework.context.annotation.Import;
@@ -61,7 +61,7 @@ public class Bindings implements RefreshableConfiguration {
     private static final String QUEUE = "_queue";
 
     private final BindingServiceProperties bindingServiceProperties;
-    private final BindingTargetFactory bindingTargetFactory;
+    private final SubscribableChannelBindingTargetFactory bindingTargetFactory;
     private final BindingService bindingService;
     private final KafkaExtendedBindingProperties kafkaExtendedBindingProperties = new KafkaExtendedBindingProperties();
     private final Map<String, SubscribableChannel> channels = new ConcurrentHashMap<>();
@@ -74,11 +74,11 @@ public class Bindings implements RefreshableConfiguration {
 
     @Autowired
     public Bindings(BindingServiceProperties bindingServiceProperties,
-                                        BindingTargetFactory bindingTargetFactory,
-                                        BindingService bindingService,
-                                        KafkaMessageChannelBinder kafkaMessageChannelBinder,
-                                        ObjectMapper objectMapper,
-                                        SchedulerEventService schedulerEventService) {
+                    SubscribableChannelBindingTargetFactory bindingTargetFactory,
+                    BindingService bindingService,
+                    KafkaMessageChannelBinder kafkaMessageChannelBinder,
+                    ObjectMapper objectMapper,
+                    SchedulerEventService schedulerEventService) {
         this.bindingServiceProperties = bindingServiceProperties;
         this.bindingTargetFactory = bindingTargetFactory;
         this.bindingService = bindingService;
@@ -122,7 +122,7 @@ public class Bindings implements RefreshableConfiguration {
             bindingProperties.setGroup(consumerGroup);
             bindingServiceProperties.getBindings().put(chanelName, bindingProperties);
 
-            SubscribableChannel channel = (SubscribableChannel) bindingTargetFactory.createInput(chanelName);
+            SubscribableChannel channel = bindingTargetFactory.createInput(chanelName);
             bindingService.bindConsumer(channel, chanelName);
 
             channels.put(chanelName, channel);
@@ -132,8 +132,7 @@ public class Bindings implements RefreshableConfiguration {
                     MdcUtils.generateRid();
                     MdcUtils.putRid(MdcUtils.getRid() + ":" + tenantName);
                     StopWatch stopWatch = StopWatch.createStarted();
-                    byte[] payload = (byte[]) message.getPayload();
-                    String payloadString = new String(payload, UTF_8);
+                    String payloadString = (String) message.getPayload();
                     payloadString = unwrap(payloadString, "\"");
                     log.info("start processign message for tenant: [{}], body = {}", tenantName, payloadString);
                     String eventBody = new String(Base64.getDecoder().decode(payloadString), UTF_8);
