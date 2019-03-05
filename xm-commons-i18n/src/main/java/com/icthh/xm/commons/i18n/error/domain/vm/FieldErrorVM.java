@@ -27,7 +27,14 @@ public class FieldErrorVM extends ErrorVM {
         if (fieldErrors == null) {
             fieldErrors = new ArrayList<>();
         }
-        fieldErrors.add(new FieldErrorVM.FieldError(objectName, field, message));
+        fieldErrors.add(new FieldErrorVM.FieldError(objectName, field, message, null));
+    }
+
+    public void add(String objectName, String field, String message, String description) {
+        if (fieldErrors == null) {
+            fieldErrors = new ArrayList<>();
+        }
+        fieldErrors.add(new FieldErrorVM.FieldError(objectName, field, message, description));
     }
 
     @Getter
@@ -39,6 +46,7 @@ public class FieldErrorVM extends ErrorVM {
         private final String objectName;
         private final String field;
         private final String message;
+        private final String description;
 
     }
 }

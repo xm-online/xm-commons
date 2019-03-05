@@ -85,10 +85,12 @@ public class ExceptionTranslator {
         FieldErrorVM dto = new FieldErrorVM(ErrorConstants.ERR_VALIDATION,
                         localizationErrorMessageService.getMessage(ErrorConstants.ERR_VALIDATION));
         for (FieldError fieldError : result.getFieldErrors()) {
-            dto.add(fieldError.getObjectName(), fieldError.getField(), fieldError.getCode());
+            dto.add(fieldError.getObjectName(), fieldError.getField(), fieldError.getCode(),
+                    fieldError.getDefaultMessage());
         }
         for (ObjectError globalError : result.getGlobalErrors()) {
-            dto.add(globalError.getObjectName(), globalError.getObjectName(), globalError.getCode());
+            dto.add(globalError.getObjectName(), globalError.getObjectName(), globalError.getCode(),
+                    globalError.getDefaultMessage());
         }
         return dto;
     }
