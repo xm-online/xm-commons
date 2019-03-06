@@ -1,5 +1,7 @@
 package com.icthh.xm.commons.i18n;
 
+import static com.icthh.xm.commons.i18n.ExceptionTranslatorTestController.DEFAULT_MESSAGE;
+import static com.icthh.xm.commons.i18n.ExceptionTranslatorTestController.MY_CUSTOM_MESSAGE;
 import static com.icthh.xm.commons.i18n.I18nConstants.LANGUAGE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -18,6 +20,8 @@ import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
+import java.nio.charset.Charset;
+import java.util.Optional;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,9 +36,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.nio.charset.Charset;
-import java.util.Optional;
 
 /**
  * Test class for the ExceptionTranslator controller advice.
@@ -168,7 +169,36 @@ public class ExceptionTranslatorIntTest {
             .andExpect(jsonPath("$.error_description").value("Input parameters error"))
             .andExpect(jsonPath("$.fieldErrors.[0].objectName").value("testClassValidation"))
             .andExpect(jsonPath("$.fieldErrors.[0].field").value("testClassValidation"))
-            .andExpect(jsonPath("$.fieldErrors.[0].message").value("NotCool"));
+            .andExpect(jsonPath("$.fieldErrors.[0].message").value("NotCool"))
+            .andExpect(jsonPath("$.fieldErrors.[0].description").isEmpty());
+    }
+
+    @Test
+    public void testDefaultClassValidationError() throws Exception {
+        mockMvc.perform(post("/test/default-message-class-validation-error")
+                            .content(new ObjectMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
+                            .contentType(MediaType.APPLICATION_JSON_UTF8))
+               .andExpect(status().isBadRequest())
+               .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_VALIDATION))
+               .andExpect(jsonPath("$.error_description").value("Input parameters error"))
+               .andExpect(jsonPath("$.fieldErrors.[0].objectName").value("defaultMessageTestClassValidation"))
+               .andExpect(jsonPath("$.fieldErrors.[0].field").value("defaultMessageTestClassValidation"))
+               .andExpect(jsonPath("$.fieldErrors.[0].message").value("NotCool"))
+               .andExpect(jsonPath("$.fieldErrors.[0].description").value(DEFAULT_MESSAGE));
+    }
+
+    @Test
+    public void testCustomMessageTestClassValidation() throws Exception {
+        mockMvc.perform(post("/test/custom-message-class-validation-error")
+                            .content(new ObjectMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
+                            .contentType(MediaType.APPLICATION_JSON_UTF8))
+               .andExpect(status().isBadRequest())
+               .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_VALIDATION))
+               .andExpect(jsonPath("$.error_description").value("Input parameters error"))
+               .andExpect(jsonPath("$.fieldErrors.[0].objectName").value("customMessageTestClassValidation"))
+               .andExpect(jsonPath("$.fieldErrors.[0].field").value("customMessageTestClassValidation"))
+               .andExpect(jsonPath("$.fieldErrors.[0].message").value("NotCool"))
+               .andExpect(jsonPath("$.fieldErrors.[0].description").value(MY_CUSTOM_MESSAGE));
     }
 
     @Test

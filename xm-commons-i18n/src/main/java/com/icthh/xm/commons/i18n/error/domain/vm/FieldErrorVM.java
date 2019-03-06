@@ -24,10 +24,7 @@ public class FieldErrorVM extends ErrorVM {
     }
 
     public void add(String objectName, String field, String message) {
-        if (fieldErrors == null) {
-            fieldErrors = new ArrayList<>();
-        }
-        fieldErrors.add(new FieldErrorVM.FieldError(objectName, field, message, null));
+        add(objectName, field, message, null);
     }
 
     public void add(String objectName, String field, String message, String description) {
