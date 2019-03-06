@@ -28,6 +28,9 @@ import javax.validation.constraints.NotNull;
 @RestController
 public class ExceptionTranslatorTestController {
 
+    static final String DEFAULT_MESSAGE = "DEFAULT_MESSAGE";
+    static final String MY_CUSTOM_MESSAGE = "MY_CUSTOM_MESSAGE";
+
     @GetMapping("/test/concurrency-failure")
     public void concurrencyFailure() {
         throw new ConcurrencyFailureException("test concurrency failure");
@@ -68,6 +71,16 @@ public class ExceptionTranslatorTestController {
 
     @PostMapping("/test/class-validation-error")
     public void classValidationError(@Valid @RequestBody TestClassValidation dummy) {
+
+    }
+
+    @PostMapping("/test/default-message-class-validation-error")
+    public void classValidationError(@Valid @RequestBody DefaultMessageTestClassValidation dummy) {
+
+    }
+
+    @PostMapping("/test/custom-message-class-validation-error")
+    public void classValidationError(@Valid @RequestBody CustomMessageTestClassValidation dummy) {
 
     }
 
@@ -118,6 +131,64 @@ public class ExceptionTranslatorTestController {
             }
 
             public boolean isValid(Object value, ConstraintValidatorContext constraintValidatorContext) {
+                return false;
+            }
+        }
+    }
+
+    @CustomMessageTestClassValidation.NotCool
+    public static class CustomMessageTestClassValidation {
+
+        @Target({TYPE})
+        @Retention(RUNTIME)
+        @Constraint(validatedBy = TestClassValidator.class)
+        @Documented
+        public @interface NotCool {
+
+            String message() default DEFAULT_MESSAGE;
+
+            Class<?>[] groups() default {};
+
+            Class<? extends Payload>[] payload() default {};
+
+        }
+
+        public static class TestClassValidator implements ConstraintValidator<NotCool, Object> {
+
+            public void initialize(NotCool constraintAnnotation) {
+            }
+
+            public boolean isValid(Object value, ConstraintValidatorContext context) {
+                context.disableDefaultConstraintViolation();
+                context.buildConstraintViolationWithTemplate(MY_CUSTOM_MESSAGE).addConstraintViolation();
+                return false;
+            }
+        }
+    }
+
+    @DefaultMessageTestClassValidation.NotCool
+    public static class DefaultMessageTestClassValidation {
+
+        @Target({TYPE})
+        @Retention(RUNTIME)
+        @Constraint(validatedBy = TestClassValidator.class)
+        @Documented
+        public @interface NotCool {
+
+            String message() default DEFAULT_MESSAGE;
+
+            Class<?>[] groups() default {};
+
+            Class<? extends Payload>[] payload() default {};
+
+        }
+
+        public static class TestClassValidator implements ConstraintValidator<NotCool, Object> {
+
+            public void initialize(NotCool constraintAnnotation) {
+            }
+
+            public boolean isValid(Object value, ConstraintValidatorContext context) {
                 return false;
             }
         }
