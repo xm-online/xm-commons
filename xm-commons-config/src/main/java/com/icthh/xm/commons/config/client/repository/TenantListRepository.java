@@ -2,6 +2,8 @@ package com.icthh.xm.commons.config.client.repository;
 
 import static com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance;
 import static com.icthh.xm.commons.config.client.utils.RequestUtils.createAuthHeaders;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableSet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,7 +11,9 @@ import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
+import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.config.domain.TenantState;
+import java.util.Collections;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -47,11 +51,20 @@ public class TenantListRepository implements RefreshableConfiguration {
     private volatile Set<String> suspendedTenants = new HashSet<>();
 
     public TenantListRepository(RestTemplate restTemplate,
+                                CommonConfigRepository commonConfigRepository,
                                 String applicationName,
                                 XmConfigProperties applicationProperties) {
         this.restTemplate = restTemplate;
         this.applicationName = applicationName;
         this.xmConfigUrl = applicationProperties.getXmConfigUrl() + URL;
+
+        Configuration configuration = commonConfigRepository.getConfig(null, singletonList(TENANTS_LIST_CONFIG_KEY)).
+            get(TENANTS_LIST_CONFIG_KEY);
+        if (configuration == null) {
+            log.error(ERROR);
+            throw new IllegalStateException(ERROR);
+        }
+        onInit(TENANTS_LIST_CONFIG_KEY, configuration.getContent());
     }
 
     public Set<String> getTenants() {

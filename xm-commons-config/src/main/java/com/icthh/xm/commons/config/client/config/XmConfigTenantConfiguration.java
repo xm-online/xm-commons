@@ -2,6 +2,7 @@ package com.icthh.xm.commons.config.client.config;
 
 import static com.icthh.xm.commons.config.client.config.XmRestTemplateConfiguration.XM_CONFIG_REST_TEMPLATE;
 
+import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.repository.TenantConfigRepository;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.client.service.TenantConfigService;
@@ -24,8 +25,9 @@ public class XmConfigTenantConfiguration {
     @Bean
     public TenantListRepository tenantListRepository(@Qualifier(XM_CONFIG_REST_TEMPLATE) RestTemplate restTemplate,
                                                      @Value("${spring.application.name}") String applicationName,
+                                                     CommonConfigRepository commonConfigRepository,
                                                      XmConfigProperties xmConfigProperties) {
-        return new TenantListRepository(restTemplate, applicationName, xmConfigProperties);
+        return new TenantListRepository(restTemplate, commonConfigRepository, applicationName, xmConfigProperties);
     }
 
     @Bean
