@@ -31,6 +31,7 @@ dependencies {
 
     compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
     compile "org.springframework.security.oauth:spring-security-oauth2:${versions.springSecurityOAuth2}"
+    compile "org.springframework.boot:spring-boot-starter-actuator"
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
     implementation('org.springframework.cloud:spring-cloud-stream-binder-kafka')
