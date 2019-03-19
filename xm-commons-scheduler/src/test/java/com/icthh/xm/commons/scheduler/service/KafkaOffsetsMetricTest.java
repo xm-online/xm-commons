@@ -79,7 +79,7 @@ public class KafkaOffsetsMetricTest {
 
         when(tenantListRepository.getTenants()).thenReturn(Collections.singleton("xm"));
         kafkaOffsetsMetric = new KafkaOffsetsMetric(tenantListRepository, kafkaBinderConfigurationProperties);
-        setField(kafkaOffsetsMetric, "consumer",kafkaConsumerFactory.createConsumer());
+        setField(kafkaOffsetsMetric, "consumer", kafkaConsumerFactory.createConsumer());
         setField(kafkaOffsetsMetric, "timeout", 3);
         setField(kafkaOffsetsMetric, "appName", GROUP);
     }
@@ -91,8 +91,8 @@ public class KafkaOffsetsMetricTest {
 
         Object metricValue = ((Gauge) kafkaOffsetsMetric.getMetrics().get(METRIC_NAME)).getValue();
         assertEquals(1L, getField(metricValue, "totalLag"));
-        assertEquals(0L,  getField(metricValue, "totalCurrentOffset"));
-        assertEquals(1L,  getField(metricValue, "totalEndOffset"));
+        assertEquals(0L, getField(metricValue, "totalCurrentOffset"));
+        assertEquals(1L, getField(metricValue, "totalEndOffset"));
 
         ConsumerRecord<String, String> singleRecord = getSingleRecord(consumer, TOPIC);
         consumer.commitAsync();
@@ -101,8 +101,8 @@ public class KafkaOffsetsMetricTest {
 
         metricValue = ((Gauge) kafkaOffsetsMetric.getMetrics().get(METRIC_NAME)).getValue();
         assertEquals(0L, getField(metricValue, "totalLag"));
-        assertEquals(1L,  getField(metricValue, "totalCurrentOffset"));
-        assertEquals(1L,  getField(metricValue, "totalEndOffset"));
+        assertEquals(1L, getField(metricValue, "totalCurrentOffset"));
+        assertEquals(1L, getField(metricValue, "totalEndOffset"));
 
         producer.send(new ProducerRecord<>(TOPIC, "test-id", "{\"event\":\"Test Event\"}"));
         producer.send(new ProducerRecord<>(TOPIC, "test-id", "{\"event\":\"Test Event\"}"));
@@ -110,16 +110,16 @@ public class KafkaOffsetsMetricTest {
 
         metricValue = ((Gauge) kafkaOffsetsMetric.getMetrics().get(METRIC_NAME)).getValue();
         assertEquals(2L, getField(metricValue, "totalLag"));
-        assertEquals(1L,  getField(metricValue, "totalCurrentOffset"));
-        assertEquals(3L,  getField(metricValue, "totalEndOffset"));
+        assertEquals(1L, getField(metricValue, "totalCurrentOffset"));
+        assertEquals(3L, getField(metricValue, "totalEndOffset"));
 
         getRecords(consumer);
         consumer.commitAsync();
 
         metricValue = ((Gauge) kafkaOffsetsMetric.getMetrics().get(METRIC_NAME)).getValue();
         assertEquals(0L, getField(metricValue, "totalLag"));
-        assertEquals(3L,  getField(metricValue, "totalCurrentOffset"));
-        assertEquals(3L,  getField(metricValue, "totalEndOffset"));
+        assertEquals(3L, getField(metricValue, "totalCurrentOffset"));
+        assertEquals(3L, getField(metricValue, "totalEndOffset"));
 
         consumer.close();
 
