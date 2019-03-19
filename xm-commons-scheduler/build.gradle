@@ -41,6 +41,7 @@ dependencies {
 
     testCompile "org.springframework.boot:spring-boot-test"
     testCompile "org.springframework.cloud:spring-cloud-stream-test-support"
+    testCompile "org.springframework.kafka:spring-kafka-test" 
 
     testCompile 'junit:junit'
     testCompile 'org.assertj:assertj-core'
