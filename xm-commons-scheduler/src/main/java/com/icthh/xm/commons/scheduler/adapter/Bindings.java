@@ -14,10 +14,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.health.CompositeHealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.binder.ConsumerProperties;
 import org.springframework.cloud.stream.binder.HeaderMode;
+import org.springframework.cloud.stream.binder.kafka.KafkaBinderHealthIndicator;
 import org.springframework.cloud.stream.binder.kafka.KafkaMessageChannelBinder;
 import org.springframework.cloud.stream.binder.kafka.config.KafkaBinderConfiguration;
 import org.springframework.cloud.stream.binder.kafka.properties.KafkaBindingProperties;
@@ -55,6 +57,7 @@ import static org.springframework.cloud.stream.binder.kafka.properties.KafkaCons
 public class Bindings implements RefreshableConfiguration {
 
     private static final String PREFIX = "scheduler_";
+    private static final String KAFKA = "kafka";
     private static final String DELIMITER = "_";
     private static final String GENERALGROUP = "GENERALGROUP";
     private static final String TOPIC = "_topic";
@@ -66,6 +69,8 @@ public class Bindings implements RefreshableConfiguration {
     private final KafkaExtendedBindingProperties kafkaExtendedBindingProperties = new KafkaExtendedBindingProperties();
     private final Map<String, SubscribableChannel> channels = new ConcurrentHashMap<>();
     private final SchedulerEventService schedulerEventService;
+    private CompositeHealthIndicator bindersHealthIndicator;
+    private KafkaBinderHealthIndicator kafkaBinderHealthIndicator;
 
     private final ObjectMapper objectMapper;
 
@@ -78,12 +83,16 @@ public class Bindings implements RefreshableConfiguration {
                     BindingService bindingService,
                     KafkaMessageChannelBinder kafkaMessageChannelBinder,
                     ObjectMapper objectMapper,
-                    SchedulerEventService schedulerEventService) {
+                    SchedulerEventService schedulerEventService,
+                    CompositeHealthIndicator bindersHealthIndicator,
+                    KafkaBinderHealthIndicator kafkaBinderHealthIndicator) {
         this.bindingServiceProperties = bindingServiceProperties;
         this.bindingTargetFactory = bindingTargetFactory;
         this.bindingService = bindingService;
         this.schedulerEventService = schedulerEventService;
         this.objectMapper = objectMapper;
+        this.bindersHealthIndicator = bindersHealthIndicator;
+        this.kafkaBinderHealthIndicator = kafkaBinderHealthIndicator;
         kafkaMessageChannelBinder.setExtendedBindingProperties(kafkaExtendedBindingProperties);
     }
 
@@ -124,6 +133,8 @@ public class Bindings implements RefreshableConfiguration {
 
             SubscribableChannel channel = bindingTargetFactory.createInput(chanelName);
             bindingService.bindConsumer(channel, chanelName);
+
+            bindersHealthIndicator.addHealthIndicator(KAFKA, kafkaBinderHealthIndicator);
 
             channels.put(chanelName, channel);
 
