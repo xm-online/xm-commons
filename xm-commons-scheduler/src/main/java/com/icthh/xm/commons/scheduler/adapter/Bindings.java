@@ -84,7 +84,7 @@ public class Bindings implements RefreshableConfiguration {
     @Value("${spring.application.name}")
     private String appName;
 
-    @Value("${application.scheduler-config.task-back-off-initial-interval:60000}")
+    @Value("${application.scheduler-config.task-back-off-initial-interval:1000}")
     private int backOffInitialInterval;
 
     @Value("${application.scheduler-config.task-back-off-max-interval:60000}")
