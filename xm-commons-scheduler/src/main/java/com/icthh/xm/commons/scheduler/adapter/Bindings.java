@@ -1,5 +1,17 @@
 package com.icthh.xm.commons.scheduler.adapter;
 
+import static com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance;
+import static com.icthh.xm.commons.config.client.repository.TenantListRepository.TENANTS_LIST_CONFIG_KEY;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.UUID.randomUUID;
+import static org.apache.commons.lang3.StringUtils.endsWith;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.lowerCase;
+import static org.apache.commons.lang3.StringUtils.startsWith;
+import static org.apache.commons.lang3.StringUtils.upperCase;
+import static org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties.StartOffset.earliest;
+import static org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties.StartOffset.latest;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.MapType;
@@ -8,6 +20,12 @@ import com.icthh.xm.commons.config.domain.TenantState;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.scheduler.domain.ScheduledEvent;
 import com.icthh.xm.commons.scheduler.service.SchedulerEventService;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -35,17 +53,6 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance;
-import static com.icthh.xm.commons.config.client.repository.TenantListRepository.TENANTS_LIST_CONFIG_KEY;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.UUID.randomUUID;
-import static org.apache.commons.lang3.StringUtils.*;
-import static org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties.StartOffset.earliest;
-import static org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties.StartOffset.latest;
 
 @Slf4j
 @Component
@@ -76,6 +83,12 @@ public class Bindings implements RefreshableConfiguration {
 
     @Value("${spring.application.name}")
     private String appName;
+
+    @Value("${application.scheduler-config.task-back-off-initial-interval:1000}")
+    private int backOffInitialInterval;
+
+    @Value("${application.scheduler-config.task-back-off-max-interval:60000}")
+    private int backOffMaxInterval;
 
     @Autowired
     public Bindings(BindingServiceProperties bindingServiceProperties,
@@ -125,6 +138,9 @@ public class Bindings implements RefreshableConfiguration {
             ConsumerProperties consumerProperties = new ConsumerProperties();
             consumerProperties.setMaxAttempts(Integer.MAX_VALUE);
             consumerProperties.setHeaderMode(HeaderMode.raw);
+            consumerProperties.setBackOffInitialInterval(backOffInitialInterval);
+            consumerProperties.setBackOffMaxInterval(backOffMaxInterval);
+
             BindingProperties bindingProperties = new BindingProperties();
             bindingProperties.setConsumer(consumerProperties);
             bindingProperties.setDestination(chanelName);

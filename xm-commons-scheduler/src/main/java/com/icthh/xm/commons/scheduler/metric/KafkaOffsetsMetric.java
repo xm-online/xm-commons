@@ -43,7 +43,7 @@ public class KafkaOffsetsMetric implements MetricSet {
     private static final String METRIC_NAME = "kafka.offsets.";
     private static final String TOPIC_PREFIX = "scheduler_";
 
-    @Value("${application.kafkaOffsetsMetricTimeout}")
+    @Value("${application.scheduler-config.kafka-offsets-metric-timeout:5}")
     private int timeout;
 
     @Value("${spring.application.name}")
