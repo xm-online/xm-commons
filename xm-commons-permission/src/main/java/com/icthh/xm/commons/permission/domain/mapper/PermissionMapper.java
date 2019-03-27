@@ -67,7 +67,7 @@ public class PermissionMapper {
                 .readValue(yml, new TypeReference<TreeMap<String, TreeMap<String, TreeSet<Permission>>>>() {
                 });
             map.entrySet().stream()
-                .filter(entry -> StringUtils.isBlank(msName) || StringUtils.equalsIgnoreCase(msName, entry.getKey()))
+                .filter(entry -> StringUtils.isBlank(msName) || StringUtils.startsWithIgnoreCase(entry.getKey(), msName))
                 .filter(entry -> entry.getValue() != null)
                 .forEach(entry -> entry.getValue()
                     .forEach((roleKey, permissions) ->
