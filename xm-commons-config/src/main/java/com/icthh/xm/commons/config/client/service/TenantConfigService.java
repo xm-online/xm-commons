@@ -95,9 +95,8 @@ public class TenantConfigService implements RefreshableConfiguration {
     @Override
     public void onRefresh(final String updatedKey, final String config) {
 
-        String tenantConfigPattern = getTenantConfigPattern();
         try {
-            String tenant = matcher.extractUriTemplateVariables(tenantConfigPattern, updatedKey).get(TENANT_NAME);
+            String tenant = getTenantKey(updatedKey);
             if (org.apache.commons.lang3.StringUtils.isBlank(config)) {
                 tenantConfig.remove(tenant);
                 return;
@@ -111,6 +110,11 @@ public class TenantConfigService implements RefreshableConfiguration {
         } catch (Exception e) {
             log.error("Error read tenant configuration from path " + updatedKey, e);
         }
+    }
+
+    public String getTenantKey(String updatedKey) {
+        String tenantConfigPattern = getTenantConfigPattern();
+        return matcher.extractUriTemplateVariables(tenantConfigPattern, updatedKey).get(TENANT_NAME);
     }
 
     @Override

@@ -39,7 +39,7 @@ public class XmExtensionService implements ExtensionService {
      * @return composite resource key or {@code null} if not found
      */
     @Override
-    public LepResourceKey getResourceKey(LepKey extensionKey, Version extensionResourceVersion) {
+    public UrlLepResourceKey getResourceKey(LepKey extensionKey, Version extensionResourceVersion) {
         if (extensionKey == null) {
             return null;
         }

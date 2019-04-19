@@ -19,4 +19,8 @@ public interface TenantContextHolder {
      */
     PrivilegedTenantContext getPrivilegedContext();
 
+    default String getTenantKey() {
+        return TenantContextUtils.getRequiredTenantKeyValue(this);
+    }
+
 }

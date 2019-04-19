@@ -1,5 +1,7 @@
 package com.icthh.xm.commons.timeline;
 
+import static java.util.Arrays.asList;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.timeline.domain.ApiMaskConfig;
@@ -185,17 +187,17 @@ public class TimelineEventProducer {
     }
 
     private static Object getEntityField(String entity, String field) {
-        try {
-            return JsonPath.read(entity, "$." + field);
-        } catch (Exception ex) {
-            log.trace("JsonPath exception", ex);
+        List<String> prefixes = asList("$.", "$.xmEntity.", "$.data.");
+
+        for (String prefix: prefixes) {
             try {
-                return JsonPath.read(entity, "$.xmEntity." + field);
-            } catch (Exception e) {
-                log.trace("JsonPath exception", e);
-                return "";
+                return JsonPath.read(entity, prefix + field);
+            } catch (Exception ex) {
+                log.trace("JsonPath exception", ex);
             }
         }
+
+        return "";
     }
 
     private static String getOperation(String method) {
