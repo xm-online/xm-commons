@@ -253,7 +253,7 @@ public class XmGroovyExecutionStrategy implements GroovyExecutionStrategy {
     // Atomic key:
     // lep://<tenant>some/group/<script_name>$<entityType>$<from_state_name>$<to_state_name>$<script_type>.groovy
     // lep://xm/com/icthh/lep/<script_name>$<entityType>$<state>$<script_type>.groovy
-    Map<XmLepResourceSubType, UrlLepResourceKey> getAvailableAtomicResourceKeys(
+    public Map<XmLepResourceSubType, UrlLepResourceKey> getAvailableAtomicResourceKeys(
         UrlLepResourceKey compositeResourceKey,
         LepManagerService managerService) {
 
