@@ -13,7 +13,7 @@ public class DropSchemaResolver {
 
     @Deprecated
     private static final String DEFAULT_COMMAND = "DROP SCHEMA IF EXISTS %s CASCADE";
-    private static final String DEFAULT_SQL_COMMAND = "DROP SCHEMA IF EXISTS %s CASCADE";
+    private static final String DEFAULT_SQL_COMMAND = "DROP SCHEMA IF EXISTS ? CASCADE";
 
     @Deprecated
     private static final Map<String, String> DB_COMMANDS = new HashMap<>();
