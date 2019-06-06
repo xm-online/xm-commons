@@ -3,6 +3,7 @@ package com.icthh.xm.commons.migration.db.tenant.hibernate;
 import com.icthh.xm.commons.migration.db.tenant.SchemaChangeResolver;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.sql.DataSource;
@@ -35,8 +36,9 @@ public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionP
     public Connection getConnection(String tenantIdentifier) throws SQLException {
 
         final Connection connection = getAnyConnection();
-        try (Statement statement = connection.createStatement()) {
-            statement.execute(String.format(resolver.getSchemaSwitchSqlCommand(), tenantIdentifier));
+        try (PreparedStatement statement = connection.prepareStatement(resolver.getSchemaSwitchSqlCommand())) {
+            statement.setString(1, tenantIdentifier);
+            statement.execute();
         } catch (SQLException e) {
             throw new HibernateException(
                 "Could not alter JDBC connection to specified schema [" + tenantIdentifier + "]", e
