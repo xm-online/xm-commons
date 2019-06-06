@@ -1,11 +1,15 @@
 package com.icthh.xm.commons.tenant;
 
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * The {@link TenantContextUtils} class.
  */
 public final class TenantContextUtils {
+
+    public static String TENANT_KEY_REGEXP = "^(?!pg_)(?!_)[a-zA-Z][a-zA-Z0-9_]{0,47}$";
+    public static Pattern TENANT_KEY_PATTERN = Pattern.compile(TENANT_KEY_REGEXP);
 
     /**
      * Get tenant key value by holder.
@@ -96,6 +100,10 @@ public final class TenantContextUtils {
      */
     public static Tenant buildTenant(TenantKey tenantKey) {
         return new PlainTenant(tenantKey);
+    }
+
+    public static boolean isTenantKeyValid(String tenantKey) {
+        return TENANT_KEY_PATTERN.matcher(tenantKey).matches();
     }
 
     /**

@@ -5,7 +5,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class Constants {
 
-    public static final String DDL_CREATE_SCHEMA_SQL_COMMAND = "CREATE SCHEMA IF NOT EXISTS ?";
+    public static final String DDL_CREATE_SCHEMA = "CREATE SCHEMA IF NOT EXISTS %s";
     public static final String CHANGE_LOG_PATH = "classpath:config/liquibase/master.xml";
 
     public static final String JPA_VENDOR = "spring.jpa.database";

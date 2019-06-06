@@ -1,13 +1,12 @@
 package com.icthh.xm.commons.migration.db.util;
 
-import com.icthh.xm.commons.migration.db.Constants;
+import static com.icthh.xm.commons.tenant.TenantContextUtils.isTenantKeyValid;
 
+import com.icthh.xm.commons.migration.db.Constants;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.sql.DataSource;
-
 import lombok.experimental.UtilityClass;
 
 /**
@@ -24,10 +23,10 @@ public final class DatabaseUtil {
      * @param name       schema name
      */
     public static void createSchema(DataSource dataSource, String name) {
+        isTenantKeyValid(name);
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(Constants.DDL_CREATE_SCHEMA_SQL_COMMAND)) {
-            statement.setString(1, name);
-            statement.executeUpdate();
+             Statement statement = connection.createStatement()) {
+            statement.executeUpdate(String.format(Constants.DDL_CREATE_SCHEMA, name));
         } catch (SQLException e) {
             throw new RuntimeException("Can not connect to database", e);
         }
