@@ -11,16 +11,16 @@ import java.util.Map;
 @Component
 public class DropSchemaResolver {
 
-    private static final String DEFAULT_SQL_COMMAND = "DROP SCHEMA IF EXISTS ? CASCADE";
+    private static final String DEFAULT_COMMAND = "DROP SCHEMA IF EXISTS %s CASCADE";
 
-    private static final Map<String, String> DB_SQL_COMMANDS = new HashMap<>();
+    private static final Map<String, String> DB_COMMANDS = new HashMap<>();
 
     static {
-        DB_SQL_COMMANDS.put("POSTGRESQL", DEFAULT_SQL_COMMAND);
-        DB_SQL_COMMANDS.put("H2", DEFAULT_SQL_COMMAND);
+        DB_COMMANDS.put("POSTGRESQL", DEFAULT_COMMAND);
+        DB_COMMANDS.put("H2", DEFAULT_COMMAND);
     }
 
-    private final String dbDropSchemaSqlCommand;
+    private String dbDropSchemaCommand;
 
     /**
      * DropSchemaResolver constructor.
@@ -28,12 +28,12 @@ public class DropSchemaResolver {
      */
     public DropSchemaResolver(Environment env) {
         String db = env.getProperty("spring.jpa.database");
-        this.dbDropSchemaSqlCommand = DB_SQL_COMMANDS.getOrDefault(db, DEFAULT_SQL_COMMAND);
-        log.info("Database {} will use command '{}' for drop schema", db, dbDropSchemaSqlCommand);
+        this.dbDropSchemaCommand = DB_COMMANDS.getOrDefault(db, DEFAULT_COMMAND);
+        log.info("Database {} will use command '{}' for drop schema", db, dbDropSchemaCommand);
     }
 
-    public String getSchemaDropSqlCommand() {
-        return this.dbDropSchemaSqlCommand;
+    public String getSchemaDropCommand() {
+        return this.dbDropSchemaCommand;
     }
 
 }

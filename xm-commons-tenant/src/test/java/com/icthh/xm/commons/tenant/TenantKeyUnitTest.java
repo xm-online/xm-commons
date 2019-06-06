@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.tenant;
 
+import static com.icthh.xm.commons.tenant.TenantContextUtils.isTenantKeyValid;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -54,6 +55,16 @@ public class TenantKeyUnitTest {
     public void toStringContract() {
         TenantKey testTenantKey = TenantKey.valueOf("test");
         assertEquals("value = test", testTenantKey.toString());
+    }
+
+    @Test
+    public void testValidateTenantKey() {
+        assertTrue(isTenantKeyValid("ValidTenant"));
+        assertTrue(isTenantKeyValid("VALIDTENANT"));
+        assertTrue(isTenantKeyValid("VALID_TENANT"));
+        assertTrue(isTenantKeyValid("ValidTenant"));
+        assertFalse(isTenantKeyValid("INVALID TENANT NAME"));
+        assertFalse(isTenantKeyValid("INVALIDTENANTNAME;"));
     }
 
 }
