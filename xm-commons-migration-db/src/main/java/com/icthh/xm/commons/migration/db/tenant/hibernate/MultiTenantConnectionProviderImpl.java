@@ -36,7 +36,7 @@ public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionP
 
         final Connection connection = getAnyConnection();
         try (Statement statement = connection.createStatement()) {
-            statement.execute(String.format(resolver.getSchemaSwitchCommand(), tenantIdentifier));
+            statement.execute(String.format(resolver.getSchemaSwitchSqlCommand(), tenantIdentifier));
         } catch (SQLException e) {
             throw new HibernateException(
                 "Could not alter JDBC connection to specified schema [" + tenantIdentifier + "]", e
