@@ -25,7 +25,7 @@ public final class DatabaseUtil {
     public static void createSchema(DataSource dataSource, String name) {
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
-            statement.executeUpdate(String.format(Constants.DDL_CREATE_SCHEMA, name));
+            statement.executeUpdate(String.format(Constants.DDL_CREATE_SCHEMA_SQL_COMMAND, name));
         } catch (SQLException e) {
             throw new RuntimeException("Can not connect to database", e);
         }
