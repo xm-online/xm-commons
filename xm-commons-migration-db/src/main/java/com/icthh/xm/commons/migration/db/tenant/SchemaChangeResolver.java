@@ -18,16 +18,8 @@ import java.util.Map;
 @Component
 public class SchemaChangeResolver {
 
-    @Deprecated
-    private static final String DEFAULT_COMMAND = "USE %s";
     private static final String DEFAULT_COMMAND_SQL_COMMAND = "USE ?";
-
-    @Deprecated
-    private static final Map<String, String> DB_COMMANDS = new HashMap<>();
-
     private static final Map<String, String> DB_SQL_COMMANDS = new HashMap<>();
-
-    private final String dbSchemaChangeCommand;
     private final String dbSchemaChangeSqlCommand;
 
     /**
@@ -38,17 +30,8 @@ public class SchemaChangeResolver {
     public SchemaChangeResolver(Environment env) {
         initDbCommands(env);
         String db = env.getProperty(JPA_VENDOR);
-        this.dbSchemaChangeCommand = DB_COMMANDS.getOrDefault(db, DEFAULT_COMMAND);
         this.dbSchemaChangeSqlCommand = DB_SQL_COMMANDS.getOrDefault(db, DEFAULT_COMMAND_SQL_COMMAND);
         log.info("Database {} will use command '{}' for schema changing", db, dbSchemaChangeSqlCommand);
-    }
-
-    /**
-     * @deprecated use getSchemaSwitchSqlCommand instead
-     */
-    @Deprecated
-    public String getSchemaSwitchCommand() {
-        return this.dbSchemaChangeCommand;
     }
 
     public String getSchemaSwitchSqlCommand() {
@@ -57,10 +40,6 @@ public class SchemaChangeResolver {
 
     private void initDbCommands(Environment env) {
         String schemaSuffix = env.getProperty(DB_SCHEMA_SUFFIX, EMPTY);
-
-        DB_COMMANDS.put("POSTGRESQL", "SET search_path TO %s" + schemaSuffix);
-        DB_COMMANDS.put("ORACLE", "ALTER SESSION SET CURRENT_SCHEMA = %s" + schemaSuffix);
-        DB_COMMANDS.put("H2", DEFAULT_COMMAND + schemaSuffix);
 
         DB_SQL_COMMANDS.put("POSTGRESQL", "SET search_path TO ?" + schemaSuffix);
         DB_SQL_COMMANDS.put("ORACLE", "ALTER SESSION SET CURRENT_SCHEMA = ?" + schemaSuffix);

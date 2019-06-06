@@ -3,6 +3,7 @@ package com.icthh.xm.commons.migration.db.util;
 import com.icthh.xm.commons.migration.db.Constants;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.sql.DataSource;
@@ -24,8 +25,9 @@ public final class DatabaseUtil {
      */
     public static void createSchema(DataSource dataSource, String name) {
         try (Connection connection = dataSource.getConnection();
-             Statement statement = connection.createStatement()) {
-            statement.executeUpdate(String.format(Constants.DDL_CREATE_SCHEMA_SQL_COMMAND, name));
+             PreparedStatement statement = connection.prepareStatement(Constants.DDL_CREATE_SCHEMA_SQL_COMMAND)) {
+            statement.setString(1, name);
+            statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Can not connect to database", e);
         }
