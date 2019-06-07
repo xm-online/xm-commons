@@ -2,6 +2,7 @@ package com.icthh.xm.commons.tenant;
 
 import java.util.Optional;
 import java.util.regex.Pattern;
+import com.icthh.xm.commons.exceptions.BusinessException;
 
 /**
  * The {@link TenantContextUtils} class.
@@ -107,7 +108,7 @@ public final class TenantContextUtils {
         return TENANT_KEY_PATTERN.matcher(tenantKey).matches();
     }
 
-    public static boolean assertTenantKeyValid(String tenantKey) {
+    public static void assertTenantKeyValid(String tenantKey) {
         if (!isTenantKeyValid(tenantKey)) {
             throw new BusinessException(TENANT_KEY_FORMAT_CODE, "Tenant key wrong format");
         }
