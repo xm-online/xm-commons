@@ -10,6 +10,7 @@ public final class TenantContextUtils {
 
     public static String TENANT_KEY_REGEXP = "^(?!pg_)(?!_)[a-zA-Z][a-zA-Z0-9_]{0,47}$";
     public static Pattern TENANT_KEY_PATTERN = Pattern.compile(TENANT_KEY_REGEXP);
+    public static final String TENANT_KEY_FORMAT_CODE = "xm.xmEntity.tenant.error.tenantKeyFormat";
 
     /**
      * Get tenant key value by holder.
@@ -104,6 +105,12 @@ public final class TenantContextUtils {
 
     public static boolean isTenantKeyValid(String tenantKey) {
         return TENANT_KEY_PATTERN.matcher(tenantKey).matches();
+    }
+
+    public static boolean assertTenantKeyValid(String tenantKey) {
+        if (!isTenantKeyValid(tenantKey)) {
+            throw new BusinessException(TENANT_KEY_FORMAT_CODE, "Tenant key wron format");
+        }
     }
 
     /**

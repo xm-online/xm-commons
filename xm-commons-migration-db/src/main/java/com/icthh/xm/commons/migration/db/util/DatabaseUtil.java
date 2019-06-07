@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.migration.db.util;
 
-import static com.icthh.xm.commons.tenant.TenantContextUtils.isTenantKeyValid;
+import static com.icthh.xm.commons.tenant.TenantContextUtils.assertTenantKeyValid;
 
 import com.icthh.xm.commons.migration.db.Constants;
 import java.sql.Connection;
@@ -23,7 +23,7 @@ public final class DatabaseUtil {
      * @param name       schema name
      */
     public static void createSchema(DataSource dataSource, String name) {
-        isTenantKeyValid(name);
+        assertTenantKeyValid(name);
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
             statement.executeUpdate(String.format(Constants.DDL_CREATE_SCHEMA, name));
