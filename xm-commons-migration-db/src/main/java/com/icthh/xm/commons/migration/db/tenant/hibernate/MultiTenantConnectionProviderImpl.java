@@ -1,14 +1,12 @@
 package com.icthh.xm.commons.migration.db.tenant.hibernate;
 
-import static com.icthh.xm.commons.tenant.TenantContextUtils.isTenantKeyValid;
+import static com.icthh.xm.commons.tenant.TenantContextUtils.assertTenantKeyValid;
 
 import com.icthh.xm.commons.migration.db.tenant.SchemaChangeResolver;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.sql.DataSource;
-
 import lombok.RequiredArgsConstructor;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
@@ -35,7 +33,7 @@ public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionP
 
     @Override
     public Connection getConnection(String tenantIdentifier) throws SQLException {
-        isTenantKeyValid(tenantIdentifier);
+        assertTenantKeyValid(tenantIdentifier);
         final Connection connection = getAnyConnection();
         try (Statement statement = connection.createStatement()) {
             statement.execute(String.format(resolver.getSchemaSwitchCommand(), tenantIdentifier));
