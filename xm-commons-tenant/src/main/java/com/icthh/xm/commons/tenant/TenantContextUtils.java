@@ -109,7 +109,7 @@ public final class TenantContextUtils {
 
     public static boolean assertTenantKeyValid(String tenantKey) {
         if (!isTenantKeyValid(tenantKey)) {
-            throw new BusinessException(TENANT_KEY_FORMAT_CODE, "Tenant key wron format");
+            throw new BusinessException(TENANT_KEY_FORMAT_CODE, "Tenant key wrong format");
         }
     }
 
