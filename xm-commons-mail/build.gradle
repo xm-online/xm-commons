@@ -13,4 +13,6 @@ dependencies {
     compile "org.springframework.boot:spring-boot-starter-mail"
 
     testCompile 'junit:junit'
+    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
+
 }

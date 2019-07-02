@@ -6,35 +6,31 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 public class MailProviderServiceUnitTest {
 
     public static final String TENANT = "TEST";
 
-    private static final String MAIL_CONFIG = "mail-provider:\n"
-                                              + "      host: localhost\n"
-                                              + "      port: 25\n"
-                                              + "      protocol: smtp\n"
-                                              + "      username: mailuser\n"
-                                              + "      password: mailpass\n"
-                                              + "      properties:\n"
-                                              + "          mail.smtp.starttls.enable: true\n"
-                                              + "          ssl.trust: true\n"
-                                              + "          mail.imap.ssl.enable: true\n";
+    private String mailConfig;
 
     private MailProviderService providerService;
 
     private final JavaMailSender defaultMailSender = new JavaMailSenderImpl();
 
     @Before
+    @SneakyThrows
     public void before() {
         providerService = new MailProviderService(defaultMailSender);
+        mailConfig = new String(Files.readAllBytes(Paths.get(getClass().getResource("/mail-provider.yml").toURI())));
     }
 
     @Test
@@ -42,7 +38,7 @@ public class MailProviderServiceUnitTest {
 
         assertFalse(providerService.isTenantMailSenderExists(TENANT));
 
-        providerService.onInit("/config/tenants/TEST/mail-provider.yml", MAIL_CONFIG);
+        providerService.onInit("/config/tenants/TEST/mail-provider.yml", mailConfig);
 
         assertTrue(providerService.isTenantMailSenderExists(TENANT));
 
@@ -73,7 +69,7 @@ public class MailProviderServiceUnitTest {
 
         assertFalse(providerService.isTenantMailSenderExists(TENANT));
 
-        providerService.onRefresh("/config/tenants/TEST/mail-provider.yml", MAIL_CONFIG);
+        providerService.onRefresh("/config/tenants/TEST/mail-provider.yml", mailConfig);
 
         assertTrue(providerService.isTenantMailSenderExists(TENANT));
 
@@ -102,7 +98,7 @@ public class MailProviderServiceUnitTest {
 
         assertFalse(providerService.isTenantMailSenderExists(TENANT));
 
-        providerService.onRefresh("/config/tenants/TEST/mail-provider.yml", MAIL_CONFIG);
+        providerService.onRefresh("/config/tenants/TEST/mail-provider.yml", mailConfig);
 
         assertTrue(providerService.isTenantMailSenderExists(TENANT));
 
@@ -117,12 +113,12 @@ public class MailProviderServiceUnitTest {
 
         assertFalse(providerService.isTenantMailSenderExists(TENANT));
 
-        providerService.onRefresh("/config/tenants/TEST/mail-provider.yml", MAIL_CONFIG);
+        providerService.onRefresh("/config/tenants/TEST/mail-provider.yml", mailConfig);
 
         assertTrue(providerService.isTenantMailSenderExists(TENANT));
         JavaMailSender mailSender1 = providerService.getJavaMailSender(TENANT);
 
-        providerService.onRefresh("/config/tenants/TEST/mail-provider.yml", MAIL_CONFIG);
+        providerService.onRefresh("/config/tenants/TEST/mail-provider.yml", mailConfig);
 
         assertTrue(providerService.isTenantMailSenderExists(TENANT));
         JavaMailSender mailSender2 = providerService.getJavaMailSender(TENANT);
