@@ -1,0 +1,10 @@
+mail-provider:
+    host: localhost
+    port: 25
+    protocol: smtp
+    username: mailuser
+    password: mailpass
+    properties:
+        mail.smtp.starttls.enable: true
+        ssl.trust: true
+        mail.imap.ssl.enable: true
