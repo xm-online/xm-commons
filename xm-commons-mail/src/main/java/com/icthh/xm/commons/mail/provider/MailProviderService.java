@@ -50,7 +50,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MailProviderService implements RefreshableConfiguration {
 
     private static final String TENANT_NAME = "tenantName";
-    private static final String MAIL_PROVIDER_PATH = "/config/tenants/{tenantName}/mail-provider.yml";
+    private static final String MAIL_PROVIDER_PATH = "/config/tenants/{tenantName}/mail-config.yml";
 
     private final AntPathMatcher matcher = new AntPathMatcher();
 

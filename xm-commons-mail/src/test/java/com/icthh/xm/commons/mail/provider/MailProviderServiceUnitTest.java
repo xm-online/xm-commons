@@ -30,7 +30,7 @@ public class MailProviderServiceUnitTest {
     @SneakyThrows
     public void before() {
         providerService = new MailProviderService(defaultMailSender);
-        mailConfig = new String(Files.readAllBytes(Paths.get(getClass().getResource("/mail-provider.yml").toURI())));
+        mailConfig = new String(Files.readAllBytes(Paths.get(getClass().getResource("/mail-config.yml").toURI())));
     }
 
     @Test
@@ -38,7 +38,7 @@ public class MailProviderServiceUnitTest {
 
         assertFalse(providerService.isTenantMailSenderExists(TENANT));
 
-        providerService.onInit("/config/tenants/TEST/mail-provider.yml", mailConfig);
+        providerService.onInit("/config/tenants/TEST/mail-config.yml", mailConfig);
 
         assertTrue(providerService.isTenantMailSenderExists(TENANT));
 
@@ -58,7 +58,7 @@ public class MailProviderServiceUnitTest {
 
         assertFalse(providerService.isTenantMailSenderExists(TENANT));
 
-        providerService.onInit("/config/tenants/TEST/mail-provider.yml", "sdfsd --- fsdfe");
+        providerService.onInit("/config/tenants/TEST/mail-config.yml", "sdfsd --- fsdfe");
 
         assertEquals(defaultMailSender, providerService.getJavaMailSender(TENANT));
 
@@ -69,7 +69,7 @@ public class MailProviderServiceUnitTest {
 
         assertFalse(providerService.isTenantMailSenderExists(TENANT));
 
-        providerService.onRefresh("/config/tenants/TEST/mail-provider.yml", mailConfig);
+        providerService.onRefresh("/config/tenants/TEST/mail-config.yml", mailConfig);
 
         assertTrue(providerService.isTenantMailSenderExists(TENANT));
 
@@ -98,11 +98,11 @@ public class MailProviderServiceUnitTest {
 
         assertFalse(providerService.isTenantMailSenderExists(TENANT));
 
-        providerService.onRefresh("/config/tenants/TEST/mail-provider.yml", mailConfig);
+        providerService.onRefresh("/config/tenants/TEST/mail-config.yml", mailConfig);
 
         assertTrue(providerService.isTenantMailSenderExists(TENANT));
 
-        providerService.onRefresh("/config/tenants/TEST/mail-provider.yml", "");
+        providerService.onRefresh("/config/tenants/TEST/mail-config.yml", "");
 
         assertFalse(providerService.isTenantMailSenderExists(TENANT));
 
@@ -113,12 +113,12 @@ public class MailProviderServiceUnitTest {
 
         assertFalse(providerService.isTenantMailSenderExists(TENANT));
 
-        providerService.onRefresh("/config/tenants/TEST/mail-provider.yml", mailConfig);
+        providerService.onRefresh("/config/tenants/TEST/mail-config.yml", mailConfig);
 
         assertTrue(providerService.isTenantMailSenderExists(TENANT));
         JavaMailSender mailSender1 = providerService.getJavaMailSender(TENANT);
 
-        providerService.onRefresh("/config/tenants/TEST/mail-provider.yml", mailConfig);
+        providerService.onRefresh("/config/tenants/TEST/mail-config.yml", mailConfig);
 
         assertTrue(providerService.isTenantMailSenderExists(TENANT));
         JavaMailSender mailSender2 = providerService.getJavaMailSender(TENANT);
