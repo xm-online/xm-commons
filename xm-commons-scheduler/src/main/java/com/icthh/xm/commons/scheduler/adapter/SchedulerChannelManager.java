@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.scheduler.adapter;
 
-import static com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance;
 import static com.icthh.xm.commons.config.client.repository.TenantListRepository.TENANTS_LIST_CONFIG_KEY;
+import static com.icthh.xm.commons.config.client.repository.TenantListRepository.isSuspended;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.UUID.randomUUID;
 import static org.apache.commons.lang3.StringUtils.endsWith;
@@ -13,27 +13,22 @@ import static org.springframework.cloud.stream.binder.kafka.properties.KafkaCons
 import static org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties.StartOffset.latest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
-import com.fasterxml.jackson.databind.type.MapType;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.config.client.config.XmConfigProperties;
+import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.domain.TenantState;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.scheduler.domain.ScheduledEvent;
 import com.icthh.xm.commons.scheduler.service.SchedulerEventService;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.CompositeHealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.binder.ConsumerProperties;
 import org.springframework.cloud.stream.binder.HeaderMode;
@@ -48,20 +43,29 @@ import org.springframework.cloud.stream.binding.SubscribableChannelBindingTarget
 import org.springframework.cloud.stream.config.BindingProperties;
 import org.springframework.cloud.stream.config.BindingServiceProperties;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.event.EventListener;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+
+import java.util.Base64;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 @EnableBinding
 @EnableIntegration
-@RequiredArgsConstructor
 @Import(KafkaBinderConfiguration.class)
 @ConditionalOnProperty("application.scheduler-enabled")
-public class Bindings implements RefreshableConfiguration {
+public class SchedulerChannelManager implements RefreshableConfiguration {
 
     private static final String PREFIX = "scheduler_";
     private static final String KAFKA = "kafka";
@@ -69,6 +73,8 @@ public class Bindings implements RefreshableConfiguration {
     private static final String GENERALGROUP = "GENERALGROUP";
     private static final String TOPIC = "_topic";
     private static final String QUEUE = "_queue";
+    private static final String SCHEDULER_APP_DEFAULT = "scheduler";
+    private static final String WRAP_TOKEN = "\"";
 
     private final BindingServiceProperties bindingServiceProperties;
     private final SubscribableChannelBindingTargetFactory bindingTargetFactory;
@@ -82,7 +88,10 @@ public class Bindings implements RefreshableConfiguration {
     private final ObjectMapper objectMapper;
 
     @Value("${spring.application.name}")
-    private String appName;
+    String appName;
+
+    @Value("${application.scheduler-config.scheduler-app-name:" + SCHEDULER_APP_DEFAULT + "}")
+    private String schedulerAppName = SCHEDULER_APP_DEFAULT;
 
     @Value("${application.scheduler-config.task-back-off-initial-interval:1000}")
     private int backOffInitialInterval;
@@ -90,15 +99,20 @@ public class Bindings implements RefreshableConfiguration {
     @Value("${application.scheduler-config.task-back-off-max-interval:60000}")
     private int backOffMaxInterval;
 
+    private final Set<String> includedTenants;
+
+    private Set<String> tenantToStart;
+
     @Autowired
-    public Bindings(BindingServiceProperties bindingServiceProperties,
-                    SubscribableChannelBindingTargetFactory bindingTargetFactory,
-                    BindingService bindingService,
-                    KafkaMessageChannelBinder kafkaMessageChannelBinder,
-                    ObjectMapper objectMapper,
-                    SchedulerEventService schedulerEventService,
-                    CompositeHealthIndicator bindersHealthIndicator,
-                    KafkaBinderHealthIndicator kafkaBinderHealthIndicator) {
+    public SchedulerChannelManager(BindingServiceProperties bindingServiceProperties,
+                                   SubscribableChannelBindingTargetFactory bindingTargetFactory,
+                                   BindingService bindingService,
+                                   KafkaMessageChannelBinder kafkaMessageChannelBinder,
+                                   ObjectMapper objectMapper,
+                                   SchedulerEventService schedulerEventService,
+                                   CompositeHealthIndicator bindersHealthIndicator,
+                                   KafkaBinderHealthIndicator kafkaBinderHealthIndicator,
+                                   XmConfigProperties xmConfigProperties) {
         this.bindingServiceProperties = bindingServiceProperties;
         this.bindingTargetFactory = bindingTargetFactory;
         this.bindingService = bindingService;
@@ -106,10 +120,11 @@ public class Bindings implements RefreshableConfiguration {
         this.objectMapper = objectMapper;
         this.bindersHealthIndicator = bindersHealthIndicator;
         this.kafkaBinderHealthIndicator = kafkaBinderHealthIndicator;
+        this.includedTenants = xmConfigProperties.getIncludeTenantLowercase();
         kafkaMessageChannelBinder.setExtendedBindingProperties(kafkaExtendedBindingProperties);
     }
 
-    private void createChannels(String tenantName) {
+    void createChannels(String tenantName) {
         try {
             String tenant = lowerCase(tenantName);
             String tenantKey = upperCase(tenantName);
@@ -125,7 +140,7 @@ public class Bindings implements RefreshableConfiguration {
         }
     }
 
-    private synchronized void createHandler(String chanelName, String consumerGroup, String tenantName, StartOffset startOffset) {
+    synchronized void createHandler(String chanelName, String consumerGroup, String tenantName, StartOffset startOffset) {
         if (!channels.containsKey(chanelName)) {
 
             log.info("Create binding to {}. Consumer group {}", chanelName, consumerGroup);
@@ -156,23 +171,28 @@ public class Bindings implements RefreshableConfiguration {
 
             channel.subscribe(message -> {
                 try {
-                    MdcUtils.generateRid();
-                    MdcUtils.putRid(MdcUtils.getRid() + ":" + tenantName);
+                    MdcUtils.putRid(MdcUtils.generateRid() + ":" + tenantName);
                     StopWatch stopWatch = StopWatch.createStarted();
                     String payloadString = (String) message.getPayload();
-                    payloadString = unwrap(payloadString, "\"");
-                    log.info("start processign message for tenant: [{}], body = {}", tenantName, payloadString);
+                    payloadString = unwrap(payloadString);
+                    log.debug("start processing message for tenant: [{}], raw body in base64 = {}",
+                              tenantName, payloadString);
                     String eventBody = new String(Base64.getDecoder().decode(payloadString), UTF_8);
+                    log.info("start processing message for tenant: [{}], body = {}", tenantName, eventBody);
 
                     schedulerEventService.processSchedulerEvent(mapToEvent(eventBody), tenantName);
 
-                    message.getHeaders().get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class).acknowledge();
-                    log.info("stop processign message for tenant: [{}], time = {}", tenantName, stopWatch.getTime());
+                    Optional.ofNullable(message.getHeaders().get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class))
+                            .ifPresent(Acknowledgment::acknowledge);
+
+                    log.info("stop processing message for tenant: [{}], time = {}",
+                             tenantName,
+                             stopWatch.getTime());
                 } catch (Exception e) {
-                    log.error("error processign event for tenant [{}]", tenantName, e);
+                    log.error("error processing event for tenant [{}]", tenantName, e);
                     throw e;
                 } finally {
-                    MdcUtils.removeRid();
+                    MdcUtils.clear();
                 }
             });
         }
@@ -185,24 +205,56 @@ public class Bindings implements RefreshableConfiguration {
     }
 
     @SneakyThrows
-    private void updateTenants(String key, String config) {
-        log.info("Tenants list was updated");
+    void parseConfig(String key, String config) {
+
+        log.info("Tenants list was updated, start to parse config");
 
         if (!TENANTS_LIST_CONFIG_KEY.equals(key)) {
             throw new IllegalArgumentException("Wrong config key to update " + key);
         }
 
-        CollectionType setType = defaultInstance().constructCollectionType(HashSet.class, TenantState.class);
-        MapType type = defaultInstance().constructMapType(HashMap.class, defaultInstance().constructType(String.class), setType);
-        Map<String, Set<TenantState>> tenantsByServiceMap = objectMapper.readValue(config, type);
-        Set<TenantState> tenantKeys = tenantsByServiceMap.get(appName);
+        if (StringUtils.isEmpty(config)) {
+            throw new IllegalArgumentException("Config file has empty content: " + key);
+        }
 
-        tenantKeys.stream().map(TenantState::getName).forEach(this::createChannels);
+        Set<TenantState> tenantKeys = TenantListRepository.parseTenantStates(config, objectMapper)
+                                                          .getOrDefault(schedulerAppName, new HashSet<>());
+
+        if (tenantKeys.isEmpty()) {
+            log.warn("No one tenant configured to use scheduler. "
+                     + "Add tenant state to ms-config/tenant-list.json to section $.scheduler");
+        }
+        if (!includedTenants.isEmpty()) {
+            log.warn("Tenant list was overridden by property 'xm-config.include-tenants' to: {}", includedTenants);
+        }
+
+        tenantToStart = tenantKeys.stream()
+                                  .filter(TenantListRepository.isIncluded(includedTenants)
+                                                              .and(isSuspended().negate()))
+                                  .map(TenantState::getName)
+                                  .collect(Collectors.toSet());
+
+        log.info("scheduler will be turned on for tenants: {}", tenantToStart);
+
+    }
+
+    // Do not delete @Async! Otherwise bindingService.bindConsumer(channel, chanelName) will initiate recursive call
+    // through Spring application creation and startup event sending.
+    // See: https://github.com/spring-cloud/spring-cloud-stream/issues/609
+    @Async
+    @EventListener(ApplicationReadyEvent.class)
+    public void startChannels() {
+        if (tenantToStart == null) {
+            throw new IllegalStateException("Scheduler channel manager was not initialized. Call onInit() first!");
+        }
+        log.info("Start channels for tenants: {}", tenantToStart);
+        tenantToStart.forEach(this::createChannels);
     }
 
     @Override
     public void onRefresh(String key, String config) {
-        updateTenants(key, config);
+        parseConfig(key, config);
+        startChannels();
     }
 
     @Override
@@ -212,18 +264,18 @@ public class Bindings implements RefreshableConfiguration {
 
     @Override
     public void onInit(String key, String config) {
-        updateTenants(key, config);
+        parseConfig(key, config);
     }
 
-    private static String unwrap(final String str, final String wrapToken) {
-        if (isEmpty(str) || isEmpty(wrapToken)) {
+    private static String unwrap(final String str) {
+        if (isEmpty(str) || isEmpty(WRAP_TOKEN)) {
             return str;
         }
 
-        if (startsWith(str, wrapToken) && endsWith(str, wrapToken)) {
-            final int startIndex = str.indexOf(wrapToken);
-            final int endIndex = str.lastIndexOf(wrapToken);
-            final int wrapLength = wrapToken.length();
+        if (startsWith(str, WRAP_TOKEN) && endsWith(str, WRAP_TOKEN)) {
+            final int startIndex = str.indexOf(WRAP_TOKEN);
+            final int endIndex = str.lastIndexOf(WRAP_TOKEN);
+            final int wrapLength = WRAP_TOKEN.length();
             if (startIndex != -1 && endIndex != -1) {
                 return str.substring(startIndex + wrapLength, endIndex);
             }

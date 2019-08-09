@@ -1,0 +1,26 @@
+{
+    "scheduler": [
+        {
+            "name": "xm",
+            "state": "ACTIVE"
+        }, {
+            "name": "test",
+            "state": "ACTIVE"
+        }, {
+            "name": "schedulersusp",
+            "state": "SUSPENDED"
+        }
+    ],
+    "entity": [
+        {
+            "name": "xm",
+            "state": "ACTIVE"
+        }, {
+            "name": "demo",
+            "state": "ACTIVE"
+        }, {
+            "name": "susp",
+            "state": "SUSPENDED"
+        }
+    ]
+}
