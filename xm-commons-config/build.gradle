@@ -47,6 +47,7 @@ dependencies {
     testCompile 'junit:junit'
     testCompile 'org.assertj:assertj-core'
     testCompile 'org.mockito:mockito-core'
+    testCompile "org.projectlombok:lombok:${versions.lombok}"
 }
 
 compileJava.dependsOn(processResources)
