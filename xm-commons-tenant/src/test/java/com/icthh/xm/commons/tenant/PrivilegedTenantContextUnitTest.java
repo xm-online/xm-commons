@@ -22,8 +22,7 @@ public class PrivilegedTenantContextUnitTest {
     }
 
     @After
-    @Override
-    public void finalize() {
+    public void destroy() {
         if (tenantContextHolder != null) {
             tenantContextHolder.getPrivilegedContext().destroyCurrentContext();
             tenantContextHolder = null;
