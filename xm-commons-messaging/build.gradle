@@ -8,6 +8,9 @@ dependencyManagement {
 dependencies {
     compile 'com.fasterxml.jackson.core:jackson-databind'
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
+    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
+    annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+    testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
     compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
 
     testCompile 'junit:junit'

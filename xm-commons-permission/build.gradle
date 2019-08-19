@@ -12,7 +12,6 @@ dependencies {
     compile project(":xm-commons-exceptions")
     compile project(":xm-commons-messaging")
 
-    compileOnly "org.projectlombok:lombok:${versions.lombok}"
     compileOnly "io.github.jhipster:jhipster-framework:${versions.jhipster}"
 
     compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
@@ -36,5 +35,9 @@ dependencies {
     testCompile 'org.assertj:assertj-core'
     testCompile 'org.springframework:spring-test'
     testCompile 'org.springframework.kafka:spring-kafka-test'
+
+    compileOnly "org.projectlombok:lombok:${versions.lombok}"
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
+    annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+    testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
 }

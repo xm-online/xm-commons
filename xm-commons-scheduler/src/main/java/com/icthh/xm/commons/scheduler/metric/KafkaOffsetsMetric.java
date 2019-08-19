@@ -121,8 +121,8 @@ public class KafkaOffsetsMetric implements MetricSet {
             Map<String, Object> props = new HashMap<>();
             props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
             props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
-            if (!ObjectUtils.isEmpty(binderConfigurationProperties.getConsumerConfiguration())) {
-                props.putAll(binderConfigurationProperties.getConsumerConfiguration());
+            if (!ObjectUtils.isEmpty(binderConfigurationProperties.getConsumerProperties())) {
+                props.putAll(binderConfigurationProperties.getConsumerProperties());
             }
             if (!props.containsKey(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG)) {
                 props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,

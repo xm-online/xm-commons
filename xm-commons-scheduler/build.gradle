@@ -25,6 +25,9 @@ dependencies {
     compile project(":xm-commons-config")
 
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
+    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
+    annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+    testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
 
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-json-org'
@@ -46,7 +49,6 @@ dependencies {
     testCompile 'junit:junit'
     testCompile 'org.assertj:assertj-core'
     testCompile 'org.mockito:mockito-core'
-    testCompile "org.projectlombok:lombok:${versions.lombok}"
 }
 
 compileJava.dependsOn(processResources)

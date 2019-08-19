@@ -10,6 +10,8 @@ dependencies {
     compile "org.springframework:spring-context"
     compile "io.dropwizard.metrics:metrics-core"
     compile "io.dropwizard.metrics:metrics-jvm"
+    compile "io.dropwizard.metrics:metrics-jmx"
+
     compile "com.ryantenney.metrics:metrics-spring:${versions.springMetrics}"
 
     compileOnly "io.github.jhipster:jhipster-framework:${versions.jhipster}"

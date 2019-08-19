@@ -54,32 +54,32 @@ public class WebLogObjectPrinterUnitTest {
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
 
         when(responseEntity.getBody()).thenReturn(null);
-        assertEquals("status=200, body=null",
+        assertEquals("status=200 OK, body=null",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity).toString());
 
         when(responseEntity.getBody()).thenReturn("value1");
-        assertEquals("status=200, body=value1",
+        assertEquals("status=200 OK, body=value1",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity).toString());
 
         when(responseEntity.getBody()).thenReturn(Arrays.asList(1, 2, 3, 4, 5));
-        assertEquals("status=200, body=[<ArrayList> size = 5]",
+        assertEquals("status=200 OK, body=[<ArrayList> size = 5]",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity).toString());
 
         when(responseEntity.getBody()).thenReturn(null);
-        assertEquals("status=200, body=#hidden#",
+        assertEquals("status=200 OK, body=#hidden#",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity, false).toString());
 
         when(responseEntity.getBody()).thenReturn("value1");
-        assertEquals("status=200, body=#hidden#",
+        assertEquals("status=200 OK, body=#hidden#",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity, false).toString());
 
         when(responseEntity.getBody()).thenReturn(Arrays.asList(1, 2, 3, 4, 5));
-        assertEquals("status=200, body=#hidden#",
+        assertEquals("status=200 OK, body=#hidden#",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity, false).toString());
 
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.BAD_REQUEST);
         when(responseEntity.getBody()).thenReturn("value1");
-        assertEquals("status=400, body=value1",
+        assertEquals("status=400 BAD_REQUEST, body=value1",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity).toString());
     }
 
@@ -94,27 +94,27 @@ public class WebLogObjectPrinterUnitTest {
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
 
         when(responseEntity.getBody()).thenReturn(null);
-        assertEquals("status=200, body=null",
+        assertEquals("status=200 OK, body=null",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity).toString());
 
         when(responseEntity.getBody()).thenReturn("value1");
-        assertEquals("status=200, body=value1",
+        assertEquals("status=200 OK, body=value1",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity).toString());
 
         when(responseEntity.getBody()).thenReturn(Arrays.asList(1, 2, 3, 4, 5));
-        assertEquals("status=200, body=[<ArrayList> size = 5]",
+        assertEquals("status=200 OK, body=[<ArrayList> size = 5]",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity).toString());
 
         when(responseEntity.getBody()).thenReturn(null);
-        assertEquals("status=200, body=#hidden#",
+        assertEquals("status=200 OK, body=#hidden#",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity, false).toString());
 
         when(responseEntity.getBody()).thenReturn("value1");
-        assertEquals("status=200, body=#hidden#",
+        assertEquals("status=200 OK, body=#hidden#",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity, false).toString());
 
         when(responseEntity.getBody()).thenReturn(Arrays.asList(1, 2, 3, 4, 5));
-        assertEquals("status=200, body=#hidden#",
+        assertEquals("status=200 OK, body=#hidden#",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity, false).toString());
     }
 
@@ -129,27 +129,27 @@ public class WebLogObjectPrinterUnitTest {
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
 
         when(responseEntity.getBody()).thenReturn(null);
-        assertEquals("status=200, body=#hidden#",
+        assertEquals("status=200 OK, body=#hidden#",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity).toString());
 
         when(responseEntity.getBody()).thenReturn("value1");
-        assertEquals("status=200, body=#hidden#",
+        assertEquals("status=200 OK, body=#hidden#",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity).toString());
 
         when(responseEntity.getBody()).thenReturn(Arrays.asList(1, 2, 3, 4, 5));
-        assertEquals("status=200, body=#hidden#",
+        assertEquals("status=200 OK, body=#hidden#",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity).toString());
 
         when(responseEntity.getBody()).thenReturn(null);
-        assertEquals("status=200, body=#hidden#",
+        assertEquals("status=200 OK, body=#hidden#",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity, false).toString());
 
         when(responseEntity.getBody()).thenReturn("value1");
-        assertEquals("status=200, body=#hidden#",
+        assertEquals("status=200 OK, body=#hidden#",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity, false).toString());
 
         when(responseEntity.getBody()).thenReturn(Arrays.asList(1, 2, 3, 4, 5));
-        assertEquals("status=200, body=#hidden#",
+        assertEquals("status=200 OK, body=#hidden#",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity, false).toString());
     }
 
@@ -164,27 +164,27 @@ public class WebLogObjectPrinterUnitTest {
         when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
 
         when(responseEntity.getBody()).thenReturn(null);
-        assertEquals("status=200, body=null",
+        assertEquals("status=200 OK, body=null",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity).toString());
 
         when(responseEntity.getBody()).thenReturn("value1");
-        assertEquals("status=200, body=value1",
+        assertEquals("status=200 OK, body=value1",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity).toString());
 
         when(responseEntity.getBody()).thenReturn(Arrays.asList(1, 2, 3, 4, 5));
-        assertEquals("status=200, body=[1, 2, 3, 4, 5]",
+        assertEquals("status=200 OK, body=[1, 2, 3, 4, 5]",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity).toString());
 
         when(responseEntity.getBody()).thenReturn(null);
-        assertEquals("status=200, body=null",
+        assertEquals("status=200 OK, body=null",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity, false).toString());
 
         when(responseEntity.getBody()).thenReturn("value1");
-        assertEquals("status=200, body=value1",
+        assertEquals("status=200 OK, body=value1",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity, false).toString());
 
         when(responseEntity.getBody()).thenReturn(Arrays.asList(1, 2, 3, 4, 5));
-        assertEquals("status=200, body=[1, 2, 3, 4, 5]",
+        assertEquals("status=200 OK, body=[1, 2, 3, 4, 5]",
                      WebLogObjectPrinter.printRestResult(joinPoint, responseEntity, false).toString());
     }
 

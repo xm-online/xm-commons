@@ -28,6 +28,9 @@ dependencies {
     }
 
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
+    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
+    annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+    testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
 
     compile "commons-collections:commons-collections:${versions.commonsCollections}"
     compile 'org.springframework.cloud:spring-cloud-commons'
@@ -47,7 +50,6 @@ dependencies {
     testCompile 'junit:junit'
     testCompile 'org.assertj:assertj-core'
     testCompile 'org.mockito:mockito-core'
-    testCompile "org.projectlombok:lombok:${versions.lombok}"
 }
 
 compileJava.dependsOn(processResources)
