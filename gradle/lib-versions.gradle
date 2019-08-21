@@ -23,7 +23,7 @@ ext.versions = [
     lep                        : '0.1.0',
     jsr305                     : '3.0.2',
 
-    jhipster                   : '2.0.28',
+    jhipster                   : '3.0.4',
     lombok                     : '1.18.2',
     logstashLogbackEncoder     : '5.2',
 

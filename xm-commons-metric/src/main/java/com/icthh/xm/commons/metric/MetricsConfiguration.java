@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -39,6 +40,9 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
     private static final String PROP_METRIC_REG_OS = "os.attributes";
 
     private final Logger log = LoggerFactory.getLogger(MetricsConfiguration.class);
+
+    @Value("${spring.jmx.enabled:false}")
+    private Boolean jmxEnabled;
 
     private MetricRegistry metricRegistry = new MetricRegistry();
 
@@ -76,7 +80,7 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
         metricRegistry.register(PROP_METRIC_REG_JVM_ATTRIBUTE_SET, new JvmAttributeGaugeSet());
         metricRegistry.register(PROP_METRIC_REG_OS, new OperatingSystemGaugeSet(getOperatingSystemMXBean()));
 
-        if (jhipsterProperties.getMetrics().getJmx().isEnabled()) {
+        if (jmxEnabled) {
             log.debug("Initializing Metrics JMX reporting");
             JmxReporter jmxReporter = JmxReporter.forRegistry(metricRegistry).build();
             jmxReporter.start();
