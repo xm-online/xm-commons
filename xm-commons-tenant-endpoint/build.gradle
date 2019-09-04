@@ -29,11 +29,18 @@ dependencies {
         exclude module: 'spring-boot-starter-tomcat'
     }
 
+    testCompile 'junit:junit'
 }
 
 
 def swaggerSourceFile = 'src/main/resources/swagger-spec/tenant/swagger-tenant-spec.yaml'
-def swaggerTargetFolder = 'src/main/java'
+def swaggerTargetFolder = 'build/generated-sources'
+
+sourceSets {
+    main {
+        java.srcDirs += "$swaggerTargetFolder"
+    }
+}
 
 task generateApi {
 
@@ -58,12 +65,6 @@ task generateApi {
 
 compileJava {
     dependsOn generateApi
-}
-
-clean.doFirst {
-    delete("${projectDir}/$swaggerTargetFolder/com/icthh/xm/commons/gen")
-    delete("${projectDir}/$swaggerTargetFolder/io/swagger")
-    delete("${projectDir}/src/main/resources/application.properties")
 }
 
 // disable QA for generated code project
