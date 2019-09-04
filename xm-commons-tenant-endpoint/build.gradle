@@ -41,8 +41,6 @@ sourceSets {
     }
 }
 
-sourceSets.main.java.srcDirs = ["$swaggerTargetFolder",'src/main/java']
-
 task generateApi {
 
     inputs.file("$projectDir/$swaggerSourceFile")
