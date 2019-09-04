@@ -1,2 +1,2 @@
 .swagger-codegen
-/src/main/java/**
+#/src/main/java/**
