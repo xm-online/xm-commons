@@ -35,6 +35,14 @@ dependencies {
 def swaggerSourceFile = 'src/main/resources/swagger-spec/tenant/swagger-tenant-spec.yaml'
 def swaggerTargetFolder = 'build/generated-sources'
 
+sourceSets {
+    main {
+        java.srcDirs += "$swaggerTargetFolder"
+    }
+}
+
+sourceSets.main.java.srcDirs = ["$swaggerTargetFolder",'src/main/java']
+
 task generateApi {
 
     inputs.file("$projectDir/$swaggerSourceFile")
@@ -64,10 +72,6 @@ clean.doFirst {
     delete("${projectDir}/$swaggerTargetFolder/com/icthh/xm/commons/gen")
     delete("${projectDir}/$swaggerTargetFolder/io/swagger")
     delete("${projectDir}/src/main/resources/application.properties")
-}
-
-jar {
-    from "$swaggerTargetFolder"
 }
 
 // disable QA for generated code project
