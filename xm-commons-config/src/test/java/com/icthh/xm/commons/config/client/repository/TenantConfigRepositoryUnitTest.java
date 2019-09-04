@@ -1,9 +1,9 @@
 package com.icthh.xm.commons.config.client.repository;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -16,9 +16,7 @@ import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -31,12 +29,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -57,9 +53,6 @@ public class TenantConfigRepositoryUnitTest {
 
     @Mock
     OAuth2Authentication authentication;
-
-    @Rule
-    public ExpectedException expectedEx = ExpectedException.none();
 
     @Before
     public void setUp() throws Exception {
@@ -83,7 +76,7 @@ public class TenantConfigRepositoryUnitTest {
                                       eq(HttpMethod.POST),
                                       refEq(createHttpEntityWithContent()),
                                       eq(Void.class),
-                                      eq("tenant1"));
+                                      eq("TENANT1"));
 
     }
 
@@ -95,7 +88,7 @@ public class TenantConfigRepositoryUnitTest {
                                       eq(HttpMethod.PUT),
                                       refEq(createHttpEntityWithContent()),
                                       eq(Void.class),
-                                      eq("tenant1"));
+                                      eq("TENANT1"));
     }
 
     @Test
@@ -105,7 +98,7 @@ public class TenantConfigRepositoryUnitTest {
         repository.updateConfig("tenant1", "/path/to/file.txt", "content", "oldHash");
 
         verify(restTemplate)
-            .exchange(eq(CONFIG_URL + "/api/config/tenants/tenant1/app1/path/to/file.txt?oldConfigHash=oldHash"),
+            .exchange(eq(CONFIG_URL + "/api/config/tenants/TENANT1/app1/path/to/file.txt?oldConfigHash=oldHash"),
                       eq(HttpMethod.PUT),
                       refEq(createHttpEntityWithContent()),
                       eq(Void.class));
@@ -121,7 +114,7 @@ public class TenantConfigRepositoryUnitTest {
                                       eq(HttpMethod.DELETE),
                                       refEq(createHttpEntityNoContent()),
                                       eq(Void.class),
-                                      eq("tenant1"));
+                                      eq("TENANT1"));
 
     }
 
@@ -133,7 +126,7 @@ public class TenantConfigRepositoryUnitTest {
                                       eq(HttpMethod.POST),
                                       refEq(createHttpEntityWithContent()),
                                       eq(Void.class),
-                                      eq("tenant1"));
+                                      eq("TENANT1"));
     }
 
     @Test
@@ -141,15 +134,15 @@ public class TenantConfigRepositoryUnitTest {
 
         List<Configuration> configs = new LinkedList<>();
         configs.add(new Configuration("/config/tenants/{tenantName}/app1/path/to/file1.txt", "content1"));
-        configs.add(new Configuration("/config/tenants/tenant2/app1/path/to/file2.txt", "content2"));
+        configs.add(new Configuration("/config/tenants/TENANT2/app1/path/to/file2.txt", "content2"));
 
         repository.createConfigsFullPath("tenant1", configs);
 
         MultiValueMap<String, Object> valueMap = new LinkedMultiValueMap<>();
         valueMap.add("files", new NamedByteArrayResource("content1".getBytes(),
-                                                         "/config/tenants/tenant1/app1/path/to/file1.txt"));
+                                                         "/config/tenants/TENANT1/app1/path/to/file1.txt"));
         valueMap.add("files", new NamedByteArrayResource("content2".getBytes(),
-                                                         "/config/tenants/tenant2/app1/path/to/file2.txt"));
+                                                         "/config/tenants/TENANT2/app1/path/to/file2.txt"));
 
         HttpEntity<MultiValueMap> entity = createHttpEntity(valueMap, MediaType.MULTIPART_FORM_DATA);
 
@@ -157,6 +150,29 @@ public class TenantConfigRepositoryUnitTest {
                                       eq(HttpMethod.POST),
                                       refEq(entity),
                                       eq(Void.class));
+
+    }
+
+    @Test
+    public void createConfigsFullPathForbiddenPaths() {
+
+        runWithExceptionExpected(
+            () -> repository.createConfigsFullPath("tenant-1", singletonList(new Configuration(
+                "/config/tenants/tenant2/app1/path/to/file2.txt", "content2")))
+            , IllegalArgumentException.class
+            , "Tenant name has wrong format: TENANT-1");
+
+        runWithExceptionExpected(
+            () -> repository.createConfigsFullPath("tenant1", singletonList(new Configuration(
+                "/config/tenants/tenant2/app1/path/to/file2.txt", "content2")))
+            , IllegalArgumentException.class
+            , "Execution is not allowed for path: /config/tenants/tenant2/app1/path/to/file2.txt");
+
+        runWithExceptionExpected(
+            () -> repository.createConfigsFullPath("tenant1", singletonList(new Configuration(
+                "/config/tenants/privileges.yml", "content2")))
+            , IllegalArgumentException.class
+            , "Execution is not allowed for path: /config/tenants/privileges.yml");
 
     }
 
@@ -169,17 +185,17 @@ public class TenantConfigRepositoryUnitTest {
 
         repository.createConfigs("tenant1", configs);
 
-        MultiValueMap<String, Object> valueMap = new LinkedMultiValueMap<>();
-        valueMap.add("files", new NamedByteArrayResource("content1".getBytes(),
-                                                         "/config/tenants/tenant1/app1/path/to/file1.txt"));
-        valueMap.add("files", new NamedByteArrayResource("content2".getBytes(),
-                                                         "/config/tenants/tenant1/app1/path/to/file2.txt"));
+        MultiValueMap<String, Object> expectedMap = new LinkedMultiValueMap<>();
+        expectedMap.add("files", new NamedByteArrayResource("content1".getBytes(),
+                                                            "/config/tenants/TENANT1/app1/path/to/file1.txt"));
+        expectedMap.add("files", new NamedByteArrayResource("content2".getBytes(),
+                                                            "/config/tenants/TENANT1/app1/path/to/file2.txt"));
 
-        HttpEntity<MultiValueMap> entity = createHttpEntity(valueMap, MediaType.MULTIPART_FORM_DATA);
+        HttpEntity<MultiValueMap> expected = createHttpEntity(expectedMap, MediaType.MULTIPART_FORM_DATA);
 
         verify(restTemplate).exchange(eq(CONFIG_URL + "/api/config"),
                                       eq(HttpMethod.POST),
-                                      refEq(entity),
+                                      refEq(expected),
                                       eq(Void.class));
 
     }
@@ -193,7 +209,7 @@ public class TenantConfigRepositoryUnitTest {
                                       eq(HttpMethod.PUT),
                                       refEq(createHttpEntityWithContent()),
                                       eq(Void.class),
-                                      eq("tenant1"));
+                                      eq("TENANT1"));
 
     }
 
@@ -206,7 +222,7 @@ public class TenantConfigRepositoryUnitTest {
                                         "oldHash");
 
         verify(restTemplate)
-            .exchange(eq(CONFIG_URL + "/api/config/tenants/tenant1/app1/path/to/file.txt?oldConfigHash=oldHash"),
+            .exchange(eq(CONFIG_URL + "/api/config/tenants/TENANT1/app1/path/to/file.txt?oldConfigHash=oldHash"),
                       eq(HttpMethod.PUT),
                       refEq(createHttpEntityWithContent()),
                       eq(Void.class));
@@ -221,7 +237,7 @@ public class TenantConfigRepositoryUnitTest {
                                       eq(HttpMethod.DELETE),
                                       refEq(createHttpEntityNoContent()),
                                       eq(Void.class),
-                                      eq("tenant1"));
+                                      eq("TENANT1"));
 
     }
 
@@ -230,19 +246,19 @@ public class TenantConfigRepositoryUnitTest {
 
         List<String> fullPaths = new LinkedList<>();
         fullPaths.add("/api/config/tenants/{tenantName}/app1/path/to/file1.txt");
-        fullPaths.add("/api/config/tenants/tenant2/app1/path/to/file2.txt");
+        fullPaths.add("/api/config/tenants/TENANT2/app1/path/to/file2.txt");
 
         repository.deleteConfigFullPaths("tenant1", fullPaths);
 
         List<String> fullPathsExpected = new LinkedList<>();
-        fullPathsExpected.add("/api/config/tenants/tenant1/app1/path/to/file1.txt");
-        fullPathsExpected.add("/api/config/tenants/tenant2/app1/path/to/file2.txt");
+        fullPathsExpected.add("/api/config/tenants/TENANT1/app1/path/to/file1.txt");
+        fullPathsExpected.add("/api/config/tenants/TENANT2/app1/path/to/file2.txt");
 
         verify(restTemplate).exchange(eq(CONFIG_URL + "/api/config/tenants/{tenantName}/"),
                                       eq(HttpMethod.DELETE),
                                       refEq(createHttpEntityWithJsonContent(fullPathsExpected)),
                                       eq(Void.class),
-                                      eq("tenant1"));
+                                      eq("TENANT1"));
 
     }
 
@@ -266,46 +282,69 @@ public class TenantConfigRepositoryUnitTest {
                                       eq(HttpMethod.GET),
                                       refEq(createHttpEntityNoContent()),
                                       eq(String.class),
-                                      eq("tenant1"));
+                                      eq("TENANT1"));
 
     }
 
     @Test
-    public void testAntPathMatcher() {
-
-//        AntPathMatcher matcher = new AntPathMatcher();
-//
-////        String pattern = "/**/config/tenants/{tenantName:[A-Z0-9]+}/**";
-////        String pattern = "{api}/config/tenants/{tenantName}/**";
-//        String pattern = "/**/config/tenants/{tenantName:[A-Z0-9]+|\\{tenantName\\}}/**";
-//
-//        assertTrue(matcher.match(pattern, "/api/config/tenants/{tenantName}/app1/path/to/file.txt"));
-//        assertTrue(matcher.match(pattern, "/config/tenants/{tenantName}/app1/path/to/file.txt"));
-//        assertTrue(matcher.match(pattern, "/config/tenants/TENANT1/app1/path/to/file.txt"));
-//        assertTrue(matcher.match(pattern, "/config/tenants/TENANT1"));
-//
-//        assertFalse(matcher.match(pattern, "/config/tenants"));
-//        assertFalse(matcher.match(pattern, "/config/tenants/tenant-list.json"));
-//        assertFalse(matcher.match(pattern, "/config/tenants/tenant1"));
-//
-//        System.out.println(matcher.extractUriTemplateVariables(pattern,
-//                                                               "/api/config/tenants/TENANT1/app1/path/to/file.txt"));
+    public void testAssertPathInsideTenant() {
 
         repository.assertPathInsideTenant("/api/config/tenants/{tenantName}/app1/path/to/file.txt");
         repository.assertPathInsideTenant("/config/tenants/{tenantName}/app1/path/to/file.txt");
         repository.assertPathInsideTenant("/config/tenants/TENANT1/app1/path/to/file.txt");
         repository.assertPathInsideTenant("/config/tenants/TENANT1");
+        repository.assertPathInsideTenant("http://localhost:8080/config/api/config/tenants/{tenantName}/app1/file.txt");
 
-        expectedEx.expect(IllegalArgumentException.class);
+        runWithExceptionExpected(() -> repository.assertPathInsideTenant(null),
+                                 NullPointerException.class,
+                                 "path can not be null");
 
-        expectedEx.expectMessage("Execution is not allowed for path: /config/tenants");
-        repository.assertPathInsideTenant("/config/tenants");
+        runWithExceptionExpected(() -> repository.assertPathInsideTenant("/config/tenants"),
+                                 IllegalArgumentException.class,
+                                 "Execution is not allowed for path: /config/tenants");
 
-        expectedEx.expectMessage("Execution is not allowed for path: /config/tenants/tenant-list.json");
-        repository.assertPathInsideTenant("/config/tenants/tenant-list.json");
+        runWithExceptionExpected(() -> repository.assertPathInsideTenant("/config/tenants/tenant-list.json"),
+                                 IllegalArgumentException.class,
+                                 "Execution is not allowed for path: /config/tenants/tenant-list.json");
 
-        expectedEx.expectMessage("Execution is not allowed for path: /config/tenants/tenant1");
-        repository.assertPathInsideTenant("/config/tenants/tenant1");
+        runWithExceptionExpected(() -> repository.assertPathInsideTenant("/config/tenants/tenant1"),
+                                 IllegalArgumentException.class,
+                                 "Execution is not allowed for path: /config/tenants/tenant1");
+
+    }
+
+    @Test
+    public void assertTenantNameValid() {
+        repository.assertTenantNameValid("TENANT1");
+
+        runWithExceptionExpected(() -> repository.assertTenantNameValid(null),
+                                 NullPointerException.class,
+                                 "tenantName can not be null");
+
+        runWithExceptionExpected(() -> repository.assertTenantNameValid("tenant1"),
+                                 IllegalArgumentException.class,
+                                 "Tenant name has wrong format: tenant1");
+
+        runWithExceptionExpected(() -> repository.assertTenantNameValid("TENANT-1"),
+                                 IllegalArgumentException.class,
+                                 "Tenant name has wrong format: TENANT-1");
+
+    }
+
+    private void runWithExceptionExpected(Runnable r, Class<? extends Exception> type, String message) {
+
+        try {
+            r.run();
+            fail("Expected exception: " + type + " with message: " + message);
+        } catch (Exception e) {
+            if (!e.getClass().equals(type)) {
+                fail("Expected exception.class  : " + type + "\n\t\t\t\tactual was: " + e.getClass());
+            }
+            if (!String.valueOf(e.getMessage()).equals(message)) {
+                fail("Expected exception.message: " + message + "\n\t\t\t\tactual was: " + e.getMessage());
+            }
+        }
+
     }
 
     private HttpEntity<String> createHttpEntityNoContent() {

@@ -6,6 +6,7 @@ import static com.icthh.xm.commons.config.client.utils.RequestUtils.createMultip
 
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.domain.Configuration;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -16,14 +17,18 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URL;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
  * Repository to manage tenant related files inside ms-config.
+ *
+ * Service prevents changing files not outside /config/tenants/{tenantName} directory (inclusive).
  */
 @Slf4j
 public class TenantConfigRepository {
@@ -39,7 +44,9 @@ public class TenantConfigRepository {
 
     private static final String MULTIPART_FILE_NAME = "files";
 
-    private static final String TENANT_PATTERN = "/**/config/tenants/{tenantName:[A-Z0-9]+|\\{tenantName\\}}/**";
+    private static final String TENANT_PATH_PATTERN = "/**/config/tenants/{tenantName:[A-Z0-9]+|\\{tenantName\\}}/**";
+    private static final String TENANT_NAME_PATTERN = "[A-Z0-9]+";
+    private static final String TENANT_NAME_REPLACE = "\\{" + TENANT_NAME + "}";
 
     private final RestTemplate restTemplate;
 
@@ -64,13 +71,17 @@ public class TenantConfigRepository {
 
     public void createConfigs(String tenantName, List<Configuration> configurations) {
 
+        String upperTenantName = tenantName.toUpperCase();
+
+        assertTenantNameValid(upperTenantName);
+
         List<NamedByteArrayResource> resources = configurations
             .stream()
             .map(this::toFullPath)
-            .map(configuration -> toNamedResource(tenantName, configuration))
+            .map(configuration -> toNamedResource(upperTenantName, configuration))
             .collect(Collectors.toList());
 
-        postConfigAsMultipart(resources);
+        exchangePostMultipart(resources);
 
     }
 
@@ -97,12 +108,16 @@ public class TenantConfigRepository {
 
     public void createConfigsFullPath(String tenantName, List<Configuration> configurations) {
 
+        String upperTenantName = tenantName.toUpperCase();
+
+        assertTenantNameValid(upperTenantName);
+
         List<NamedByteArrayResource> resources = configurations
             .stream()
-            .map(configuration -> toNamedResource(tenantName, configuration))
+            .map(configuration -> toNamedResource(upperTenantName, configuration))
             .collect(Collectors.toList());
 
-        postConfigAsMultipart(resources);
+        exchangePostMultipart(resources);
     }
 
     public void updateConfigFullPath(String tenantName, String fullPath, String content) {
@@ -161,24 +176,33 @@ public class TenantConfigRepository {
                                            HttpEntity<?> entity,
                                            Class<T> respClass,
                                            String tenantName) {
+
+        assertPathInsideTenant(path);
+
         if (tenantName != null) {
-            return restTemplate.exchange(path, method, entity, respClass, tenantName);
+            String upperTenantName = tenantName.toUpperCase();
+            assertTenantNameValid(upperTenantName);
+            return restTemplate.exchange(path, method, entity, respClass, upperTenantName);
         }
         return restTemplate.exchange(path, method, entity, respClass);
     }
 
-    private void postConfigAsMultipart(final List<NamedByteArrayResource> resources) {
+    private void exchangePostMultipart(final List<NamedByteArrayResource> resources) {
+
+        resources.forEach(namedByteArrayResource -> assertPathInsideTenant(namedByteArrayResource.getFilename()));
+
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.addAll(MULTIPART_FILE_NAME, resources);
 
         HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(body, createMultipartAuthHeaders());
 
-        exchangePost(null, xmConfigUrl + PATH_API + PATH_CONFIG, entity);
+        restTemplate.exchange(xmConfigUrl + PATH_API + PATH_CONFIG, HttpMethod.POST, entity, Void.class);
+
     }
 
     private String toUrlWithOldHash(final String tenantName, final String path, final String oldConfigHash) {
         Map<String, String> uriParams = new HashMap<>();
-        uriParams.put(TENANT_NAME, tenantName);
+        uriParams.put(TENANT_NAME, tenantName.toUpperCase());
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(path)
                                                            .queryParam(OLD_CONFIG_HASH, oldConfigHash);
@@ -186,9 +210,25 @@ public class TenantConfigRepository {
         return builder.buildAndExpand(uriParams).toUri().toString();
     }
 
+    void assertTenantNameValid(String tenantName) {
+        Objects.requireNonNull(tenantName, "tenantName can not be null");
+        if (!tenantName.matches(TENANT_NAME_PATTERN)) {
+            throw new IllegalArgumentException("Tenant name has wrong format: " + tenantName);
+        }
+    }
+
+    @SneakyThrows
     void assertPathInsideTenant(String path) {
-        if (!matcher.match(TENANT_PATTERN, path)) {
-            throw new IllegalArgumentException("Execution is not allowed for path: " + path);
+
+        Objects.requireNonNull(path, "path can not be null");
+
+        String contextPath = path;
+        if (path.startsWith("http")) {
+            contextPath = new URL(path).getPath();
+        }
+
+        if (!matcher.match(TENANT_PATH_PATTERN, contextPath)) {
+            throw new IllegalArgumentException("Execution is not allowed for path: " + contextPath);
         }
     }
 
@@ -202,7 +242,7 @@ public class TenantConfigRepository {
     }
 
     private String resolveTenantName(String path, String tenantName) {
-        return path.replaceAll("\\{tenantName}", tenantName);
+        return path.replaceAll(TENANT_NAME_REPLACE, tenantName.toUpperCase());
     }
 
     private NamedByteArrayResource toNamedResource(String tenantName, Configuration configuration) {
