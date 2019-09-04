@@ -21,6 +21,11 @@ dependencyManagement {
 }
 
 dependencies {
+    compileOnly "org.projectlombok:lombok:${versions.lombok}"
+
+    compile project(':xm-commons-config')
+    compile project(':xm-commons-migration-db')
+
     compile("io.springfox:springfox-swagger2:${versions.springfoxSwagger}") {
         exclude module: 'mapstruct'
     }
