@@ -9,6 +9,8 @@ import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -20,6 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Repository to manage tenant related files inside ms-config.
+ */
 @Slf4j
 public class TenantConfigRepository {
 
@@ -34,11 +39,15 @@ public class TenantConfigRepository {
 
     private static final String MULTIPART_FILE_NAME = "files";
 
+    private static final String TENANT_PATTERN = "/**/config/tenants/{tenantName:[A-Z0-9]+|\\{tenantName\\}}/**";
+
     private final RestTemplate restTemplate;
 
     private final String applicationName;
 
     private final String xmConfigUrl;
+
+    private final AntPathMatcher matcher = new AntPathMatcher();
 
     public TenantConfigRepository(RestTemplate restTemplate,
                                   String applicationName,
@@ -50,7 +59,7 @@ public class TenantConfigRepository {
 
     public void createConfig(String tenantName, String path, String content) {
         HttpEntity<String> entity = new HttpEntity<>(content, createAuthHeaders());
-        restTemplate.postForEntity(getServiceConfigUrl() + path, entity, Void.class, tenantName);
+        exchangePost(tenantName, getServiceConfigUrl() + path, entity);
     }
 
     public void createConfigs(String tenantName, List<Configuration> configurations) {
@@ -67,29 +76,23 @@ public class TenantConfigRepository {
 
     public void updateConfig(String tenantName, String path, String content) {
         HttpEntity<String> entity = new HttpEntity<>(content, createAuthHeaders());
-        restTemplate.exchange(getServiceConfigUrl() + path, HttpMethod.PUT, entity, Void.class, tenantName);
+        exchangePut(tenantName, getServiceConfigUrl() + path, entity);
     }
 
     public void updateConfig(String tenantName, String path, String content, String oldConfigHash) {
         HttpEntity<String> entity = new HttpEntity<>(content, createAuthHeaders());
-
-        Map<String, String> uriParams = new HashMap<>();
-        uriParams.put(TENANT_NAME, tenantName);
-
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + path)
-                                                           .queryParam(OLD_CONFIG_HASH, oldConfigHash);
-
-        restTemplate.exchange(builder.buildAndExpand(uriParams).toUri(), HttpMethod.PUT, entity, Void.class);
+        String pathWithHash = toUrlWithOldHash(tenantName, getServiceConfigUrl() + path, oldConfigHash);
+        exchangePut(null, pathWithHash, entity);
     }
 
     public void deleteConfig(String tenantName, String path) {
         HttpEntity<String> entity = new HttpEntity<>(createAuthHeaders());
-        restTemplate.exchange(getServiceConfigUrl() + path, HttpMethod.DELETE, entity, Void.class, tenantName);
+        exchangeDelete(tenantName, getServiceConfigUrl() + path, entity);
     }
 
     public void createConfigFullPath(String tenantName, String fullPath, String content) {
         HttpEntity<String> entity = new HttpEntity<>(content, createAuthHeaders());
-        restTemplate.postForEntity(xmConfigUrl + fullPath, entity, Void.class, tenantName);
+        exchangePost(tenantName, xmConfigUrl + fullPath, entity);
     }
 
     public void createConfigsFullPath(String tenantName, List<Configuration> configurations) {
@@ -104,24 +107,18 @@ public class TenantConfigRepository {
 
     public void updateConfigFullPath(String tenantName, String fullPath, String content) {
         HttpEntity<String> entity = new HttpEntity<>(content, createAuthHeaders());
-        restTemplate.exchange(xmConfigUrl + fullPath, HttpMethod.PUT, entity, Void.class, tenantName);
+        exchangePut(tenantName, xmConfigUrl + fullPath, entity);
     }
 
     public void updateConfigFullPath(String tenantName, String fullPath, String content, String oldConfigHash) {
         HttpEntity<String> entity = new HttpEntity<>(content, createAuthHeaders());
-
-        Map<String, String> uriParams = new HashMap<>();
-        uriParams.put(TENANT_NAME, tenantName);
-
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(xmConfigUrl + fullPath)
-                                                           .queryParam(OLD_CONFIG_HASH, oldConfigHash);
-
-        restTemplate.exchange(builder.buildAndExpand(uriParams).toUri(), HttpMethod.PUT, entity, Void.class);
+        String path = toUrlWithOldHash(tenantName, xmConfigUrl + fullPath, oldConfigHash);
+        exchangePut(null, path, entity);
     }
 
     public void deleteConfigFullPath(String tenantName, String fullPath) {
         HttpEntity<String> entity = new HttpEntity<>(createAuthHeaders());
-        restTemplate.exchange(xmConfigUrl + fullPath, HttpMethod.DELETE, entity, Void.class, tenantName);
+        exchangeDelete(tenantName, xmConfigUrl + fullPath, entity);
     }
 
     public void deleteConfigFullPaths(String tenantName, List<String> fullPath) {
@@ -129,12 +126,70 @@ public class TenantConfigRepository {
                                               .map(s -> resolveTenantName(s, tenantName))
                                               .collect(Collectors.toList());
         HttpEntity<List<String>> entity = new HttpEntity<>(tenantResolved, createJsonAuthHeaders());
-        restTemplate.exchange(xmConfigUrl + URL, HttpMethod.DELETE, entity, Void.class, tenantName);
+        exchangeDelete(tenantName, xmConfigUrl + URL, entity);
     }
 
     public String getConfigFullPath(String tenantName, String path) {
         HttpEntity<String> entity = new HttpEntity<>(createAuthHeaders());
-        return restTemplate.exchange(xmConfigUrl + path, HttpMethod.GET, entity, String.class, tenantName).getBody();
+        return exchangeGet(tenantName, xmConfigUrl + path, entity).getBody();
+    }
+
+    private ResponseEntity<String> exchangeGet(final String tenantName, final String path,
+                                               final HttpEntity<String> entity) {
+        return exchange(path, HttpMethod.GET, entity, String.class, tenantName);
+    }
+
+    private void exchangePut(final String tenantName, final String path,
+                             final HttpEntity<String> entity) {
+        exchange(path, HttpMethod.PUT, entity, tenantName);
+    }
+
+    private void exchangeDelete(final String tenantName, final String path, final HttpEntity<?> entity) {
+        exchange(path, HttpMethod.DELETE, entity, tenantName);
+    }
+
+    private void exchangePost(final String tenantName, final String path, final HttpEntity<?> entity) {
+        exchange(path, HttpMethod.POST, entity, tenantName);
+    }
+
+    private void exchange(String path, HttpMethod method, HttpEntity<?> entity, String tenantName) {
+        exchange(path, method, entity, Void.class, tenantName);
+    }
+
+    private <T> ResponseEntity<T> exchange(String path,
+                                           HttpMethod method,
+                                           HttpEntity<?> entity,
+                                           Class<T> respClass,
+                                           String tenantName) {
+        if (tenantName != null) {
+            return restTemplate.exchange(path, method, entity, respClass, tenantName);
+        }
+        return restTemplate.exchange(path, method, entity, respClass);
+    }
+
+    private void postConfigAsMultipart(final List<NamedByteArrayResource> resources) {
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.addAll(MULTIPART_FILE_NAME, resources);
+
+        HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(body, createMultipartAuthHeaders());
+
+        exchangePost(null, xmConfigUrl + PATH_API + PATH_CONFIG, entity);
+    }
+
+    private String toUrlWithOldHash(final String tenantName, final String path, final String oldConfigHash) {
+        Map<String, String> uriParams = new HashMap<>();
+        uriParams.put(TENANT_NAME, tenantName);
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(path)
+                                                           .queryParam(OLD_CONFIG_HASH, oldConfigHash);
+
+        return builder.buildAndExpand(uriParams).toUri().toString();
+    }
+
+    void assertPathInsideTenant(String path) {
+        if (!matcher.match(TENANT_PATTERN, path)) {
+            throw new IllegalArgumentException("Execution is not allowed for path: " + path);
+        }
     }
 
     private String getServiceConfigUrl() {
@@ -144,15 +199,6 @@ public class TenantConfigRepository {
     private Configuration toFullPath(Configuration configuration) {
         return new Configuration(Paths.get(PATH_CONFIG_TENANT, applicationName, configuration.getPath()).toString(),
                                  configuration.getContent());
-    }
-
-    private void postConfigAsMultipart(final List<NamedByteArrayResource> resources) {
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.addAll(MULTIPART_FILE_NAME, resources);
-
-        HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(body, createMultipartAuthHeaders());
-
-        restTemplate.postForEntity(xmConfigUrl + PATH_API + PATH_CONFIG, entity, Void.class);
     }
 
     private String resolveTenantName(String path, String tenantName) {
