@@ -55,16 +55,12 @@ public class TenantConfigRepositoryUnitTest {
     OAuth2Authentication authentication;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         when(xmConfigProperties.getXmConfigUrl()).thenReturn(CONFIG_URL);
         repository = new TenantConfigRepository(restTemplate, APP_NAME, xmConfigProperties);
 
         when(authentication.getDetails()).thenReturn(API_TOKEN);
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
-    }
-
-    @After
-    public void tearDown() throws Exception {
     }
 
     @Test
