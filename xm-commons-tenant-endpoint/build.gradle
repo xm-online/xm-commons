@@ -17,10 +17,16 @@ apply plugin: 'io.spring.dependency-management'
 dependencyManagement {
     imports {
         mavenBom("org.springframework.boot:spring-boot-dependencies:$versions.springBoot")
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
     }
 }
 
 dependencies {
+    compileOnly "org.projectlombok:lombok:${versions.lombok}"
+
+    compile project(':xm-commons-config')
+    compile project(':xm-commons-migration-db')
+
     compile("io.springfox:springfox-swagger2:${versions.springfoxSwagger}") {
         exclude module: 'mapstruct'
     }
@@ -29,11 +35,20 @@ dependencies {
         exclude module: 'spring-boot-starter-tomcat'
     }
 
+    testCompile 'junit:junit'
+    testCompile "org.mockito:mockito-core"
+    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
 }
 
 
 def swaggerSourceFile = 'src/main/resources/swagger-spec/tenant/swagger-tenant-spec.yaml'
-def swaggerTargetFolder = 'src/main/java'
+def swaggerTargetFolder = 'build/generated-sources'
+
+sourceSets {
+    main {
+        java.srcDirs += "$swaggerTargetFolder"
+    }
+}
 
 task generateApi {
 
@@ -58,12 +73,6 @@ task generateApi {
 
 compileJava {
     dependsOn generateApi
-}
-
-clean.doFirst {
-    delete("${projectDir}/$swaggerTargetFolder/com/icthh/xm/commons/gen")
-    delete("${projectDir}/$swaggerTargetFolder/io/swagger")
-    delete("${projectDir}/src/main/resources/application.properties")
 }
 
 // disable QA for generated code project
