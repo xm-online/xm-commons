@@ -36,6 +36,8 @@ dependencies {
     }
 
     testCompile 'junit:junit'
+    testCompile "org.mockito:mockito-core"
+    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
 }
 
 

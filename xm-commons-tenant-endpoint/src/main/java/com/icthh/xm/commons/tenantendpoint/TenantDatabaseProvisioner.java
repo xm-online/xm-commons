@@ -60,7 +60,7 @@ public class TenantDatabaseProvisioner implements TenantProvisioner {
     }
 
     @SneakyThrows
-    private void migrateSchema(String tenantKey) {
+    protected void migrateSchema(String tenantKey) {
 
         SpringLiquibase liquibase = new SpringLiquibase();
         liquibase.setResourceLoader(resourceLoader);
