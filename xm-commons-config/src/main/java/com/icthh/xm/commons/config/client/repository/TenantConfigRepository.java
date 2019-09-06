@@ -39,8 +39,9 @@ public class TenantConfigRepository {
 
     private static final String PATH_API = "/api";
     private static final String PATH_CONFIG = "/config";
-    private static final String PATH_CONFIG_TENANT = PATH_CONFIG + "/tenants/{" + TENANT_NAME + "}/";
-    private static final String URL = PATH_API + PATH_CONFIG_TENANT;
+
+    public static final String PATH_CONFIG_TENANT = PATH_CONFIG + "/tenants/{" + TENANT_NAME + "}/";
+    public static final String PATH_API_CONFIG_TENANT = PATH_API + PATH_CONFIG_TENANT;
 
     private static final String MULTIPART_FILE_NAME = "files";
 
@@ -141,7 +142,7 @@ public class TenantConfigRepository {
                                               .map(s -> resolveTenantName(s, tenantName))
                                               .collect(Collectors.toList());
         HttpEntity<List<String>> entity = new HttpEntity<>(tenantResolved, createJsonAuthHeaders());
-        exchangeDelete(tenantName, xmConfigUrl + URL, entity);
+        exchangeDelete(tenantName, xmConfigUrl + PATH_API_CONFIG_TENANT, entity);
     }
 
     public String getConfigFullPath(String tenantName, String path) {
@@ -233,7 +234,7 @@ public class TenantConfigRepository {
     }
 
     private String getServiceConfigUrl() {
-        return xmConfigUrl + URL + applicationName;
+        return xmConfigUrl + PATH_API_CONFIG_TENANT + applicationName;
     }
 
     private Configuration toFullPath(Configuration configuration) {
