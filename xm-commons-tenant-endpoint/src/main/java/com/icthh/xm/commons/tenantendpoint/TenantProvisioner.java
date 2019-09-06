@@ -6,13 +6,16 @@ import com.icthh.xm.commons.gen.model.Tenant;
  * Interface for tenant management actions on particular resource such as Database, xm-config, Elasticsearch etc.
  *
  * <p>
- * Known implementations: {@link TenantListProvisioner}, {@link TenantDatabaseProvisioner}
+ * Known implementations:
+ *      <li> {@link TenantDatabaseProvisioner}
+ *      <li> {@link TenantListProvisioner}
+ *      <li> {@link TenantConfigProvisioner}
  * </p>
  */
 public interface TenantProvisioner {
 
     /**
-     * Creates new tenat on specific resource.
+     * Creates new tenant on specific resource.
      *
      * @param tenant tenant model.
      */
