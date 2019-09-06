@@ -3,9 +3,9 @@ package com.icthh.xm.commons.tenantendpoint;
 import com.icthh.xm.commons.gen.model.Tenant;
 import lombok.Builder;
 import lombok.Singular;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service for management tenant creation, update and deletion.
@@ -17,7 +17,6 @@ import java.util.List;
  * Exception in one provisioner interrupts execution and exit.
  */
 @Builder
-@Service
 public class TenantManager {
 
     @Singular
@@ -49,5 +48,14 @@ public class TenantManager {
      */
     public void deleteTenant(String tenantKey) {
         services.forEach(tenantService -> tenantService.deleteTenant(tenantKey));
+    }
+
+    @Override
+    public String toString() {
+        return "TenantManager {" +
+               " services= " + services.stream()
+                                       .map(srv -> srv.getClass().getSimpleName())
+                                       .collect(Collectors.toList()) +
+               '}';
     }
 }

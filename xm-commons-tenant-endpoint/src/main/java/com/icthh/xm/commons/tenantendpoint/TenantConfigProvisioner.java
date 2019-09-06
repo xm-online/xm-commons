@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Builder
@@ -38,5 +39,14 @@ public class TenantConfigProvisioner implements TenantProvisioner {
     @Override
     public void deleteTenant(final String tenantKey) {
         tenantConfigRepository.deleteConfigFullPath(tenantKey, TenantConfigRepository.PATH_API_CONFIG_TENANT);
+    }
+
+    @Override
+    public String toString() {
+        return "TenantConfigProvisioner {" +
+               " configurations = " + configurations.stream()
+                                                    .map(Configuration::getPath)
+                                                    .collect(Collectors.toList()) +
+               '}';
     }
 }
