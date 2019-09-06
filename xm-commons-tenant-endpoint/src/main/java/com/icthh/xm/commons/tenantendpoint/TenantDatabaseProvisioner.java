@@ -49,8 +49,9 @@ public class TenantDatabaseProvisioner implements TenantProvisioner {
     @SneakyThrows
     @Override
     public void deleteTenant(final String tenantKey) {
-        assertTenantKeyValid(tenantKey);
-        String sql = String.format(schemaDropResolver.getSchemaDropCommand(), tenantKey);
+        String tenantKeyUpper = tenantKey.toUpperCase();
+        assertTenantKeyValid(tenantKeyUpper);
+        String sql = String.format(schemaDropResolver.getSchemaDropCommand(), tenantKeyUpper);
         executeUpdateWithAutoCommit(dataSource, sql);
     }
 

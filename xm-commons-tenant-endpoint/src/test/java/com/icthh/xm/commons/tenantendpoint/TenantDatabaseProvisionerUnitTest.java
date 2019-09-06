@@ -6,6 +6,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
@@ -64,7 +65,7 @@ public class TenantDatabaseProvisionerUnitTest {
         when(connection.createStatement()).thenReturn(statement);
 
         tenantDatabaseProvisioner = Mockito.spy(new TenantDatabaseProvisioner(dataSource, properties,
-            resourceLoader, schemaDropResolver));
+                                                                              resourceLoader, schemaDropResolver));
     }
 
     @Test
@@ -98,16 +99,20 @@ public class TenantDatabaseProvisionerUnitTest {
     @SneakyThrows
     public void testManageTenant() {
         tenantDatabaseProvisioner.manageTenant(TENANT_KEY, TENANT_STATE);
-        verify(statement, times(0)).executeUpdate(any());
+        verifyZeroInteractions(dataSource);
+        verifyZeroInteractions(connection);
+        verifyZeroInteractions(statement);
+        verifyZeroInteractions(resourceLoader);
+        verifyZeroInteractions(schemaDropResolver);
     }
 
     @Test
     @SneakyThrows
     public void testDeleteTenant() {
-        when(schemaDropResolver.getSchemaDropCommand()).thenReturn("DROP");
+        when(schemaDropResolver.getSchemaDropCommand()).thenReturn("DROP SCHEMA IF EXISTS %s CASCADE");
         tenantDatabaseProvisioner.deleteTenant(TENANT_KEY);
 
-        verify(statement, times(1)).executeUpdate(any());
+        verify(statement, times(1)).executeUpdate("DROP SCHEMA IF EXISTS TESTKEY CASCADE");
     }
 
     @Test
