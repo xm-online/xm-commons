@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
@@ -63,17 +64,24 @@ public class TenantDatabaseProvisioner implements TenantProvisioner {
     @SneakyThrows
     protected void migrateSchema(String tenantKey) {
 
-        SpringLiquibase liquibase = new SpringLiquibase();
-        liquibase.setResourceLoader(resourceLoader);
-        liquibase.setDataSource(dataSource);
-        liquibase.setChangeLog(getChangelogPath());
-        liquibase.setContexts(properties.getContexts());
-        liquibase.setDefaultSchema(tenantKey);
-        liquibase.setDropFirst(properties.isDropFirst());
-        liquibase.setChangeLogParameters(properties.getParameters());
-        liquibase.setShouldRun(true);
+        String changeLogPath = getChangelogPath();
+        StopWatch stopWatch = StopWatch.createStarted();
+        log.info("start Liquibase migration for tenant {}, changelog path: {}", tenantKey, changeLogPath);
+        try {
+            SpringLiquibase liquibase = new SpringLiquibase();
+            liquibase.setResourceLoader(resourceLoader);
+            liquibase.setDataSource(dataSource);
+            liquibase.setChangeLog(changeLogPath);
+            liquibase.setContexts(properties.getContexts());
+            liquibase.setDefaultSchema(tenantKey);
+            liquibase.setDropFirst(properties.isDropFirst());
+            liquibase.setChangeLogParameters(properties.getParameters());
+            liquibase.setShouldRun(true);
 
-        liquibase.afterPropertiesSet();
+            liquibase.afterPropertiesSet();
+        } finally {
+            log.info("stop  Liquibase migration for tenant {}, time: {} ms", tenantKey, stopWatch.getTime());
+        }
     }
 
     private String getChangelogPath() {
