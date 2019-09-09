@@ -1,8 +1,8 @@
-package com.icthh.xm.commons.tenantendpoint;
+package com.icthh.xm.commons.tenantendpoint.provisioner;
 
 import static com.icthh.xm.commons.config.domain.Configuration.of;
-import static com.icthh.xm.commons.tenantendpoint.TenantConfigProvisioner.builder;
-import static com.icthh.xm.commons.tenantendpoint.TenantConfigProvisioner.prependTenantPath;
+import static com.icthh.xm.commons.tenantendpoint.provisioner.TenantConfigProvisioner.builder;
+import static com.icthh.xm.commons.tenantendpoint.provisioner.TenantConfigProvisioner.prependTenantPath;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import com.icthh.xm.commons.config.client.repository.TenantConfigRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.gen.model.Tenant;
+import com.icthh.xm.commons.tenantendpoint.provisioner.TenantConfigProvisioner;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

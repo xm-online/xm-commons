@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import com.icthh.xm.commons.gen.model.Tenant;
+import com.icthh.xm.commons.tenantendpoint.provisioner.TenantProvisioner;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;

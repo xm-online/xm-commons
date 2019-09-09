@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.tenantendpoint;
+package com.icthh.xm.commons.tenantendpoint.provisioner;
 
 import static com.icthh.xm.commons.migration.db.Constants.CHANGE_LOG_PATH;
 import static com.icthh.xm.commons.migration.db.Constants.DDL_CREATE_SCHEMA;

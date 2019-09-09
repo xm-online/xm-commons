@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.tenantendpoint;
+package com.icthh.xm.commons.tenantendpoint.provisioner;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -6,6 +6,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.gen.model.Tenant;
+import com.icthh.xm.commons.tenantendpoint.provisioner.TenantListProvisioner;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.tenantendpoint;
 
 import com.icthh.xm.commons.gen.model.Tenant;
+import com.icthh.xm.commons.tenantendpoint.provisioner.TenantProvisioner;
 import lombok.Builder;
 import lombok.Singular;
 

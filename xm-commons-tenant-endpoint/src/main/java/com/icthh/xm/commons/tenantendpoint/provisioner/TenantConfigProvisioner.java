@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.tenantendpoint;
+package com.icthh.xm.commons.tenantendpoint.provisioner;
 
 import com.icthh.xm.commons.config.client.repository.TenantConfigRepository;
 import com.icthh.xm.commons.config.domain.Configuration;

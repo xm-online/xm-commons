@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.tenantendpoint;
+package com.icthh.xm.commons.tenantendpoint.provisioner;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.gen.model.Tenant;
 import com.icthh.xm.commons.migration.db.tenant.DropSchemaResolver;
+import com.icthh.xm.commons.tenantendpoint.provisioner.TenantDatabaseProvisioner;
 import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Rule;
