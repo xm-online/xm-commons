@@ -33,7 +33,12 @@ public abstract class AbstractConfigService implements ConfigService {
 
     protected void notifyUpdated(Configuration configuration) {
         log.debug("Notify configuration changed [{}]", configuration != null ? configuration.getPath() : null);
-        configurationListeners.forEach(configurationListener -> configurationListener.onConfigurationChanged(configuration));
+
+        if (configuration == null) {
+            return;
+        }
+        configurationListeners.forEach(configurationListener ->
+            configurationListener.onConfigurationChanged(configuration));
     }
 
     private Configuration getNonNullConfiguration(final Map<String, Configuration> configurationsMap,

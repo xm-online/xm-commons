@@ -33,8 +33,8 @@ class NamedByteArrayResource extends ByteArrayResource {
             return false;
         }
         NamedByteArrayResource otherEntity = (NamedByteArrayResource) other;
-        return (ObjectUtils.nullSafeEquals(this.getByteArray(), otherEntity.getByteArray()) &&
-                ObjectUtils.nullSafeEquals(this.filename, otherEntity.filename));
+        return (ObjectUtils.nullSafeEquals(this.getByteArray(), otherEntity.getByteArray())
+            && ObjectUtils.nullSafeEquals(this.filename, otherEntity.filename));
     }
 
     @Override

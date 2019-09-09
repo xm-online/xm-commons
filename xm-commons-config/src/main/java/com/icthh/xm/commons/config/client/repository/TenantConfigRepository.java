@@ -71,7 +71,6 @@ public class TenantConfigRepository {
     }
 
     public void createConfigs(String tenantName, List<Configuration> configurations) {
-
         String upperTenantName = tenantName.toUpperCase();
 
         assertTenantNameValid(upperTenantName);
@@ -83,7 +82,6 @@ public class TenantConfigRepository {
             .collect(Collectors.toList());
 
         exchangePostMultipart(resources);
-
     }
 
     public void updateConfig(String tenantName, String path, String content) {
@@ -189,16 +187,13 @@ public class TenantConfigRepository {
     }
 
     private void exchangePostMultipart(final List<NamedByteArrayResource> resources) {
-
         resources.forEach(namedByteArrayResource -> assertPathInsideTenant(namedByteArrayResource.getFilename()));
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.addAll(MULTIPART_FILE_NAME, resources);
 
         HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(body, createMultipartAuthHeaders());
-
         restTemplate.exchange(xmConfigUrl + PATH_API + PATH_CONFIG, HttpMethod.POST, entity, Void.class);
-
     }
 
     private String toUrlWithOldHash(final String tenantName, final String path, final String oldConfigHash) {
