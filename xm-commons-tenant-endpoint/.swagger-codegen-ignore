@@ -3,11 +3,11 @@
 
 pom.xml
 README.md
-src/main/java/io/**
+build/generated-sources/io/swagger/**
 
-src/main/java/com/icthh/**/ApiException*
-src/main/java/com/icthh/**/ApiOriginFilter*
-src/main/java/com/icthh/**/ApiResponseMessage*
-src/main/java/com/icthh/**/NotFoundException*
+build/generated-sources/com/icthh/**/ApiException*
+build/generated-sources/com/icthh/**/ApiOriginFilter*
+build/generated-sources/com/icthh/**/ApiResponseMessage*
+build/generated-sources/com/icthh/**/NotFoundException*
 
 src/main/resources/**

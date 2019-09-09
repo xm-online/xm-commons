@@ -10,23 +10,32 @@ import org.springframework.http.MediaType;
 public class RequestUtils {
 
     public static HttpHeaders createAuthHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        MediaType mediaType = new MediaType(MediaType.TEXT_PLAIN, UTF_8);
-        headers.setContentType(mediaType);
+        return createAuthHeaders(new MediaType(MediaType.TEXT_PLAIN, UTF_8));
+    }
+
+    public static HttpHeaders createMultipartAuthHeaders() {
+        return createAuthHeaders(MediaType.MULTIPART_FORM_DATA);
+    }
+    public static HttpHeaders createJsonAuthHeaders() {
+        return createAuthHeaders(new MediaType(MediaType.APPLICATION_JSON, UTF_8));
+    }
+
+    public static HttpHeaders createSimpleHeaders() {
+        return createHeaders(new MediaType(MediaType.TEXT_PLAIN, UTF_8));
+    }
+
+    public static HttpHeaders createApplicationJsonHeaders() {
+        return createHeaders(new MediaType(MediaType.APPLICATION_JSON, UTF_8));
+    }
+
+    public static HttpHeaders createAuthHeaders(MediaType mediaType){
+        HttpHeaders headers = createHeaders(mediaType);
         headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + TokenUtils.extractCurrentToken());
         return headers;
     }
 
-    public static HttpHeaders createSimpleHeaders() {
+    public static HttpHeaders createHeaders(MediaType mediaType) {
         HttpHeaders headers = new HttpHeaders();
-        MediaType mediaType = new MediaType(MediaType.TEXT_PLAIN, UTF_8);
-        headers.setContentType(mediaType);
-        return headers;
-    }
-
-    public static HttpHeaders createApplicationJsonHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        MediaType mediaType = new MediaType(MediaType.APPLICATION_JSON, UTF_8);
         headers.setContentType(mediaType);
         return headers;
     }
