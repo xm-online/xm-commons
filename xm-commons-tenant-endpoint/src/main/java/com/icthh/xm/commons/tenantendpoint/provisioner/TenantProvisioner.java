@@ -7,6 +7,7 @@ import com.icthh.xm.commons.gen.model.Tenant;
  *
  * <p>
  * Known implementations:
+ *      <li> {@link TenantAbilityCheckerProvisioner}
  *      <li> {@link TenantDatabaseProvisioner}
  *      <li> {@link TenantListProvisioner}
  *      <li> {@link TenantConfigProvisioner}
