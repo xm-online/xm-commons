@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.domain.Configuration;
+import com.icthh.xm.commons.config.domain.TenantState;
 import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Rule;
@@ -147,6 +148,13 @@ public class TenantListRepositoryUnitTest {
         assertEquals(2, tenants.size());
         assertThat(tenants).containsExactlyInAnyOrder("xm","demo");
 
+    }
+
+    @Test
+    public void ensureTenantStateConstructorExists(){
+        assertNotNull(TenantState.of().name("name").state("state").build());
+        new TenantState();
+        new TenantState("name", "state");
     }
 
     @SneakyThrows
