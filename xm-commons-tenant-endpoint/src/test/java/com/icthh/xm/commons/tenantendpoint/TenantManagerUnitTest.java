@@ -9,6 +9,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
+import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.gen.model.Tenant;
 import com.icthh.xm.commons.tenantendpoint.provisioner.TenantProvisioner;
 import org.junit.Before;
@@ -35,7 +36,8 @@ public class TenantManagerUnitTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
         tenantManager = builder().service(service1)
-                                 .service(service2).build();
+                                 .service(service2)
+                                 .build();
     }
 
     @Test
@@ -54,7 +56,7 @@ public class TenantManagerUnitTest {
         doThrow(new RuntimeException("Bang!")).when(service1).createTenant(any());
 
         Tenant tenant = new Tenant().tenantKey(TENANT_KEY);
-        runWithExceptionExpected(() -> tenantManager.createTenant(tenant), RuntimeException.class, "Bang!");
+        runWithExceptionExpected(() -> tenantManager.createTenant(tenant), BusinessException.class, "Bang!");
 
         verify(service1, times(1)).createTenant(eq(tenant));
         verify(service2, never()).createTenant(eq(tenant));
@@ -73,7 +75,7 @@ public class TenantManagerUnitTest {
         doThrow(new RuntimeException("Bang!")).when(service1).manageTenant(any(), any());
 
         runWithExceptionExpected(() -> tenantManager.manageTenant(TENANT_KEY, TENANT_STATE),
-                                 RuntimeException.class, "Bang!");
+                                 BusinessException.class, "Bang!");
 
         verify(service1, times(1)).manageTenant(TENANT_KEY, TENANT_STATE);
         verify(service2, never()).manageTenant(TENANT_KEY, TENANT_STATE);
@@ -94,10 +96,34 @@ public class TenantManagerUnitTest {
         doThrow(new RuntimeException("Bang!")).when(service1).deleteTenant(any());
 
         runWithExceptionExpected(() -> tenantManager.deleteTenant(TENANT_KEY),
-                                 RuntimeException.class, "Bang!");
+                                 BusinessException.class, "Bang!");
 
         verify(service1, times(1)).deleteTenant(TENANT_KEY);
         verify(service2, never()).deleteTenant(TENANT_KEY);
+    }
+
+    @Test
+    public void testHandleException() {
+
+        TenantManager manager = builder().service(service1)
+                                         .service(service2)
+                                         .exceptionHandler(e -> {
+                                             throw new IllegalStateException(e.getMessage());
+                                         })
+                                         .build();
+
+        doThrow(new RuntimeException("Bang 1!")).when(service1).createTenant(any());
+        runWithExceptionExpected(() -> manager.createTenant(new Tenant().tenantKey(TENANT_KEY)),
+                                 IllegalStateException.class, "Bang 1!");
+
+        doThrow(new RuntimeException("Bang 2!")).when(service1).manageTenant(any(), any());
+        runWithExceptionExpected(() -> manager.manageTenant(TENANT_KEY, "state"),
+                                 IllegalStateException.class, "Bang 2!");
+
+        doThrow(new RuntimeException("Bang 3!")).when(service1).deleteTenant(any());
+        runWithExceptionExpected(() -> manager.deleteTenant(TENANT_KEY),
+                                 IllegalStateException.class, "Bang 3!");
+
     }
 
     private void runWithExceptionExpected(Runnable r, Class<? extends Exception> type, String message) {

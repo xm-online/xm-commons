@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.tenantendpoint.provisioner;
+package com.icthh.xm.commons.migration.db.tenant.provisioner;
 
 import static com.icthh.xm.commons.migration.db.Constants.CHANGE_LOG_PATH;
 import static com.icthh.xm.commons.migration.db.Constants.DDL_CREATE_SCHEMA;
@@ -7,6 +7,7 @@ import static com.icthh.xm.commons.tenant.TenantContextUtils.assertTenantKeyVali
 
 import com.icthh.xm.commons.gen.model.Tenant;
 import com.icthh.xm.commons.migration.db.tenant.DropSchemaResolver;
+import com.icthh.xm.commons.tenantendpoint.provisioner.TenantProvisioner;
 import liquibase.integration.spring.SpringLiquibase;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
