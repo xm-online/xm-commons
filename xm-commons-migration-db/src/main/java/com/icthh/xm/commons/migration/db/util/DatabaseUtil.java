@@ -26,14 +26,9 @@ public final class DatabaseUtil {
      * @param dataSource the datasource
      * @param name       schema name
      */
-    public static void createSchema(DataSource dataSource, String name) {
+    public static void createSchema(DataSource dataSource, String name) throws SQLException {
         assertTenantKeyValid(name);
-        try (Connection connection = dataSource.getConnection();
-             Statement statement = connection.createStatement()) {
-            statement.executeUpdate(String.format(Constants.DDL_CREATE_SCHEMA, name));
-        } catch (SQLException e) {
-            throw new RuntimeException("Can not connect to database", e);
-        }
+        executeUpdateWithAutoCommit(dataSource, String.format(Constants.DDL_CREATE_SCHEMA, name));
     }
 
     public static void executeUpdateWithAutoCommit(final DataSource dataSource, final String sql) throws SQLException {
