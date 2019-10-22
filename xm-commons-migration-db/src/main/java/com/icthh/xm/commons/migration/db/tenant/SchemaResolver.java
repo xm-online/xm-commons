@@ -33,7 +33,9 @@ public class SchemaResolver {
             log.info("Schema creation for {} jpa provider is disabled", env.getProperty(JPA_VENDOR));
             return;
         }
-        for (String schema : getSchemas()) {
+        List<String> schemas = getSchemas();
+        log.info("Create [{}] schemas for all tenants before liquibase migration", schemas.size());
+        for (String schema : schemas) {
             try {
                 DatabaseUtil.createSchema(dataSource, schema);
             } catch (Exception e) {
