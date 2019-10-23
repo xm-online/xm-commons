@@ -305,14 +305,20 @@ public final class LogObjectPrinter {
         }
 
         Class<?> clazz = object.getClass();
-        if (!Collection.class.isAssignableFrom(clazz)) {
-            return printTypeAware(object);
+        if (Collection.class.isAssignableFrom(clazz)) {
+            return "[<"
+                   + clazz.getSimpleName()
+                   + "> size = "
+                   + ((Collection) object).size() + "]";
+        } else if (clazz.isArray()) {
+            return "[<"
+                   + clazz.getSimpleName()
+                   + "> length = "
+                   + ((Object []) object).length + "]";
         }
 
-        return "[<"
-               + clazz.getSimpleName()
-               + "> size = "
-               + ((Collection) object).size() + "]";
+        return object.toString();
+
     }
 
     private static String printTypeAware(Object value) {

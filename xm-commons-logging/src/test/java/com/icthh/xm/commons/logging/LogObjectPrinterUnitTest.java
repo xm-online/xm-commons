@@ -281,7 +281,7 @@ public class LogObjectPrinterUnitTest {
 
         when(joinPoint.getArgs()).thenReturn(new Object[]{values});
 
-        assertEquals("values=[a_one, a_two, a_three]",
+        assertEquals("values=[<String[]> length = 3]",
                      LogObjectPrinter.printInputParams(joinPoint));
 
     }
