@@ -22,7 +22,7 @@ dependencyManagement {
 }
 
 dependencies {
-    compileOnly "org.projectlombok:lombok:${versions.lombok}"
+ 
 
     compile project(':xm-commons-config')
 
@@ -36,7 +36,10 @@ dependencies {
 
     testCompile 'junit:junit'
     testCompile "org.mockito:mockito-core"
+    compileOnly "org.projectlombok:lombok:${versions.lombok}"
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
+    annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+    testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
 }
 
 
@@ -75,10 +78,6 @@ compileJava {
 }
 
 // disable QA for generated code project
-
-findbugs {
-    sourceSets = []
-}
 
 checkstyle {
     sourceSets = []

@@ -25,6 +25,9 @@ dependencies {
     compile project(":xm-commons-config")
 
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
+    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
+    annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+    testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
 
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-json-org'
@@ -41,7 +44,7 @@ dependencies {
 
     testCompile "org.springframework.boot:spring-boot-test"
     testCompile "org.springframework.cloud:spring-cloud-stream-test-support"
-    testImplementation "org.springframework.kafka:spring-kafka-test"
+    testCompile "org.springframework.kafka:spring-kafka-test"
 
     testCompile 'junit:junit'
     testCompile 'org.assertj:assertj-core'

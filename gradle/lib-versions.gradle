@@ -1,9 +1,9 @@
 ext.versions = [
-    gradle                     : '5.1.4',
+    gradle                     : '5.4.1',
     grgit                      : '2.0.0',
     sonarqube                  : '2.8',
-    checkstyle                 : '8.24',
-    findbugs                   : '3.0.1',
+    checkstyle                 : '7.6.1',
+    spotbug                   : '3.1.12',
     pmd                        : '5.5.4',
 
     equalsverifier             : '3.1.10',
