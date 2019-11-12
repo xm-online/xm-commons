@@ -28,6 +28,9 @@ dependencies {
     }
 
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
+    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
+    annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+    testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
 
     compile "commons-collections:commons-collections:${versions.commonsCollections}"
     compile 'org.springframework.cloud:spring-cloud-commons'

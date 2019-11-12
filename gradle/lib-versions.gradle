@@ -25,7 +25,7 @@ ext.versions = [
 
     jhipster                   : '3.0.7',
     lombok                     : '1.18.8',
-    logstashLogbackEncoder     : '5.2',
+    logstashLogbackEncoder     : '6.2',
 
     propdepsPlugin             : '0.0.7',
 
