@@ -110,17 +110,17 @@ subprojects {
         // Suppress warnings due to cross-module @see and @link references.
         // Note that global 'api' task does display all warnings.
         //logging.captureStandardError LogLevel.INFO
-        //logging.captureStandardOutput LogLevel.INFO  // suppress "## warnings" message
+        //logging.captureStandardOutput LogLevel.INFO  // suppress "## warnings" message      
     }
 
     task javadocJar(type: Jar) {
-        classifier = 'javadoc'
+        getArchiveClassifier().set('javadoc')
         from javadoc
     }
 
     task sourcesJar(type: Jar) {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        classifier = 'sources'
+        getArchiveClassifier().set('sources')
         from sourceSets.main.allSource
     }
 
