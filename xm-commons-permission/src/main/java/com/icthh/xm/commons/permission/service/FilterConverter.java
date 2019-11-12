@@ -67,20 +67,20 @@ public class FilterConverter {
                                                Operation.GREATER_THAN,
                                                rangeFilter.getGreaterThan()));
             }
-            if (rangeFilter.getGreaterOrEqualThan() != null) {
+            if (rangeFilter.getGreaterThanOrEqual() != null) {
                 expressions.add(new Expression(fieldName,
                                                Operation.GREATER_OR_EQ_THAN,
-                                               rangeFilter.getGreaterOrEqualThan()));
+                                               rangeFilter.getGreaterThanOrEqual()));
             }
             if (rangeFilter.getLessThan() != null) {
                 expressions.add(new Expression(fieldName,
                                                Operation.LESS_THAN,
                                                rangeFilter.getLessThan()));
             }
-            if (rangeFilter.getLessOrEqualThan() != null) {
+            if (rangeFilter.getLessThanOrEqual() != null) {
                 expressions.add(new Expression(fieldName,
                                                Operation.LESS_OR_EQ_THAN,
-                                               rangeFilter.getLessOrEqualThan()));
+                                               rangeFilter.getLessThanOrEqual()));
             }
         }
 

@@ -33,7 +33,7 @@ project.description = property('app.description')
 // project version
 apply from: rootProject.file('gradle/version.gradle')
 
-task wrapper(type: Wrapper) {
+wrapper {
     gradleVersion = "${versions.gradle}"
 }
 

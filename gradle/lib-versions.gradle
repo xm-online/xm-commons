@@ -1,12 +1,12 @@
 ext.versions = [
-    gradle                     : '6.0',
+    gradle                     : '5.1.4',
     grgit                      : '2.0.0',
     sonarqube                  : '2.8',
     checkstyle                 : '8.24',
     findbugs                   : '3.0.1',
     pmd                        : '5.5.4',
 
-    equalsverifier             : '2.3.3',
+    equalsverifier             : '3.1.10',
     commonsLang3               : '3.8.1',
     commonsCodec               : '1.11',
     commonsIo                  : '2.6',
