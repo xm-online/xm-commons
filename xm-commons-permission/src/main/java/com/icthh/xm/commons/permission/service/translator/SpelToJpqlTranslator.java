@@ -13,7 +13,7 @@ public class SpelToJpqlTranslator implements SpelTranslator {
 
             String jpql = StringUtils.replaceAll(spel, "#returnObject", "returnObject");
             jpql = replaceOperators(jpql);
-            jpql = SpelTranslator.applySubject(jpql, subject);
+            jpql = applySubject(jpql, subject);
 
             log.debug("SpEL was translated to JPQL for permission filtering: [{}] --> [{}]", spel, jpql);
             return jpql;
