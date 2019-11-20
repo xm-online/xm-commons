@@ -13,12 +13,14 @@ dependencies {
 
     compile project(':xm-commons-tenant')
     compile project(':xm-commons-config')
+    compile project(':xm-commons-tenant-endpoint')
 
     compile 'org.slf4j:slf4j-api'
     compile 'org.liquibase:liquibase-core'
     compile 'org.springframework:spring-context'
     compile 'org.hibernate:hibernate-core'
 
+    testCompile "org.projectlombok:lombok:${versions.lombok}"
     testCompile 'junit:junit'
     testCompile 'org.mockito:mockito-core'
 }

@@ -130,7 +130,7 @@ public class LogObjectPrinterUnitTest {
     }
 
     @Test
-    public void testPrintInputParamsNoDefatul() throws NoSuchMethodException {
+    public void testPrintInputParamsNoDefault() throws NoSuchMethodException {
 
         Class<?> aClass = TestServiceInput.class;
         Method method = aClass.getMethod("methodDefaultDetails", String.class, int.class, Double.class);
@@ -248,6 +248,45 @@ public class LogObjectPrinterUnitTest {
     }
 
     @Test
+    public void testPrintInputArray() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceInput.class;
+        Method method = aClass.getMethod("methodInputArray", String[].class);
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+        when(ms.getParameterNames()).thenReturn(new String[]{"values"});
+
+        String[] values = new String[] {"a_one", "a_two", "a_three"};
+
+        when(joinPoint.getArgs()).thenReturn(new Object[]{values});
+
+        assertEquals("values=[a_one, a_two, a_three]",
+                     LogObjectPrinter.printInputParams(joinPoint));
+
+    }
+
+
+    @Test
+    public void testPrintInputArrayCollectionAware() throws NoSuchMethodException {
+
+        Class<?> aClass = TestServiceInput.class;
+        Method method = aClass.getMethod("methodInputArrayCollectionAware", String[].class);
+
+        when(ms.getDeclaringType()).thenReturn(aClass);
+        when(ms.getMethod()).thenReturn(method);
+        when(ms.getParameterNames()).thenReturn(new String[]{"values"});
+
+        String[] values = new String[] {"a_one", "a_two", "a_three"};
+
+        when(joinPoint.getArgs()).thenReturn(new Object[]{values});
+
+        assertEquals("values=[<String[]> length = 3]",
+                     LogObjectPrinter.printInputParams(joinPoint));
+
+    }
+
+    @Test
     public void testPrintMethodConfigOverridesClassConfig() throws NoSuchMethodException {
 
         Class<?> aClass = TestServiceInput2.class;
@@ -263,7 +302,7 @@ public class LogObjectPrinterUnitTest {
     }
 
     @Test
-    public void testPrintMehodGetConfigFromClassLever() throws NoSuchMethodException {
+    public void testPrintMethodGetConfigFromClassLever() throws NoSuchMethodException {
 
         Class<?> aClass = TestServiceInput2.class;
         Method method = aClass.getMethod("methodDefaultDetails", String.class, int.class, Double.class);
@@ -444,6 +483,13 @@ public class LogObjectPrinterUnitTest {
 
         @LoggingAspectConfig(inputCollectionAware = true)
         public void methodInputCollectionAware(String param1, List<Integer> list, Map<String, Integer> map) {
+        }
+
+        public void methodInputArray(String [] values){
+        }
+
+        @LoggingAspectConfig(inputCollectionAware = true)
+        public void methodInputArrayCollectionAware(String [] values){
         }
 
     }
