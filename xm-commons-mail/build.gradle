@@ -8,11 +8,6 @@ dependencyManagement {
 
 dependencies {
 
-    compileOnly "org.projectlombok:lombok:${versions.lombok}"
-    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
-    annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
-    testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
-
     compile project(":xm-commons-config")
     compile "org.springframework.boot:spring-boot-starter-mail"
 

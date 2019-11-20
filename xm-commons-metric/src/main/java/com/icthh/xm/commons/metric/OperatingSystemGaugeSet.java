@@ -4,12 +4,17 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricSet;
 
+import javax.management.Attribute;
+import javax.management.InstanceNotFoundException;
+import javax.management.ReflectionException;
 import java.lang.management.OperatingSystemMXBean;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static java.lang.management.ManagementFactory.getPlatformMBeanServer;
+import static java.util.Collections.emptyList;
 
 /**
  * A set of gauges for operating system settings.
@@ -26,72 +31,50 @@ public class OperatingSystemGaugeSet implements MetricSet {
     public Map<String, Metric> getMetrics() {
         final Map<String, Metric> gauges = new HashMap<>();
 
-        gauges.put("committedVirtualMemorySize",
-            (Gauge<Long>) () -> invokeLong("getCommittedVirtualMemorySize"));
-        gauges.put("totalSwapSpaceSize", (Gauge<Long>) () -> invokeLong("getTotalSwapSpaceSize"));
-        gauges.put("freeSwapSpaceSize", (Gauge<Long>) () -> invokeLong("getFreeSwapSpaceSize"));
-        gauges.put("processCpuTime", (Gauge<Long>) () -> invokeLong("getProcessCpuTime"));
-        gauges.put("freePhysicalMemorySize", (Gauge<Long>) () -> invokeLong("getFreePhysicalMemorySize"));
-        gauges.put("totalPhysicalMemorySize", (Gauge<Long>) () -> invokeLong("getTotalPhysicalMemorySize"));
-        gauges.put("fileDescriptor.usage",
-            (Gauge<Double>) () -> invokeRatio("getOpenFileDescriptorCount",
-                "getMaxFileDescriptorCount"));
-        gauges.put("systemCpuLoad", (Gauge<Double>) () -> invokeDouble("getSystemCpuLoad"));
-        gauges.put("processCpuLoad", (Gauge<Double>) () -> invokeDouble("getProcessCpuLoad"));
+        gauges.put("committedVirtualMemorySize", (Gauge<Long>) () -> invokeLong("CommittedVirtualMemorySize"));
+        gauges.put("totalSwapSpaceSize", (Gauge<Long>) () -> invokeLong("TotalSwapSpaceSize"));
+        gauges.put("freeSwapSpaceSize", (Gauge<Long>) () -> invokeLong("FreeSwapSpaceSize"));
+        gauges.put("processCpuTime", (Gauge<Long>) () -> invokeLong("ProcessCpuTime"));
+        gauges.put("freePhysicalMemorySize", (Gauge<Long>) () -> invokeLong("FreePhysicalMemorySize"));
+        gauges.put("totalPhysicalMemorySize", (Gauge<Long>) () -> invokeLong("TotalPhysicalMemorySize"));
+        gauges.put("fileDescriptor.usage", (Gauge<Double>) () -> invokeRatio("OpenFileDescriptorCount", "MaxFileDescriptorCount"));
+        gauges.put("systemCpuLoad", (Gauge<Double>) () -> invokeDouble("SystemCpuLoad"));
+        gauges.put("processCpuLoad", (Gauge<Double>) () -> invokeDouble("ProcessCpuLoad"));
 
         return gauges;
     }
 
-    private Optional<Method> getMethod(String name) {
+    private Optional<Attribute> getOperationSystemAttributes(String attributeName) {
+        String[] attributesNames = {attributeName};
+        List<Attribute> attributes;
         try {
-            final Method method = operatingSystemMXBean.getClass().getDeclaredMethod(name);
-            method.setAccessible(true);
-            return Optional.of(method);
-        } catch (NoSuchMethodException e) {
-            return Optional.empty();
+            attributes = getPlatformMBeanServer().getAttributes(operatingSystemMXBean.getObjectName(), attributesNames)
+                .asList();
+        } catch (ReflectionException | InstanceNotFoundException ex) {
+            attributes = emptyList();
         }
+        return attributes.stream().filter(it -> attributeName.equals(it.getName())).findAny();
     }
 
-    private long invokeLong(String methodName) {
-        Optional<Method> method = getMethod(methodName);
-        if (method.isPresent()) {
-            try {
-                return (long) method.get().invoke(operatingSystemMXBean);
-            } catch (IllegalAccessException | InvocationTargetException ite) {
-                return 0L;
-            }
-        }
-        return 0L;
+    private long invokeLong(String attributeName) {
+        return getOperationSystemAttributes(attributeName).map(value -> (long) value.getValue()).orElse(0L);
     }
 
-    private double invokeDouble(String methodName) {
-        Optional<Method> method = getMethod(methodName);
-        if (method.isPresent()) {
-            try {
-                return (double) method.get().invoke(operatingSystemMXBean);
-            } catch (IllegalAccessException | InvocationTargetException ite) {
-                return 0.0;
-            }
-        }
-        return 0.0;
+    private double invokeDouble(String attributeName) {
+        return getOperationSystemAttributes(attributeName).map(value -> (double) value.getValue()).orElse(0d);
     }
 
-    private double invokeRatio(String numeratorMethodName, String denominatorMethodName) {
-        Optional<Method> numeratorMethod = getMethod(numeratorMethodName);
-        Optional<Method> denominatorMethod = getMethod(denominatorMethodName);
-        if (numeratorMethod.isPresent() && denominatorMethod.isPresent()) {
-            try {
-                long numerator = (long) numeratorMethod.get().invoke(operatingSystemMXBean);
-                long denominator = (long) denominatorMethod.get().invoke(operatingSystemMXBean);
-                if (0 == denominator) {
-                    return Double.NaN;
-                }
-                return 1.0 * numerator / denominator;
-            } catch (IllegalAccessException | InvocationTargetException ite) {
+    private double invokeRatio(String numeratorAttributeName, String denominatorAttributeName) {
+        Optional<Attribute> numeratorAttribute = getOperationSystemAttributes(numeratorAttributeName);
+        Optional<Attribute> denominatorAttribute = getOperationSystemAttributes(denominatorAttributeName);
+        if (numeratorAttribute.isPresent() && denominatorAttribute.isPresent()) {
+            long numerator = (long) numeratorAttribute.get().getValue();
+            long denominator = (long) denominatorAttribute.get().getValue();
+            if (0 == denominator) {
                 return Double.NaN;
             }
+            return 1.0 * numerator / denominator;
         }
         return Double.NaN;
     }
-
 }

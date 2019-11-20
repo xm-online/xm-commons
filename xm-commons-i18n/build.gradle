@@ -10,11 +10,6 @@ dependencies {
     compile project(':xm-commons-exceptions')
     compile project(':xm-commons-config')
 
-    compileOnly "org.projectlombok:lombok:${versions.lombok}"
-    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
-    annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
-    testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
-
     compileOnly 'javax.servlet:javax.servlet-api'
 
     compile 'org.slf4j:slf4j-api'

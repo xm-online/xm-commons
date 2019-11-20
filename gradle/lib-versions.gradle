@@ -1,5 +1,5 @@
 ext.versions = [
-    gradle                     : '5.4.1',
+    gradle                     : '5.6.4',
     grgit                      : '2.0.0',
     sonarqube                  : '2.8',
     checkstyle                 : '7.6.1',
@@ -24,12 +24,12 @@ ext.versions = [
     jsr305                     : '3.0.2',
 
     jhipster                   : '3.0.7',
-    lombok                     : '1.18.8',
+    lombok                     : '1.18.10',
     logstashLogbackEncoder     : '6.2',
 
     propdepsPlugin             : '0.0.7',
 
-    swaggerCodegen             : '2.2.3',
+    swaggerCodegen             : '2.4.9',
     springfoxSwagger           : '2.9.2',
     reflections                : '0.9.11',
 
