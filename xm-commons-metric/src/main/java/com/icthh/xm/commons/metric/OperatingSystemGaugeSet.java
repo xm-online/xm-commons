@@ -44,7 +44,7 @@ public class OperatingSystemGaugeSet implements MetricSet {
         return gauges;
     }
 
-    private Optional<Attribute> getOperationSystemAttributes(String attributeName) {
+    private Optional<Attribute> getOSAttribute(String attributeName) {
         String[] attributesNames = {attributeName};
         List<Attribute> attributes;
         try {
@@ -57,24 +57,20 @@ public class OperatingSystemGaugeSet implements MetricSet {
     }
 
     private long invokeLong(String attributeName) {
-        return getOperationSystemAttributes(attributeName).map(value -> (long) value.getValue()).orElse(0L);
+        return getOSAttribute(attributeName).map(value -> (long) value.getValue()).orElse(0L);
     }
 
     private double invokeDouble(String attributeName) {
-        return getOperationSystemAttributes(attributeName).map(value -> (double) value.getValue()).orElse(0d);
+        return getOSAttribute(attributeName).map(value -> (double) value.getValue()).orElse(0d);
     }
 
     private double invokeRatio(String numeratorAttributeName, String denominatorAttributeName) {
-        Optional<Attribute> numeratorAttribute = getOperationSystemAttributes(numeratorAttributeName);
-        Optional<Attribute> denominatorAttribute = getOperationSystemAttributes(denominatorAttributeName);
-        if (numeratorAttribute.isPresent() && denominatorAttribute.isPresent()) {
-            long numerator = (long) numeratorAttribute.get().getValue();
-            long denominator = (long) denominatorAttribute.get().getValue();
-            if (0 == denominator) {
-                return Double.NaN;
-            }
-            return 1.0 * numerator / denominator;
-        }
-        return Double.NaN;
+        Optional<Long> numerator = getOSAttribute(numeratorAttributeName).map(it -> (long) it.getValue());
+        Optional<Long> denominator = getOSAttribute(denominatorAttributeName).map(it -> (long) it.getValue())
+                                                                             .filter(it -> it != 0);
+
+        return numerator.map(numValue -> denominator.map(denValue -> 1.0 * numValue / denValue)
+                        .orElse(Double.NaN))
+                        .orElse(Double.NaN);
     }
 }
