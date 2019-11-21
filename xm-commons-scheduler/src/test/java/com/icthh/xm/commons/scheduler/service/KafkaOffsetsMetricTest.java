@@ -31,8 +31,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.stream.binder.kafka.properties.KafkaBinderConfigurationProperties;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
-import org.springframework.kafka.test.rule.KafkaEmbedded;
 import org.springframework.test.context.junit4.SpringRunner;
 
 
@@ -45,7 +45,7 @@ public class KafkaOffsetsMetricTest {
     private static final String METRIC_NAME = "kafka.offsets.scheduler_xm_test_queue";
 
     @Autowired
-    private KafkaEmbedded kafkaEmbedded;
+    private EmbeddedKafkaBroker embeddedKafka;
 
     @MockBean
     private KafkaBinderConfigurationProperties kafkaBinderConfigurationProperties;
@@ -59,7 +59,7 @@ public class KafkaOffsetsMetricTest {
 
     @Before
     public void setUp() {
-        Map<String, Object> consumerConf = new HashMap<>(consumerProps(GROUP, "false", kafkaEmbedded));
+        Map<String, Object> consumerConf = new HashMap<>(consumerProps(GROUP, "false", embeddedKafka));
         DefaultKafkaConsumerFactory<String, String> kafkaConsumerFactory = new DefaultKafkaConsumerFactory<>(
             consumerConf,
             new StringDeserializer(),
@@ -69,7 +69,7 @@ public class KafkaOffsetsMetricTest {
         consumer.subscribe(singleton(TOPIC));
         consumer.poll(0);
 
-        Map<String, Object> producerConf = new HashMap<>(producerProps(kafkaEmbedded));
+        Map<String, Object> producerConf = new HashMap<>(producerProps(embeddedKafka));
         DefaultKafkaProducerFactory<String, String> kafkaProducerFactory = new DefaultKafkaProducerFactory<>(
             producerConf,
             new StringSerializer(),

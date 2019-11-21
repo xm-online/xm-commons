@@ -1,6 +1,2 @@
 dependencies {
-    compileOnly "org.projectlombok:lombok:${versions.lombok}"
-    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
-    annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
-    testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
 }

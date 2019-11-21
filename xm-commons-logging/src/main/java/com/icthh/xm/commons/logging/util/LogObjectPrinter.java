@@ -231,7 +231,7 @@ public final class LogObjectPrinter {
         } else if (inputCollectionAware) {
             builder.append(printCollectionAware(value));
         } else {
-            builder.append(value);
+            builder.append(printTypeAware(value));
         }
         return builder.toString();
     }
@@ -301,19 +301,34 @@ public final class LogObjectPrinter {
         }
 
         if (object == null) {
-            return String.valueOf(object);
+            return "null";
         }
 
         Class<?> clazz = object.getClass();
-        if (!Collection.class.isAssignableFrom(clazz)) {
-            return String.valueOf(object);
+        if (Collection.class.isAssignableFrom(clazz)) {
+            return "[<"
+                   + clazz.getSimpleName()
+                   + "> size = "
+                   + ((Collection) object).size() + "]";
+        } else if (clazz.isArray()) {
+            return "[<"
+                   + clazz.getSimpleName()
+                   + "> length = "
+                   + ((Object []) object).length + "]";
         }
 
-        return new StringBuilder().append("[<")
-                                  .append(clazz.getSimpleName())
-                                  .append("> size = ")
-                                  .append(Collection.class.cast(object).size()).append("]")
-                                  .toString();
+        return object.toString();
+
+    }
+
+    private static String printTypeAware(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value.getClass().isArray()) {
+            return Arrays.toString((Object[]) value);
+        }
+        return value.toString();
     }
 
 }

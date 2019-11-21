@@ -11,8 +11,8 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
-import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.MessageListener;
+import org.springframework.kafka.listener.ContainerProperties;
 
 import java.util.Map;
 import java.util.UUID;

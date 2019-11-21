@@ -6,13 +6,10 @@ dependencyManagement {
     }
 }
 dependencies {
-    compileOnly "org.projectlombok:lombok:${versions.lombok}"
-    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
-    annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
-    testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
 
     compile project(':xm-commons-tenant')
     compile project(':xm-commons-config')
+    compile project(':xm-commons-tenant-endpoint')
 
     compile 'org.slf4j:slf4j-api'
     compile 'org.liquibase:liquibase-core'

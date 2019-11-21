@@ -4,13 +4,13 @@ import static java.lang.management.ManagementFactory.getOperatingSystemMXBean;
 import static java.lang.management.ManagementFactory.getPlatformMBeanServer;
 
 import com.codahale.metrics.jmx.JmxReporter;
+import com.codahale.metrics.jvm.JvmAttributeGaugeSet;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.jvm.BufferPoolMetricSet;
 import com.codahale.metrics.jvm.FileDescriptorRatioGauge;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
-import com.codahale.metrics.jvm.JvmAttributeGaugeSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.ryantenney.metrics.spring.config.annotation.EnableMetrics;
@@ -23,7 +23,9 @@ import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.core.KafkaAdmin;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 
@@ -38,20 +40,29 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
     private static final String PROP_METRIC_REG_JVM_BUFFERS = "jvm.buffers";
     private static final String PROP_METRIC_REG_JVM_ATTRIBUTE_SET = "jvm.attributes";
     private static final String PROP_METRIC_REG_OS = "os.attributes";
+    private static final String PROP_METRIC_CONNECTION_TO_TOPIC = "kafka";
 
     private final Logger log = LoggerFactory.getLogger(MetricsConfiguration.class);
-
-    @Value("${spring.jmx.enabled:false}")
-    private Boolean jmxEnabled;
 
     private MetricRegistry metricRegistry = new MetricRegistry();
 
     private HealthCheckRegistry healthCheckRegistry = new HealthCheckRegistry();
 
     private final JHipsterProperties jhipsterProperties;
+    private final KafkaAdmin kafkaAdmin;
 
-    public MetricsConfiguration(JHipsterProperties jhipsterProperties) {
+    @Value("${spring.jmx.enabled:false}")
+    private Boolean jmxEnabled;
+    @Value("${application.kafkaMetric.enabled:false}")
+    private Boolean kafkaMetricEnabled;
+    @Value("${application.kafkaMetric.connectionTimeoutTopic:#{null}}")
+    private Integer connectionTimeoutTopic;
+    @Value("${application.kafkaMetric.metricTopics:#{null}}")
+    private List<String> metricTopics;
+
+    public MetricsConfiguration(JHipsterProperties jhipsterProperties, KafkaAdmin kafkaAdmin) {
         this.jhipsterProperties = jhipsterProperties;
+        this.kafkaAdmin = kafkaAdmin;
     }
 
     @Override
@@ -95,6 +106,11 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
                 .convertDurationsTo(TimeUnit.MILLISECONDS)
                 .build();
             reporter.start(jhipsterProperties.getMetrics().getLogs().getReportFrequency(), TimeUnit.SECONDS);
+        }
+
+        if (kafkaMetricEnabled) {
+            metricRegistry.register(PROP_METRIC_CONNECTION_TO_TOPIC,
+                new KafkaMetricsSet(kafkaAdmin, connectionTimeoutTopic, metricTopics));
         }
     }
 }

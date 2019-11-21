@@ -233,7 +233,7 @@ class SpringSecurityXmAuthenticationContext implements XmAuthenticationContext {
                             if (details instanceof OAuth2AuthenticationDetails) {
                                 Object decodedDetails = OAuth2AuthenticationDetails.class.cast(
                                                 details).getDecodedDetails();
-                                return Optional.ofNullable(Map.class.cast(decodedDetails));
+                                return Optional.ofNullable((Map<String, Object>) decodedDetails);
                             } else if (details instanceof WebAuthenticationDetails) {
                                 return Optional.empty();
                             } else {
