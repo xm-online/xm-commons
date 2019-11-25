@@ -8,8 +8,6 @@ dependencyManagement {
 dependencies {
     compile project(":xm-commons-logging")
 
-    compileOnly "org.projectlombok:lombok:${versions.lombok}"
-
     compile("org.springframework.boot:spring-boot-starter-web") {
         exclude module: 'spring-boot-starter-tomcat'
     }

@@ -24,8 +24,6 @@ dependencies {
 
     compile project(":xm-commons-logging")
     compile project(":xm-commons-security")
-
-    compileOnly "org.projectlombok:lombok:${versions.lombok}"
     compileOnly 'javax.servlet:javax.servlet-api'
 
     compile 'org.slf4j:slf4j-api'

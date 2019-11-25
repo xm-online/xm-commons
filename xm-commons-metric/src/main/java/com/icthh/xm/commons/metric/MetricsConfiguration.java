@@ -3,8 +3,8 @@ package com.icthh.xm.commons.metric;
 import static java.lang.management.ManagementFactory.getOperatingSystemMXBean;
 import static java.lang.management.ManagementFactory.getPlatformMBeanServer;
 
-import com.codahale.metrics.JmxReporter;
-import com.codahale.metrics.JvmAttributeGaugeSet;
+import com.codahale.metrics.jmx.JmxReporter;
+import com.codahale.metrics.jvm.JvmAttributeGaugeSet;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.health.HealthCheckRegistry;
@@ -51,6 +51,8 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
     private final JHipsterProperties jhipsterProperties;
     private final KafkaAdmin kafkaAdmin;
 
+    @Value("${spring.jmx.enabled:false}")
+    private Boolean jmxEnabled;
     @Value("${application.kafkaMetric.enabled:false}")
     private Boolean kafkaMetricEnabled;
     @Value("${application.kafkaMetric.connectionTimeoutTopic:#{null}}")
@@ -89,7 +91,7 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
         metricRegistry.register(PROP_METRIC_REG_JVM_ATTRIBUTE_SET, new JvmAttributeGaugeSet());
         metricRegistry.register(PROP_METRIC_REG_OS, new OperatingSystemGaugeSet(getOperatingSystemMXBean()));
 
-        if (jhipsterProperties.getMetrics().getJmx().isEnabled()) {
+        if (jmxEnabled) {
             log.debug("Initializing Metrics JMX reporting");
             JmxReporter jmxReporter = JmxReporter.forRegistry(metricRegistry).build();
             jmxReporter.start();

@@ -22,7 +22,6 @@ dependencyManagement {
 }
 
 dependencies {
-    compileOnly "org.projectlombok:lombok:${versions.lombok}"
 
     compile project(':xm-commons-config')
 
@@ -36,7 +35,6 @@ dependencies {
 
     testCompile 'junit:junit'
     testCompile "org.mockito:mockito-core"
-    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
 }
 
 
@@ -70,15 +68,15 @@ task generateApi {
     }
 }
 
+javadoc {
+    failOnError = false
+}
+
 compileJava {
     dependsOn generateApi
 }
 
 // disable QA for generated code project
-
-findbugs {
-    sourceSets = []
-}
 
 checkstyle {
     sourceSets = []

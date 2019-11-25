@@ -27,8 +27,6 @@ dependencies {
         exclude group: 'com.vaadin.external.google', module: 'android-json'
     }
 
-    compileOnly "org.projectlombok:lombok:${versions.lombok}"
-
     compile "commons-collections:commons-collections:${versions.commonsCollections}"
     compile 'org.springframework.cloud:spring-cloud-commons'
     compile 'org.springframework.cloud:spring-cloud-netflix-core'
@@ -43,11 +41,9 @@ dependencies {
     compile "org.springframework.security.oauth:spring-security-oauth2:${versions.springSecurityOAuth2}"
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
-
     testCompile 'junit:junit'
     testCompile 'org.assertj:assertj-core'
     testCompile 'org.mockito:mockito-core'
-    testCompile "org.projectlombok:lombok:${versions.lombok}"
 }
 
 compileJava.dependsOn(processResources)

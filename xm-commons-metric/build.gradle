@@ -10,6 +10,7 @@ dependencies {
     compile "org.springframework:spring-context"
     compile "io.dropwizard.metrics:metrics-core"
     compile "io.dropwizard.metrics:metrics-jvm"
+    compile "io.dropwizard.metrics:metrics-jmx"
     compile "com.ryantenney.metrics:metrics-spring:${versions.springMetrics}"
     compile 'org.springframework.kafka:spring-kafka'
 
@@ -21,5 +22,4 @@ dependencies {
     testCompile 'org.assertj:assertj-core'
     testCompile ("org.springframework.boot:spring-boot-starter-test")
     testCompile "org.springframework.kafka:spring-kafka-test"
-    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
 }

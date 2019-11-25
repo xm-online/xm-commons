@@ -6,7 +6,6 @@ dependencyManagement {
     }
 }
 dependencies {
-    compileOnly "org.projectlombok:lombok:${versions.lombok}"
 
     compile project(':xm-commons-tenant')
     compile project(':xm-commons-config')
@@ -17,7 +16,6 @@ dependencies {
     compile 'org.springframework:spring-context'
     compile 'org.hibernate:hibernate-core'
 
-    testCompile "org.projectlombok:lombok:${versions.lombok}"
     testCompile 'junit:junit'
     testCompile 'org.mockito:mockito-core'
 }

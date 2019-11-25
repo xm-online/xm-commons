@@ -7,7 +7,6 @@ dependencyManagement {
 }
 
 dependencies {
-    compileOnly "org.projectlombok:lombok:${versions.lombok}"
 
     compile project(":xm-commons-logging-web")
     compile project(":xm-commons-tenant")

@@ -6,7 +6,6 @@ dependencyManagement {
 }
 
 dependencies {
-    compileOnly "org.projectlombok:lombok:${versions.lombok}"
 
     compile "org.springframework:spring-context"
 
