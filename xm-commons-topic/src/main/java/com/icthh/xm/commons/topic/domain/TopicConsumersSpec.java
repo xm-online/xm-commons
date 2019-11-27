@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.topic.spec;
+package com.icthh.xm.commons.topic.domain;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;

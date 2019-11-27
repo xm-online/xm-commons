@@ -6,12 +6,11 @@ import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
+import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.lep.api.LepManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 @Slf4j
 @Component
@@ -23,11 +22,10 @@ public class MessageHandler {
     private final XmAuthenticationContextHolder authContextHolder;
     private final LepManager lepManager;
 
-    public void onMessage(Map message, String tenant) {
+    public void onMessage(String message, String tenant, TopicConfig topicConfig) {
         try {
             init(tenant);
-            log.info("Receive message {} {}", message, tenant);
-            messageListenerService.onMessage(message);
+            messageListenerService.onMessage(message, topicConfig);
         } finally {
             destroy();
         }

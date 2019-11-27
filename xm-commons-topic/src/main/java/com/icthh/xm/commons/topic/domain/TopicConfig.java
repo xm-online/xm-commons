@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.topic.spec;
+package com.icthh.xm.commons.topic.domain;
 
 import lombok.Data;
 
@@ -7,10 +7,11 @@ import java.io.Serializable;
 @Data
 public class TopicConfig implements Serializable {
 
+    private String key;
+    private String typeKey;
     private String topicName;
     private Integer retriesCount;
     private Long backOffPeriod;
-    private String handlerName;
     private String deadLetterQueue;
     private String groupId;
 }
