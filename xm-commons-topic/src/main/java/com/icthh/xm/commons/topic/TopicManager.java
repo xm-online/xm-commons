@@ -23,7 +23,9 @@ import org.springframework.util.AntPathMatcher;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -92,8 +94,7 @@ public class TopicManager implements RefreshableConfiguration {
         }
 
         if (existingConfig.getTopicConfig().equals(topicConfig)) {
-            log.info("Consumer with configuration: [{}] for tenant: [{}]"
-                + " already exist and not chanced", topicConfig, tenantKey);
+            log.info("{} Skip consumer configuration due to no changes found: [{}] ", tenantKey, topicConfig);
             return;
         }
 
@@ -103,28 +104,23 @@ public class TopicManager implements RefreshableConfiguration {
     private void startNewConsumer(String tenantKey,
                                   TopicConfig topicConfig,
                                   Map<String, ConsumerHolder> existingConsumers) {
-        final StopWatch stopWatch = StopWatch.createStarted();
-        log.info("starting consumer with configuration: [{}] for tenant: [{}]", topicConfig, tenantKey);
-        AbstractMessageListenerContainer container = buildListenerContainer(tenantKey, topicConfig);
-        container.start();
-
-        existingConsumers.put(topicConfig.getKey(), new ConsumerHolder(topicConfig, container));
-        log.info("consumer: [{}] started, time = {}", topicConfig, stopWatch.getTime());
+        withLog(tenantKey, "startNewConsumer", () -> {
+            AbstractMessageListenerContainer container = buildListenerContainer(tenantKey, topicConfig);
+            container.start();
+            existingConsumers.put(topicConfig.getKey(), new ConsumerHolder(topicConfig, container));
+        }, "{}", topicConfig);
     }
 
     private void updateConsumer(String tenantKey,
                                 TopicConfig topicConfig,
                                 ConsumerHolder existingConfig,
                                 Map<String, ConsumerHolder> existingConsumers) {
-        final StopWatch stopWatch = StopWatch.createStarted();
-        log.info("restarting consumer with new configuration: [{}] for tenant: [{}]", topicConfig, tenantKey);
-        existingConfig.getContainer().stop();
-
-        AbstractMessageListenerContainer container = buildListenerContainer(tenantKey, topicConfig);
-        container.start();
-
-        existingConsumers.put(topicConfig.getKey(), new ConsumerHolder(topicConfig, container));
-        log.info("consumer: [{}] restarted, time = {}", topicConfig, stopWatch.getTime());
+        withLog(tenantKey, "restartConsumer", () -> {
+            existingConfig.getContainer().stop();
+            AbstractMessageListenerContainer container = buildListenerContainer(tenantKey, topicConfig);
+            container.start();
+            existingConsumers.put(topicConfig.getKey(), new ConsumerHolder(topicConfig, container));
+        }, "{}", topicConfig);
     }
 
     protected AbstractMessageListenerContainer buildListenerContainer(String tenantKey, TopicConfig topicConfig) {
@@ -135,31 +131,29 @@ public class TopicManager implements RefreshableConfiguration {
     private void stopAllTenantConsumers(String tenantKey,
                                         Map<String, ConsumerHolder> existingConsumers) {
         Collection<ConsumerHolder> holders = existingConsumers.values();
-        final StopWatch stopWatch = StopWatch.createStarted();
-        log.info("stopping consumers: [{}] for tenant: [{}]", holders, tenantKey);
-
-        holders.forEach(consumerHolder -> consumerHolder.getContainer().stop());
-
-        topicConsumers.remove(tenantKey);
-        log.info("all consumer for tenant: [{}] stopped, time = {}", holders, stopWatch.getTime());
+        withLog(tenantKey, "stopAllTenantConsumers", () -> {
+            holders.forEach(consumerHolder -> stopConsumer(tenantKey, consumerHolder));
+            topicConsumers.remove(tenantKey);
+        }, "[{}]", holders);
     }
 
     private void removeOldConsumers(String tenantKey,
                                     List<TopicConfig> newTopicConfigs,
                                     Map<String, ConsumerHolder> existingConsumers) {
-        existingConsumers.entrySet().removeIf(entry -> {
-            ConsumerHolder existHolder = entry.getValue();
-            TopicConfig existConfig = existHolder.getTopicConfig();
-            boolean remove = !newTopicConfigs.contains(existConfig);
 
-            if (remove) {
-                final StopWatch stopWatch = StopWatch.createStarted();
-                log.info("stopping removed consumer: [{}] for tenant: [{}]", existConfig, tenantKey);
-                existHolder.getContainer().stop();
-                log.info("consumer: [{}] stopped, time = {}", existConfig, stopWatch.getTime());
-            }
-            return remove;
-        });
+        Set<Map.Entry<String, ConsumerHolder>> toRemove = existingConsumers
+            .entrySet()
+            .stream()
+            .filter(entry -> !newTopicConfigs.contains(entry.getValue().getTopicConfig()))
+            .peek(entry -> stopConsumer(tenantKey, entry.getValue()))
+            .collect(Collectors.toSet());
+
+        existingConsumers.entrySet().removeAll(toRemove);
+    }
+
+    private void stopConsumer(final String tenantKey, final ConsumerHolder consumerHolder) {
+        TopicConfig existConfig = consumerHolder.getTopicConfig();
+        withLog(tenantKey, "stopConsumer", () -> consumerHolder.getContainer().stop(), "{}", existConfig);
     }
 
     private String extractTenant(final String updatedKey) {
@@ -183,4 +177,12 @@ public class TopicManager implements RefreshableConfiguration {
             return new ConcurrentHashMap<>();
         }
     }
+
+    private void withLog(String tenant, String command, Runnable action, String logTemplate, Object... params) {
+        final StopWatch stopWatch = StopWatch.createStarted();
+        log.info("[{}] start: {} " + logTemplate, tenant, command, params);
+        action.run();
+        log.info("[{}]  stop: {}, time = {}", tenant, command, stopWatch.getTime());
+    }
+
 }
