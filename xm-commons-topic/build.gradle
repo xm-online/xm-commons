@@ -16,6 +16,7 @@ dependencies {
     compile 'org.springframework.kafka:spring-kafka'
 
     testCompile 'junit:junit'
+    testCompile 'org.mockito:mockito-core'
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
 }
 
