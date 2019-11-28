@@ -7,7 +7,6 @@ dependencyManagement {
 }
 
 dependencies {
-    compile project(':xm-commons-logging')
     compile project(':xm-commons-tenant')
     compile project(":xm-commons-config")
     compile project(":xm-commons-lep")
@@ -19,6 +18,5 @@ dependencies {
     testCompile 'junit:junit'
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
 }
-
 
 compileJava.dependsOn(processResources)

@@ -31,7 +31,7 @@ public class ConsumerRecoveryCallback implements RecoveryCallback<Object> {
     public Object recover(RetryContext context) {
         ConsumerRecord<?, ?> record = (ConsumerRecord) context.getAttribute(CONTEXT_RECORD);
         if (record == null) {
-            log.warn("Message skipped. Message record is null for");
+            log.warn("Message skipped. Message record is null for context: {}", context);
             return null;
         }
         String rawBody = String.valueOf(record.value());
