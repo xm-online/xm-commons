@@ -39,6 +39,7 @@ public class ConsumerRecoveryCallback implements RecoveryCallback<Object> {
 
         if (StringUtils.isEmpty(deadLetterQueue)) {
             log.info("Message skipped. Processing failed for tenant: [{}], body = {}", tenantKey, rawBody);
+            acknowledge(rawBody, context);
             return null;
         }
 
