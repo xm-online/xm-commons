@@ -7,7 +7,6 @@ import static org.springframework.kafka.listener.AbstractMessageListenerContaine
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
-import com.icthh.xm.commons.logging.LoggingAspectConfig;
 import com.icthh.xm.commons.topic.config.ConsumerRecoveryCallback;
 import com.icthh.xm.commons.topic.config.MessageListener;
 import com.icthh.xm.commons.topic.config.MessageRetryTemplate;
@@ -19,6 +18,7 @@ import com.icthh.xm.commons.topic.message.MessageHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -27,16 +27,18 @@ import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter;
 import org.springframework.kafka.listener.config.ContainerProperties;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-@Service
+@Component
 @RequiredArgsConstructor
 public class TopicManager implements RefreshableConfiguration {
 
@@ -77,12 +79,13 @@ public class TopicManager implements RefreshableConfiguration {
             return;
         }
         TopicConsumersSpec spec = readSpec(updatedKey, config);
+        List<TopicConfig> forUpdate = spec.getTopics();
 
         //start and update consumers
-        spec.getTopics().forEach(topicConfig -> processTopicConfig(tenantKey, topicConfig, existingConsumers));
+        forUpdate.forEach(topicConfig -> processTopicConfig(tenantKey, topicConfig, existingConsumers));
 
         //remove old consumers
-        //todo
+        removeOldConsumers(tenantKey, forUpdate, existingConsumers);
 
         topicConsumers.put(tenantKey, existingConsumers);
     }
@@ -99,7 +102,7 @@ public class TopicManager implements RefreshableConfiguration {
         }
 
         if (existingConfig.getTopicConfig().equals(topicConfig)) {
-            log.info("Consumer configuration: [{}] for tenant: [{}]"
+            log.info("Consumer with configuration: [{}] for tenant: [{}]"
                 + " already exist and not chanced", topicConfig, tenantKey);
             return;
         }
@@ -107,36 +110,61 @@ public class TopicManager implements RefreshableConfiguration {
         updateConsumer(tenantKey, topicConfig, existingConfig, existingConsumers);
     }
 
-    @LoggingAspectConfig(inputExcludeParams = "existingConsumers")
     private void startNewConsumer(String tenantKey,
                                   TopicConfig topicConfig,
                                   Map<String, ConsumerHolder> existingConsumers) {
+        final StopWatch stopWatch = StopWatch.createStarted();
+        log.info("starting consumer with configuration: [{}] for tenant: [{}]", topicConfig, tenantKey);
         AbstractMessageListenerContainer container = buildListenerContainer(tenantKey, topicConfig);
         container.start();
 
         existingConsumers.put(topicConfig.getKey(), new ConsumerHolder(topicConfig, container));
+        log.info("consumer: [{}] started, time = {}", topicConfig, stopWatch.getTime());
     }
 
-    @LoggingAspectConfig(inputExcludeParams = {"existingConsumers", "existingConfig"})
     private void updateConsumer(String tenantKey,
                                 TopicConfig topicConfig,
                                 ConsumerHolder existingConfig,
                                 Map<String, ConsumerHolder> existingConsumers) {
+        final StopWatch stopWatch = StopWatch.createStarted();
+        log.info("restarting consumer with new configuration: [{}] for tenant: [{}]", topicConfig, tenantKey);
         existingConfig.getContainer().stop();
 
         AbstractMessageListenerContainer container = buildListenerContainer(tenantKey, topicConfig);
         container.start();
 
         existingConsumers.put(topicConfig.getKey(), new ConsumerHolder(topicConfig, container));
+        log.info("consumer: [{}] restarted, time = {}", topicConfig, stopWatch.getTime());
     }
 
-    @LoggingAspectConfig
     private void stopAllTenantConsumers(String tenantKey,
                                         Map<String, ConsumerHolder> existingConsumers) {
-        existingConsumers.values()
-            .forEach(consumerHolder -> consumerHolder.getContainer().stop());
+        Collection<ConsumerHolder> holders = existingConsumers.values();
+        final StopWatch stopWatch = StopWatch.createStarted();
+        log.info("stopping consumers: [{}] for tenant: [{}]", holders, tenantKey);
+
+        holders.forEach(consumerHolder -> consumerHolder.getContainer().stop());
 
         topicConsumers.remove(tenantKey);
+        log.info("all consumer for tenant: [{}] stopped, time = {}", holders, stopWatch.getTime());
+    }
+
+    private void removeOldConsumers(String tenantKey,
+                                    List<TopicConfig> newTopicConfigs,
+                                    Map<String, ConsumerHolder> existingConsumers) {
+        existingConsumers.entrySet().removeIf(entry -> {
+            ConsumerHolder existHolder = entry.getValue();
+            TopicConfig existConfig = existHolder.getTopicConfig();
+            boolean remove = !newTopicConfigs.contains(existConfig);
+
+            if (remove) {
+                final StopWatch stopWatch = StopWatch.createStarted();
+                log.info("stopping removed consumer: [{}] for tenant: [{}]", existConfig, tenantKey);
+                existHolder.getContainer().stop();
+                log.info("consumer: [{}] stopped, time = {}", existConfig, stopWatch.getTime());
+            }
+            return remove;
+        });
     }
 
     private AbstractMessageListenerContainer buildListenerContainer(String tenantKey, TopicConfig topicConfig) {

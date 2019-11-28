@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.topic.config;
 
-import com.icthh.xm.commons.topic.message.MessageHandler;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
+import com.icthh.xm.commons.topic.message.MessageHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
