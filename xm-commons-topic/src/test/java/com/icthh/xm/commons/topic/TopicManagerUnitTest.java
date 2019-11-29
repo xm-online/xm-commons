@@ -64,7 +64,7 @@ public class TopicManagerUnitTest {
         verify(container, times(3)).start();
         verify(container, times(0)).stop();
 
-        Map<String, Map<String, ConsumerHolder>> topicConsumers = topicManager.getTopicConsumers();
+        Map<String, Map<String, ConsumerHolder>> topicConsumers = topicManager.getTenantTopicConsumers();
         assertEquals(1, topicConsumers.keySet().size());
         assertTrue(topicConsumers.containsKey(TENANT_KEY));
 
@@ -86,7 +86,7 @@ public class TopicManagerUnitTest {
         verify(container, times(0)).start();
         verify(container, times(1)).stop();
 
-        Map<String, Map<String, ConsumerHolder>> topicConsumers = topicManager.getTopicConsumers();
+        Map<String, Map<String, ConsumerHolder>> topicConsumers = topicManager.getTenantTopicConsumers();
         assertEquals(1, topicConsumers.keySet().size());
         assertTrue(topicConsumers.containsKey(TENANT_KEY));
 
@@ -107,7 +107,7 @@ public class TopicManagerUnitTest {
         verify(container, times(1)).stop();
         verify(container, times(1)).start();
 
-        Map<String, Map<String, ConsumerHolder>> topicConsumers = topicManager.getTopicConsumers();
+        Map<String, Map<String, ConsumerHolder>> topicConsumers = topicManager.getTenantTopicConsumers();
         assertEquals(1, topicConsumers.keySet().size());
         assertTrue(topicConsumers.containsKey(TENANT_KEY));
 
@@ -132,7 +132,7 @@ public class TopicManagerUnitTest {
         verify(container, times(3)).stop();
         verify(container, times(0)).start();
 
-        Map<String, Map<String, ConsumerHolder>> topicConsumers = topicManager.getTopicConsumers();
+        Map<String, Map<String, ConsumerHolder>> topicConsumers = topicManager.getTenantTopicConsumers();
         assertTrue(topicConsumers.isEmpty());
     }
 

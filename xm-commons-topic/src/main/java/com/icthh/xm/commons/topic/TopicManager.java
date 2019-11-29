@@ -39,7 +39,7 @@ public class TopicManager implements RefreshableConfiguration {
     private ObjectMapper ymlMapper = new ObjectMapper(new YAMLFactory());
 
     @Getter
-    private Map<String, Map<String, ConsumerHolder>> topicConsumers = new ConcurrentHashMap<>();
+    private Map<String, Map<String, ConsumerHolder>> tenantTopicConsumers = new ConcurrentHashMap<>();
 
     private final KafkaProperties kafkaProperties;
     private final KafkaTemplate<String, String> kafkaTemplate;
@@ -71,6 +71,10 @@ public class TopicManager implements RefreshableConfiguration {
             return;
         }
         TopicConsumersSpec spec = readSpec(updatedKey, config);
+        if (spec == null) {
+            log.warn("Skip processing of configuration: [{}]. Specification is null", updatedKey);
+            return;
+        }
         List<TopicConfig> forUpdate = spec.getTopics();
 
         //start and update consumers
@@ -79,7 +83,7 @@ public class TopicManager implements RefreshableConfiguration {
         //remove old consumers
         removeOldConsumers(tenantKey, forUpdate, existingConsumers);
 
-        topicConsumers.put(tenantKey, existingConsumers);
+        tenantTopicConsumers.put(tenantKey, existingConsumers);
     }
 
     private void processTopicConfig(String tenantKey,
@@ -94,7 +98,7 @@ public class TopicManager implements RefreshableConfiguration {
         }
 
         if (existingConfig.getTopicConfig().equals(topicConfig)) {
-            log.info("{} Skip consumer configuration due to no changes found: [{}] ", tenantKey, topicConfig);
+            log.info("[{}] Skip consumer configuration due to no changes found: [{}] ", tenantKey, topicConfig);
             return;
         }
 
@@ -133,7 +137,7 @@ public class TopicManager implements RefreshableConfiguration {
         Collection<ConsumerHolder> holders = existingConsumers.values();
         withLog(tenantKey, "stopAllTenantConsumers", () -> {
             holders.forEach(consumerHolder -> stopConsumer(tenantKey, consumerHolder));
-            topicConsumers.remove(tenantKey);
+            tenantTopicConsumers.remove(tenantKey);
         }, "[{}]", holders);
     }
 
@@ -153,7 +157,8 @@ public class TopicManager implements RefreshableConfiguration {
 
     private void stopConsumer(final String tenantKey, final ConsumerHolder consumerHolder) {
         TopicConfig existConfig = consumerHolder.getTopicConfig();
-        withLog(tenantKey, "stopConsumer", () -> consumerHolder.getContainer().stop(), "{}", existConfig);
+        withLog(tenantKey, "stopConsumer",
+            () -> consumerHolder.getContainer().stop(), "{}", existConfig);
     }
 
     private String extractTenant(final String updatedKey) {
@@ -171,8 +176,8 @@ public class TopicManager implements RefreshableConfiguration {
     }
 
     private Map<String, ConsumerHolder> getTenantConsumers(String tenantKey) {
-        if (topicConsumers.containsKey(tenantKey)) {
-            return topicConsumers.get(tenantKey);
+        if (tenantTopicConsumers.containsKey(tenantKey)) {
+            return tenantTopicConsumers.get(tenantKey);
         } else {
             return new ConcurrentHashMap<>();
         }
@@ -182,7 +187,7 @@ public class TopicManager implements RefreshableConfiguration {
         final StopWatch stopWatch = StopWatch.createStarted();
         log.info("[{}] start: {} " + logTemplate, tenant, command, params);
         action.run();
-        log.info("[{}]  stop: {}, time = {}", tenant, command, stopWatch.getTime());
+        log.info("[{}]  stop: {}, time = {} ms.", tenant, command, stopWatch.getTime());
     }
 
 }
