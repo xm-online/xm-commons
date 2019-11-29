@@ -1,52 +1,49 @@
 package com.icthh.xm.commons.topic;
 
-import static org.apache.kafka.clients.consumer.ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG;
-import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
-import com.icthh.xm.commons.topic.spec.TopicConfig;
-import com.icthh.xm.commons.topic.spec.TopicConsumersSpec;
+import com.icthh.xm.commons.topic.config.MessageListenerContainerBuilder;
+import com.icthh.xm.commons.topic.domain.ConsumerHolder;
+import com.icthh.xm.commons.topic.domain.TopicConfig;
+import com.icthh.xm.commons.topic.domain.TopicConsumersSpec;
+import com.icthh.xm.commons.topic.message.MessageHandler;
+
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
-import org.springframework.context.annotation.Import;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
-import org.springframework.kafka.listener.ContainerProperties;
-import org.springframework.kafka.listener.MessageListener;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@Import(KafkaProperties.class)
+@RequiredArgsConstructor
 public class TopicManager implements RefreshableConfiguration {
 
     private static final String CONSUMER_CONFIG_PATH_PATTERN = "/config/tenants/{tenant}/{ms}/topic-consumers.yml";
     private static final String TENANT_NAME = "tenant";
 
     private AntPathMatcher matcher = new AntPathMatcher();
-    private ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-
-    private final KafkaProperties kafkaProperties;
-
-    public TopicManager(KafkaProperties kafkaProperties) {
-        this.kafkaProperties = kafkaProperties;
-    }
+    private ObjectMapper ymlMapper = new ObjectMapper(new YAMLFactory());
 
     @Getter
-    private Map<String, TopicConsumersSpec> topicConsumers = new ConcurrentHashMap<>();
+    private Map<String, Map<String, ConsumerHolder>> tenantTopicConsumers = new ConcurrentHashMap<>();
+
+    private final KafkaProperties kafkaProperties;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final MessageHandler messageHandler;
 
     @Override
     public void onRefresh(String updatedKey, String config) {
@@ -66,63 +63,131 @@ public class TopicManager implements RefreshableConfiguration {
     }
 
     private void refreshConfig(String updatedKey, String config) {
-        try {
-            String tenant = extractTenant(updatedKey);
-            if (StringUtils.isBlank(config)) {
-                topicConsumers.remove(tenant);
+        String tenantKey = extractTenant(updatedKey);
+        Map<String, ConsumerHolder> existingConsumers = getTenantConsumers(tenantKey);
 
-                //log.info("Tasks for tenant '{}' were removed: {}", tenant, updatedKey);
-            } else {
-                TopicConsumersSpec spec = mapper.readValue(config, TopicConsumersSpec.class);
-                topicConsumers.put(tenant, spec);
-
-                initConsumers(spec);
-                //log.info("Tasks for tenant '{}' were updated: {}", tenant, updatedKey);
-            }
-        } catch (Exception e) {
-            log.error("Error read topic specification from path: {}", updatedKey, e);
+        if (StringUtils.isEmpty(config)) {
+            stopAllTenantConsumers(tenantKey, existingConsumers);
+            return;
         }
+        TopicConsumersSpec spec = readSpec(updatedKey, config);
+        if (spec == null) {
+            log.warn("Skip processing of configuration: [{}]. Specification is null", updatedKey);
+            return;
+        }
+        List<TopicConfig> forUpdate = spec.getTopics();
+
+        //start and update consumers
+        forUpdate.forEach(topicConfig -> processTopicConfig(tenantKey, topicConfig, existingConsumers));
+
+        //remove old consumers
+        removeOldConsumers(tenantKey, forUpdate, existingConsumers);
+
+        tenantTopicConsumers.put(tenantKey, existingConsumers);
+    }
+
+    private void processTopicConfig(String tenantKey,
+                                    TopicConfig topicConfig,
+                                    Map<String, ConsumerHolder> existingConsumers) {
+        String topicConfigKey = topicConfig.getKey();
+        ConsumerHolder existingConfig = existingConsumers.get(topicConfigKey);
+
+        if (existingConfig == null) {
+            startNewConsumer(tenantKey, topicConfig, existingConsumers);
+            return;
+        }
+
+        if (existingConfig.getTopicConfig().equals(topicConfig)) {
+            log.info("[{}] Skip consumer configuration due to no changes found: [{}] ", tenantKey, topicConfig);
+            return;
+        }
+
+        updateConsumer(tenantKey, topicConfig, existingConfig, existingConsumers);
+    }
+
+    private void startNewConsumer(String tenantKey,
+                                  TopicConfig topicConfig,
+                                  Map<String, ConsumerHolder> existingConsumers) {
+        withLog(tenantKey, "startNewConsumer", () -> {
+            AbstractMessageListenerContainer container = buildListenerContainer(tenantKey, topicConfig);
+            container.start();
+            existingConsumers.put(topicConfig.getKey(), new ConsumerHolder(topicConfig, container));
+        }, "{}", topicConfig);
+    }
+
+    private void updateConsumer(String tenantKey,
+                                TopicConfig topicConfig,
+                                ConsumerHolder existingConfig,
+                                Map<String, ConsumerHolder> existingConsumers) {
+        withLog(tenantKey, "restartConsumer", () -> {
+            existingConfig.getContainer().stop();
+            AbstractMessageListenerContainer container = buildListenerContainer(tenantKey, topicConfig);
+            container.start();
+            existingConsumers.put(topicConfig.getKey(), new ConsumerHolder(topicConfig, container));
+        }, "{}", topicConfig);
+    }
+
+    protected AbstractMessageListenerContainer buildListenerContainer(String tenantKey, TopicConfig topicConfig) {
+        return new MessageListenerContainerBuilder(messageHandler, kafkaProperties, kafkaTemplate)
+            .build(tenantKey, topicConfig);
+    }
+
+    private void stopAllTenantConsumers(String tenantKey,
+                                        Map<String, ConsumerHolder> existingConsumers) {
+        Collection<ConsumerHolder> holders = existingConsumers.values();
+        withLog(tenantKey, "stopAllTenantConsumers", () -> {
+            holders.forEach(consumerHolder -> stopConsumer(tenantKey, consumerHolder));
+            tenantTopicConsumers.remove(tenantKey);
+        }, "[{}]", holders);
+    }
+
+    private void removeOldConsumers(String tenantKey,
+                                    List<TopicConfig> newTopicConfigs,
+                                    Map<String, ConsumerHolder> existingConsumers) {
+
+        Set<Map.Entry<String, ConsumerHolder>> toRemove = existingConsumers
+            .entrySet()
+            .stream()
+            .filter(entry -> !newTopicConfigs.contains(entry.getValue().getTopicConfig()))
+            .peek(entry -> stopConsumer(tenantKey, entry.getValue()))
+            .collect(Collectors.toSet());
+
+        existingConsumers.entrySet().removeAll(toRemove);
+    }
+
+    private void stopConsumer(final String tenantKey, final ConsumerHolder consumerHolder) {
+        TopicConfig existConfig = consumerHolder.getTopicConfig();
+        withLog(tenantKey, "stopConsumer",
+            () -> consumerHolder.getContainer().stop(), "{}", existConfig);
     }
 
     private String extractTenant(final String updatedKey) {
         return matcher.extractUriTemplateVariables(CONSUMER_CONFIG_PATH_PATTERN, updatedKey).get(TENANT_NAME);
     }
 
-    private List<Object> initConsumers(TopicConsumersSpec spec) {
-        spec.getTopics().forEach(topicConfig -> {
-
-            Map<String, Object> consumerConfig = buildConsumerConfig(topicConfig);
-            DefaultKafkaConsumerFactory<String, String> kafkaConsumerFactory =
-                new DefaultKafkaConsumerFactory<>(
-                    consumerConfig,
-                    new StringDeserializer(),
-                    new StringDeserializer());
-
-            ContainerProperties containerProperties = new ContainerProperties(topicConfig.getTopicName());
-            containerProperties.setMessageListener((MessageListener<String, String>) record -> {
-                //do something with received record
-                System.out.println(record);
-            });
-
-            ConcurrentMessageListenerContainer container =
-                new ConcurrentMessageListenerContainer<>(
-                    kafkaConsumerFactory,
-                    containerProperties);
-
-            container.start();
-        });
-
-        return null;
+    private TopicConsumersSpec readSpec(String updatedKey, String config) {
+        TopicConsumersSpec spec = null;
+        try {
+            spec = ymlMapper.readValue(config, TopicConsumersSpec.class);
+        } catch (Exception e) {
+            log.error("Error read topic specification from path: {}", updatedKey, e);
+        }
+        return spec;
     }
 
-    private Map<String, Object> buildConsumerConfig(TopicConfig topicConfig) {
-        Map<String, Object> config = new HashMap<>();
-        config.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
-
-        String groupIdFromConf = topicConfig.getGroupId();
-        String groupId = StringUtils.isEmpty(groupIdFromConf) ? UUID.randomUUID().toString() : groupIdFromConf;
-        config.put(GROUP_ID_CONFIG, groupId);
-
-        return Collections.unmodifiableMap(config);
+    private Map<String, ConsumerHolder> getTenantConsumers(String tenantKey) {
+        if (tenantTopicConsumers.containsKey(tenantKey)) {
+            return tenantTopicConsumers.get(tenantKey);
+        } else {
+            return new ConcurrentHashMap<>();
+        }
     }
+
+    private void withLog(String tenant, String command, Runnable action, String logTemplate, Object... params) {
+        final StopWatch stopWatch = StopWatch.createStarted();
+        log.info("[{}] start: {} " + logTemplate, tenant, command, params);
+        action.run();
+        log.info("[{}]  stop: {}, time = {} ms.", tenant, command, stopWatch.getTime());
+    }
+
 }
