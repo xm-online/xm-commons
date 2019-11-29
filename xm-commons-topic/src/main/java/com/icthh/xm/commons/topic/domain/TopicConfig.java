@@ -14,4 +14,5 @@ public class TopicConfig implements Serializable {
     private Long backOffPeriod;
     private String deadLetterQueue;
     private String groupId;
+    private Boolean logBody = true;
 }
