@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ReflectionConfig {
 
-    @Value("${base-package:com.icthh.xm}")
+    @Value("${base-package: com.icthh.xm}")
     private String scanPackage;
 
     /**
@@ -22,7 +22,7 @@ public class ReflectionConfig {
     @Bean
     public Reflections reflections() {
         return new Reflections(new ConfigurationBuilder()
-                                    .setUrls(ClasspathHelper.forPackage(scanPackage.trim()))
+                                    .setUrls(ClasspathHelper.forPackage(scanPackage))
                                     .setScanners(new MethodAnnotationsScanner()));
     }
 }
