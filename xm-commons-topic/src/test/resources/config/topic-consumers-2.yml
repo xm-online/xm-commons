@@ -1,0 +1,12 @@
+---
+topics:
+  - key: key1
+    typeKey: incoming-messages
+    topicName: kafka-queue
+    retriesCount: 4
+    backOffPeriod: 10000
+    deadLetterQueue: kafka-queue-dead-queue
+  - key: key2
+    topicName: queue-name
+    retriesCount: 4
+    typeKey: incoming-messages
