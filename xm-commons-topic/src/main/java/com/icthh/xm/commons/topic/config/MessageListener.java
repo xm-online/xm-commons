@@ -18,7 +18,6 @@ import java.util.StringJoiner;
 @Slf4j
 public class MessageListener implements AcknowledgingMessageListener<String, String> {
 
-
     private final TopicConfig topicConfig;
     private final MessageHandler messageHandler;
     private final String tenantKey;

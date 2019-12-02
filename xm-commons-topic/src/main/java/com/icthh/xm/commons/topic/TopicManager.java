@@ -7,13 +7,14 @@ import com.icthh.xm.commons.topic.config.MessageListenerContainerBuilder;
 import com.icthh.xm.commons.topic.domain.ConsumerHolder;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.domain.TopicConsumersSpec;
-import com.icthh.xm.commons.topic.message.MessageHandler;
 
+import com.icthh.xm.commons.topic.message.MessageHandler;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnBean({MessageHandler.class, KafkaProperties.class})
 public class TopicManager implements RefreshableConfiguration {
 
     private static final String CONSUMER_CONFIG_PATH_PATTERN = "/config/tenants/{tenant}/{ms}/topic-consumers.yml";
@@ -128,8 +130,8 @@ public class TopicManager implements RefreshableConfiguration {
     }
 
     protected AbstractMessageListenerContainer buildListenerContainer(String tenantKey, TopicConfig topicConfig) {
-        return new MessageListenerContainerBuilder(messageHandler, kafkaProperties, kafkaTemplate)
-            .build(tenantKey, topicConfig);
+        return new MessageListenerContainerBuilder(kafkaProperties, kafkaTemplate)
+            .build(tenantKey, topicConfig, messageHandler);
     }
 
     private void stopAllTenantConsumers(String tenantKey,
@@ -189,5 +191,4 @@ public class TopicManager implements RefreshableConfiguration {
         action.run();
         log.info("[{}]  stop: {}, time = {} ms.", tenant, command, stopWatch.getTime());
     }
-
 }

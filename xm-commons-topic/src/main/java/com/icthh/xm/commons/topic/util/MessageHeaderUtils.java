@@ -12,9 +12,9 @@ import java.util.Date;
 @UtilityClass
 public class MessageHeaderUtils {
 
-    private static final String RID_HEADER = "rid";
-    private static final String RETRY_HEADER = "retry";
-    private static final String START_PROCESSING_TIME_HEADER = "startProcessingTime";
+    private static final String RID_HEADER = "xm.rid";
+    private static final String RETRY_HEADER = "xm.retry";
+    private static final String START_PROCESSING_TIME_HEADER = "xm.start.processing.time";
 
     public static String getOrGenerateRid(ConsumerRecord<String, String> record) {
         Headers headers = record.headers();

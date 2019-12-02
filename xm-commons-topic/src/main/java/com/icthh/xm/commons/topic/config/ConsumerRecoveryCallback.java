@@ -55,7 +55,7 @@ public class ConsumerRecoveryCallback implements RecoveryCallback<Object> {
             kafkaTemplate.send(deadLetterQueue, rawBody);
             acknowledge(rawBody, context);
 
-            log.warn("send message to dead-letter [{}}] due to retry count exceeded [{}], "
+            log.warn("send message to dead-letter [{}] due to retry count exceeded [{}], "
                     + "total processing time = {} ms, body = [{}]",
                 deadLetterQueue, getRetryCounter(record), getTotalProcessingTime(record), rawBody);
         } finally {
