@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnBean({MessageHandler.class, KafkaProperties.class})
+@ConditionalOnBean(MessageHandler.class)
 public class TopicManager implements RefreshableConfiguration {
 
     private static final String CONSUMER_CONFIG_PATH_PATTERN = "/config/tenants/{tenant}/{ms}/topic-consumers.yml";

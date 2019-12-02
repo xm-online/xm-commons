@@ -11,7 +11,6 @@ import org.springframework.util.concurrent.ListenableFuture;
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnBean(KafkaProperties.class)
 @LoggingAspectConfig(resultDetails = false)
 public class KafkaTemplateService {
 
