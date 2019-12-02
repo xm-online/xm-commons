@@ -25,11 +25,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MessageListenerContainerBuilder {
 
-    private final MessageHandler messageHandler;
     private final KafkaProperties kafkaProperties;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public AbstractMessageListenerContainer build(String tenantKey, TopicConfig topicConfig) {
+    public AbstractMessageListenerContainer build(String tenantKey,
+                                                  TopicConfig topicConfig,
+                                                  MessageHandler messageHandler) {
         Map<String, Object> consumerConfig = buildConsumerConfig(topicConfig);
         DefaultKafkaConsumerFactory<String, String> kafkaConsumerFactory =
             new DefaultKafkaConsumerFactory<>(
