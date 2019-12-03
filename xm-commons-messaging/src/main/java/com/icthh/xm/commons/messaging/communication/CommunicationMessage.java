@@ -17,11 +17,11 @@ import java.util.List;
 @Data
 public class CommunicationMessage {
 
+    private String id;
+    private String href;
     private Boolean callbackFlag;
     private String content;
     private String description;
-    private String href;
-    private String id;
     private Boolean logFlag;
     private String priority;
     private OffsetDateTime sendTime;
@@ -31,12 +31,8 @@ public class CommunicationMessage {
     private Integer tryTimes;
     private String type;
     private String version;
-    private List<Attachment> attachment;
     private List<Receiver> receiver = new ArrayList<>();
     private Sender sender;
     private List<CommunicationRequestCharacteristic> characteristic;
-    private String atType;
-    private String atSchemaLocation;
-    private String atBaseType;
 }
 

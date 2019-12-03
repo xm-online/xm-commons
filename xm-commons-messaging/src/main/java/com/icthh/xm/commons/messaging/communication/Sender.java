@@ -12,8 +12,5 @@ public class Sender {
     private String email;
     private String name;
     private String phoneNumber;
-    private String atType;
-    private String atBaseType;
-    private String atSchemaLocation;
 }
 

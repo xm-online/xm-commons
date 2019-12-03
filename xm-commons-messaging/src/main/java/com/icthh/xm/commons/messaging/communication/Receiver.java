@@ -15,8 +15,5 @@ public class Receiver {
     private String name;
     private String phoneNumber;
     private String type;
-    private String atType;
-    private String atBaseType;
-    private String atSchemaLocation;
 }
 
