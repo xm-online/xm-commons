@@ -2,8 +2,6 @@ package com.icthh.xm.commons.topic.service;
 
 import com.icthh.xm.commons.logging.LoggingAspectConfig;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
