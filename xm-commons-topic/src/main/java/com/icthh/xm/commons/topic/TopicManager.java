@@ -10,10 +10,10 @@ import com.icthh.xm.commons.topic.domain.TopicConsumersSpec;
 
 import com.icthh.xm.commons.topic.message.MessageHandler;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
@@ -29,17 +29,27 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class TopicManager implements RefreshableConfiguration {
 
-    private static final String CONSUMER_CONFIG_PATH_PATTERN = "/config/tenants/{tenant}/{ms}/topic-consumers.yml";
     private static final String TENANT_NAME = "tenant";
 
     private AntPathMatcher matcher = new AntPathMatcher();
     private ObjectMapper ymlMapper = new ObjectMapper(new YAMLFactory());
 
+    private final String configPath;
+
     @Getter
     private Map<String, Map<String, ConsumerHolder>> tenantTopicConsumers = new ConcurrentHashMap<>();
+
+    public TopicManager(@Value("${spring.application.name}") String appName,
+                        KafkaProperties kafkaProperties,
+                        KafkaTemplate<String, String> kafkaTemplate,
+                        MessageHandler messageHandler) {
+        this.kafkaProperties = kafkaProperties;
+        this.kafkaTemplate = kafkaTemplate;
+        this.messageHandler = messageHandler;
+        this.configPath = "/config/tenants/{tenant}/" + appName + "/topic-consumers.yml";
+    }
 
     private final KafkaProperties kafkaProperties;
     private final KafkaTemplate<String, String> kafkaTemplate;
@@ -52,7 +62,7 @@ public class TopicManager implements RefreshableConfiguration {
 
     @Override
     public boolean isListeningConfiguration(String updatedKey) {
-        return matcher.match(CONSUMER_CONFIG_PATH_PATTERN, updatedKey);
+        return matcher.match(configPath, updatedKey);
     }
 
     @Override
@@ -162,7 +172,7 @@ public class TopicManager implements RefreshableConfiguration {
     }
 
     private String extractTenant(final String updatedKey) {
-        return matcher.extractUriTemplateVariables(CONSUMER_CONFIG_PATH_PATTERN, updatedKey).get(TENANT_NAME);
+        return matcher.extractUriTemplateVariables(configPath, updatedKey).get(TENANT_NAME);
     }
 
     private TopicConsumersSpec readSpec(String updatedKey, String config) {
