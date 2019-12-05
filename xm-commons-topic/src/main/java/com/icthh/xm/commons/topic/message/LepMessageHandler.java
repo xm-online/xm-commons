@@ -10,13 +10,11 @@ import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.lep.api.LepManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnBean(LepManager.class)
 public class LepMessageHandler implements MessageHandler {
 
     private final MessageService messageListenerService;
