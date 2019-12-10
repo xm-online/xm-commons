@@ -5,20 +5,20 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.icthh.xm.commons.topic.domain.ConsumerHolder;
+import com.icthh.xm.commons.topic.message.MessageHandler;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -32,12 +32,11 @@ public class TopicManagerUnitTest {
 
     private static final String UPDATE_KEY = "/config/tenants/test/some-ms/topic-consumers.yml";
     private static final String TENANT_KEY = "test";
+    private static final String APP_NAME = "some-ms";
     private static final String CONFIG_1 = "topic-consumers-1.yml";
     private static final String CONFIG_2 = "topic-consumers-2.yml";
     private static final String CONFIG_3 = "topic-consumers-3.yml";
 
-    @Spy
-    @InjectMocks
     private TopicManager topicManager;
 
     @Mock
@@ -52,8 +51,12 @@ public class TopicManagerUnitTest {
     @Mock
     private AbstractMessageListenerContainer container;
 
+    @Mock
+    private MessageHandler messageHandler;
+
     @Before
     public void setUp() {
+        topicManager = spy(new TopicManager(APP_NAME, kafkaProperties, kafkaTemplate, messageHandler));
         doReturn(container).when(topicManager).buildListenerContainer(any(), any());
     }
 
