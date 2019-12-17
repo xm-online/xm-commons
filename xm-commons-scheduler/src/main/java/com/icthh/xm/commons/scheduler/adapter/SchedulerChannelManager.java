@@ -27,6 +27,7 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.CompositeHealthIndicator;
+import org.springframework.boot.actuate.health.HealthIndicatorRegistry;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.stream.annotation.EnableBinding;
@@ -52,6 +53,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.Base64;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -148,11 +150,11 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
             KafkaBindingProperties props = new KafkaBindingProperties();
             props.getConsumer().setAutoCommitOffset(false);
             props.getConsumer().setStartOffset(startOffset);
-            kafkaExtendedBindingProperties.getBindings().put(chanelName, props);
+            kafkaExtendedBindingProperties.setBindings(Collections.singletonMap(chanelName, props));
 
             ConsumerProperties consumerProperties = new ConsumerProperties();
             consumerProperties.setMaxAttempts(Integer.MAX_VALUE);
-            consumerProperties.setHeaderMode(HeaderMode.raw);
+            consumerProperties.setHeaderMode(HeaderMode.none);
             consumerProperties.setBackOffInitialInterval(backOffInitialInterval);
             consumerProperties.setBackOffMaxInterval(backOffMaxInterval);
 
@@ -165,7 +167,10 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
             SubscribableChannel channel = bindingTargetFactory.createInput(chanelName);
             bindingService.bindConsumer(channel, chanelName);
 
-            bindersHealthIndicator.addHealthIndicator(KAFKA, kafkaBinderHealthIndicator);
+            HealthIndicatorRegistry registry = bindersHealthIndicator.getRegistry();
+            if (registry.get(KAFKA) == null) {
+                bindersHealthIndicator.getRegistry().register(KAFKA, kafkaBinderHealthIndicator);
+            }
 
             channels.put(chanelName, channel);
 
