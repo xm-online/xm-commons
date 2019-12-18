@@ -14,7 +14,7 @@ ext.versions = [
     commonsText                : '1.6',
 
     springBoot                 : '2.1.10.RELEASE',
-    springCloud                : 'Greenwich.RELEASE',
+    springCloud                : 'Greenwich.SR3',
     springSecurityOAuth2       : '2.3.7.RELEASE',
     springSecurityJwt          : '1.0.11.RELEASE',
     springData                 : '2.1.12.RELEASE',
