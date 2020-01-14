@@ -19,6 +19,7 @@ public class PrivilegeMapperUnitTest {
         "  resources:\n" +
         "  - \"res1\"\n" +
         "  - \"res2\"\n" +
+        "  customDescription: \"customDescription1\"\n" +
         "- key: \"KEY2\"\n" +
         "  description:\n" +
         "    en: \"test2\"\n" +
@@ -26,6 +27,7 @@ public class PrivilegeMapperUnitTest {
         "  resources:\n" +
         "  - \"res1\"\n" +
         "  - \"res2\"\n" +
+        "  customDescription: \"customDescription2\"\n" +
         "MS2:\n" +
         "- key: \"KEY3\"\n" +
         "  description:\n" +
@@ -33,7 +35,8 @@ public class PrivilegeMapperUnitTest {
         "    ru: \"тест3\"\n" +
         "  resources:\n" +
         "  - \"res1\"\n" +
-        "  - \"res2\"\n";
+        "  - \"res2\"\n" +
+        "  customDescription: \"customDescription3\"\n";
 
     @Test
     public void testCollectionToYml() throws Exception {
@@ -77,6 +80,7 @@ public class PrivilegeMapperUnitTest {
         privilege.getDescription().put("en", "test" + num);
         privilege.getResources().add("res1");
         privilege.getResources().add("res2");
+        privilege.setCustomDescription("customDescription" + num);
         return privilege;
     }
 }
