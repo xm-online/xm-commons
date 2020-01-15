@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.permission.inspector.scanner;
 
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
+import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.commons.permission.domain.Privilege;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +14,11 @@ import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import static java.util.Objects.nonNull;
 
 @Component
 @Slf4j
@@ -34,37 +38,45 @@ public class PrivilegeScanner {
      */
     public Set<Privilege> scan() {
         StopWatch stopWatch = StopWatch.createStarted();
-        Set<Privilege> preAuthPrivileges = reflections.getMethodsAnnotatedWith(PreAuthorize.class).stream()
-            .map(element -> element.getAnnotation(PreAuthorize.class))
-            .map(PreAuthorize::value)
-            .map(this::parse)
-            .collect(Collectors.toSet());
 
-        Set<Privilege> postAuthPrivileges = reflections.getMethodsAnnotatedWith(PostAuthorize.class).stream()
-            .map(element -> element.getAnnotation(PostAuthorize.class))
-            .map(PostAuthorize::value)
-            .map(this::parse)
-            .collect(Collectors.toSet());
+        Set<Privilege> privileges = new HashSet<>();
+        Set<Method> methodsAnnotatedPrivilegeDescription = reflections.getMethodsAnnotatedWith(PrivilegeDescription.class);
+        for (Method method: methodsAnnotatedPrivilegeDescription) {
+            PreAuthorize preAuthorize = method.getAnnotation(PreAuthorize.class);
+            PostAuthorize postAuthorize = method.getAnnotation(PostAuthorize.class);
+            FindWithPermission findWithPermission = method.getAnnotation(FindWithPermission.class);
+            PostFilter postFilter = method.getAnnotation(PostFilter.class);
+            Privilege privilege = new Privilege();
 
-        Set<Privilege> findPrivileges = reflections.getMethodsAnnotatedWith(FindWithPermission.class).stream()
-            .map(element -> element.getAnnotation(FindWithPermission.class))
-            .map(FindWithPermission::value)
-            .map(this::parse)
-            .peek(privilege -> privilege.getResources().add("returnObject"))
-            .collect(Collectors.toSet());
+            if (nonNull(preAuthorize)) {
+                privilege = parse(preAuthorize.value());
+            }
 
-        Set<Privilege> postFilterPrivileges = reflections.getMethodsAnnotatedWith(PostFilter.class).stream()
-            .map(element -> element.getAnnotation(PostFilter.class))
-            .map(PostFilter::value)
-            .map(this::parse)
-            .peek(privilege -> privilege.getResources().add("returnObject"))
-            .collect(Collectors.toSet());
+            if (nonNull(postAuthorize)) {
+                privilege = parse(postAuthorize.value());
+            }
 
-        preAuthPrivileges.addAll(postAuthPrivileges);
-        preAuthPrivileges.addAll(findPrivileges);
-        preAuthPrivileges.addAll(postFilterPrivileges);
-        log.info("Found {} privileges in {} ms", preAuthPrivileges.size(), stopWatch.getTime());
-        return preAuthPrivileges;
+            if (nonNull(findWithPermission)) {
+                privilege = parse(findWithPermission.value());
+                privilege.getResources().add("returnObject");
+            }
+
+            if (nonNull(postFilter)) {
+                privilege = parse(postFilter.value());
+                privilege.getResources().add("returnObject");
+            }
+
+            if (nonNull(privilege.getKey())) {
+                String customDescription = method.getAnnotation(PrivilegeDescription.class).value();
+                if (StringUtils.isNotEmpty(customDescription)) {
+                    privilege.setCustomDescription(customDescription);
+                }
+                privileges.add(privilege);
+            }
+        }
+
+        log.info("Found {} privileges in {} ms", privileges.size(), stopWatch.getTime());
+        return privileges;
     }
 
     private Privilege parse(String expression) {

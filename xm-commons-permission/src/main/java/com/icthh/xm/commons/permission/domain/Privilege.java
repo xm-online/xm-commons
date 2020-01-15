@@ -12,7 +12,7 @@ import lombok.ToString;
 
 @Getter
 @Setter
-@EqualsAndHashCode(exclude = {"description", "resources"})
+@EqualsAndHashCode(exclude = {"description", "resources", "customDescription"})
 @ToString
 @JsonPropertyOrder({"key", "description"})
 public class Privilege implements Comparable<Privilege> {
@@ -22,6 +22,7 @@ public class Privilege implements Comparable<Privilege> {
     private String key;
     private Map<String, String> description = new TreeMap<>();
     private Set<String> resources = new TreeSet<>();
+    private String customDescription;
 
     public Privilege() {
     }
