@@ -14,9 +14,9 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
-import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.SeekToCurrentErrorHandler;
 import org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter;
-
+import org.springframework.kafka.listener.ContainerProperties;
 
 import java.util.Collections;
 import java.util.Map;
@@ -43,10 +43,14 @@ public class MessageListenerContainerBuilder {
         containerProperties.setMessageListener(new RetryingMessageListenerAdapter<>(
             new MessageListener(messageHandler, tenantKey, topicConfig),
             new MessageRetryTemplate(topicConfig),
-            new ConsumerRecoveryCallback(tenantKey, topicConfig, kafkaTemplate)
+            new ConsumerRecoveryCallback(tenantKey, topicConfig, kafkaTemplate),
+            true
         ));
 
-        return new ConcurrentMessageListenerContainer<>(kafkaConsumerFactory, containerProperties);
+        ConcurrentMessageListenerContainer<String, String> container =
+              new ConcurrentMessageListenerContainer<>(kafkaConsumerFactory, containerProperties);
+        container.setErrorHandler(new SeekToCurrentErrorHandler(topicConfig.getRetriesCount() + 1));
+        return container;
     }
 
     private Map<String, Object> buildConsumerConfig(TopicConfig topicConfig) {

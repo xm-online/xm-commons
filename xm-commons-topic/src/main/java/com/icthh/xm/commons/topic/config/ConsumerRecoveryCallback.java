@@ -1,8 +1,8 @@
 package com.icthh.xm.commons.topic.config;
 
-import static com.icthh.xm.commons.topic.util.MessageHeaderUtils.getRetryCounter;
-import static com.icthh.xm.commons.topic.util.MessageHeaderUtils.getRid;
-import static com.icthh.xm.commons.topic.util.MessageHeaderUtils.getTotalProcessingTime;
+import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.getRetryCounter;
+import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.getRid;
+import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.getTotalProcessingTime;
 import static org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter.CONTEXT_ACKNOWLEDGMENT;
 import static org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter.CONTEXT_RECORD;
 
