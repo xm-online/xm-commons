@@ -9,6 +9,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.lowerCase;
 import static org.apache.commons.lang3.StringUtils.startsWith;
 import static org.apache.commons.lang3.StringUtils.upperCase;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.METADATA_MAX_AGE_CONFIG;
 import static org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties.StartOffset.earliest;
 import static org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties.StartOffset.latest;
 
@@ -101,6 +102,9 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
     @Value("${application.scheduler-config.task-back-off-max-interval:60000}")
     private int backOffMaxInterval;
 
+    @Value("${application.kafka-metadata-max-age:60000}")
+    private int kafkaMetadataMaxAge;
+
     private final Set<String> includedTenants;
 
     private Set<String> tenantToStart;
@@ -150,6 +154,7 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
             KafkaBindingProperties props = new KafkaBindingProperties();
             props.getConsumer().setAutoCommitOffset(false);
             props.getConsumer().setStartOffset(startOffset);
+            props.getConsumer().getConfiguration().put(METADATA_MAX_AGE_CONFIG, String.valueOf(kafkaMetadataMaxAge));
             kafkaExtendedBindingProperties.setBindings(Collections.singletonMap(chanelName, props));
 
             ConsumerProperties consumerProperties = new ConsumerProperties();
