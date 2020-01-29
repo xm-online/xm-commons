@@ -2,6 +2,7 @@ package com.icthh.xm.commons.topic.config;
 
 import static org.apache.kafka.clients.consumer.ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import static org.springframework.kafka.listener.ContainerProperties.AckMode.MANUAL_IMMEDIATE;
 
 import com.icthh.xm.commons.topic.domain.TopicConfig;
@@ -14,9 +15,9 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
-import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.SeekToCurrentErrorHandler;
 import org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter;
-
+import org.springframework.kafka.listener.ContainerProperties;
 
 import java.util.Collections;
 import java.util.Map;
@@ -43,10 +44,14 @@ public class MessageListenerContainerBuilder {
         containerProperties.setMessageListener(new RetryingMessageListenerAdapter<>(
             new MessageListener(messageHandler, tenantKey, topicConfig),
             new MessageRetryTemplate(topicConfig),
-            new ConsumerRecoveryCallback(tenantKey, topicConfig, kafkaTemplate)
+            new ConsumerRecoveryCallback(tenantKey, topicConfig, kafkaTemplate),
+            true
         ));
 
-        return new ConcurrentMessageListenerContainer<>(kafkaConsumerFactory, containerProperties);
+        ConcurrentMessageListenerContainer<String, String> container =
+              new ConcurrentMessageListenerContainer<>(kafkaConsumerFactory, containerProperties);
+        container.setErrorHandler(new SeekToCurrentErrorHandler(topicConfig.getRetriesCount() + 1));
+        return container;
     }
 
     private Map<String, Object> buildConsumerConfig(TopicConfig topicConfig) {
@@ -56,6 +61,10 @@ public class MessageListenerContainerBuilder {
         String groupId = StringUtils.isEmpty(groupIdFromConf) ? UUID.randomUUID().toString() : groupIdFromConf;
         props.put(GROUP_ID_CONFIG, groupId);
         props.put(ENABLE_AUTO_COMMIT_CONFIG, false);
+
+        if (topicConfig.getMaxPollInterval() != null) {
+            props.put(MAX_POLL_INTERVAL_MS_CONFIG, topicConfig.getMaxPollInterval());
+        }
 
         return Collections.unmodifiableMap(props);
     }

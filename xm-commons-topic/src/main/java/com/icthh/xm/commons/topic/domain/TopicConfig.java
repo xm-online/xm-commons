@@ -15,4 +15,5 @@ public class TopicConfig implements Serializable {
     private String deadLetterQueue;
     private String groupId;
     private Boolean logBody = true;
+    private Integer maxPollInterval;
 }

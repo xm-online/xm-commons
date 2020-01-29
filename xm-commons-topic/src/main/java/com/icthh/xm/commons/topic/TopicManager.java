@@ -102,6 +102,13 @@ public class TopicManager implements RefreshableConfiguration {
         String topicConfigKey = topicConfig.getKey();
         ConsumerHolder existingConfig = existingConsumers.get(topicConfigKey);
 
+        if (topicConfig.getMaxPollInterval() != null
+              && topicConfig.getBackOffPeriod() > topicConfig.getMaxPollInterval()) {
+            log.error("Consumer was not created, backOffPeriod is greater than maxPollInterval, topicConfig: [{}]",
+                      topicConfig);
+            return;
+        }
+
         if (existingConfig == null) {
             startNewConsumer(tenantKey, topicConfig, existingConsumers);
             return;

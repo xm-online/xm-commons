@@ -11,10 +11,16 @@ dependencies {
     compile project(":xm-commons-config")
     compile project(":xm-commons-lep")
 
+    implementation('org.springframework.cloud:spring-cloud-stream-binder-kafka')
+
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
 
     compile 'org.springframework.kafka:spring-kafka'
 
+    testCompile 'org.assertj:assertj-core'
+    testCompile "org.springframework.cloud:spring-cloud-stream-test-support"
+    testCompile "org.springframework.kafka:spring-kafka-test"
+    testCompile "org.springframework.boot:spring-boot-test"
     testCompile 'junit:junit'
     testCompile 'org.mockito:mockito-core'
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
