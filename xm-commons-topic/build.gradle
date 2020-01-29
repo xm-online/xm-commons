@@ -23,6 +23,7 @@ dependencies {
     testCompile "org.springframework.boot:spring-boot-test"
     testCompile 'junit:junit'
     testCompile 'org.mockito:mockito-core'
+    testCompile group: 'org.awaitility', name: 'awaitility', version: '3.1.6'
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
 }
 
