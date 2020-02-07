@@ -62,6 +62,10 @@ public class TenantConfigService implements RefreshableConfiguration {
     }
 
     private void processMap(Map<String, Object> map) {
+        if (map == null) {
+            return;
+        }
+
         map.entrySet().forEach(e -> {
             Object value = e.getValue();
             if (value instanceof Map) {
@@ -77,6 +81,10 @@ public class TenantConfigService implements RefreshableConfiguration {
     }
 
     private void processList(List<Object> list) {
+        if (list == null) {
+            return;
+        }
+
         for (int i = 0; i < list.size(); i++) {
             Object item = list.get(i);
 
