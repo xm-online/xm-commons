@@ -45,6 +45,7 @@ public class PrivilegeMapperUnitTest {
         assertEquals(CORRECT_YML, yml);
     }
 
+
     @Test
     public void testYmlToCollection() throws Exception {
         Map<String, Set<Privilege>> privileges = PrivilegeMapper.ymlToPrivileges(CORRECT_YML);
