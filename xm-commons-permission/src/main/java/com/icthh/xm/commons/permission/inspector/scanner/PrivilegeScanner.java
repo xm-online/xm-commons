@@ -88,6 +88,9 @@ public class PrivilegeScanner {
             if (StringUtils.isNotEmpty(customDescription)) {
                 privilege.setCustomDescription(customDescription);
             }
+        } else {
+            log.warn("Privilege [{}] does not have description. Add annotation @PrivilegeDescription to: {}",
+                     privilege.getKey(), method);
         }
     }
 
