@@ -51,4 +51,17 @@ public class TestClassWithPrivileges {
     public void testPostFilterWithoutDescriptionMethod(Object postFilter) {
 
     }
+
+    @FindWithPermission("TEST.MANY.PRIVILEGES")
+    @PreAuthorize("hasPermission({'preAuthVar': #preAuthVar}, 'TEST.MANY.PRIVILEGES')")
+    @PrivilegeDescription("test description for method with many privileges annotation")
+    public void testManyPrivilegesAnnotationMethod(Object preAuthVar) {
+
+    }
+
+    @FindWithPermission("TEST.MANY.PRIVILEGES.WITHOUT.DESCRIPTION")
+    @PostFilter("hasPermission({'postFilter': #postFilter}, 'TEST.MANY.PRIVILEGES.WITHOUT.DESCRIPTION')")
+    public void testManyPrivilegesAnnotationWithoutDescriptionMethod(Object postFilter) {
+
+    }
 }

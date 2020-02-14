@@ -47,7 +47,7 @@ public class PrivilegeScannerUnitTest {
         Set<Privilege> privilegeSet = privilegeScanner.scan();
 
         assertNotNull(privilegeSet);
-        assertEquals(8, privilegeSet.size());
+        assertEquals(10, privilegeSet.size());
 
         assertPrivilegesWithDescriptions(privilegeSet);
 
@@ -75,6 +75,11 @@ public class PrivilegeScannerUnitTest {
             "TEST.POST.FILTER".equals(permission.getKey())));
         assertTrue(privilegeSet.stream().anyMatch(permission ->
             "test description for post filter method".equals(permission.getCustomDescription())));
+
+        assertTrue(privilegeSet.stream().anyMatch(permission ->
+            "TEST.MANY.PRIVILEGES".equals(permission.getKey())));
+        assertTrue(privilegeSet.stream().anyMatch(permission ->
+            "test description for method with many privileges annotation".equals(permission.getCustomDescription())));
     }
 
     private void assertPrivilegesWithoutDescriptions(Set<Privilege> privilegeSet) {
@@ -83,7 +88,7 @@ public class PrivilegeScannerUnitTest {
                                                        .filter(permission -> isNull(permission.getCustomDescription()))
                                                        .collect(toSet());
 
-        assertEquals(4, privilegesWithoutDescriptions.size());
+        assertEquals(5, privilegesWithoutDescriptions.size());
 
         assertTrue(privilegesWithoutDescriptions.stream().anyMatch(permission ->
             "TEST.FIND.WITH.PERMISSION.WITHOUT.DESCRIPTION".equals(permission.getKey())));
@@ -93,5 +98,7 @@ public class PrivilegeScannerUnitTest {
             "TEST.POST.AUTHORIZE.WITHOUT.DESCRIPTION".equals(permission.getKey())));
         assertTrue(privilegesWithoutDescriptions.stream().anyMatch(permission ->
             "TEST.POST.FILTER.WITHOUT.DESCRIPTION".equals(permission.getKey())));
+        assertTrue(privilegesWithoutDescriptions.stream().anyMatch(permission ->
+            "TEST.MANY.PRIVILEGES.WITHOUT.DESCRIPTION".equals(permission.getKey())));
     }
 }
