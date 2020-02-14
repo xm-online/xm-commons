@@ -3,6 +3,7 @@ package com.icthh.xm.commons.permission.inspector.scanner;
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
 import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.commons.permission.domain.Privilege;
+import java.lang.annotation.Annotation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -40,8 +41,13 @@ public class PrivilegeScanner {
         StopWatch stopWatch = StopWatch.createStarted();
 
         Set<Privilege> privileges = new HashSet<>();
-        Set<Method> methodsAnnotatedPrivilegeDescription = reflections.getMethodsAnnotatedWith(PrivilegeDescription.class);
-        for (Method method: methodsAnnotatedPrivilegeDescription) {
+        Set<Method> securedMethods = new HashSet<>();
+        loadMethods(securedMethods, PreAuthorize.class);
+        loadMethods(securedMethods, PostAuthorize.class);
+        loadMethods(securedMethods, FindWithPermission.class);
+        loadMethods(securedMethods, PostFilter.class);
+
+        for (Method method: securedMethods) {
             PreAuthorize preAuthorize = method.getAnnotation(PreAuthorize.class);
             PostAuthorize postAuthorize = method.getAnnotation(PostAuthorize.class);
             FindWithPermission findWithPermission = method.getAnnotation(FindWithPermission.class);
@@ -67,16 +73,26 @@ public class PrivilegeScanner {
             }
 
             if (nonNull(privilege.getKey())) {
-                String customDescription = method.getAnnotation(PrivilegeDescription.class).value();
-                if (StringUtils.isNotEmpty(customDescription)) {
-                    privilege.setCustomDescription(customDescription);
-                }
+                updateCustomPrivilege(method, privilege);
                 privileges.add(privilege);
             }
         }
 
         log.info("Found {} privileges in {} ms", privileges.size(), stopWatch.getTime());
         return privileges;
+    }
+
+    private void updateCustomPrivilege(Method method, Privilege privilege) {
+        if (method.isAnnotationPresent(PrivilegeDescription.class)) {
+            String customDescription = method.getAnnotation(PrivilegeDescription.class).value();
+            if (StringUtils.isNotEmpty(customDescription)) {
+                privilege.setCustomDescription(customDescription);
+            }
+        }
+    }
+
+    private void loadMethods(Set<Method> securedMethods, Class<? extends Annotation> annotation) {
+        securedMethods.addAll(reflections.getMethodsAnnotatedWith(annotation));
     }
 
     private Privilege parse(String expression) {
