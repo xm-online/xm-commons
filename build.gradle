@@ -30,6 +30,7 @@ apply plugin: 'io.codearte.nexus-staging'
 // project parameters
 project.group = property('app.group')
 project.description = property('app.description')
+project.version = property('app.version')
 
 // project version
 apply from: rootProject.file('gradle/version.gradle')
