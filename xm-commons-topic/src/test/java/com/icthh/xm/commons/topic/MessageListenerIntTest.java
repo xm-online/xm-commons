@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -26,6 +27,7 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,8 +71,12 @@ public class MessageListenerIntTest {
     @Autowired
     private KafkaProperties kafkaProperties;
 
-    @MockBean
     private MessageHandler messageHandler;
+
+    @Before
+    public void before() {
+        messageHandler = mock(MessageHandler.class);
+    }
 
     @SneakyThrows
     @Test
@@ -90,6 +96,7 @@ public class MessageListenerIntTest {
                                                      new KafkaTemplate<>(kafkaProducerFactory),
                                                      messageHandler);
         topicManager.onRefresh(UPDATE_KEY, readConfig(CONFIG));
+        Thread.sleep(50); // for rebalance cluster, and avoid message will be consumed by other consumer
 
         doAnswer(answer -> {
             sleep(500);
@@ -112,6 +119,8 @@ public class MessageListenerIntTest {
         verifyNoMoreInteractions(messageHandler);
 
         producer.close();
+
+        topicManager.onRefresh(UPDATE_KEY, "");
     }
 
     @SneakyThrows
@@ -148,6 +157,8 @@ public class MessageListenerIntTest {
         producer.commitTransaction();
 
         producer.close();
+
+        topicManager.onRefresh(UPDATE_KEY, "");
     }
 
     @Test
@@ -182,6 +193,8 @@ public class MessageListenerIntTest {
         verify(messageHandler, timeout(2000)).onMessage(eq("value2"), eq(TENANT_KEY), any());
 
         producer.close();
+
+        topicManager.onRefresh(UPDATE_KEY, "");
     }
 
     private void initConsumers() {
