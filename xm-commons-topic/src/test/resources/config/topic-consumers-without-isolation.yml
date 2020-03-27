@@ -1,0 +1,9 @@
+---
+topics:
+  - key: key1
+    typeKey: incoming-messages
+    topicName: kafka-tx-queue
+    retriesCount: 3
+    backOffPeriod: 10000
+    groupId: test
+    deadLetterQueue: kafka-test-queue-dead-queue

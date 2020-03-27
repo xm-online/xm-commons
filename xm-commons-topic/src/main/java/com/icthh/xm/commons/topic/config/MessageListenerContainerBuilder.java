@@ -1,7 +1,9 @@
 package com.icthh.xm.commons.topic.config;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.ISOLATION_LEVEL_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import static org.springframework.kafka.listener.ContainerProperties.AckMode.MANUAL_IMMEDIATE;
 
@@ -15,13 +17,13 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.SeekToCurrentErrorHandler;
 import org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter;
-import org.springframework.kafka.listener.ContainerProperties;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
+
 
 @RequiredArgsConstructor
 public class MessageListenerContainerBuilder {
@@ -61,6 +63,10 @@ public class MessageListenerContainerBuilder {
         String groupId = StringUtils.isEmpty(groupIdFromConf) ? UUID.randomUUID().toString() : groupIdFromConf;
         props.put(GROUP_ID_CONFIG, groupId);
         props.put(ENABLE_AUTO_COMMIT_CONFIG, false);
+
+        if (isNotBlank(topicConfig.getIsolationLevel())) {
+            props.put(ISOLATION_LEVEL_CONFIG, topicConfig.getIsolationLevel());
+        }
 
         if (topicConfig.getMaxPollInterval() != null) {
             props.put(MAX_POLL_INTERVAL_MS_CONFIG, topicConfig.getMaxPollInterval());
