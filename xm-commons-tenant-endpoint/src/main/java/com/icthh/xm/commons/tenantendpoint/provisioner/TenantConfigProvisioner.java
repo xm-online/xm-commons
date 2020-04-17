@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +30,7 @@ public class TenantConfigProvisioner implements TenantProvisioner {
     private final TenantConfigRepository tenantConfigRepository;
 
     public static String prependTenantPath(String path) {
-        return Paths.get(TenantConfigRepository.PATH_CONFIG_TENANT, path).toString();
+        return FilenameUtils.separatorsToUnix(Paths.get(TenantConfigRepository.PATH_CONFIG_TENANT, path).toString());
     }
 
     @Override

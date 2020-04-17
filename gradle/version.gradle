@@ -1,6 +1,6 @@
 import java.util.regex.Pattern
 
-version = "2.1.10"//detectSemVersion()
+version = "2.1.11"//detectSemVersion()
 logger.lifecycle("Project  version: $version")
 
 String detectSemVersion() {

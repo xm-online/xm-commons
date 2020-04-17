@@ -45,6 +45,11 @@ public class TenantConfigProvisionerUnitTest {
         assertEquals("/config/tenants/{tenantName}/file4.txt", prependTenantPath("file4.txt"));
         assertEquals("/config/tenants/{tenantName}", prependTenantPath(""));
         assertEquals("/config/tenants/{tenantName}", prependTenantPath("/"));
+        //Several cases to cover possible problems with prepend tenant Path (for classpath resources) when system running on WindowsOS
+        assertEquals("/config/tenants/{tenantName}/uaa/emails/en/activationEmail.ftl", prependTenantPath("uaa\\emails\\en\\activationEmail.ftl"));
+        assertEquals("/config/tenants/{tenantName}/uaa/emails/en/creationEmail.ftl", prependTenantPath("uaa\\emails\\en\\creationEmail.ftl"));
+        assertEquals("/config/tenants/{tenantName}/uaa/emails/en/passwordResetEmail.ftl", prependTenantPath("uaa\\emails\\en\\passwordResetEmail.ftl"));
+        assertEquals("/config/tenants/{tenantName}/uaa/emails/en/socialRegistrationValidationEmail.ftl", prependTenantPath("uaa\\emails\\en\\socialRegistrationValidationEmail.ftl"));
     }
 
     @Test
