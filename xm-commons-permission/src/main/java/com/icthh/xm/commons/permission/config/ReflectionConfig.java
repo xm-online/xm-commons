@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ReflectionConfig {
 
-    @Value("${base-package: com.icthh.xm}")
+    @Value("${base-package:com.icthh.xm}")
     private String scanPackage;
 
     /**
