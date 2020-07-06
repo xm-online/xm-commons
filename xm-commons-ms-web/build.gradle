@@ -17,4 +17,5 @@ dependencies {
         exclude module: 'spring-boot-starter-tomcat'
     }
     compileOnly "javax.servlet:javax.servlet-api"
+    compile "com.ecwid.consul:consul-api"
 }
