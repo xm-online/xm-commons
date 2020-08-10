@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.logging.util;
 
 import com.icthh.xm.commons.logging.LoggingAspectConfig;
+import java.lang.reflect.Array;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.ArrayUtils;
@@ -314,7 +315,7 @@ public final class LogObjectPrinter {
             return "[<"
                    + clazz.getSimpleName()
                    + "> length = "
-                   + ((Object []) object).length + "]";
+                   + Array.getLength(object) + "]";
         }
 
         return object.toString();
