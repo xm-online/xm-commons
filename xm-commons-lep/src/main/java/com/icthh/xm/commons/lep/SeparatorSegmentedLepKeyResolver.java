@@ -24,7 +24,12 @@ public abstract class SeparatorSegmentedLepKeyResolver implements LepKeyResolver
     /**
      * Method parameter index cache by name.
      */
-    private Map<String, Integer> paramNameIndex = new HashMap<>(AVERAGE_PARAMETERS_COUNT);
+    private final Map<String, Integer> paramNameIndex = new HashMap<>(AVERAGE_PARAMETERS_COUNT);
+
+    /**
+     * Key template for parameter index cache.
+     */
+    private static final String INDEX_NAME_KEY_TEMPLATE = "%s:%s";
 
     /**
      * Translate from XmEntity naming convention to LEP script/key naming convention.
@@ -85,14 +90,14 @@ public abstract class SeparatorSegmentedLepKeyResolver implements LepKeyResolver
         if (paramName.isEmpty()) {
             throw new IllegalArgumentException("paramName can't be blank");
         }
-
-        Integer paramIndex = paramNameIndex.get(paramName);
+        String cacheKey = buildParamIndexCacheKey(method, paramName);
+        Integer paramIndex = paramNameIndex.get(cacheKey);
         if (paramIndex == null) {
             String[] parameterNames = method.getMethodSignature().getParameterNames();
             for (int i = 0; i < parameterNames.length; i++) {
                 if (paramName.equals(parameterNames[i])) {
                     paramIndex = i;
-                    paramNameIndex.put(paramName, paramIndex);
+                    paramNameIndex.put(cacheKey, paramIndex);
                     break;
                 }
             }
@@ -104,6 +109,11 @@ public abstract class SeparatorSegmentedLepKeyResolver implements LepKeyResolver
         }
 
         return paramIndex;
+    }
+
+    private String buildParamIndexCacheKey(LepMethod method, final String paramName) {
+        int cacheKey = method.getMethodSignature().getMethod().hashCode();
+        return String.format(INDEX_NAME_KEY_TEMPLATE, cacheKey, paramName);
     }
 
     protected <T> T getRequiredParam(LepMethod method, String paramName, Class<T> valueType) {

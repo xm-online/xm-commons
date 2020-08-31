@@ -13,10 +13,13 @@ import com.icthh.xm.lep.api.LepManagerService;
 import com.icthh.xm.lep.api.LepMethod;
 import com.icthh.xm.lep.api.MethodSignature;
 import com.icthh.xm.lep.api.commons.SeparatorSegmentedLepKey;
+import lombok.SneakyThrows;
 import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import java.lang.reflect.Method;
 
 /**
  * The {@link SeparatorSegmentedLepKeyResolverUnitTest} class.
@@ -84,25 +87,31 @@ public class SeparatorSegmentedLepKeyResolverUnitTest {
     }
 
     @Test
+    @SneakyThrows
     public void getMethodParamValue() {
         MethodSignature signature = mock(MethodSignature.class);
-        when(signature.getParameterNames()).thenReturn(new String[] {"a", "b"});
+        when(signature.getParameterNames()).thenReturn(new String[]{"a", "b"});
+        Method methodAb = TestSignature.class.getMethod("testMethodAb", String.class, String.class);
+        when(signature.getMethod()).thenReturn(methodAb);
 
         LepMethod lepMethod = mock(LepMethod.class);
         when(lepMethod.getMethodSignature()).thenReturn(signature);
-        when(lepMethod.getMethodArgValues()).thenReturn(new Object[] {null, "valueB"});
+        when(lepMethod.getMethodArgValues()).thenReturn(new Object[]{null, "valueB"});
 
         SeparatorSegmentedLepKeyResolver resolver = new AsIsSeparatorSegmentedLepKeyResolver();
         assertEquals("valueB", resolver.getParamValue(lepMethod, "b"));
     }
 
     @Test
+    @SneakyThrows
     public void getMethodUndefinedParam() {
         expectedEx.expect(IllegalStateException.class);
         expectedEx.expectMessage(Matchers.startsWith("Can't find parameter 'c' for method:"));
 
         MethodSignature signature = mock(MethodSignature.class);
-        when(signature.getParameterNames()).thenReturn(new String[] {"a", "b"});
+        when(signature.getParameterNames()).thenReturn(new String[]{"a", "b"});
+        Method methodAb = TestSignature.class.getMethod("testMethodAb", String.class, String.class);
+        when(signature.getMethod()).thenReturn(methodAb);
 
         LepMethod lepMethod = mock(LepMethod.class);
         when(lepMethod.getMethodSignature()).thenReturn(signature);
@@ -112,55 +121,67 @@ public class SeparatorSegmentedLepKeyResolverUnitTest {
     }
 
     @Test
+    @SneakyThrows
     public void getMethodParamValueWithCast() {
         MethodSignature signature = mock(MethodSignature.class);
-        when(signature.getParameterNames()).thenReturn(new String[] {"a"});
+        when(signature.getParameterNames()).thenReturn(new String[]{"a"});
+        Method methodAb = TestSignature.class.getMethod("testMethodAb", String.class, String.class);
+        when(signature.getMethod()).thenReturn(methodAb);
 
         LepMethod lepMethod = mock(LepMethod.class);
         when(lepMethod.getMethodSignature()).thenReturn(signature);
-        when(lepMethod.getMethodArgValues()).thenReturn(new Object[] {10L});
+        when(lepMethod.getMethodArgValues()).thenReturn(new Object[]{10L});
 
         SeparatorSegmentedLepKeyResolver resolver = new AsIsSeparatorSegmentedLepKeyResolver();
         assertEquals(Long.valueOf(10L), resolver.getParamValue(lepMethod, "a", Long.class));
     }
 
     @Test
+    @SneakyThrows
     public void getRequiredNonNullMethodParamValue() {
         MethodSignature signature = mock(MethodSignature.class);
-        when(signature.getParameterNames()).thenReturn(new String[] {"a", "b"});
+        when(signature.getParameterNames()).thenReturn(new String[]{"a", "b"});
+        Method methodAb = TestSignature.class.getMethod("testMethodAb", String.class, String.class);
+        when(signature.getMethod()).thenReturn(methodAb);
 
         LepMethod lepMethod = mock(LepMethod.class);
         when(lepMethod.getMethodSignature()).thenReturn(signature);
-        when(lepMethod.getMethodArgValues()).thenReturn(new Object[] {null, "valueB"});
+        when(lepMethod.getMethodArgValues()).thenReturn(new Object[]{null, "valueB"});
 
         SeparatorSegmentedLepKeyResolver resolver = new AsIsSeparatorSegmentedLepKeyResolver();
         assertEquals("valueB", resolver.getRequiredParam(lepMethod, "b", String.class));
     }
 
     @Test
+    @SneakyThrows
     public void getRequiredNullMethodParamValue() {
         expectedEx.expect(IllegalArgumentException.class);
         expectedEx.expectMessage(Matchers.startsWith("LEP method "));
 
         MethodSignature signature = mock(MethodSignature.class);
-        when(signature.getParameterNames()).thenReturn(new String[] {"a", "b"});
+        when(signature.getParameterNames()).thenReturn(new String[]{"a", "b"});
+        Method methodAb = TestSignature.class.getMethod("testMethodAb", String.class, String.class);
+        when(signature.getMethod()).thenReturn(methodAb);
 
         LepMethod lepMethod = mock(LepMethod.class);
         when(lepMethod.getMethodSignature()).thenReturn(signature);
-        when(lepMethod.getMethodArgValues()).thenReturn(new Object[] {null, "valueB"});
+        when(lepMethod.getMethodArgValues()).thenReturn(new Object[]{null, "valueB"});
 
         SeparatorSegmentedLepKeyResolver resolver = new AsIsSeparatorSegmentedLepKeyResolver();
         resolver.getRequiredParam(lepMethod, "a", String.class);
     }
 
     @Test
+    @SneakyThrows
     public void getStrParam() {
         MethodSignature signature = mock(MethodSignature.class);
-        when(signature.getParameterNames()).thenReturn(new String[] {"a", "b"});
+        when(signature.getParameterNames()).thenReturn(new String[]{"a", "b"});
+        Method methodAb = TestSignature.class.getMethod("testMethodAb", String.class, String.class);
+        when(signature.getMethod()).thenReturn(methodAb);
 
         LepMethod lepMethod = mock(LepMethod.class);
         when(lepMethod.getMethodSignature()).thenReturn(signature);
-        when(lepMethod.getMethodArgValues()).thenReturn(new Object[] {null, "valueB"});
+        when(lepMethod.getMethodArgValues()).thenReturn(new Object[]{null, "valueB"});
 
         SeparatorSegmentedLepKeyResolver resolver = new AsIsSeparatorSegmentedLepKeyResolver();
         assertNull(resolver.getStrParam(lepMethod, "a"));
@@ -168,16 +189,42 @@ public class SeparatorSegmentedLepKeyResolverUnitTest {
     }
 
     @Test
+    @SneakyThrows
     public void getRequiredStrParam() {
         MethodSignature signature = mock(MethodSignature.class);
-        when(signature.getParameterNames()).thenReturn(new String[] {"a", "b"});
+        when(signature.getParameterNames()).thenReturn(new String[]{"a", "b"});
+        Method methodAb = TestSignature.class.getMethod("testMethodAb", String.class, String.class);
+        when(signature.getMethod()).thenReturn(methodAb);
 
         LepMethod lepMethod = mock(LepMethod.class);
         when(lepMethod.getMethodSignature()).thenReturn(signature);
-        when(lepMethod.getMethodArgValues()).thenReturn(new Object[] {null, "valueB"});
+        when(lepMethod.getMethodArgValues()).thenReturn(new Object[]{null, "valueB"});
 
         SeparatorSegmentedLepKeyResolver resolver = new AsIsSeparatorSegmentedLepKeyResolver();
         assertEquals("valueB", resolver.getRequiredStrParam(lepMethod, "b"));
+    }
+
+    @Test
+    @SneakyThrows
+    public void paramNameIndexTest() {
+        MethodSignature signature = mock(MethodSignature.class);
+        LepMethod lepMethod = mock(LepMethod.class);
+        when(lepMethod.getMethodSignature()).thenReturn(signature);
+
+        //first method
+        when(signature.getParameterNames()).thenReturn(new String[]{"a", "b"});
+        Method methodAb = TestSignature.class.getMethod("testMethodAb", String.class, String.class);
+        when(signature.getMethod()).thenReturn(methodAb);
+
+        SeparatorSegmentedLepKeyResolver resolver = new AsIsSeparatorSegmentedLepKeyResolver();
+        assertEquals(1, resolver.getParamIndex(lepMethod, "b"));
+
+        //second method with another parameter order
+        when(signature.getParameterNames()).thenReturn(new String[]{"b", "a"});
+        Method methodBa = TestSignature.class.getMethod("testMethodBa", String.class, String.class);
+        when(signature.getMethod()).thenReturn(methodBa);
+
+        assertEquals(0, resolver.getParamIndex(lepMethod, "b"));
     }
 
     private static class AsIsSeparatorSegmentedLepKeyResolver extends SeparatorSegmentedLepKeyResolver {
@@ -187,6 +234,17 @@ public class SeparatorSegmentedLepKeyResolverUnitTest {
             return baseKey;
         }
 
+    }
+
+    private static class TestSignature {
+
+        public void testMethodAb(String a, String b) {
+
+        }
+
+        public void testMethodBa(String b, String a) {
+
+        }
     }
 
 }
