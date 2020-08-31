@@ -7,9 +7,9 @@ import com.icthh.xm.lep.api.LepMethod;
 import com.icthh.xm.lep.api.MethodSignature;
 import com.icthh.xm.lep.api.commons.SeparatorSegmentedLepKey;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The {@link SeparatorSegmentedLepKeyResolver} class.
@@ -24,7 +24,7 @@ public abstract class SeparatorSegmentedLepKeyResolver implements LepKeyResolver
     /**
      * Method parameter index cache by name.
      */
-    private final Map<String, Integer> paramNameIndex = new HashMap<>(AVERAGE_PARAMETERS_COUNT);
+    private final Map<String, Integer> paramNameIndex = new ConcurrentHashMap<>(AVERAGE_PARAMETERS_COUNT);
 
     /**
      * Key template for parameter index cache.
