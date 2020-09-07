@@ -31,6 +31,7 @@ dependencies {
     compile "org.hibernate:hibernate-core:${versions.hibernate}"
     compile "org.springframework.data:spring-data-commons:${versions.springData}"
 
+    testCompile 'javax.servlet:javax.servlet-api'
     testCompile 'junit:junit'
     testCompile 'org.mockito:mockito-core'
     testCompile 'org.assertj:assertj-core'
