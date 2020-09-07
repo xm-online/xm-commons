@@ -26,10 +26,14 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.expression.OAuth2SecurityExpressionMethods;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -39,6 +43,8 @@ public class PermissionCheckService {
 
     private static final String ERROR_ROLE_IS_UNDEFINED = "Role is undefined";
     private static final String LOG_KEY = "log";
+
+    private static final Method GET_REQUEST_HEADER = lookupGetRequestHeaderMethod();
 
     private final TenantContextHolder tenantContextHolder;
     private final PermissionService permissionService;
@@ -156,6 +162,7 @@ public class PermissionCheckService {
 
         StandardEvaluationContext context = new StandardEvaluationContext();
         context.setVariables(resources);
+        context.registerFunction("getRequestHeader", GET_REQUEST_HEADER);
 
         Permission permission = getPermission(roleKey, privilegeKey);
 
@@ -285,6 +292,22 @@ public class PermissionCheckService {
                 break;
             default:
                 break;
+        }
+    }
+
+    @SneakyThrows
+    private static Method lookupGetRequestHeaderMethod() {
+        return RequestHeaderUtils.class.getDeclaredMethod("getRequestHeader", String.class);
+    }
+
+    private static class RequestHeaderUtils {
+        public static String getRequestHeader(String headerName) {
+            return Optional.ofNullable(RequestContextHolder.getRequestAttributes())
+                .filter(ServletRequestAttributes.class::isInstance)
+                .map(ServletRequestAttributes.class::cast)
+                .map(ServletRequestAttributes::getRequest)
+                .map(request -> request.getHeader(headerName))
+                .orElse(null);
         }
     }
 }
