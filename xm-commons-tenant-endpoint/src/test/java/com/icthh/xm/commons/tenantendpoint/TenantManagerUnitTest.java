@@ -126,6 +126,19 @@ public class TenantManagerUnitTest {
 
     }
 
+    @Test
+    public void testDefaultExceptionHandler() {
+        doThrow(new BusinessException("Bang Business 1!")).when(service1).createTenant(any());
+        runWithExceptionExpected(() -> tenantManager.createTenant(new Tenant().tenantKey(TENANT_KEY)),
+                                 BusinessException.class, "Bang Business 1!");
+        doThrow(new BusinessException("Bang Business 2!")).when(service1).manageTenant(any(), any());
+        runWithExceptionExpected(() -> tenantManager.manageTenant(TENANT_KEY, "state"),
+                                 BusinessException.class, "Bang Business 2!");
+        doThrow(new BusinessException("Bang Business 3!")).when(service1).deleteTenant(any());
+        runWithExceptionExpected(() -> tenantManager.deleteTenant(TENANT_KEY),
+                                 BusinessException.class, "Bang Business 3!");
+    }
+
     private void runWithExceptionExpected(Runnable r, Class<? extends Exception> type, String message) {
 
         try {
