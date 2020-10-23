@@ -70,9 +70,10 @@ public class TenantManager {
 
     private static <E extends Exception> Consumer<E> defaultExceptionHandler() {
         return e -> {
-            if (!(e instanceof BusinessException)) {
-                throw new BusinessException(e.getMessage());
+            if (e instanceof BusinessException) {
+                throw (BusinessException)e;
             }
+            throw new BusinessException(e.getMessage());
         };
     }
 
