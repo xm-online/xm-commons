@@ -3,7 +3,6 @@ package com.icthh.xm.commons.config.client.service;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -38,10 +37,6 @@ public class SecurityTenantConfigService extends TenantConfigService {
             config = skipNullFields(config, objectMapper);
             SecurityTenantConfig value = objectMapper.readValue(config, SecurityTenantConfig.class);
             configs.put(getTenantKey(updatedKey), value);
-
-            log.info("config )))>>>>> {}", config);
-
-            log.info("..........>>>>>>>>>> {}", configs);
         } catch (Exception e) {
             log.error("Error read tenant configuration from path [{}]", updatedKey, e);
         }
@@ -68,12 +63,9 @@ public class SecurityTenantConfigService extends TenantConfigService {
     public static class SecurityTenantConfig {
 
         private PermissionConfig permissionConfig = new PermissionConfig();
-
-        String bbb;
         @Data
         public static class PermissionConfig {
             private Boolean separatePermissionFile = false;
-            String aaa;
         }
     }
 }
