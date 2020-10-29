@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.lep;
 
-import static com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader.XM_MS_CONFIG_URL_PREFIX;
 import static org.springframework.core.io.ResourceLoader.CLASSPATH_URL_PREFIX;
 
 import com.icthh.xm.lep.api.ContextsHolder;
@@ -17,14 +16,12 @@ import com.icthh.xm.lep.script.InputStreamSupplier;
 import com.icthh.xm.lep.script.ScriptLepResource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -96,7 +93,7 @@ public class XmLepResourceService implements LepResourceService {
 
         // build descriptor
         return new DefaultLepResourceDescriptor(getResourceType(resourceKey), resourceKey,
-                                                Instant.EPOCH, modificationTime);
+            Instant.EPOCH, modificationTime);
     }
 
     private static LepResourceType getResourceType(LepResourceKey resourceKey) {
@@ -209,24 +206,6 @@ public class XmLepResourceService implements LepResourceService {
 
     private String getTenantScriptLocation(String path, ContextsHolder contextsHolder) {
         String tenantKey = LepContextUtils.getTenantKey(contextsHolder);
-        switch (tenantScriptStorage) {
-            case CLASSPATH:
-                return CLASSPATH_URL_PREFIX + "/lep/custom/" + tenantKey.toLowerCase() + path;
-
-            case XM_MS_CONFIG:
-                return XM_MS_CONFIG_URL_PREFIX + "/config/tenants/" + tenantKey.toUpperCase() + "/"
-                    + appName + "/lep" + path;
-
-            case FILE: {
-                String lepDir = Paths.get(FileSystemUtils.APP_HOME_DIR, "config", "tenants",
-                                          tenantKey.toUpperCase(), appName, "lep").toString();
-                return "file://" + lepDir + FilenameUtils.separatorsToSystem(path);
-            }
-
-            default:
-                throw new IllegalStateException("Unsupported tenant script storage type: "
-                                                    + tenantScriptStorage);
-        }
+        return tenantScriptStorage.resolvePath(tenantKey, appName, path);
     }
-
 }
