@@ -1,5 +1,9 @@
 package com.icthh.xm.commons.lep;
 
+import com.icthh.xm.commons.logging.config.LoggingConfig;
+import com.icthh.xm.commons.logging.config.LoggingConfig.LepLogConfiguration;
+import com.icthh.xm.commons.logging.config.LoggingConfigService;
+import com.icthh.xm.commons.logging.util.LogObjectPrinter;
 import com.icthh.xm.lep.api.LepExecutorEvent;
 import com.icthh.xm.lep.api.LepExecutorEvent.AfterResourceExecutionEvent;
 import com.icthh.xm.lep.api.LepExecutorEvent.BeforeResourceExecutionEvent;
@@ -7,10 +11,13 @@ import com.icthh.xm.lep.api.LepExecutorEvent.ResultObject;
 import com.icthh.xm.lep.api.LepExecutorListener;
 import com.icthh.xm.lep.api.LepMethod;
 import com.icthh.xm.lep.api.MethodSignature;
-import com.icthh.xm.commons.logging.util.LogObjectPrinter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Objects;
 import java.util.Optional;
+
+import static com.icthh.xm.commons.logging.util.LogObjectPrinter.setLevelAndPrint;
+
 
 /**
  * Lep executor listener implementation (see {@link LepExecutorListener}) desired to print start, stop and error records
@@ -20,8 +27,16 @@ import java.util.Optional;
 public class XmLepLoggingExecutorListener implements LepExecutorListener {
 
     private static final String LOG_QUESTION = "?";
-
     private static final String LOG_SEMICOLON = ":";
+    private static final String LOG_START_PATTERN = "lep:start: execute lep at [{}], script: {}";
+    private static final String LOG_STOP_PATTERN = "lep:stop:  execute lep at [{}], script: {}";
+    private static final String LOG_ERROR_PATTERN = "lep:stop:  execute lep error at [{}], script: {}, error: {}";
+
+    private final LoggingConfigService loggingConfigService;
+
+    public XmLepLoggingExecutorListener(LoggingConfigService loggingConfigService) {
+        this.loggingConfigService = loggingConfigService;
+    }
 
     @Override
     public void accept(final LepExecutorEvent lepExecutorEvent) {
@@ -30,14 +45,24 @@ public class XmLepLoggingExecutorListener implements LepExecutorListener {
         } else if (lepExecutorEvent instanceof AfterResourceExecutionEvent) {
             onAfterEvent((AfterResourceExecutionEvent) lepExecutorEvent);
         }
-
     }
 
     private void onBeforeEvent(BeforeResourceExecutionEvent beforeEvent) {
 
-        log.info("lep:start: execute lep at [{}], script: {}",
-                 buildLepSignature(beforeEvent.getMethod()),
-                 beforeEvent.getKey());
+        LepLogConfiguration loggingConfig = loggingConfigService.getLepLoggingConfig(beforeEvent.getKey().getId());
+
+        if (Objects.isNull(loggingConfig)) {
+            log.info(LOG_START_PATTERN,
+                buildLepSignature(beforeEvent.getMethod()),
+                beforeEvent.getKey());
+            return;
+        }
+
+        setLevelAndPrint(log, loggingConfig.getLevel(),
+            LOG_START_PATTERN,
+            buildLepSignature(beforeEvent.getMethod()),
+            beforeEvent.getKey());
+
     }
 
     private void onAfterEvent(AfterResourceExecutionEvent afterEvent) {
@@ -49,19 +74,23 @@ public class XmLepLoggingExecutorListener implements LepExecutorListener {
         if (exception.isPresent()) {
             logStopError(signatureToPrint, scriptName, exception.get());
         } else {
-            logStop(signatureToPrint, scriptName);
+            LepLogConfiguration loggingConfig = loggingConfigService.getLepLoggingConfig(afterEvent.getKey().getId());
+            logStop(signatureToPrint, scriptName, loggingConfig);
         }
 
     }
 
-    private void logStop(String signature, String scriptName) {
-        log.info("lep:stop:  execute lep at [{}], script: {}",
-                 signature,
-                 scriptName);
+    private void logStop(String signature, String scriptName, LepLogConfiguration config) {
+        if (Objects.isNull(config)) {
+            log.info(LOG_STOP_PATTERN, signature, scriptName);
+        } else {
+
+            setLevelAndPrint(log, config.getLevel(), LOG_STOP_PATTERN, signature, scriptName);
+        }
     }
 
     private void logStopError(String signature, String scriptName, Exception e) {
-        log.error("lep:stop:  execute lep error at [{}], script: {}, error: {}",
+        log.error(LOG_ERROR_PATTERN,
                   signature,
                   scriptName,
                   LogObjectPrinter.printExceptionWithStackInfo(e));

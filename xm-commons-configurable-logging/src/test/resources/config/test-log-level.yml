@@ -1,0 +1,6 @@
+---
+service:
+  - className: TestService
+    methodName: testMethodFirst
+    packageName:
+    level: WARN

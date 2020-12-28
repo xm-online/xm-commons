@@ -1,0 +1,33 @@
+---
+service:
+  - className: TestService
+    methodName: findAll
+    packageName:
+    level: TRACE
+    logInput:
+      details: true
+      collectionAware: false
+      includeParams:
+        - privilegeKey
+      excludeParams:
+    logResult:
+      resultDetails: true
+      resultCollectionAware: true
+api:
+  - className: TestResource
+    methodName: testMethodFirst
+    packageName:
+    level: TRACE
+    logInput:
+      details: true
+      collectionAware: false
+      includeParams:
+        - privilegeKey
+      excludeParams:
+    logResult:
+      resultDetails: true
+      resultCollectionAware: true
+lep:
+  - group: function
+    fileName: Function$$RUN_LEP$$tenant.groovy
+    level: TRACE

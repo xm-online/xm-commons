@@ -1,8 +1,12 @@
 package com.icthh.xm.commons.logging.web.aop;
 
+import com.icthh.xm.commons.logging.LoggingAspectConfig;
+import com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration;
+import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.logging.util.LogObjectPrinter;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.logging.web.util.WebLogObjectPrinter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -21,6 +25,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.Arrays;
+import java.util.Objects;
+
+import static com.icthh.xm.commons.logging.config.LoggingConfig.DEFAULT_LOG_RESULT_DETAILS;
+import static com.icthh.xm.commons.logging.util.LogObjectPrinter.setLevelAndPrint;
+
 
 /**
  * Aspect for REST controller logging.
@@ -29,9 +38,15 @@ import java.util.Arrays;
 @Slf4j
 @Aspect
 @Component
+@RequiredArgsConstructor
 public class RestLoggingAspect {
 
     private static final String XM_BASE_PACKAGE = "com.icthh.xm";
+    private static final String LOG_START_PATTERN = "START {} : {} --> {}, input: {}";
+    private static final String LOG_STOP_PATTERN = "STOP  {} : {} --> {}, result: {}, time = {} ms";
+    public static final String LOG_ERROR_PATTERN = "STOP  {} : {} --> {}, error: {}, time = {} ms";
+
+    private final LoggingConfigService loggingConfigService;
 
     @Value("${base-package:'-'}")
     private String basePackage;
@@ -159,11 +174,31 @@ public class RestLoggingAspect {
             return;
         }
 
-        log.info("START {} : {} --> {}, input: {}",
-                 method,
-                 LogObjectPrinter.joinUrlPaths(controllerPath, methodPath),
-                 LogObjectPrinter.getCallMethod(joinPoint),
-                 LogObjectPrinter.printInputParams(joinPoint));
+        className = joinPoint.getSignature().getDeclaringType().getSimpleName();
+        String packageName = joinPoint.getSignature().getDeclaringType().getPackageName();
+        String methodName = joinPoint.getSignature().getName();
+
+        LogConfiguration config = loggingConfigService.getApiLoggingConfig(packageName, className, methodName);
+
+        if (Objects.isNull(config)) {
+            RestLoggingAspect.log.info(LOG_START_PATTERN,
+                method,
+                LogObjectPrinter.joinUrlPaths(controllerPath, methodPath),
+                LogObjectPrinter.getCallMethod(joinPoint),
+                LogObjectPrinter.printInputParams(joinPoint));
+            return;
+
+        }
+
+        setLevelAndPrint(log, config.getLevel(),
+            LOG_START_PATTERN,
+            method,
+            LogObjectPrinter.joinUrlPaths(controllerPath, methodPath),
+            LogObjectPrinter.getCallMethod(joinPoint),
+            LogObjectPrinter.printInputParams(joinPoint, config.getLogInput()));
+
+
+
     }
 
     private void logStop(final JoinPoint joinPoint, String method, final String[] controllerPath,
@@ -175,12 +210,34 @@ public class RestLoggingAspect {
             return;
         }
 
-        log.info("STOP  {} : {} --> {}, result: {}, time = {} ms",
-                 method,
-                 LogObjectPrinter.joinUrlPaths(controllerPath, methodPath),
-                 LogObjectPrinter.getCallMethod(joinPoint),
-                 WebLogObjectPrinter.printRestResult(joinPoint, result),
-                 MdcUtils.getExecTimeMs());
+        className = joinPoint.getSignature().getDeclaringType().getSimpleName();
+        String packageName = joinPoint.getSignature().getDeclaringType().getPackageName();
+        String methodName = joinPoint.getSignature().getName();
+
+        LogConfiguration config = loggingConfigService.getApiLoggingConfig(packageName, className, methodName);
+
+        if (Objects.isNull(config)) {
+            log.info(LOG_STOP_PATTERN,
+                method,
+                LogObjectPrinter.joinUrlPaths(controllerPath, methodPath),
+                LogObjectPrinter.getCallMethod(joinPoint),
+                WebLogObjectPrinter.printRestResult(joinPoint, result),
+                MdcUtils.getExecTimeMs());
+            return;
+        }
+
+        boolean printResult = DEFAULT_LOG_RESULT_DETAILS;
+        if (Objects.nonNull(config.getLogResult()) && Objects.nonNull(config.getLogResult().getResultDetails())) {
+            printResult = config.getLogResult().getResultDetails();
+        }
+
+        setLevelAndPrint(log, config.getLevel(),
+            LOG_STOP_PATTERN,
+            method,
+            LogObjectPrinter.joinUrlPaths(controllerPath, methodPath),
+            LogObjectPrinter.getCallMethod(joinPoint),
+            WebLogObjectPrinter.printRestResult(joinPoint, result, printResult),
+            MdcUtils.getExecTimeMs());
     }
 
     private void logError(final JoinPoint joinPoint, String method, final String[] controllerPath,
@@ -192,7 +249,7 @@ public class RestLoggingAspect {
             return;
         }
 
-        log.error("STOP  {} : {} --> {}, error: {}, time = {} ms",
+        log.error(LOG_ERROR_PATTERN,
                   method,
                   LogObjectPrinter.joinUrlPaths(controllerPath, methodPath),
                   LogObjectPrinter.getCallMethod(joinPoint),

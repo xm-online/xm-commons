@@ -17,8 +17,7 @@ public class CommonsExecutor {
         this.packagePath = packagePath;
     }
 
-    public Object methodMissing(String name, Object args){
-        log.info("Execute commons function: {}.{}() with args: {}", packagePath, name, args);
+    public Object methodMissing(String name, Object args) {
         return commonsService.execute(packagePath, name, args);
     }
 

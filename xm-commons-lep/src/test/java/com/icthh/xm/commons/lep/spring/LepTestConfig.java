@@ -1,9 +1,8 @@
 package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.lep.TenantScriptStorage;
-import com.icthh.xm.commons.lep.spring.TestLepService;
-import com.icthh.xm.commons.lep.spring.EnableLepServices;
-import com.icthh.xm.commons.lep.spring.LepSpringConfiguration;
+import com.icthh.xm.commons.logging.config.LoggingConfigService;
+import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +32,11 @@ public class LepTestConfig extends LepSpringConfiguration {
     @Bean
     public TestLepService testLepService() {
         return new TestLepService();
+    }
+
+    @Bean
+    public LoggingConfigService LoggingConfigService() {
+        return new LoggingConfigServiceStub();
     }
 
 }

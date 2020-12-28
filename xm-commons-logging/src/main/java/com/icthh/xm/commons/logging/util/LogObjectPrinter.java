@@ -1,27 +1,24 @@
 package com.icthh.xm.commons.logging.util;
 
 import com.icthh.xm.commons.logging.LoggingAspectConfig;
-import java.lang.reflect.Array;
+import com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration.LogInput;
+import com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration.LogResult;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.lang.reflect.Array;
+import java.util.*;
 import java.util.stream.IntStream;
+
+import static com.icthh.xm.commons.logging.config.LoggingConfig.*;
+import static java.lang.Boolean.FALSE;
 
 /**
  * Utility class for object printing in Logging aspects.
@@ -155,22 +152,22 @@ public final class LogObjectPrinter {
                 return PRINT_EMPTY_LIST;
             }
 
-            Optional<LoggingAspectConfig> config = AopAnnotationUtils.getConfigAnnotation(joinPoint);
+            Optional<LoggingAspectConfig> annotationConfig = AopAnnotationUtils.getConfigAnnotation(joinPoint);
 
             String[] includeParams = includeParamNames;
             String[] excludeParams = EMPTY_ARRAY;
             boolean inputCollectionAware = LoggingAspectConfig.DEFAULT_INPUT_COLLECTION_AWARE;
 
-            if (config.isPresent()) {
-                if (!config.get().inputDetails()) {
+            if (annotationConfig.isPresent()) {
+                if (!annotationConfig.get().inputDetails()) {
                     return PRINT_HIDDEN;
                 }
-                inputCollectionAware = config.get().inputCollectionAware();
-                if (ArrayUtils.isNotEmpty(config.get().inputIncludeParams())) {
-                    includeParams = config.get().inputIncludeParams();
+                inputCollectionAware = annotationConfig.get().inputCollectionAware();
+                if (ArrayUtils.isNotEmpty(annotationConfig.get().inputIncludeParams())) {
+                    includeParams = annotationConfig.get().inputIncludeParams();
                 }
-                if (ArrayUtils.isEmpty(includeParams) && ArrayUtils.isNotEmpty(config.get().inputExcludeParams())) {
-                    excludeParams = config.get().inputExcludeParams();
+                if (ArrayUtils.isEmpty(includeParams) && ArrayUtils.isNotEmpty(annotationConfig.get().inputExcludeParams())) {
+                    excludeParams = annotationConfig.get().inputExcludeParams();
                 }
             }
 
@@ -187,7 +184,57 @@ public final class LogObjectPrinter {
         }
     }
 
-    private static String renderParams(JoinPoint joinPoint, String[] params, String[] includeParamNames,
+    public static String printInputParams(JoinPoint joinPoint, LogInput config) {
+        try {
+            if (joinPoint == null) {
+                return "joinPoint is null";
+            }
+
+            if (Objects.isNull(config)) {
+                return printInputParams(joinPoint);
+            }
+
+            Signature signature = joinPoint.getSignature();
+            if (!(signature instanceof MethodSignature)) {
+                return PRINT_EMPTY_LIST;
+            }
+
+            if (Objects.isNull(config.getDetails())) {
+                config.setDetails(DEFAULT_LOG_INPUT_DETAILS);
+            }
+
+            if (Objects.isNull(config.getCollectionAware())) {
+                config.setCollectionAware(DEFAULT_LOG_INPUT_COLLECTION_AWARE);
+            }
+
+            if (!config.getDetails()) {
+                return PRINT_HIDDEN;
+            }
+
+            if (Objects.isNull(config.getExcludeParams())) {
+                config.setExcludeParams(List.of());
+            }
+
+            if (CollectionUtils.isNotEmpty(config.getIncludeParams())) {
+                config.setExcludeParams(List.of());
+            } else {
+                config.setIncludeParams(List.of());
+            }
+
+            MethodSignature ms = (MethodSignature) signature;
+            String[] params = ms.getParameterNames();
+            return ArrayUtils.isNotEmpty(params) ? renderParams(joinPoint,
+                params,
+                config.getIncludeParams().toArray(String[]::new),
+                config.getExcludeParams().toArray(String[]::new),
+                config.getCollectionAware()) : PRINT_EMPTY_LIST;
+        } catch (IndexOutOfBoundsException | IllegalArgumentException e) {
+            log.warn("Error while print params: {}, params = {}", e, joinPoint.getArgs());
+            return "printerror: " + e;
+        }
+    }
+
+    static String renderParams(JoinPoint joinPoint, String[] params, String[] includeParamNames,
                                        String[] excludeParamNames, boolean inputCollectionAware) {
 
         Set<String> includeSet = prepareNameSet(includeParamNames);
@@ -278,6 +325,30 @@ public final class LogObjectPrinter {
 
     }
 
+    public static String printResult(final JoinPoint joinPoint, final Object object, LogResult config) {
+        if (Objects.isNull(config)) {
+            printResult(joinPoint, object);
+        }
+
+        if (config.getResultDetails()) {
+            config.setResultDetails(DEFAULT_LOG_RESULT_DETAILS);
+        }
+
+        if (config.getResultCollectionAware()) {
+            config.setResultCollectionAware(DEFAULT_LOG_RESULT_COLLECTION_AWARE);
+        }
+
+        if (!config.getResultDetails()) {
+            return PRINT_HIDDEN;
+        }
+
+        if (config.getResultCollectionAware()) {
+            return printCollectionAware(object);
+        }
+
+        return String.valueOf(object);
+    }
+
     /**
      * Gets object representation with size for collection case.
      *
@@ -330,6 +401,32 @@ public final class LogObjectPrinter {
             return Arrays.toString((Object[]) value);
         }
         return value.toString();
+    }
+
+    public enum Level {
+        TRACE, DEBUG, INFO, WARN, ERROR, OFF
+    }
+
+    public static void setLevelAndPrint(Logger log, Level level, String format, Object... argArray) {
+        switch (level) {
+            case OFF:
+                break;
+            case TRACE:
+                log.trace(format, argArray);
+                break;
+            case DEBUG:
+                log.debug(format, argArray);
+                break;
+            case INFO:
+                log.info(format, argArray);
+                break;
+            case WARN:
+                log.warn(format, argArray);
+                break;
+            case ERROR:
+                log.error(format, argArray);
+                break;
+        }
     }
 
 }

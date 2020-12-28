@@ -1,0 +1,16 @@
+---
+service:
+  - className: TestService
+    methodName:
+    packageName:
+    level: ERROR
+    logInput:
+      details: true
+      collectionAware: false
+      includeParams:
+        - privilegeKey
+      excludeParams:
+        - last
+    logResult:
+      resultDetails: true
+      resultCollectionAware: true
