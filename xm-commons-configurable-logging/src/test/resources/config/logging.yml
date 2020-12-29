@@ -1,9 +1,9 @@
 ---
 service:
   - className: TestService
-    methodName: findAll
+    methodName: testMethodFirst
     packageName:
-    level: TRACE
+    level: WARN
     logInput:
       details: true
       collectionAware: false
@@ -17,7 +17,7 @@ api:
   - className: TestResource
     methodName: testMethodFirst
     packageName:
-    level: TRACE
+    level: WARN
     logInput:
       details: true
       collectionAware: false
@@ -28,6 +28,6 @@ api:
       resultDetails: true
       resultCollectionAware: true
 lep:
-  - group: function
-    fileName: Function$$RUN_LEP$$tenant.groovy
-    level: TRACE
+  - group: general
+    fileName: TestLep$$default.groovy
+    level: WARN

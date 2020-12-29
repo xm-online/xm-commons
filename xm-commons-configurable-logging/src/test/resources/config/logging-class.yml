@@ -1,0 +1,11 @@
+---
+service:
+  - className: TestService
+    methodName:
+    packageName:
+    level: ERROR
+api:
+  - className: TestResource
+    methodName:
+    packageName:
+    level: ERROR

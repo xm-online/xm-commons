@@ -18,7 +18,6 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 import static com.icthh.xm.commons.logging.config.LoggingConfig.*;
-import static java.lang.Boolean.FALSE;
 
 /**
  * Utility class for object printing in Logging aspects.
@@ -184,6 +183,13 @@ public final class LogObjectPrinter {
         }
     }
 
+    /**
+     * Gets join point input params description string.
+     *
+     * @param joinPoint - aspect join point
+     * @param config - input parameters config {@link LogInput}
+     * @return join point input params description string
+     */
     public static String printInputParams(JoinPoint joinPoint, LogInput config) {
         try {
             if (joinPoint == null) {
@@ -325,6 +331,13 @@ public final class LogObjectPrinter {
 
     }
 
+    /**
+     * Print Result object according to input parameters and {@link LogResult}.
+     *
+     * @param joinPoint - intercepting join point
+     * @param object - result value to be printed
+     * @param config - result config {@link LogResult}
+     */
     public static String printResult(final JoinPoint joinPoint, final Object object, LogResult config) {
         if (Objects.isNull(config)) {
             printResult(joinPoint, object);
@@ -404,12 +417,20 @@ public final class LogObjectPrinter {
     }
 
     public enum Level {
-        TRACE, DEBUG, INFO, WARN, ERROR, OFF
+        TRACE, DEBUG, INFO, WARN, ERROR, OFF_LOG
     }
 
+    /**
+     * Log a message at the target level according to the specified format
+     * and arguments.
+     * @param log org.slf4j.Logger for keep the original loggerName
+     * @param level logging level
+     * @param format format string
+     * @param argArray list of arguments
+     */
     public static void setLevelAndPrint(Logger log, Level level, String format, Object... argArray) {
         switch (level) {
-            case OFF:
+            case OFF_LOG:
                 break;
             case TRACE:
                 log.trace(format, argArray);

@@ -17,12 +17,8 @@ public class TestService {
         return "result";
     }
 
+    @LogicExtensionPoint("TestLep")
     public String testMethodSecond(String firstArg, String secondArg) {
-        return "result";
-    }
-
-    @LogicExtensionPoint("ScriptWithAround")
-    public String testMethodThird(String firstArg, String secondArg) {
         return "result";
     }
 

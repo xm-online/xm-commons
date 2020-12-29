@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.lep;
 
-import com.icthh.xm.commons.logging.config.LoggingConfig;
 import com.icthh.xm.commons.logging.config.LoggingConfig.LepLogConfiguration;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.logging.util.LogObjectPrinter;
@@ -16,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.icthh.xm.commons.logging.util.LogObjectPrinter.Level.OFF_LOG;
 import static com.icthh.xm.commons.logging.util.LogObjectPrinter.setLevelAndPrint;
 
 
@@ -58,6 +58,10 @@ public class XmLepLoggingExecutorListener implements LepExecutorListener {
             return;
         }
 
+        if (OFF_LOG.equals(loggingConfig.getLevel())) {
+            return;
+        }
+
         setLevelAndPrint(log, loggingConfig.getLevel(),
             LOG_START_PATTERN,
             buildLepSignature(beforeEvent.getMethod()),
@@ -83,10 +87,12 @@ public class XmLepLoggingExecutorListener implements LepExecutorListener {
     private void logStop(String signature, String scriptName, LepLogConfiguration config) {
         if (Objects.isNull(config)) {
             log.info(LOG_STOP_PATTERN, signature, scriptName);
-        } else {
-
-            setLevelAndPrint(log, config.getLevel(), LOG_STOP_PATTERN, signature, scriptName);
+            return;
         }
+        if (OFF_LOG.equals(config.getLevel())) {
+            return;
+        }
+        setLevelAndPrint(log, config.getLevel(), LOG_STOP_PATTERN, signature, scriptName);
     }
 
     private void logStopError(String signature, String scriptName, Exception e) {

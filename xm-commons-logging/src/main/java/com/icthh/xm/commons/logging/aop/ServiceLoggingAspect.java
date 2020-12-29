@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+import static com.icthh.xm.commons.logging.util.LogObjectPrinter.Level.OFF_LOG;
 import static com.icthh.xm.commons.logging.util.LogObjectPrinter.getCallMethod;
 import static com.icthh.xm.commons.logging.util.LogObjectPrinter.printExceptionWithStackInfo;
 import static com.icthh.xm.commons.logging.util.LogObjectPrinter.printInputParams;
@@ -38,6 +39,8 @@ public class ServiceLoggingAspect {
     private static final String XM_BASE_PACKAGE = "com.icthh.xm";
     private static final String LOG_START_PATTERN = "srv:start: {}, input: {}";
     private static final String LOG_STOP_PATTERN = "srv:stop:  {}, result: {}, time = {} ms";
+    private static final String LOG_ERROR_PATTERN = "srv:stop:  {}, error: {}, time = {} ms";
+
     private final LoggingConfigService loggingConfigService;
 
     @Value("${base-package:'-'}")
@@ -104,12 +107,18 @@ public class ServiceLoggingAspect {
             log.info(LOG_START_PATTERN,
                 callMethod,
                 printInputParams(joinPoint));
-        } else {
-            setLevelAndPrint(log, config.getLevel(),
-                LOG_START_PATTERN,
-                callMethod,
-                printInputParams(joinPoint, config.getLogInput()));
+            return;
         }
+
+        if (OFF_LOG.equals(config.getLevel())) {
+            return;
+        }
+
+        setLevelAndPrint(log, config.getLevel(),
+            LOG_START_PATTERN,
+            callMethod,
+            printInputParams(joinPoint, config.getLogInput()));
+
     }
 
     private void logStop(final JoinPoint joinPoint, final Object result, final StopWatch stopWatch, LogConfiguration config) {
@@ -119,17 +128,23 @@ public class ServiceLoggingAspect {
                 callMethod,
                 printResult(joinPoint, result),
                 stopWatch.getTime(TimeUnit.MILLISECONDS));
-        } else {
-            setLevelAndPrint(log, config.getLevel(),
-                LOG_STOP_PATTERN,
-                callMethod,
-                printResult(joinPoint, result, config.getLogResult()),
-                stopWatch.getTime(TimeUnit.MILLISECONDS));
+            return;
         }
+
+        if (OFF_LOG.equals(config.getLevel())) {
+            return;
+        }
+
+        setLevelAndPrint(log, config.getLevel(),
+            LOG_STOP_PATTERN,
+            callMethod,
+            printResult(joinPoint, result, config.getLogResult()),
+            stopWatch.getTime(TimeUnit.MILLISECONDS));
+
     }
 
     private void logError(final JoinPoint joinPoint, final Throwable e, final StopWatch stopWatch) {
-        log.error("srv:stop:  {}, error: {}, time = {} ms",
+        log.error(LOG_ERROR_PATTERN,
             getCallMethod(joinPoint),
             printExceptionWithStackInfo(e),
             stopWatch.getTime(TimeUnit.MILLISECONDS));

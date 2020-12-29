@@ -1,0 +1,55 @@
+---
+service:
+  - className: TestService
+    methodName: testMethodFirst
+    packageName:
+    level: INFO
+    logInput:
+        details: true
+        collectionAware: true
+        includeParams:
+            - firstArg
+        excludeParams:
+    logResult:
+       resultDetails: false
+       resultCollectionAware: true
+  - className: TestService
+    methodName: testMethodSecond
+    packageName:
+    level: INFO
+    logInput:
+        details: true
+        collectionAware: true
+        includeParams:
+        excludeParams:
+            - firstArg
+    logResult:
+        resultDetails: true
+        resultCollectionAware: true
+api:
+  - className: TestResource
+    methodName: testMethodFirst
+    packageName:
+    level: WARN
+    logInput:
+        details: true
+        collectionAware: false
+        includeParams:
+            - firstArg
+        excludeParams:
+    logResult:
+        resultDetails: false
+        resultCollectionAware: true
+  - className: TestResource
+    methodName: testMethodSecond
+    packageName:
+    level: WARN
+    logInput:
+          details: true
+          collectionAware: false
+          includeParams:
+          excludeParams:
+              - firstArg
+    logResult:
+        resultDetails: true
+        resultCollectionAware: true

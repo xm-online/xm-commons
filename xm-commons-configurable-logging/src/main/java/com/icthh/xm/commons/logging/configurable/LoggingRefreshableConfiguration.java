@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.icthh.xm.commons.tenant.TenantContextUtils.getRequiredTenantKeyValue;
@@ -132,7 +131,6 @@ public class LoggingRefreshableConfiguration implements RefreshableConfiguration
         }
 
         return null;
-
     }
 
 }

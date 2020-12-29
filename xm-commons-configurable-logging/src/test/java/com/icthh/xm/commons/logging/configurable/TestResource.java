@@ -21,9 +21,8 @@ public class TestResource {
     }
 
     @GetMapping("/second")
-    public @ResponseBody String testMethodSecond() {
+    public @ResponseBody String testMethodSecond(String firstArg, String secondArg) {
         return "result";
     }
-
 
 }

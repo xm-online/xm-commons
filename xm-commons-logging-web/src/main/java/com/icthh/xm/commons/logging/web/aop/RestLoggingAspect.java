@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.logging.web.aop;
 
-import com.icthh.xm.commons.logging.LoggingAspectConfig;
 import com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.logging.util.LogObjectPrinter;
@@ -28,6 +27,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import static com.icthh.xm.commons.logging.config.LoggingConfig.DEFAULT_LOG_RESULT_DETAILS;
+import static com.icthh.xm.commons.logging.util.LogObjectPrinter.Level.OFF_LOG;
 import static com.icthh.xm.commons.logging.util.LogObjectPrinter.setLevelAndPrint;
 
 
@@ -44,7 +44,7 @@ public class RestLoggingAspect {
     private static final String XM_BASE_PACKAGE = "com.icthh.xm";
     private static final String LOG_START_PATTERN = "START {} : {} --> {}, input: {}";
     private static final String LOG_STOP_PATTERN = "STOP  {} : {} --> {}, result: {}, time = {} ms";
-    public static final String LOG_ERROR_PATTERN = "STOP  {} : {} --> {}, error: {}, time = {} ms";
+    private static final String LOG_ERROR_PATTERN = "STOP  {} : {} --> {}, error: {}, time = {} ms";
 
     private final LoggingConfigService loggingConfigService;
 
@@ -190,6 +190,10 @@ public class RestLoggingAspect {
 
         }
 
+        if (OFF_LOG.equals(config.getLevel())) {
+            return;
+        }
+
         setLevelAndPrint(log, config.getLevel(),
             LOG_START_PATTERN,
             method,
@@ -223,6 +227,10 @@ public class RestLoggingAspect {
                 LogObjectPrinter.getCallMethod(joinPoint),
                 WebLogObjectPrinter.printRestResult(joinPoint, result),
                 MdcUtils.getExecTimeMs());
+            return;
+        }
+
+        if (OFF_LOG.equals(config.getLevel())) {
             return;
         }
 
