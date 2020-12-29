@@ -1,7 +1,5 @@
 package com.icthh.xm.commons.logging.config;
 
-import java.util.Optional;
-
 import static com.icthh.xm.commons.logging.config.LoggingConfig.LepLogConfiguration;
 import static com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration;
 

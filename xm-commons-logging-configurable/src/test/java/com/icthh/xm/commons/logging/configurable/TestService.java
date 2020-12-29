@@ -5,9 +5,6 @@ import com.icthh.xm.commons.lep.spring.LepService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-/**
- *
- */
 @Slf4j
 @Service
 @LepService(group = "general")

@@ -18,7 +18,6 @@ import java.util.Optional;
 import static com.icthh.xm.commons.logging.util.LogObjectPrinter.Level.OFF_LOG;
 import static com.icthh.xm.commons.logging.util.LogObjectPrinter.setLevelAndPrint;
 
-
 /**
  * Lep executor listener implementation (see {@link LepExecutorListener}) desired to print start, stop and error records
  * to log within LEP execution path.
@@ -45,6 +44,7 @@ public class XmLepLoggingExecutorListener implements LepExecutorListener {
         } else if (lepExecutorEvent instanceof AfterResourceExecutionEvent) {
             onAfterEvent((AfterResourceExecutionEvent) lepExecutorEvent);
         }
+
     }
 
     private void onBeforeEvent(BeforeResourceExecutionEvent beforeEvent) {
@@ -53,8 +53,8 @@ public class XmLepLoggingExecutorListener implements LepExecutorListener {
 
         if (Objects.isNull(loggingConfig)) {
             log.info(LOG_START_PATTERN,
-                buildLepSignature(beforeEvent.getMethod()),
-                beforeEvent.getKey());
+                     buildLepSignature(beforeEvent.getMethod()),
+                     beforeEvent.getKey());
             return;
         }
 
@@ -63,10 +63,9 @@ public class XmLepLoggingExecutorListener implements LepExecutorListener {
         }
 
         setLevelAndPrint(log, loggingConfig.getLevel(),
-            LOG_START_PATTERN,
-            buildLepSignature(beforeEvent.getMethod()),
-            beforeEvent.getKey());
-
+                         LOG_START_PATTERN,
+                         buildLepSignature(beforeEvent.getMethod()),
+                         beforeEvent.getKey());
     }
 
     private void onAfterEvent(AfterResourceExecutionEvent afterEvent) {

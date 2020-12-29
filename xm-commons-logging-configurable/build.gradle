@@ -29,5 +29,5 @@ dependencies {
     testCompile "org.mockito:mockito-core"
     testCompile 'org.springframework:spring-test'
     testCompile "commons-io:commons-io:${versions.commonsIo}"
-    testCompile ("org.springframework.boot:spring-boot-starter-test")
+    testCompile "org.springframework.boot:spring-boot-starter-test"
 }

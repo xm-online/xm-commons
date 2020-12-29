@@ -14,10 +14,24 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.IntStream;
 
-import static com.icthh.xm.commons.logging.config.LoggingConfig.*;
+import static com.icthh.xm.commons.logging.config.LoggingConfig.DEFAULT_LOG_INPUT_COLLECTION_AWARE;
+import static com.icthh.xm.commons.logging.config.LoggingConfig.DEFAULT_LOG_INPUT_DETAILS;
+import static com.icthh.xm.commons.logging.config.LoggingConfig.DEFAULT_LOG_RESULT_COLLECTION_AWARE;
+import static com.icthh.xm.commons.logging.config.LoggingConfig.DEFAULT_LOG_RESULT_DETAILS;
 
 /**
  * Utility class for object printing in Logging aspects.
@@ -151,22 +165,22 @@ public final class LogObjectPrinter {
                 return PRINT_EMPTY_LIST;
             }
 
-            Optional<LoggingAspectConfig> annotationConfig = AopAnnotationUtils.getConfigAnnotation(joinPoint);
+            Optional<LoggingAspectConfig> config = AopAnnotationUtils.getConfigAnnotation(joinPoint);
 
             String[] includeParams = includeParamNames;
             String[] excludeParams = EMPTY_ARRAY;
             boolean inputCollectionAware = LoggingAspectConfig.DEFAULT_INPUT_COLLECTION_AWARE;
 
-            if (annotationConfig.isPresent()) {
-                if (!annotationConfig.get().inputDetails()) {
+            if (config.isPresent()) {
+                if (!config.get().inputDetails()) {
                     return PRINT_HIDDEN;
                 }
-                inputCollectionAware = annotationConfig.get().inputCollectionAware();
-                if (ArrayUtils.isNotEmpty(annotationConfig.get().inputIncludeParams())) {
-                    includeParams = annotationConfig.get().inputIncludeParams();
+                inputCollectionAware = config.get().inputCollectionAware();
+                if (ArrayUtils.isNotEmpty(config.get().inputIncludeParams())) {
+                    includeParams = config.get().inputIncludeParams();
                 }
-                if (ArrayUtils.isEmpty(includeParams) && ArrayUtils.isNotEmpty(annotationConfig.get().inputExcludeParams())) {
-                    excludeParams = annotationConfig.get().inputExcludeParams();
+                if (ArrayUtils.isEmpty(includeParams) && ArrayUtils.isNotEmpty(config.get().inputExcludeParams())) {
+                    excludeParams = config.get().inputExcludeParams();
                 }
             }
 

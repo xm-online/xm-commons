@@ -54,7 +54,7 @@ public class ServiceLoggingAspect {
 
     @SuppressWarnings("squid:S1186") //suppress empty method warning
     @Pointcut("(within(@org.springframework.stereotype.Service *) "
-        + "|| within(@com.icthh.xm.commons.lep.*.LepService *))")
+              + "|| within(@com.icthh.xm.commons.lep.*.LepService *))")
     public void servicePointcut() {
     }
 
@@ -68,6 +68,7 @@ public class ServiceLoggingAspect {
     @SneakyThrows
     @Around("servicePointcut() && !excluded()")
     public Object logBeforeService(ProceedingJoinPoint joinPoint) {
+
         String className = joinPoint.getSignature().getDeclaringTypeName();
 
         if (!withLogging(className)) {
@@ -93,8 +94,8 @@ public class ServiceLoggingAspect {
             logError(joinPoint, e, stopWatch);
             throw e;
         }
-    }
 
+    }
 
     private boolean withLogging(String className) {
         return className.startsWith(XM_BASE_PACKAGE) || className.startsWith(basePackage);
@@ -105,8 +106,8 @@ public class ServiceLoggingAspect {
         String callMethod = getCallMethod(joinPoint);
         if (Objects.isNull(config)) {
             log.info(LOG_START_PATTERN,
-                callMethod,
-                printInputParams(joinPoint));
+                     callMethod,
+                     printInputParams(joinPoint));
             return;
         }
 
@@ -114,20 +115,20 @@ public class ServiceLoggingAspect {
             return;
         }
 
-        setLevelAndPrint(log, config.getLevel(),
-            LOG_START_PATTERN,
-            callMethod,
-            printInputParams(joinPoint, config.getLogInput()));
-
+        setLevelAndPrint(log,
+                         config.getLevel(),
+                         LOG_START_PATTERN,
+                         callMethod,
+                         printInputParams(joinPoint, config.getLogInput()));
     }
 
     private void logStop(final JoinPoint joinPoint, final Object result, final StopWatch stopWatch, LogConfiguration config) {
         String callMethod = getCallMethod(joinPoint);
         if (Objects.isNull(config)) {
             log.info(LOG_STOP_PATTERN,
-                callMethod,
-                printResult(joinPoint, result),
-                stopWatch.getTime(TimeUnit.MILLISECONDS));
+                     callMethod,
+                     printResult(joinPoint, result),
+                     stopWatch.getTime(TimeUnit.MILLISECONDS));
             return;
         }
 
@@ -135,19 +136,18 @@ public class ServiceLoggingAspect {
             return;
         }
 
-        setLevelAndPrint(log, config.getLevel(),
-            LOG_STOP_PATTERN,
-            callMethod,
-            printResult(joinPoint, result, config.getLogResult()),
-            stopWatch.getTime(TimeUnit.MILLISECONDS));
-
+        setLevelAndPrint(log,
+                         config.getLevel(),
+                         LOG_STOP_PATTERN,
+                         callMethod,
+                         printResult(joinPoint, result, config.getLogResult()),
+                         stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
     private void logError(final JoinPoint joinPoint, final Throwable e, final StopWatch stopWatch) {
         log.error(LOG_ERROR_PATTERN,
-            getCallMethod(joinPoint),
-            printExceptionWithStackInfo(e),
-            stopWatch.getTime(TimeUnit.MILLISECONDS));
+                  getCallMethod(joinPoint),
+                  printExceptionWithStackInfo(e),
+                  stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
-
 }
