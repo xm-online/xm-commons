@@ -17,15 +17,10 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static com.icthh.xm.commons.logging.util.LogObjectPrinter.Level.OFF_LOG;
-import static com.icthh.xm.commons.logging.util.LogObjectPrinter.getCallMethod;
-import static com.icthh.xm.commons.logging.util.LogObjectPrinter.printExceptionWithStackInfo;
-import static com.icthh.xm.commons.logging.util.LogObjectPrinter.printInputParams;
-import static com.icthh.xm.commons.logging.util.LogObjectPrinter.printResult;
-import static com.icthh.xm.commons.logging.util.LogObjectPrinter.logWithLevel;
+import static com.icthh.xm.commons.logging.util.LogObjectPrinter.*;
 
 /**
  * Aspect for Service logging.

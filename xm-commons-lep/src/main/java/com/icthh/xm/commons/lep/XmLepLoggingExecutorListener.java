@@ -12,7 +12,6 @@ import com.icthh.xm.lep.api.LepMethod;
 import com.icthh.xm.lep.api.MethodSignature;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.icthh.xm.commons.logging.util.LogObjectPrinter.Level.OFF_LOG;
@@ -71,8 +70,6 @@ public class XmLepLoggingExecutorListener implements LepExecutorListener {
     private void onAfterEvent(AfterResourceExecutionEvent afterEvent) {
         String signatureToPrint = buildLepSignature(afterEvent.getMethod());
         String scriptName = afterEvent.getKey().getId();
-
-        log.warn(">>>>>>>>>>>>>>> {}", scriptName);
 
         Optional<Exception> exception = afterEvent.getResult().flatMap(ResultObject::getException);
 
