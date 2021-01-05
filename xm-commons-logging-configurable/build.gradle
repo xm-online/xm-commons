@@ -14,7 +14,6 @@ dependencies {
 
     compile "org.slf4j:slf4j-api"
     compile "ch.qos.logback:logback-classic"
-    compile "org.aspectj:aspectjweaver"
 
     compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
     compile "commons-codec:commons-codec:${versions.commonsCodec}"

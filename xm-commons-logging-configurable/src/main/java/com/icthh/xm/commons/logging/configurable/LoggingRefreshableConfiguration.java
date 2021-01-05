@@ -128,16 +128,15 @@ public class LoggingRefreshableConfiguration implements RefreshableConfiguration
             return null;
         }
 
-        LogConfiguration configuration = logConfiguration.get(className);
+        LogConfiguration configuration = logConfiguration.get(packageName + ":" + className + ":" + methodName);
 
         if (configuration == null) {
             configuration = logConfiguration.get(className + ":" + methodName);
         }
 
         if (configuration == null) {
-            configuration = logConfiguration.get(packageName + ":" + className + ":" + methodName);
+            configuration = logConfiguration.get(className);
         }
-
         return configuration;
     }
 
