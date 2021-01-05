@@ -22,5 +22,12 @@ public class TestAppender extends AppenderBase<ILoggingEvent> {
     public static void clearEvents() {
         events.clear();
     }
+
+    public static ILoggingEvent searchByMessage(String message) {
+        return events.stream()
+                     .filter(event -> event.getMessage().equals(message))
+                     .findFirst()
+                     .orElseThrow(() -> new RuntimeException("Can not find message: " + message));
+    }
 }
 

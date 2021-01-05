@@ -22,9 +22,6 @@ dependencies {
         exclude(group: 'ch.qos.logback')
     }
 
-    compile 'org.springframework.cloud:spring-cloud-commons'
-    compile 'org.springframework.cloud:spring-cloud-netflix-core'
-
     testCompile "junit:junit"
     testCompile "org.mockito:mockito-core"
     testCompile 'org.springframework:spring-test'

@@ -8,29 +8,32 @@ import com.icthh.xm.commons.logging.config.LoggingConfig.LepLogConfiguration;
 import com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
+import com.icthh.xm.commons.tenant.TenantKey;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.icthh.xm.commons.tenant.TenantContextUtils.getRequiredTenantKeyValue;
+import static com.icthh.xm.commons.tenant.TenantContextUtils.getTenantKey;
 
 @Slf4j
 @Component
 @Primary
 public class LoggingRefreshableConfiguration implements RefreshableConfiguration, LoggingConfigService {
 
-    private final ConcurrentHashMap<String, Map<String, LogConfiguration>> serviceLoggingConfig = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Map<String, LogConfiguration>> apiLoggingConfig = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Map<String, LepLogConfiguration>> lepLoggingConfig = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, LogConfiguration>> serviceLoggingConfig = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, LogConfiguration>> apiLoggingConfig = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, LepLogConfiguration>> lepLoggingConfig = new ConcurrentHashMap<>();
 
     private final AntPathMatcher matcher = new AntPathMatcher();
-    private ObjectMapper ymlMapper = new ObjectMapper(new YAMLFactory());
+    private final ObjectMapper ymlMapper = new ObjectMapper(new YAMLFactory());
 
     private final TenantContextHolder tenantContextHolder;
     private final String mappingPath;
@@ -45,15 +48,14 @@ public class LoggingRefreshableConfiguration implements RefreshableConfiguration
     public void onRefresh(final String updatedKey, final String config) {
         try {
             String tenant = this.matcher.extractUriTemplateVariables(mappingPath, updatedKey).get("tenantName");
-            LoggingConfig spec = ymlMapper.readValue(config, LoggingConfig.class);
-
-            if (spec == null) {
+            if (StringUtils.isBlank(config)) {
                 this.apiLoggingConfig.remove(tenant);
                 this.serviceLoggingConfig.remove(tenant);
                 this.lepLoggingConfig.remove(tenant);
                 return;
             }
 
+            LoggingConfig spec = ymlMapper.readValue(config, LoggingConfig.class);
             this.serviceLoggingConfig.put(tenant, spec.buildServiceLoggingConfigs());
             this.apiLoggingConfig.put(tenant, spec.buildApiLoggingConfigs());
             this.lepLoggingConfig.put(tenant, spec.buildLepLoggingConfigs(tenant));
@@ -80,57 +82,63 @@ public class LoggingRefreshableConfiguration implements RefreshableConfiguration
     public LogConfiguration getServiceLoggingConfig(String packageName,
                                                               String className,
                                                               String methodName) {
-        return getLogConfiguration(serviceLoggingConfig.get(getRequiredTenantKeyValue(this.tenantContextHolder)),
-            packageName,
-            className,
-            methodName);
 
+        Optional<TenantKey> tenantKey = getTenantKey(this.tenantContextHolder);
+        if (tenantKey.isPresent()) {
+            String key = tenantKey.get().getValue();
+            return getLogConfiguration(serviceLoggingConfig.get(key), packageName, className, methodName);
+        }
+        return null;
     }
 
     @Override
     public LogConfiguration getApiLoggingConfig(String packageName, String className, String methodName) {
-        return getLogConfiguration(apiLoggingConfig.get(getRequiredTenantKeyValue(this.tenantContextHolder)),
-            packageName,
-            className,
-            methodName);
+
+        Optional<TenantKey> tenantKey = getTenantKey(this.tenantContextHolder);
+        if (tenantKey.isPresent()) {
+            String key = tenantKey.get().getValue();
+            return getLogConfiguration(apiLoggingConfig.get(key), packageName, className, methodName);
+        }
+        return null;
     }
 
     @Override
     public LepLogConfiguration getLepLoggingConfig(String fileName) {
-        String tenantKey = getRequiredTenantKeyValue(this.tenantContextHolder);
-
-
-        Map<String, LepLogConfiguration> logConfiguration = lepLoggingConfig.get(tenantKey);
-        if (MapUtils.isEmpty(logConfiguration)) {
+        if (fileName == null) {
             return null;
         }
-        if (logConfiguration.containsKey(fileName)) {
+
+        Optional<TenantKey> tenantKey = getTenantKey(this.tenantContextHolder);
+        if (tenantKey.isPresent()) {
+            String key = tenantKey.get().getValue();
+            Map<String, LepLogConfiguration> logConfiguration = lepLoggingConfig.get(key);
+            if (MapUtils.isEmpty(logConfiguration)) {
+                return null;
+            }
             return logConfiguration.get(fileName);
         }
         return null;
     }
 
-
     private LogConfiguration getLogConfiguration(Map<String, LogConfiguration> logConfiguration,
-                                                           String packageName,
-                                                           String className,
-                                                           String methodName) {
-
+                                                 String packageName,
+                                                 String className,
+                                                 String methodName) {
         if (MapUtils.isEmpty(logConfiguration)) {
             return null;
         }
 
-        if (logConfiguration.containsKey(className)) {
-            return logConfiguration.get(className);
-        }
-        if (logConfiguration.containsKey(className + ":" + methodName)) {
-            return logConfiguration.get(className + ":" + methodName);
-        }
-        if (logConfiguration.containsKey(packageName + ":" + className + ":" + methodName)) {
-            return logConfiguration.get(packageName + ":" + className + ":" + methodName);
+        LogConfiguration configuration = logConfiguration.get(className);
+
+        if (configuration == null) {
+            configuration = logConfiguration.get(className + ":" + methodName);
         }
 
-        return null;
+        if (configuration == null) {
+            configuration = logConfiguration.get(packageName + ":" + className + ":" + methodName);
+        }
+
+        return configuration;
     }
 
 }

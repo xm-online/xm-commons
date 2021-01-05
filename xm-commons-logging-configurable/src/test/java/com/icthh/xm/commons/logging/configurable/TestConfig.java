@@ -9,9 +9,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
 
-/**
- *
- */
 @Configuration
 @EnableLepServices(basePackageClasses = TestService.class)
 @ComponentScan("com.icthh.xm.commons.lep.spring")
@@ -27,6 +24,5 @@ public class TestConfig extends LepSpringConfiguration {
     protected TenantScriptStorage getTenantScriptStorageType() {
         return TenantScriptStorage.CLASSPATH;
     }
-
 
 }

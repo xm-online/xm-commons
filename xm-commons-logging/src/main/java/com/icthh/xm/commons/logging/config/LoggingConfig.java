@@ -1,17 +1,18 @@
 package com.icthh.xm.commons.logging.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.icthh.xm.commons.logging.util.LogObjectPrinter;
 import lombok.Data;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.icthh.xm.commons.logging.util.LogObjectPrinter.*;
+import static com.icthh.xm.commons.logging.util.LogObjectPrinter.Level;
+import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Data
 public class LoggingConfig {
@@ -39,18 +40,13 @@ public class LoggingConfig {
     }
 
     public Map<String, LepLogConfiguration> buildLepLoggingConfigs(String tenantKey) {
-        Map<String, LepLogConfiguration> configs = new HashMap<>();
+        List<LepLogConfiguration> lepLogConfigurations = this.getLepLogConfigurations();
         if (CollectionUtils.isEmpty(lepLogConfigurations)) {
-            return configs;
+            return Collections.emptyMap();
         }
-        lepLogConfigurations.forEach(lepLogConfiguration -> {
-            String pathKey = "lep://" + tenantKey.toUpperCase() + "/"
-                + lepLogConfiguration.getGroup() + "/"
-                + lepLogConfiguration.getFileName();
 
-            configs.put(pathKey, lepLogConfiguration);
-        });
-        return configs;
+        return lepLogConfigurations.stream().collect(toMap(configuration -> configuration.buildConfigKey(tenantKey),
+                                                           configuration -> configuration));
     }
 
     private Map<String, LogConfiguration> buildLogConfiguration(List<LogConfiguration> logConfigurations) {
@@ -59,20 +55,8 @@ public class LoggingConfig {
             return configs;
         }
 
-        logConfigurations.forEach(it -> {
-            if (StringUtils.isNotBlank(it.getClassName())) {
-                if (StringUtils.isNotBlank(it.getMethodName())) {
-                    if (StringUtils.isNotBlank(it.getPackageName())) {
-                        configs.put(it.getPackageName() + ":" + it.getClassName() + ":" + it.getMethodName(), it);
-                    } else {
-                        configs.put(it.getClassName() + ":" + it.getMethodName(), it);
-                    }
-                } else {
-                    configs.put(it.getClassName(), it);
-                }
-            }
-        });
-        return configs;
+       return logConfigurations.stream().collect(toMap(LogConfiguration::buildConfigKey,
+                                                       configuration -> configuration));
     }
 
     @Data
@@ -80,6 +64,10 @@ public class LoggingConfig {
         private String group;
         private String fileName;
         private Level level;
+
+        String buildConfigKey(String tenantKey) {
+            return  "lep://" + tenantKey.toUpperCase() + "/" + this.getGroup() + "/" + this.getFileName();
+        }
     }
 
     @Data
@@ -103,6 +91,17 @@ public class LoggingConfig {
         static public class LogResult {
             private Boolean resultDetails = DEFAULT_LOG_RESULT_DETAILS;
             private Boolean resultCollectionAware = DEFAULT_LOG_RESULT_COLLECTION_AWARE;
+        }
+
+        String buildConfigKey() {
+            String key = this.getClassName();
+            if (isNotBlank(this.getPackageName())) {
+                key = this.getPackageName() + ":" + key;
+            }
+            if (isNotBlank(this.getMethodName())) {
+                key = key + ":" + this.getMethodName();
+            }
+            return key;
         }
     }
 }

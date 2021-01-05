@@ -51,7 +51,6 @@ public class LoggingRefreshableConfigurationUnitTest {
     private static final String TEST_LOG_UPDATE_CONFIG = "logging.yml";
     private static final String TEST_CLASS_CONFIG = "logging-class.yml";
     private static final String TEST_INCLUDE_EXCLUDE_CONFIG = "logging-include-exclude.yml";
-    private static final String TEST_DISABLE_CONFIG = "logging-disable.yml";
 
     @Autowired
     private SpringLepManager lepManager;
@@ -128,45 +127,27 @@ public class LoggingRefreshableConfigurationUnitTest {
 
         // service
         testService.testMethodFirst("firstArgValue", "secondArgValue");
-        Optional<ILoggingEvent> logStart = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getMessage().equals("srv:start: {}, input: {}"))
-            .findFirst();
-        assertTrue(logStart.isPresent());
-        assertEquals(logStart.get().getLevel(), Level.WARN);
+        ILoggingEvent event = TestAppender.searchByMessage("srv:start: {}, input: {}");
+        assertEquals(event.getLevel(), Level.WARN);
 
-        Optional<ILoggingEvent> logStop = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getMessage().equals("srv:stop:  {}, result: {}, time = {} ms"))
-            .findFirst();
-        assertTrue(logStop.isPresent());
-        assertEquals(logStop.get().getLevel(), Level.WARN);
+        event = TestAppender.searchByMessage("srv:stop:  {}, result: {}, time = {} ms");
+        assertEquals(event.getLevel(), Level.WARN);
 
         //api
         testResource.testMethodFirst("firstArgValue", "secondArgValue");
-        logStart = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getMessage().equals("START {} : {} --> {}, input: {}"))
-            .findFirst();
-        assertTrue(logStart.isPresent());
-        assertEquals(logStart.get().getLevel(), Level.WARN);
+        event = TestAppender.searchByMessage("START {} : {} --> {}, input: {}");
+        assertEquals(event.getLevel(), Level.WARN);
 
-        logStop = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getMessage().equals("STOP  {} : {} --> {}, result: {}, time = {} ms"))
-            .findFirst();
-        assertTrue(logStop.isPresent());
-        assertEquals(logStop.get().getLevel(), Level.WARN);
+        event = TestAppender.searchByMessage("STOP  {} : {} --> {}, result: {}, time = {} ms");
+        assertEquals(event.getLevel(), Level.WARN);
 
         //lep
         testService.testMethodSecond("firstArgValue", "secondArgValue");
-        logStart = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getMessage().equals("lep:start: execute lep at [{}], script: {}"))
-            .findFirst();
-        assertTrue(logStart.isPresent());
-        assertEquals(logStart.get().getLevel(), Level.WARN);
+        event = TestAppender.searchByMessage("lep:start: execute lep at [{}], script: {}");
+        assertEquals(event.getLevel(), Level.WARN);
 
-        logStop = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getMessage().equals("lep:stop:  execute lep at [{}], script: {}"))
-            .findFirst();
-        assertTrue(logStop.isPresent());
-        assertEquals(logStop.get().getLevel(), Level.WARN);
+        event = TestAppender.searchByMessage("lep:stop:  execute lep at [{}], script: {}");
+        assertEquals(event.getLevel(), Level.WARN);
     }
 
     @Test
@@ -175,35 +156,29 @@ public class LoggingRefreshableConfigurationUnitTest {
 
         //service include
         testService.testMethodFirst("firstArgValue", "secondArgValue");
-        Optional<ILoggingEvent> logStartWithInclude = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getFormattedMessage()
-                .equals("srv:start: TestService:testMethodFirst, input: firstArg=firstArgValue"))
-            .findFirst();
-        assertTrue(logStartWithInclude.isPresent());
+        ILoggingEvent event = TestAppender.searchByMessage("srv:start: {}, input: {}");
+        assertEquals("srv:start: TestService:testMethodFirst, input: firstArg=firstArgValue",
+                     event.getFormattedMessage());
 
         //service exclude
+        TestAppender.clearEvents();
         testService.testMethodSecond("firstArgValue", "secondArgValue");
-        Optional<ILoggingEvent> logStartWithExclude = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getFormattedMessage()
-                .equals("srv:start: TestService:testMethodSecond, input: secondArg=secondArgValue"))
-            .findFirst();
-        assertTrue(logStartWithExclude.isPresent());
+        event = TestAppender.searchByMessage("srv:start: {}, input: {}");
+        assertEquals("srv:start: TestService:testMethodSecond, input: secondArg=secondArgValue",
+                     event.getFormattedMessage());
 
         //api include
         testResource.testMethodFirst("firstArgValue", "secondArgValue");
-        logStartWithInclude = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getFormattedMessage()
-                .equals("START GET : /api/first --> TestResource:testMethodFirst, input: firstArg=firstArgValue"))
-            .findFirst();
-        assertTrue(logStartWithInclude.isPresent());
+        event = TestAppender.searchByMessage("START {} : {} --> {}, input: {}");
+        assertEquals("START GET : /api/first --> TestResource:testMethodFirst, input: firstArg=firstArgValue",
+                     event.getFormattedMessage());
 
         //api exclude
+        TestAppender.clearEvents();
         testResource.testMethodSecond("firstArgValue", "secondArgValue");
-        logStartWithExclude = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getFormattedMessage()
-                .equals("START GET : /api/second --> TestResource:testMethodSecond, input: secondArg=secondArgValue"))
-            .findFirst();
-        assertTrue(logStartWithExclude.isPresent());
+        event = TestAppender.searchByMessage("START {} : {} --> {}, input: {}");
+        assertEquals("START GET : /api/second --> TestResource:testMethodSecond, input: secondArg=secondArgValue",
+                     event.getFormattedMessage());
     }
 
     @Test
@@ -212,38 +187,26 @@ public class LoggingRefreshableConfigurationUnitTest {
 
         //service
         testService.testMethodFirst("firstArgValue", "secondArgValue");
-        Optional<ILoggingEvent> logStopHiddenResult = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getMessage().equals("srv:stop:  {}, result: {}, time = {} ms"))
-            .findFirst();
-        assertTrue(logStopHiddenResult.isPresent());
-        assertTrue(logStopHiddenResult.get().getFormattedMessage()
+        ILoggingEvent event = TestAppender.searchByMessage("srv:stop:  {}, result: {}, time = {} ms");
+        assertTrue(event.getFormattedMessage()
             .contains("srv:stop:  TestService:testMethodFirst, result: #hidden#, time ="));
 
         TestAppender.clearEvents();
         testService.testMethodSecond("firstArgValue", "secondArgValue");
-        logStopHiddenResult = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getMessage().equals("srv:stop:  {}, result: {}, time = {} ms"))
-            .findFirst();
-        assertTrue(logStopHiddenResult.isPresent());
-        assertTrue(logStopHiddenResult.get().getFormattedMessage()
+        event = TestAppender.searchByMessage("srv:stop:  {}, result: {}, time = {} ms");
+        assertTrue(event.getFormattedMessage()
             .contains("srv:stop:  TestService:testMethodSecond, result: lepResult, time ="));
 
         //api
         testResource.testMethodFirst("firstArgValue", "secondArgValue");
-        logStopHiddenResult = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getMessage().equals("STOP  {} : {} --> {}, result: {}, time = {} ms"))
-            .findFirst();
-        assertTrue(logStopHiddenResult.isPresent());
-        assertTrue(logStopHiddenResult.get().getFormattedMessage()
+        event = TestAppender.searchByMessage("STOP  {} : {} --> {}, result: {}, time = {} ms");
+        assertTrue(event.getFormattedMessage()
             .contains("STOP  GET : /api/first --> TestResource:testMethodFirst, result: status=OK, body=#hidden#"));
 
         TestAppender.clearEvents();
         testResource.testMethodSecond("firstArgValue", "secondArgValue");
-        logStopHiddenResult = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getMessage().equals("STOP  {} : {} --> {}, result: {}, time = {} ms"))
-            .findFirst();
-        assertTrue(logStopHiddenResult.isPresent());
-        assertTrue(logStopHiddenResult.get().getFormattedMessage()
+        event = TestAppender.searchByMessage("STOP  {} : {} --> {}, result: {}, time = {} ms");
+        assertTrue(event.getFormattedMessage()
             .contains("STOP  GET : /api/second --> TestResource:testMethodSecond, result: status=OK, body=result"));
     }
 
@@ -253,45 +216,14 @@ public class LoggingRefreshableConfigurationUnitTest {
 
         //service
         testService.testMethodFirst("firstArgValue", "secondArgValue");
-        Optional<ILoggingEvent> logStart = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getMessage().equals("srv:start: {}, input: {}"))
-            .findFirst();
-        assertTrue(logStart.isPresent());
-        assertEquals(logStart.get().getLevel(), Level.ERROR);
+        ILoggingEvent event = TestAppender.searchByMessage("srv:start: {}, input: {}");
+        assertEquals(event.getLevel(), Level.ERROR);
 
         //api
         testResource.testMethodFirst("firstArgValue", "secondArgValue");
-        logStart = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getMessage().equals("START {} : {} --> {}, input: {}"))
-            .findFirst();
-        assertTrue(logStart.isPresent());
-        assertEquals(logStart.get().getLevel(), Level.ERROR);
+        event = TestAppender.searchByMessage("START {} : {} --> {}, input: {}");
+        assertEquals(event.getLevel(), Level.ERROR);
 
-    }
-
-    @Test
-    public void testDisableLog() {
-        loggingRefreshableConfiguration.onRefresh(UPDATE_KEY, readConfig(TEST_DISABLE_CONFIG));
-
-        //service
-        testService.testMethodSecond("firstArgValue", "secondArgValue");
-        Optional<ILoggingEvent> logStart = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getMessage().equals("srv:start: {}, input: {}"))
-            .findFirst();
-        assertTrue(logStart.isEmpty());
-
-        //api
-        testResource.testMethodFirst("firstArgValue", "secondArgValue");
-        logStart = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getMessage().equals("START {} : {} --> {}, input: {}"))
-            .findFirst();
-        assertTrue(logStart.isEmpty());
-
-        //lep
-        logStart = TestAppender.getEvents().stream()
-            .filter(iLoggingEvent -> iLoggingEvent.getMessage().equals("lep:start: execute lep at [{}], script: {}"))
-            .findFirst();
-        assertTrue(logStart.isEmpty());
     }
 
     @SneakyThrows

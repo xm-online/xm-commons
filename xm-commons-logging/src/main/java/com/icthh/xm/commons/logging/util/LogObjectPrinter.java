@@ -210,7 +210,7 @@ public final class LogObjectPrinter {
                 return "joinPoint is null";
             }
 
-            if (Objects.isNull(config)) {
+            if (config == null) {
                 return printInputParams(joinPoint);
             }
 
@@ -219,11 +219,11 @@ public final class LogObjectPrinter {
                 return PRINT_EMPTY_LIST;
             }
 
-            if (Objects.isNull(config.getDetails())) {
+            if (config.getDetails() == null) {
                 config.setDetails(DEFAULT_LOG_INPUT_DETAILS);
             }
 
-            if (Objects.isNull(config.getCollectionAware())) {
+            if (config.getCollectionAware() == null) {
                 config.setCollectionAware(DEFAULT_LOG_INPUT_COLLECTION_AWARE);
             }
 
@@ -231,7 +231,7 @@ public final class LogObjectPrinter {
                 return PRINT_HIDDEN;
             }
 
-            if (Objects.isNull(config.getExcludeParams())) {
+            if (config.getExcludeParams() == null) {
                 config.setExcludeParams(List.of());
             }
 
@@ -353,7 +353,7 @@ public final class LogObjectPrinter {
      * @param config - result config {@link LogResult}
      */
     public static String printResult(final JoinPoint joinPoint, final Object object, LogResult config) {
-        if (Objects.isNull(config)) {
+        if (config == null) {
             printResult(joinPoint, object);
         }
 
@@ -442,7 +442,7 @@ public final class LogObjectPrinter {
      * @param format format string
      * @param argArray list of arguments
      */
-    public static void setLevelAndPrint(Logger log, Level level, String format, Object... argArray) {
+    public static void logWithLevel(Logger log, Level level, String format, Object... argArray) {
         switch (level) {
             case OFF_LOG:
                 break;

@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
@@ -24,7 +25,7 @@ import static com.icthh.xm.commons.logging.util.LogObjectPrinter.getCallMethod;
 import static com.icthh.xm.commons.logging.util.LogObjectPrinter.printExceptionWithStackInfo;
 import static com.icthh.xm.commons.logging.util.LogObjectPrinter.printInputParams;
 import static com.icthh.xm.commons.logging.util.LogObjectPrinter.printResult;
-import static com.icthh.xm.commons.logging.util.LogObjectPrinter.setLevelAndPrint;
+import static com.icthh.xm.commons.logging.util.LogObjectPrinter.logWithLevel;
 
 /**
  * Aspect for Service logging.
@@ -69,19 +70,18 @@ public class ServiceLoggingAspect {
     @Around("servicePointcut() && !excluded()")
     public Object logBeforeService(ProceedingJoinPoint joinPoint) {
 
-        String className = joinPoint.getSignature().getDeclaringTypeName();
+        Signature signature = joinPoint.getSignature();
+        String className = signature.getDeclaringTypeName();
 
         if (!withLogging(className)) {
             return joinPoint.proceed();
         }
 
-        className = joinPoint.getSignature().getDeclaringType().getSimpleName();
-        String packageName = joinPoint.getSignature().getDeclaringType().getPackageName();
-        String methodName = joinPoint.getSignature().getName();
-
-        LogConfiguration config = loggingConfigService.getServiceLoggingConfig(packageName,
-            className,
-            methodName);
+        Class declaringType = signature.getDeclaringType();
+        className = declaringType.getSimpleName();
+        String packageName = declaringType.getPackageName();
+        String methodName = signature.getName();
+        LogConfiguration config = loggingConfigService.getServiceLoggingConfig(packageName, className, methodName);
 
         StopWatch stopWatch = StopWatch.createStarted();
 
@@ -104,7 +104,7 @@ public class ServiceLoggingAspect {
 
     private void logStart(final JoinPoint joinPoint, LogConfiguration config) {
         String callMethod = getCallMethod(joinPoint);
-        if (Objects.isNull(config)) {
+        if (config == null) {
             log.info(LOG_START_PATTERN,
                      callMethod,
                      printInputParams(joinPoint));
@@ -115,16 +115,16 @@ public class ServiceLoggingAspect {
             return;
         }
 
-        setLevelAndPrint(log,
-                         config.getLevel(),
-                         LOG_START_PATTERN,
-                         callMethod,
-                         printInputParams(joinPoint, config.getLogInput()));
+        logWithLevel(log,
+                     config.getLevel(),
+                     LOG_START_PATTERN,
+                     callMethod,
+                     printInputParams(joinPoint, config.getLogInput()));
     }
 
     private void logStop(final JoinPoint joinPoint, final Object result, final StopWatch stopWatch, LogConfiguration config) {
         String callMethod = getCallMethod(joinPoint);
-        if (Objects.isNull(config)) {
+        if (config == null) {
             log.info(LOG_STOP_PATTERN,
                      callMethod,
                      printResult(joinPoint, result),
@@ -136,12 +136,12 @@ public class ServiceLoggingAspect {
             return;
         }
 
-        setLevelAndPrint(log,
-                         config.getLevel(),
-                         LOG_STOP_PATTERN,
-                         callMethod,
-                         printResult(joinPoint, result, config.getLogResult()),
-                         stopWatch.getTime(TimeUnit.MILLISECONDS));
+        logWithLevel(log,
+                     config.getLevel(),
+                     LOG_STOP_PATTERN,
+                     callMethod,
+                     printResult(joinPoint, result, config.getLogResult()),
+                     stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
     private void logError(final JoinPoint joinPoint, final Throwable e, final StopWatch stopWatch) {

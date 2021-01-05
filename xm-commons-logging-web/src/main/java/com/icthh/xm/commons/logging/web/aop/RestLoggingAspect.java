@@ -8,6 +8,7 @@ import com.icthh.xm.commons.logging.web.util.WebLogObjectPrinter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
@@ -28,7 +29,7 @@ import java.util.Objects;
 
 import static com.icthh.xm.commons.logging.config.LoggingConfig.DEFAULT_LOG_RESULT_DETAILS;
 import static com.icthh.xm.commons.logging.util.LogObjectPrinter.Level.OFF_LOG;
-import static com.icthh.xm.commons.logging.util.LogObjectPrinter.setLevelAndPrint;
+import static com.icthh.xm.commons.logging.util.LogObjectPrinter.logWithLevel;
 
 
 /**
@@ -169,18 +170,20 @@ public class RestLoggingAspect {
     private void logStart(final JoinPoint joinPoint, String method, final String[] controllerPath,
                           final String[] methodPath) {
 
-        String className = joinPoint.getSignature().getDeclaringTypeName();
+        Signature signature = joinPoint.getSignature();
+        String className = signature.getDeclaringTypeName();
         if (!withLogging(className)) {
             return;
         }
 
-        className = joinPoint.getSignature().getDeclaringType().getSimpleName();
-        String packageName = joinPoint.getSignature().getDeclaringType().getPackageName();
-        String methodName = joinPoint.getSignature().getName();
+        Class declaringType = signature.getDeclaringType();
+        className = declaringType.getSimpleName();
+        String packageName = declaringType.getPackageName();
+        String methodName = signature.getName();
 
         LogConfiguration config = loggingConfigService.getApiLoggingConfig(packageName, className, methodName);
 
-        if (Objects.isNull(config)) {
+        if (config == null) {
             log.info(LOG_START_PATTERN,
                      method,
                      LogObjectPrinter.joinUrlPaths(controllerPath, methodPath),
@@ -193,31 +196,33 @@ public class RestLoggingAspect {
             return;
         }
 
-        setLevelAndPrint(log,
-                         config.getLevel(),
-                         LOG_START_PATTERN,
-                         method,
-                         LogObjectPrinter.joinUrlPaths(controllerPath, methodPath),
-                         LogObjectPrinter.getCallMethod(joinPoint),
-                         LogObjectPrinter.printInputParams(joinPoint, config.getLogInput()));
+        logWithLevel(log,
+                     config.getLevel(),
+                     LOG_START_PATTERN,
+                     method,
+                     LogObjectPrinter.joinUrlPaths(controllerPath, methodPath),
+                     LogObjectPrinter.getCallMethod(joinPoint),
+                     LogObjectPrinter.printInputParams(joinPoint, config.getLogInput()));
     }
 
     private void logStop(final JoinPoint joinPoint, String method, final String[] controllerPath,
                          final String[] methodPath,
                          final Object result) {
 
-        String className = joinPoint.getSignature().getDeclaringTypeName();
+        Signature signature = joinPoint.getSignature();
+        String className = signature.getDeclaringTypeName();
         if (!withLogging(className)) {
             return;
         }
 
-        className = joinPoint.getSignature().getDeclaringType().getSimpleName();
-        String packageName = joinPoint.getSignature().getDeclaringType().getPackageName();
-        String methodName = joinPoint.getSignature().getName();
+        Class declaringType = signature.getDeclaringType();
+        className = declaringType.getSimpleName();
+        String packageName = declaringType.getPackageName();
+        String methodName = signature.getName();
 
         LogConfiguration config = loggingConfigService.getApiLoggingConfig(packageName, className, methodName);
 
-        if (Objects.isNull(config)) {
+        if (config == null) {
             log.info(LOG_STOP_PATTERN,
                      method,
                      LogObjectPrinter.joinUrlPaths(controllerPath, methodPath),
@@ -236,7 +241,7 @@ public class RestLoggingAspect {
             printResult = config.getLogResult().getResultDetails();
         }
 
-        setLevelAndPrint(log,
+        logWithLevel(log,
                          config.getLevel(),
                          LOG_STOP_PATTERN,
                          method,

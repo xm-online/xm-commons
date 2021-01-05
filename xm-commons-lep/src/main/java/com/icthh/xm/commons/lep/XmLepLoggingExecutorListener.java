@@ -16,7 +16,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.icthh.xm.commons.logging.util.LogObjectPrinter.Level.OFF_LOG;
-import static com.icthh.xm.commons.logging.util.LogObjectPrinter.setLevelAndPrint;
+import static com.icthh.xm.commons.logging.util.LogObjectPrinter.logWithLevel;
 
 /**
  * Lep executor listener implementation (see {@link LepExecutorListener}) desired to print start, stop and error records
@@ -51,7 +51,7 @@ public class XmLepLoggingExecutorListener implements LepExecutorListener {
 
         LepLogConfiguration loggingConfig = loggingConfigService.getLepLoggingConfig(beforeEvent.getKey().getId());
 
-        if (Objects.isNull(loggingConfig)) {
+        if (loggingConfig == null) {
             log.info(LOG_START_PATTERN,
                      buildLepSignature(beforeEvent.getMethod()),
                      beforeEvent.getKey());
@@ -62,36 +62,38 @@ public class XmLepLoggingExecutorListener implements LepExecutorListener {
             return;
         }
 
-        setLevelAndPrint(log, loggingConfig.getLevel(),
-                         LOG_START_PATTERN,
-                         buildLepSignature(beforeEvent.getMethod()),
-                         beforeEvent.getKey());
+        logWithLevel(log, loggingConfig.getLevel(),
+                     LOG_START_PATTERN,
+                     buildLepSignature(beforeEvent.getMethod()),
+                     beforeEvent.getKey());
     }
 
     private void onAfterEvent(AfterResourceExecutionEvent afterEvent) {
         String signatureToPrint = buildLepSignature(afterEvent.getMethod());
         String scriptName = afterEvent.getKey().getId();
 
+        log.warn(">>>>>>>>>>>>>>> {}", scriptName);
+
         Optional<Exception> exception = afterEvent.getResult().flatMap(ResultObject::getException);
 
         if (exception.isPresent()) {
             logStopError(signatureToPrint, scriptName, exception.get());
         } else {
-            LepLogConfiguration loggingConfig = loggingConfigService.getLepLoggingConfig(afterEvent.getKey().getId());
+            LepLogConfiguration loggingConfig = loggingConfigService.getLepLoggingConfig(scriptName);
             logStop(signatureToPrint, scriptName, loggingConfig);
         }
 
     }
 
     private void logStop(String signature, String scriptName, LepLogConfiguration config) {
-        if (Objects.isNull(config)) {
+        if (config == null) {
             log.info(LOG_STOP_PATTERN, signature, scriptName);
             return;
         }
         if (OFF_LOG.equals(config.getLevel())) {
             return;
         }
-        setLevelAndPrint(log, config.getLevel(), LOG_STOP_PATTERN, signature, scriptName);
+        logWithLevel(log, config.getLevel(), LOG_STOP_PATTERN, signature, scriptName);
     }
 
     private void logStopError(String signature, String scriptName, Exception e) {
