@@ -16,7 +16,6 @@ dependencies {
     compile "ch.qos.logback:logback-classic"
 
     compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
-    compile "commons-codec:commons-codec:${versions.commonsCodec}"
     compile ("net.logstash.logback:logstash-logback-encoder:${versions.logstashLogbackEncoder}") {
         exclude(group: 'ch.qos.logback')
     }
