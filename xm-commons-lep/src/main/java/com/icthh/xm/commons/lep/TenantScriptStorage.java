@@ -7,9 +7,12 @@ import static java.util.Collections.singletonList;
 import static org.springframework.core.io.ResourceLoader.CLASSPATH_URL_PREFIX;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+
+import lombok.Builder;
 import lombok.Getter;
+import lombok.Singular;
 import org.apache.commons.io.FilenameUtils;
 
 /**
@@ -17,46 +20,51 @@ import org.apache.commons.io.FilenameUtils;
  */
 public enum TenantScriptStorage {
 
-    CLASSPATH {
-        @Override
-        public String getScriptPath(final Details details) {
-            List<String> lepDirList = new ArrayList<>(asList(CLASSPATH_URL_PREFIX, "lep", "custom"));
-            lepDirList.addAll(details.basePath);
-            lepDirList.add(details.path);
-            return String.join("/", lepDirList);
-        }
+    CLASSPATH(TenantScriptStorage::getScriptPathClasspath, TenantScriptStorage::getDetailsClasspath),
+    XM_MS_CONFIG(TenantScriptStorage::getScriptPathMsConfig, TenantScriptStorage::getDetails),
+    FILE(TenantScriptStorage::getScriptPathFile, TenantScriptStorage::getDetails);
 
-        @Override
-        public Details getDetails(final String tenantKey, final String appName, final String path) {
-            if (path.startsWith(URL_PREFIX_COMMONS_ENVIRONMENT)) {
-                return new Details(emptyList(), path.substring(URL_PREFIX_COMMONS_ENVIRONMENT.length()));
-            } else if (path.startsWith(URL_PREFIX_COMMONS_TENANT)) {
-                return new Details(singletonList(tenantKey.toLowerCase()), path.substring(URL_PREFIX_COMMONS_TENANT.length()));
-            } else {
-                return new Details(singletonList(tenantKey.toLowerCase()), path);
-            }
-        }
-    },
-    XM_MS_CONFIG {
-        @Override
-        public String getScriptPath(final Details details) {
-            List<String> lepDirList = new ArrayList<>(asList(XM_MS_CONFIG_URL_PREFIX, "config", "tenants"));
-            lepDirList.addAll(details.basePath);
-            lepDirList.add(details.path);
-            return String.join("/", lepDirList);
-        }
-    },
-    FILE {
-        @Override
-        public String getScriptPath(final Details details) {
-            List<String> lepDirList = new ArrayList<>(asList("config", "tenants"));
-            lepDirList.addAll(details.basePath);
-            String lepDir = Paths.get(FileSystemUtils.APP_HOME_DIR, lepDirList.toArray(new String[0])).toString();
-            return "file://" + lepDir + FilenameUtils.separatorsToSystem("/" + details.path);
-        }
-    };
+    private final Function<Details, String> getScriptPath;
+    private final DetailsExtractor getDetails;
 
-    protected abstract String getScriptPath(final Details details);
+    TenantScriptStorage(Function<Details, String> getScriptPath, DetailsExtractor getDetails) {
+        this.getDetails = getDetails;
+        this.getScriptPath = getScriptPath;
+    }
+
+
+    private static String getScriptPathClasspath(final Details details) {
+        List<String> paths = PathBuilder.builder()
+            .path(CLASSPATH_URL_PREFIX)
+            .path("lep")
+            .path("custom")
+            .paths(details.basePath)
+            .path(details.path)
+            .build().paths;
+        return String.join("/", paths);
+    }
+
+    private static String getScriptPathMsConfig(final Details details) {
+        List<String> paths = PathBuilder.builder()
+            .path(XM_MS_CONFIG_URL_PREFIX)
+            .path("config")
+            .path("tenants")
+            .paths(details.basePath)
+            .path(details.path)
+            .build().paths;
+        return String.join("/", paths);
+    }
+
+    private static String getScriptPathFile(final Details details) {
+
+        String[] paths = PathBuilder.builder()
+            .path("config")
+            .path("tenants")
+            .paths(details.basePath)
+            .build().asArray();
+        String lepDir = Paths.get(FileSystemUtils.APP_HOME_DIR, paths).toString();
+        return "file://" + lepDir + FilenameUtils.separatorsToSystem("/" + details.path);
+    }
 
     /**
      * @param tenantKey tenant key
@@ -64,13 +72,23 @@ public enum TenantScriptStorage {
      * @param path      lep path
      * @return lep path details including base path and lep path
      */
-    protected Details getDetails(final String tenantKey, final String appName, final String path) {
+    private static Details getDetails(final String tenantKey, final String appName, final String path) {
         if (path.startsWith(URL_PREFIX_COMMONS_ENVIRONMENT)) {
             return new Details(asList("commons", "lep"), path.substring(URL_PREFIX_COMMONS_ENVIRONMENT.length()));
         } else if (path.startsWith(URL_PREFIX_COMMONS_TENANT)) {
             return new Details(asList(tenantKey.toUpperCase(), "commons", "lep"), path.substring(URL_PREFIX_COMMONS_TENANT.length()));
         } else {
             return new Details(asList(tenantKey.toUpperCase(), appName, "lep"), path);
+        }
+    }
+
+    private static Details getDetailsClasspath(final String tenantKey, final String appName, final String path) {
+        if (path.startsWith(URL_PREFIX_COMMONS_ENVIRONMENT)) {
+            return new Details(emptyList(), path.substring(URL_PREFIX_COMMONS_ENVIRONMENT.length()));
+        } else if (path.startsWith(URL_PREFIX_COMMONS_TENANT)) {
+            return new Details(singletonList(tenantKey.toLowerCase()), path.substring(URL_PREFIX_COMMONS_TENANT.length()));
+        } else {
+            return new Details(singletonList(tenantKey.toLowerCase()), path);
         }
     }
 
@@ -85,8 +103,8 @@ public enum TenantScriptStorage {
      * @return absolute lep path
      */
     public String resolvePath(final String tenantKey, final String appName, final String path) {
-        Details details = getDetails(tenantKey, appName, path);
-        return getScriptPath(details);
+        Details details = getDetails.extract(tenantKey, appName, path);
+        return getScriptPath.apply(details);
     }
 
     @Getter
@@ -100,14 +118,29 @@ public enum TenantScriptStorage {
         }
     }
 
+    @FunctionalInterface
+    private interface DetailsExtractor {
+        Details extract(final String tenantKey, final String appName, final String path);
+    }
+
+    @Builder
+    private static class PathBuilder {
+        @Singular
+        private final List<String> paths;
+
+        public String[] asArray() {
+            return paths.toArray(new String[0]);
+        }
+    }
+
     /**
      * URL prefix for environment commons.
      */
-    public static final String URL_PREFIX_COMMONS_ENVIRONMENT = "/commons/environment";
+    private static final String URL_PREFIX_COMMONS_ENVIRONMENT = "/commons/environment";
 
     /**
      * URL prefix for tenant commons.
      */
-    public static final String URL_PREFIX_COMMONS_TENANT = "/commons/tenant";
+    private static final String URL_PREFIX_COMMONS_TENANT = "/commons/tenant";
 
 }

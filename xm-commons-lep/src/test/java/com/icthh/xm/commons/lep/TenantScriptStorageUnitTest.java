@@ -2,8 +2,6 @@ package com.icthh.xm.commons.lep;
 
 import static com.icthh.xm.commons.lep.TenantScriptStorage.CLASSPATH;
 import static com.icthh.xm.commons.lep.TenantScriptStorage.FILE;
-import static com.icthh.xm.commons.lep.TenantScriptStorage.URL_PREFIX_COMMONS_ENVIRONMENT;
-import static com.icthh.xm.commons.lep.TenantScriptStorage.URL_PREFIX_COMMONS_TENANT;
 import static com.icthh.xm.commons.lep.TenantScriptStorage.XM_MS_CONFIG;
 import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 import static org.junit.Assert.assertEquals;
@@ -15,6 +13,8 @@ public class TenantScriptStorageUnitTest {
     private static final String TENANT_KEY = "xm";
     private static final String APP_NAME = "activation";
     private static final String PATH = "/commons/functions/aggregation";
+    private static final String URL_PREFIX_COMMONS_ENVIRONMENT = "/commons/environment";
+    private static final String URL_PREFIX_COMMONS_TENANT = "/commons/tenant";
 
     @Test
     public void testResolveLepForClassPathScriptStorage() {
