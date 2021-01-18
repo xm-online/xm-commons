@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.icthh.xm.commons.tenant.TenantContextUtils.getTenantKey;
@@ -83,23 +82,23 @@ public class LoggingRefreshableConfiguration implements RefreshableConfiguration
                                                               String className,
                                                               String methodName) {
 
-        Optional<TenantKey> tenantKey = getTenantKey(this.tenantContextHolder);
-        if (tenantKey.isPresent()) {
-            String key = tenantKey.get().getValue();
-            return getLogConfiguration(serviceLoggingConfig.get(key), packageName, className, methodName);
-        }
-        return null;
+        return getTenantKey(this.tenantContextHolder)
+            .map(TenantKey::getValue)
+            .map(serviceLoggingConfig::get)
+            .map(config -> getLogConfiguration(config, packageName, className, methodName))
+            .orElse(null);
+
     }
 
     @Override
     public LogConfiguration getApiLoggingConfig(String packageName, String className, String methodName) {
 
-        Optional<TenantKey> tenantKey = getTenantKey(this.tenantContextHolder);
-        if (tenantKey.isPresent()) {
-            String key = tenantKey.get().getValue();
-            return getLogConfiguration(apiLoggingConfig.get(key), packageName, className, methodName);
-        }
-        return null;
+        return getTenantKey(this.tenantContextHolder)
+            .map(TenantKey::getValue)
+            .map(apiLoggingConfig::get)
+            .map(config -> getLogConfiguration(config, packageName, className, methodName))
+            .orElse(null);
+
     }
 
     @Override
@@ -108,16 +107,13 @@ public class LoggingRefreshableConfiguration implements RefreshableConfiguration
             return null;
         }
 
-        Optional<TenantKey> tenantKey = getTenantKey(this.tenantContextHolder);
-        if (tenantKey.isPresent()) {
-            String key = tenantKey.get().getValue();
-            Map<String, LepLogConfiguration> logConfiguration = lepLoggingConfig.get(key);
-            if (MapUtils.isEmpty(logConfiguration)) {
-                return null;
-            }
-            return logConfiguration.get(fileName);
-        }
-        return null;
+        return getTenantKey(this.tenantContextHolder)
+            .map(TenantKey::getValue)
+            .map(lepLoggingConfig::get)
+            .filter(MapUtils::isNotEmpty)
+            .map(config -> config.get(fileName))
+            .orElse(null);
+
     }
 
     private LogConfiguration getLogConfiguration(Map<String, LogConfiguration> logConfiguration,
