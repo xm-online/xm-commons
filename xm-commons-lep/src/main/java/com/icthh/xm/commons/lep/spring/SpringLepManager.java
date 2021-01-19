@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.lep.spring;
 
+import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.lep.api.ExtensionService;
 import com.icthh.xm.lep.api.LepExecutor;
 import com.icthh.xm.lep.api.LepInvocationCauseException;
@@ -29,16 +30,18 @@ public class SpringLepManager implements LepManager {
     private final LepExecutor executor;
     private final ApplicationLepProcessingEventPublisher lepProcessingEventPublisher;
     private final LepResourceService resourceService;
-    private final XmLepLoggingExecutorListener xmLepLoggingExecutorListener = new XmLepLoggingExecutorListener();
+    private final XmLepLoggingExecutorListener xmLepLoggingExecutorListener;
 
     public SpringLepManager(ExtensionService extensionService,
                             LepExecutor executor,
                             ApplicationLepProcessingEventPublisher lepProcessingEventPublisher,
-                            LepResourceService resourceService) {
+                            LepResourceService resourceService,
+                            LoggingConfigService loggingConfigService) {
         this.extensionService = extensionService;
         this.executor = executor;
         this.lepProcessingEventPublisher = lepProcessingEventPublisher;
         this.resourceService = resourceService;
+        this.xmLepLoggingExecutorListener = new XmLepLoggingExecutorListener(loggingConfigService);
     }
 
     @PostConstruct

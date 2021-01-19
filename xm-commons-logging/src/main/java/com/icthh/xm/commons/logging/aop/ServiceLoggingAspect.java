@@ -1,21 +1,26 @@
 package com.icthh.xm.commons.logging.aop;
 
-import com.icthh.xm.commons.logging.util.LogObjectPrinter;
+import com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration;
+import com.icthh.xm.commons.logging.config.LoggingConfigService;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
+
+import static com.icthh.xm.commons.logging.util.LogObjectPrinter.Level.OFF_LOG;
+import static com.icthh.xm.commons.logging.util.LogObjectPrinter.*;
 
 /**
  * Aspect for Service logging.
@@ -24,9 +29,15 @@ import java.util.concurrent.TimeUnit;
 @Aspect
 @Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE + 2)
+@RequiredArgsConstructor
 public class ServiceLoggingAspect {
 
     private static final String XM_BASE_PACKAGE = "com.icthh.xm";
+    private static final String LOG_START_PATTERN = "srv:start: {}, input: {}";
+    private static final String LOG_STOP_PATTERN = "srv:stop:  {}, result: {}, time = {} ms";
+    private static final String LOG_ERROR_PATTERN = "srv:stop:  {}, error: {}, time = {} ms";
+
+    private final LoggingConfigService loggingConfigService;
 
     @Value("${base-package:'-'}")
     private String basePackage;
@@ -54,21 +65,25 @@ public class ServiceLoggingAspect {
     @Around("servicePointcut() && !excluded()")
     public Object logBeforeService(ProceedingJoinPoint joinPoint) {
 
-        String className = joinPoint.getSignature().getDeclaringTypeName();
+        Signature signature = joinPoint.getSignature();
+        String className = signature.getDeclaringTypeName();
 
         if (!withLogging(className)) {
             return joinPoint.proceed();
         }
 
+        Class declaringType = signature.getDeclaringType();
+        className = declaringType.getSimpleName();
+        String packageName = declaringType.getPackageName();
+        String methodName = signature.getName();
+        LogConfiguration config = loggingConfigService.getServiceLoggingConfig(packageName, className, methodName);
+
         StopWatch stopWatch = StopWatch.createStarted();
 
         try {
-            logStart(joinPoint);
-
+            logStart(joinPoint, config);
             Object result = joinPoint.proceed();
-
-            logStop(joinPoint, result, stopWatch);
-
+            logStop(joinPoint, result, stopWatch, config);
             return result;
         } catch (Exception e) {
             logError(joinPoint, e, stopWatch);
@@ -81,23 +96,53 @@ public class ServiceLoggingAspect {
         return className.startsWith(XM_BASE_PACKAGE) || className.startsWith(basePackage);
     }
 
-    private void logStart(final JoinPoint joinPoint) {
-        log.info("srv:start: {}, input: {}",
-                 LogObjectPrinter.getCallMethod(joinPoint),
-                 LogObjectPrinter.printInputParams(joinPoint));
+
+    private void logStart(final JoinPoint joinPoint, LogConfiguration config) {
+        String callMethod = getCallMethod(joinPoint);
+        if (config == null) {
+            log.info(LOG_START_PATTERN,
+                     callMethod,
+                     printInputParams(joinPoint));
+            return;
+        }
+
+        if (OFF_LOG.equals(config.getLevel())) {
+            return;
+        }
+
+        logWithLevel(log,
+                     config.getLevel(),
+                     LOG_START_PATTERN,
+                     callMethod,
+                     printInputParams(joinPoint, config.getLogInput()));
     }
 
-    private void logStop(final JoinPoint joinPoint, final Object result, final StopWatch stopWatch) {
-        log.info("srv:stop:  {}, result: {}, time = {} ms",
-                 LogObjectPrinter.getCallMethod(joinPoint),
-                 LogObjectPrinter.printResult(joinPoint, result),
-                 stopWatch.getTime(TimeUnit.MILLISECONDS));
+    private void logStop(final JoinPoint joinPoint, final Object result, final StopWatch stopWatch, LogConfiguration config) {
+        String callMethod = getCallMethod(joinPoint);
+        if (config == null) {
+            log.info(LOG_STOP_PATTERN,
+                     callMethod,
+                     printResult(joinPoint, result),
+                     stopWatch.getTime(TimeUnit.MILLISECONDS));
+            return;
+        }
+
+        if (OFF_LOG.equals(config.getLevel())) {
+            return;
+        }
+
+        logWithLevel(log,
+                     config.getLevel(),
+                     LOG_STOP_PATTERN,
+                     callMethod,
+                     printResult(joinPoint, result, config.getLogResult()),
+                     stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
     private void logError(final JoinPoint joinPoint, final Throwable e, final StopWatch stopWatch) {
-        log.error("srv:stop:  {}, error: {}, time = {} ms",
-                  LogObjectPrinter.getCallMethod(joinPoint),
-                  LogObjectPrinter.printExceptionWithStackInfo(e),
+        log.error(LOG_ERROR_PATTERN,
+                  getCallMethod(joinPoint),
+                  printExceptionWithStackInfo(e),
                   stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 }

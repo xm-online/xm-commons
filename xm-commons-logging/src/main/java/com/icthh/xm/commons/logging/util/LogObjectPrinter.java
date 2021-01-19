@@ -1,15 +1,19 @@
 package com.icthh.xm.commons.logging.util;
 
 import com.icthh.xm.commons.logging.LoggingAspectConfig;
-import java.lang.reflect.Array;
+import com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration.LogInput;
+import com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration.LogResult;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.slf4j.Logger;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -19,9 +23,15 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
+
+import static com.icthh.xm.commons.logging.config.LoggingConfig.DEFAULT_LOG_INPUT_COLLECTION_AWARE;
+import static com.icthh.xm.commons.logging.config.LoggingConfig.DEFAULT_LOG_INPUT_DETAILS;
+import static com.icthh.xm.commons.logging.config.LoggingConfig.DEFAULT_LOG_RESULT_COLLECTION_AWARE;
+import static com.icthh.xm.commons.logging.config.LoggingConfig.DEFAULT_LOG_RESULT_DETAILS;
 
 /**
  * Utility class for object printing in Logging aspects.
@@ -187,7 +197,64 @@ public final class LogObjectPrinter {
         }
     }
 
-    private static String renderParams(JoinPoint joinPoint, String[] params, String[] includeParamNames,
+    /**
+     * Gets join point input params description string.
+     *
+     * @param joinPoint - aspect join point
+     * @param config - input parameters config {@link LogInput}
+     * @return join point input params description string
+     */
+    public static String printInputParams(JoinPoint joinPoint, LogInput config) {
+        try {
+            if (joinPoint == null) {
+                return "joinPoint is null";
+            }
+
+            if (config == null) {
+                return printInputParams(joinPoint);
+            }
+
+            Signature signature = joinPoint.getSignature();
+            if (!(signature instanceof MethodSignature)) {
+                return PRINT_EMPTY_LIST;
+            }
+
+            if (config.getDetails() == null) {
+                config.setDetails(DEFAULT_LOG_INPUT_DETAILS);
+            }
+
+            if (config.getCollectionAware() == null) {
+                config.setCollectionAware(DEFAULT_LOG_INPUT_COLLECTION_AWARE);
+            }
+
+            if (!config.getDetails()) {
+                return PRINT_HIDDEN;
+            }
+
+            if (config.getExcludeParams() == null) {
+                config.setExcludeParams(List.of());
+            }
+
+            if (CollectionUtils.isNotEmpty(config.getIncludeParams())) {
+                config.setExcludeParams(List.of());
+            } else {
+                config.setIncludeParams(List.of());
+            }
+
+            MethodSignature ms = (MethodSignature) signature;
+            String[] params = ms.getParameterNames();
+            return ArrayUtils.isNotEmpty(params) ? renderParams(joinPoint,
+                params,
+                config.getIncludeParams().toArray(String[]::new),
+                config.getExcludeParams().toArray(String[]::new),
+                config.getCollectionAware()) : PRINT_EMPTY_LIST;
+        } catch (IndexOutOfBoundsException | IllegalArgumentException e) {
+            log.warn("Error while print params: {}, params = {}", e, joinPoint.getArgs());
+            return "printerror: " + e;
+        }
+    }
+
+    static String renderParams(JoinPoint joinPoint, String[] params, String[] includeParamNames,
                                        String[] excludeParamNames, boolean inputCollectionAware) {
 
         Set<String> includeSet = prepareNameSet(includeParamNames);
@@ -279,6 +346,37 @@ public final class LogObjectPrinter {
     }
 
     /**
+     * Print Result object according to input parameters and {@link LogResult}.
+     *
+     * @param joinPoint - intercepting join point
+     * @param object - result value to be printed
+     * @param config - result config {@link LogResult}
+     */
+    public static String printResult(final JoinPoint joinPoint, final Object object, LogResult config) {
+        if (config == null) {
+            printResult(joinPoint, object);
+        }
+
+        if (config.getResultDetails()) {
+            config.setResultDetails(DEFAULT_LOG_RESULT_DETAILS);
+        }
+
+        if (config.getResultCollectionAware()) {
+            config.setResultCollectionAware(DEFAULT_LOG_RESULT_COLLECTION_AWARE);
+        }
+
+        if (!config.getResultDetails()) {
+            return PRINT_HIDDEN;
+        }
+
+        if (config.getResultCollectionAware()) {
+            return printCollectionAware(object);
+        }
+
+        return String.valueOf(object);
+    }
+
+    /**
      * Gets object representation with size for collection case.
      *
      * @param object object instance to log
@@ -330,6 +428,40 @@ public final class LogObjectPrinter {
             return Arrays.toString((Object[]) value);
         }
         return value.toString();
+    }
+
+    public enum Level {
+        TRACE, DEBUG, INFO, WARN, ERROR, OFF_LOG
+    }
+
+    /**
+     * Log a message at the target level according to the specified format
+     * and arguments.
+     * @param log org.slf4j.Logger for keep the original loggerName
+     * @param level logging level
+     * @param format format string
+     * @param argArray list of arguments
+     */
+    public static void logWithLevel(Logger log, Level level, String format, Object... argArray) {
+        switch (level) {
+            case OFF_LOG:
+                break;
+            case TRACE:
+                log.trace(format, argArray);
+                break;
+            case DEBUG:
+                log.debug(format, argArray);
+                break;
+            case INFO:
+                log.info(format, argArray);
+                break;
+            case WARN:
+                log.warn(format, argArray);
+                break;
+            case ERROR:
+                log.error(format, argArray);
+                break;
+        }
     }
 
 }

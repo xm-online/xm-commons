@@ -59,8 +59,8 @@ subprojects {
 
     version = parent.version
 
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 
     [compileJava, compileTestJava]*.options.collect {
         options -> options.encoding = "UTF-8"

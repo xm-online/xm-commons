@@ -11,6 +11,7 @@ import com.icthh.xm.commons.lep.XmGroovyExecutionStrategy;
 import com.icthh.xm.commons.lep.XmGroovyScriptEngineProviderStrategy;
 import com.icthh.xm.commons.lep.XmLepResourceService;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
+import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.lep.api.ExtensionService;
 import com.icthh.xm.lep.api.LepExecutor;
 import com.icthh.xm.lep.api.LepManager;
@@ -46,6 +47,9 @@ public abstract class LepSpringConfiguration {
     @Autowired @Lazy
     private XmLepScriptConfigServerResourceLoader xmLepScriptConfigServerResourceLoader;
 
+    @Autowired @Lazy
+    private LoggingConfigService loggingConfigService;
+
     protected LepSpringConfiguration(String appName,
                                      ApplicationEventPublisher eventPublisher,
                                      ResourceLoader resourceLoader) {
@@ -60,7 +64,8 @@ public abstract class LepSpringConfiguration {
         return new SpringLepManager(extensionService(),
             lepExecutor(),
             applicationLepProcessingEventPublisher(),
-            lepResourceService());
+            lepResourceService(),
+            loggingConfigService);
     }
 
     @Bean

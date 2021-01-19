@@ -1,0 +1,33 @@
+---
+service:
+  - className: TestService
+    methodName: testMethodFirst
+    packageName:
+    level: WARN
+    logInput:
+      details: true
+      collectionAware: false
+      includeParams:
+        - privilegeKey
+      excludeParams:
+    logResult:
+      resultDetails: true
+      resultCollectionAware: true
+api:
+  - className: TestResource
+    methodName: testMethodFirst
+    packageName:
+    level: WARN
+    logInput:
+      details: true
+      collectionAware: false
+      includeParams:
+        - privilegeKey
+      excludeParams:
+    logResult:
+      resultDetails: true
+      resultCollectionAware: true
+lep:
+  - group: general
+    fileName: TestLep$$default.groovy
+    level: WARN

@@ -1,0 +1,15 @@
+---
+service:
+  - className: TestService
+    methodName:
+    packageName:
+    level: OFF_LOG
+api:
+  - className: TestResource
+    methodName:
+    packageName:
+    level: OFF_LOG
+lep:
+  - group: general
+    fileName: TestLep$$default.groovy
+    level: OFF_LOG
