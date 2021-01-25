@@ -4,7 +4,6 @@ import com.icthh.xm.commons.exceptions.SkipPermissionException;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.permission.access.ResourceFactory;
 import com.icthh.xm.commons.permission.access.subject.Subject;
-import com.icthh.xm.commons.permission.constants.RoleConstant;
 import com.icthh.xm.commons.permission.domain.EnvironmentVariable;
 import com.icthh.xm.commons.permission.domain.Permission;
 import com.icthh.xm.commons.permission.domain.ReactionStrategy;
@@ -12,11 +11,9 @@ import com.icthh.xm.commons.permission.service.translator.SpelTranslator;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
-import com.icthh.xm.commons.tenant.TenantContextUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.event.Level;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelNode;
@@ -24,6 +21,7 @@ import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.expression.OAuth2SecurityExpressionMethods;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -31,9 +29,16 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.icthh.xm.commons.permission.constants.RoleConstant.SUPER_ADMIN;
+import static com.icthh.xm.commons.permission.service.PermissionCheckService.CollectionUtils.listsNotEqualsIgnoreOrder;
+import static com.icthh.xm.commons.tenant.TenantContextUtils.getRequiredTenantKeyValue;
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @Slf4j
 @Service
@@ -41,7 +46,6 @@ import java.util.Optional;
 @IgnoreLogginAspect
 public class PermissionCheckService {
 
-    private static final String ERROR_ROLE_IS_UNDEFINED = "Role is undefined";
     private static final String LOG_KEY = "log";
 
     private static final Method GET_REQUEST_HEADER = lookupGetRequestHeaderMethod();
@@ -54,21 +58,22 @@ public class PermissionCheckService {
 
     /**
      * Check permission for role and privilege key only.
+     *
      * @param authentication the authentication
-     * @param privilege the privilege key
+     * @param privilege      the privilege key
      * @return true if permitted
      */
-    public boolean hasPermission(Authentication authentication,
-                                 Object privilege) {
+    public boolean hasPermission(Authentication authentication, Object privilege) {
         return checkRole(authentication, privilege, true)
             || checkPermission(authentication, null, privilege, false, true);
     }
 
     /**
      * Check permission for role, privilege key and resource condition.
+     *
      * @param authentication the authentication
-     * @param resource the resource
-     * @param privilege the privilege key
+     * @param resource       the resource
+     * @param privilege      the privilege key
      * @return true if permitted
      */
     public boolean hasPermission(Authentication authentication,
@@ -81,10 +86,11 @@ public class PermissionCheckService {
 
     /**
      * Check permission for role, privilege key, new resource and old resource.
+     *
      * @param authentication the authentication
-     * @param resource the old resource
-     * @param resourceType the resource type
-     * @param privilege the privilege key
+     * @param resource       the old resource
+     * @param resourceType   the resource type
+     * @param privilege      the privilege key
      * @return true if permitted
      */
     @SuppressWarnings("unchecked")
@@ -117,25 +123,28 @@ public class PermissionCheckService {
      * with traversing through {@link SpelNode} nodes and building SQL expression.
      *
      * @param authentication the authentication
-     * @param privilegeKey the privilege key
-     * @param translator the spel translator
+     * @param privilegeKey   the privilege key
+     * @param translator     the spel translator
      * @return condition if permitted, or null
      */
-    public String createCondition(Authentication authentication, Object privilegeKey, SpelTranslator translator) {
+    public Collection<String> createCondition(Authentication authentication, Object privilegeKey, SpelTranslator translator) {
         if (!hasPermission(authentication, privilegeKey)) {
             throw new AccessDeniedException("Access is denied");
         }
 
-        String roleKey = getRoleKey(authentication);
+        Collection<String> roleKeys = getRoleKeys(authentication);
 
-        Permission permission = getPermission(roleKey, privilegeKey);
+        Collection<Permission> permissions = getPermissions(roleKeys, privilegeKey);
 
-        Subject subject = getSubject(roleKey);
+        Map<String, Subject> subjects = getSubjects(roleKeys);
 
-        if (!RoleConstant.SUPER_ADMIN.equals(roleKey)
-            && permission != null && permission.getResourceCondition() != null) {
-            return translator.translate(permission.getResourceCondition().getExpressionString(), subject);
+        if (!roleKeys.contains(SUPER_ADMIN)) {
+            return permissions.stream()
+                .filter(permission -> nonNull(permission.getResourceCondition()))
+                .map(permission -> translator.translate(permission.getResourceCondition().getExpressionString(), subjects.get(permission.getRoleKey())))
+                .collect(toList());
         }
+
         return null;
     }
 
@@ -146,124 +155,210 @@ public class PermissionCheckService {
                                     Object privilegeKey,
                                     boolean checkCondition,
                                     boolean logPermission) {
-        String roleKey = getRoleKey(authentication);
+        Collection<String> roleKey = getRoleKeys(authentication);
         Map<String, Object> resources = new HashMap<>();
 
         if (resource != null) {
             resources.putAll((Map<String, Object>) resource);
         }
-        resources.put("subject", getSubject(roleKey));
+
+        resources.put("subject", getSubjects(roleKey).values());
         resources.put("oauth2", new OAuth2SecurityExpressionMethods(authentication));
 
         Map<String, String> env = new HashMap<>();
-        env.put(EnvironmentVariable.IP.getName(), xmAuthenticationContextHolder
-            .getContext().getRemoteAddress().orElse(null));
-        resources.put("env", env);//put some env variables in this map
+        env.put(
+            EnvironmentVariable.IP.getName(),
+            xmAuthenticationContextHolder.getContext().getRemoteAddress().orElse(null)
+        );
+        resources.put("env", env);
 
         StandardEvaluationContext context = new StandardEvaluationContext();
         context.setVariables(resources);
         context.registerFunction("getRequestHeader", GET_REQUEST_HEADER);
 
-        Permission permission = getPermission(roleKey, privilegeKey);
+        Collection<Permission> permissions = getPermissions(roleKey, privilegeKey);
 
-        if (!isPermissionValid(permission)) {
-            log(logPermission, Level.ERROR,
+        if (!isPermissionEnabled(permissions)) {
+            log(logPermission,
+                Level.ERROR,
                 "access denied: privilege={}, role={}, userKey={} due to privilege is not permitted",
-                privilegeKey, roleKey, getUserKey());
+                privilegeKey,
+                roleKey,
+                getUserKey()
+            );
             return false;
         }
+
         boolean validCondition = true;
-        if (!isConditionValid(permission.getEnvCondition(), context)) {
-            log(logPermission, Level.ERROR,
-                "access denied: privilege={}, role={}, userKey={} due to env condition: [{}] with context [{}]",
-                privilegeKey, roleKey, getUserKey(), permission.getEnvCondition().getExpressionString(), resources);
+
+        if (isEnvConditionNotValid(permissions, context)) {
+            log(logPermission,
+                Level.ERROR,
+                "access denied: privilege={}, role={}, userKey={} due to env condition: {} with context [{}]",
+                privilegeKey,
+                roleKey,
+                getUserKey(),
+                permissions.stream()
+                    .map(Permission::getEnvCondition)
+                    .filter(Objects::nonNull)
+                    .map(Expression::getExpressionString)
+                    .collect(toList()),
+                resources
+            );
             validCondition = false;
         }
-        if (checkCondition && !isConditionValid(permission.getResourceCondition(), context)) {
-            log(logPermission, Level.ERROR,
-                "access denied: privilege={}, role={}, userKey={} due to env condition: [{}] with context [{}] "
+
+        if (checkCondition && isResourceConditionNotValid(permissions, context)) {
+            log(logPermission,
+                Level.ERROR,
+                "access denied: privilege={}, role={}, userKey={} due to env condition: {} with context [{}] "
                     + "with context [{}]",
-                privilegeKey, roleKey, getUserKey(), permission.getResourceCondition().getExpressionString(),
-                resources);
+                privilegeKey,
+                roleKey,
+                getUserKey(),
+                permissions.stream()
+                    .map(Permission::getResourceCondition)
+                    .filter(Objects::nonNull)
+                    .map(Expression::getExpressionString)
+                    .collect(toList()),
+                resources
+            );
             validCondition = false;
         }
-        if (!validCondition && ReactionStrategy.SKIP.equals(permission.getReactionStrategy())) {
-            throw new SkipPermissionException("Skip permission", permission.getRoleKey() + ":"
-                + permission.getPrivilegeKey());
+
+        List<ReactionStrategy> reactionStrategies = permissions.stream()
+            .map(Permission::getReactionStrategy)
+            .collect(toList());
+
+        if (!validCondition && reactionStrategies.contains(ReactionStrategy.SKIP)) {
+            throw new SkipPermissionException(
+                "Skip permission",
+                permissions.stream()
+                    .map(permission -> permission.getRoleKey() + ":" + permission.getPrivilegeKey())
+                    .collect(toList())
+            );
         } else if (!validCondition) {
             return false;
         }
-        log(logPermission, Level.INFO,
+
+        log(logPermission,
+            Level.INFO,
             "access granted: privilege={}, role={}, userKey={}",
-            privilegeKey, roleKey, getUserKey());
+            privilegeKey,
+            roleKey,
+            getUserKey()
+        );
         return true;
     }
 
     private boolean checkRole(Authentication authentication, Object privilege, boolean logPermission) {
-        String roleKey = getRoleKey(authentication);
+        Collection<String> roleKeys = getRoleKeys(authentication);
 
-        if (RoleConstant.SUPER_ADMIN.equals(roleKey)) {
-            log(logPermission, Level.INFO,
+        if (roleKeys.contains(SUPER_ADMIN)) {
+            log(logPermission,
+                Level.INFO,
                 "access granted: privilege={}, role=SUPER-ADMIN, userKey={}",
-                privilege, getUserKey());
+                privilege,
+                getUserKey()
+            );
             return true;
         }
 
-        if (!roleService.getRoles(TenantContextUtils.getRequiredTenantKeyValue(tenantContextHolder.getContext()))
-            .containsKey(roleKey)) {
-            log(logPermission, Level.ERROR,
+        if (listsNotEqualsIgnoreOrder(
+            roleService.getRoles(getRequiredTenantKeyValue(tenantContextHolder.getContext())).keySet(),
+            roleKeys
+        )) {
+            log(
+                logPermission,
+                Level.ERROR,
                 "access denied: privilege={}, role={}, userKey={} due to role is missing",
-                privilege, roleKey, getUserKey());
+                privilege,
+                roleKeys,
+                getUserKey()
+            );
             throw new AccessDeniedException("Access is denied");
         }
 
         return false;
     }
 
-    private static boolean isConditionValid(Expression expression, StandardEvaluationContext context) {
-        boolean result;
-        if (expression == null || StringUtils.isEmpty(expression.getExpressionString())) {
-            result = true;
-        } else {
-            try {
-                result = expression.getValue(context, Boolean.class);
-            } catch (Exception e) {
-                result = false;
-                log.error("Exception while getting value ", e);
-            }
-        }
-        return result;
+    private boolean isEnvConditionNotValid(Collection<Permission> permissions, StandardEvaluationContext context) {
+        return permissions.stream()
+            .anyMatch(permission ->
+                {
+                    Expression expression = permission.getEnvCondition();
+                    if (isNull(expression) || isEmpty(expression.getExpressionString())) {
+                        return true;
+                    } else {
+                        try {
+                            return expression.getValue(context, Boolean.class);
+                        } catch (Exception e) {
+                            log.error("Exception while getting value ", e);
+                            return false;
+                        }
+                    }
+                }
+            );
     }
 
-    private static boolean isPermissionValid(Permission permission) {
-        boolean result = true;
-        if (permission == null || permission.isDisabled()) {
-            result = false;
-        }
-        return result;
+    private boolean isResourceConditionNotValid(Collection<Permission> permissions, StandardEvaluationContext context) {
+        return permissions.stream()
+            .anyMatch(permission ->
+                {
+                    Expression expression = permission.getResourceCondition();
+                    if (isNull(expression) || isEmpty(expression.getExpressionString())) {
+                        return true;
+                    } else {
+                        try {
+                            return expression.getValue(context, Boolean.class);
+                        } catch (Exception e) {
+                            log.error("Exception while getting value ", e);
+                            return false;
+                        }
+                    }
+                }
+            );
     }
 
-    private Subject getSubject(String roleKey) {
+    private boolean isPermissionEnabled(Collection<Permission> permissions) {
+        return permissions.stream()
+            .filter(Objects::nonNull)
+            .anyMatch(permission -> !permission.isDisabled());
+    }
+
+    private Map<String, Subject> getSubjects(Collection<String> roleKeys) {
         XmAuthenticationContext authContext = xmAuthenticationContextHolder.getContext();
-        return new Subject(authContext.getLogin().orElse(null),
-            authContext.getUserKey().orElse(null), roleKey);
+
+        return roleKeys.stream()
+            .collect(Collectors.toMap(
+                roleKey -> roleKey,
+                roleKey ->
+                    new Subject(
+                        authContext.getLogin().orElse(null),
+                        authContext.getUserKey().orElse(null),
+                        roleKey
+                    )
+                )
+            );
     }
 
     private String getUserKey() {
         return xmAuthenticationContextHolder.getContext().getUserKey().orElse(null);
     }
 
-    private static String getRoleKey(Authentication authentication) {
+    private static Collection<String> getRoleKeys(Authentication authentication) {
         return authentication.getAuthorities().stream()
-            .findFirst()
-            .orElseThrow(() -> new RuntimeException(ERROR_ROLE_IS_UNDEFINED))
-            .getAuthority();
+            .map(GrantedAuthority::getAuthority)
+            .collect(toList());
     }
 
-    private Permission getPermission(String roleKey, Object privilegeKey) {
-        return permissionService.getPermissions(
-            TenantContextUtils.getRequiredTenantKeyValue(tenantContextHolder.getContext()))
-            .get(roleKey + ":" + privilegeKey);
+    private Collection<Permission> getPermissions(Collection<String> roleKeys, Object privilegeKey) {
+        Map<String, Permission> permissions = permissionService
+            .getPermissions(getRequiredTenantKeyValue(tenantContextHolder.getContext()));
+
+        return roleKeys.stream()
+            .map(roleKey -> permissions.get(roleKey + ":" + privilegeKey))
+            .collect(toList());
     }
 
     @SuppressWarnings("unchecked")
@@ -308,6 +403,12 @@ public class PermissionCheckService {
                 .map(ServletRequestAttributes::getRequest)
                 .map(request -> request.getHeader(headerName))
                 .orElse(null);
+        }
+    }
+
+    static class CollectionUtils {
+        public static <T> boolean listsNotEqualsIgnoreOrder(Collection<T> collection1, Collection<T> collection2) {
+            return new HashSet<>(collection1).equals(new HashSet<>(collection2));
         }
     }
 }

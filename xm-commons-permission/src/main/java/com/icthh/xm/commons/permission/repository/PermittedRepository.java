@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.permission.repository;
 
 import static java.lang.String.format;
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.icthh.xm.commons.permission.service.PermissionCheckService;
@@ -9,7 +10,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -73,10 +73,12 @@ public class PermittedRepository {
         String selectSql = format(SELECT_ALL_SQL, entityClass.getSimpleName());
         String countSql = format(COUNT_ALL_SQL, entityClass.getSimpleName());
 
-        String permittedCondition = createPermissionCondition(privilegeKey);
-        if (StringUtils.isNotBlank(permittedCondition)) {
-            selectSql += WHERE_SQL + permittedCondition;
-            countSql += WHERE_SQL + permittedCondition;
+        Collection<String> permittedCondition = createPermissionCondition(privilegeKey);
+
+        if (isNotEmpty(permittedCondition)) {
+            String orChainedPermittedCondition = String.join(" OR ", permittedCondition);
+            selectSql += WHERE_SQL + orChainedPermittedCondition;
+            countSql += WHERE_SQL + orChainedPermittedCondition;
         }
 
         log.debug("Executing SQL '{}'", selectSql);
@@ -141,10 +143,12 @@ public class PermittedRepository {
         selectSql += WHERE_SQL + whereCondition;
         countSql += WHERE_SQL + whereCondition;
 
-        String permittedCondition = createPermissionCondition(privilegeKey);
-        if (StringUtils.isNotBlank(permittedCondition)) {
-            selectSql += AND_SQL + "(" + permittedCondition + ")";
-            countSql += AND_SQL + "(" + permittedCondition + ")";
+        Collection<String> permittedCondition = createPermissionCondition(privilegeKey);
+
+        if (isNotEmpty(permittedCondition)) {
+            String orChainedPermittedCondition = String.join(" OR ", permittedCondition);
+            selectSql += AND_SQL + "(" + orChainedPermittedCondition + ")";
+            countSql += AND_SQL + "(" + orChainedPermittedCondition + ")";
         }
 
         TypedQuery<T> selectQuery = createSelectQuery(selectSql, pageable, entityClass);
@@ -177,11 +181,12 @@ public class PermittedRepository {
             : readPage(countSql, query, pageable);
     }
 
-    protected String createPermissionCondition(String privilegeKey) {
+    protected Collection<String> createPermissionCondition(String privilegeKey) {
         return permissionCheckService.createCondition(
             SecurityContextHolder.getContext().getAuthentication(),
             privilegeKey,
-            spelToJpqlTranslator);
+            spelToJpqlTranslator
+        );
     }
 
     private static String applyOrder(String sql, Sort sort) {
