@@ -1,14 +1,5 @@
 package com.icthh.xm.commons.permission.repository;
 
-import static com.google.common.collect.ImmutableSet.of;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.icthh.xm.commons.permission.service.PermissionCheckService;
 import com.icthh.xm.commons.permission.service.translator.SpelToJpqlTranslator;
 import lombok.Value;
@@ -24,11 +15,19 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.Collections;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.Subgraph;
 import javax.persistence.TypedQuery;
+import java.util.Collections;
+
+import static com.google.common.collect.ImmutableSet.of;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PermittedRepositoryUnitTest {
@@ -57,18 +56,23 @@ public class PermittedRepositoryUnitTest {
     public void findByConditionWithoutEmbed() {
         when(em.createQuery("select distinct returnObject from TestEntity returnObject where a = :b and (f = g) order by d ASC", TestEntity.class)).thenReturn(selectQuery);
         when(em.createQuery("select distinct count(returnObject) from TestEntity returnObject where a = :b and (f = g)", Long.class)).thenReturn(countQuery);
-        when(permissionCheckService.createCondition(
-            eq(SecurityContextHolder.getContext().getAuthentication()),
-            eq("TEST"),
-            any(SpelToJpqlTranslator.class))).thenReturn("f = g");
+        when(
+            permissionCheckService.createCondition(
+                eq(SecurityContextHolder.getContext().getAuthentication()),
+                eq("TEST"),
+                any(SpelToJpqlTranslator.class)
+            )
+        ).thenReturn(singletonList("f = g"));
         when(selectQuery.getResultList()).thenReturn(asList(new TestEntity(1), new TestEntity(2)));
 
-        Page<TestEntity> result = repository.findByCondition("a = :b",
+        Page<TestEntity> result = repository.findByCondition(
+            "a = :b",
             Collections.singletonMap("b", "bbb"),
             null,
             PageRequest.of(5, 10, new Sort(Sort.DEFAULT_DIRECTION, "d")),
             TestEntity.class,
-            "TEST");
+            "TEST"
+        );
 
         assertThat(result).isNotNull();
         assertThat(result.getTotalPages()).isEqualTo(6);
@@ -85,18 +89,23 @@ public class PermittedRepositoryUnitTest {
         when(em.createQuery("select distinct returnObject from TestEntity returnObject where a = :b and (f = g) order by d ASC", TestEntity.class)).thenReturn(selectQuery);
         when(em.createQuery("select distinct count(returnObject) from TestEntity returnObject where a = :b and (f = g)", Long.class)).thenReturn(countQuery);
         when(entityGraph.addSubgraph("d")).thenReturn(subgraph);
-        when(permissionCheckService.createCondition(
-            eq(SecurityContextHolder.getContext().getAuthentication()),
-            eq("TEST"),
-            any(SpelToJpqlTranslator.class))).thenReturn("f = g");
+        when(
+            permissionCheckService.createCondition(
+                eq(SecurityContextHolder.getContext().getAuthentication()),
+                eq("TEST"),
+                any(SpelToJpqlTranslator.class)
+            )
+        ).thenReturn(singletonList("f = g"));
         when(selectQuery.getResultList()).thenReturn(asList(new TestEntity(1), new TestEntity(2)));
 
-        Page result = repository.findByCondition("a = :b",
+        Page<TestEntity> result = repository.findByCondition(
+            "a = :b",
             Collections.singletonMap("b", "bbb"),
             of("c", "d.e"),
             PageRequest.of(5, 10, new Sort(Sort.DEFAULT_DIRECTION, "d")),
             TestEntity.class,
-            "TEST");
+            "TEST"
+        );
 
         assertThat(result).isNotNull();
         assertThat(result.getTotalPages()).isEqualTo(6);
@@ -108,6 +117,19 @@ public class PermittedRepositoryUnitTest {
         verify(entityGraph).addAttributeNodes("c");
         verify(entityGraph).addSubgraph("d");
         verify(subgraph).addAttributeNodes("e");
+    }
+
+    @Test
+    public void shouldFindAllWithMultiConditions() {
+        when(em.createQuery(anyString(), any())).thenReturn(selectQuery);
+        when(em.createQuery(anyString(), any())).thenReturn(countQuery);
+
+        doReturn(asList("a = b", "v = g")).when(permissionCheckService).createCondition(any(), any(), any());
+
+        repository.findAll(null, PermittedRepositoryUnitTest.class, "key");
+
+        verify(em, times(1)).createQuery("select distinct count(returnObject) from PermittedRepositoryUnitTest returnObject where a = b OR v = g", Long.class);
+        verify(em, times(1)).createQuery("select distinct returnObject from PermittedRepositoryUnitTest returnObject where a = b OR v = g", PermittedRepositoryUnitTest.class);
     }
 
     @Value

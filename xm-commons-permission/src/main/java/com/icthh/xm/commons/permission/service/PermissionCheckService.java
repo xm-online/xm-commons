@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import static com.icthh.xm.commons.permission.constants.RoleConstant.SUPER_ADMIN;
 import static com.icthh.xm.commons.permission.service.PermissionCheckService.CollectionUtils.listsNotEqualsIgnoreOrder;
 import static com.icthh.xm.commons.tenant.TenantContextUtils.getRequiredTenantKeyValue;
+import static java.util.Collections.emptyList;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
@@ -47,13 +48,12 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 public class PermissionCheckService {
 
     private static final String LOG_KEY = "log";
-
     private static final Method GET_REQUEST_HEADER = lookupGetRequestHeaderMethod();
 
+    private final XmAuthenticationContextHolder xmAuthenticationContextHolder;
     private final TenantContextHolder tenantContextHolder;
     private final PermissionService permissionService;
     private final ResourceFactory resourceFactory;
-    private final XmAuthenticationContextHolder xmAuthenticationContextHolder;
     private final RoleService roleService;
 
     /**
@@ -127,25 +127,26 @@ public class PermissionCheckService {
      * @param translator     the spel translator
      * @return condition if permitted, or null
      */
-    public Collection<String> createCondition(Authentication authentication, Object privilegeKey, SpelTranslator translator) {
+    public Collection<String> createCondition(
+        Authentication authentication, Object privilegeKey, SpelTranslator translator
+    ) {
         if (!hasPermission(authentication, privilegeKey)) {
             throw new AccessDeniedException("Access is denied");
         }
 
         Collection<String> roleKeys = getRoleKeys(authentication);
 
-        Collection<Permission> permissions = getPermissions(roleKeys, privilegeKey);
-
-        Map<String, Subject> subjects = getSubjects(roleKeys);
-
-        if (!roleKeys.contains(SUPER_ADMIN)) {
-            return permissions.stream()
-                .filter(permission -> nonNull(permission.getResourceCondition()))
-                .map(permission -> translator.translate(permission.getResourceCondition().getExpressionString(), subjects.get(permission.getRoleKey())))
-                .collect(toList());
+        if (roleKeys.contains(SUPER_ADMIN)) {
+            return emptyList();
         }
 
-        return null;
+        Collection<Permission> permissions = getPermissions(roleKeys, privilegeKey);
+        Map<String, Subject> subjects = getSubjects(roleKeys);
+
+        return permissions.stream()
+            .filter(permission -> nonNull(permission.getResourceCondition()))
+            .map(permission -> translator.translate(permission.getResourceCondition().getExpressionString(), subjects.get(permission.getRoleKey())))
+            .collect(toList());
     }
 
     @SuppressWarnings("unchecked")
@@ -326,7 +327,7 @@ public class PermissionCheckService {
             .anyMatch(permission -> !permission.isDisabled());
     }
 
-    private Map<String, Subject> getSubjects(Collection<String> roleKeys) {
+    Map<String, Subject> getSubjects(Collection<String> roleKeys) {
         XmAuthenticationContext authContext = xmAuthenticationContextHolder.getContext();
 
         return roleKeys.stream()
@@ -346,13 +347,13 @@ public class PermissionCheckService {
         return xmAuthenticationContextHolder.getContext().getUserKey().orElse(null);
     }
 
-    private static Collection<String> getRoleKeys(Authentication authentication) {
+    Collection<String> getRoleKeys(Authentication authentication) {
         return authentication.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
             .collect(toList());
     }
 
-    private Collection<Permission> getPermissions(Collection<String> roleKeys, Object privilegeKey) {
+    Collection<Permission> getPermissions(Collection<String> roleKeys, Object privilegeKey) {
         Map<String, Permission> permissions = permissionService
             .getPermissions(getRequiredTenantKeyValue(tenantContextHolder.getContext()));
 
