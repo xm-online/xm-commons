@@ -289,13 +289,13 @@ public class PermissionCheckService {
                 {
                     Expression expression = permission.getEnvCondition();
                     if (isNull(expression) || isEmpty(expression.getExpressionString())) {
-                        return true;
+                        return false;
                     } else {
                         try {
                             return expression.getValue(context, Boolean.class);
                         } catch (Exception e) {
                             log.error("Exception while getting value ", e);
-                            return false;
+                            return true;
                         }
                     }
                 }
@@ -308,13 +308,13 @@ public class PermissionCheckService {
                 {
                     Expression expression = permission.getResourceCondition();
                     if (isNull(expression) || isEmpty(expression.getExpressionString())) {
-                        return true;
+                        return false;
                     } else {
                         try {
                             return expression.getValue(context, Boolean.class);
                         } catch (Exception e) {
                             log.error("Exception while getting value ", e);
-                            return false;
+                            return true;
                         }
                     }
                 }
