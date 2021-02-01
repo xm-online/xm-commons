@@ -70,6 +70,7 @@ public class ExceptionTranslator {
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
     public FieldErrorVM processMissingServletRequestParameterError(MissingServletRequestParameterException ex) {
         FieldErrorVM dto = new FieldErrorVM(ErrorConstants.ERR_VALIDATION,
                         localizationErrorMessageService.getMessage(ErrorConstants.ERR_VALIDATION));
