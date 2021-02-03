@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
@@ -219,7 +220,12 @@ public class XmLepResourceService implements LepResourceService {
 
             case FILE: {
                 String lepDir = Paths.get(FileSystemUtils.APP_HOME_DIR, "config", "tenants",
-                                          tenantKey.toUpperCase(), appName, "lep").toString();
+                    tenantKey.toUpperCase(), appName, "lep").toString();
+
+                if (SystemUtils.IS_OS_WINDOWS) {
+                    return "file:///" + lepDir + path;
+                }
+
                 return "file://" + lepDir + FilenameUtils.separatorsToSystem(path);
             }
 
