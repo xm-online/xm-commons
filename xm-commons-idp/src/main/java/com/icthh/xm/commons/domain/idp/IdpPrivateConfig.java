@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Set;
 
 @Data
+//FIXME: do we really need to make this class and its inner classes mutable with @Data?
+//  suggest to consider ov using @Value and in case we need to construct entities for example in test then also @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class IdpPrivateConfig {
 
@@ -37,7 +39,7 @@ public class IdpPrivateConfig {
             private Set<String> scope;
 
             @JsonProperty("additionalParams")
-            private Map<String, String> additionalParams;
+            private Map<String, String> additionalParams; //FIXME: do we use additional params?
 
         }
     }

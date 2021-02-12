@@ -21,12 +21,14 @@ public class JwksRepository implements RefreshableConfiguration {
 
     private static final String KEY_TENANT = "tenant";
 
+    // FIXME: describe the meaning of Map keys
     private final Map<String, Map<String, String>> jwksStorage = new ConcurrentHashMap<>();
 
     private final AntPathMatcher matcher = new AntPathMatcher();
 
     @Override
     public boolean isListeningConfiguration(String updatedKey) {
+        //FIXME: suggest intorduce one static variable: PUBLIC_JWKS_CONFIG_PATTERN = PUBLIC_JWKS_CONFIG_PATH_PATTERN + JWKS_FILE_NAME_PATTERN
         return matcher.match(PUBLIC_JWKS_CONFIG_PATH_PATTERN + JWKS_FILE_NAME_PATTERN, updatedKey);
     }
 
@@ -45,7 +47,7 @@ public class JwksRepository implements RefreshableConfiguration {
         String clientKey = extractKeyFromPath(configPath, IDP_CLIENT_KEY);
 
         saveJwks(config, tenantKey, clientKey);
-        getIdpJwksByTenantKey(tenantKey);
+        getIdpJwksByTenantKey(tenantKey); //FIXME: seems this invocation is useless here.
     }
 
     private void saveJwks(String config, String tenantKey, String clientKey) {
@@ -53,9 +55,14 @@ public class JwksRepository implements RefreshableConfiguration {
             jwksStorage.computeIfAbsent(tenantKey, key -> new ConcurrentHashMap<>());
 
         jwksRecord.put(clientKey, config);
+        //FIXME: why do you use local variable (jwksRecord) and not just chain the calls? like that:
+//        jwksStorage.computeIfAbsent(tenantKey, key -> new ConcurrentHashMap<>())
+//                   .put(clientKey, config);
+
     }
 
     private String extractKeyFromPath(String configPath, String keyName) {
+        //FIXME: the same question: why local variable?
         Map<String, String> configKeyParams =
             matcher.extractUriTemplateVariables(PUBLIC_JWKS_CONFIG_PATH_PATTERN + JWKS_FILE_NAME_PATTERN, configPath);
 

@@ -2,11 +2,13 @@ package com.icthh.xm.commons.domain.idp;
 
 import com.icthh.xm.commons.domain.idp.IdpPrivateConfig.IdpConfigContainer.IdpPrivateClientConfig;
 import com.icthh.xm.commons.domain.idp.IdpPublicConfig.IdpConfigContainer.IdpPublicClientConfig;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
 @Slf4j
+@UtilityClass // FIXME: suggest using @UtilityClass
 public class IdpConfigUtils {
 
     /**
@@ -16,6 +18,8 @@ public class IdpConfigUtils {
      * @param idpPublicClientConfig public config for validation
      * @return true if config is valid, otherwise false
      */
+    // FIXME: suggest removing tenant key from the params.
+    // FIXME: do we really need this method? or we may validate config for example with bean Validation? Just to think.
     public static boolean isPublicConfigValid(String tenantKey, IdpPublicClientConfig idpPublicClientConfig) {
         if (idpPublicClientConfig == null) {
             log.info("For tenant [{}] public idp config not specified.", tenantKey);
