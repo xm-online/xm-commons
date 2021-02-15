@@ -1,7 +1,8 @@
 package com.icthh.xm.commons.domain.idp;
 
-import com.icthh.xm.commons.domain.idp.IdpPrivateConfig.IdpConfigContainer.IdpPrivateClientConfig;
-import com.icthh.xm.commons.domain.idp.IdpPublicConfig.IdpConfigContainer.IdpPublicClientConfig;
+import com.icthh.xm.commons.domain.idp.model.IdpPublicConfig;
+import com.icthh.xm.commons.domain.idp.model.IdpPublicConfig.IdpConfigContainer.IdpPublicClientConfig;
+import com.icthh.xm.commons.domain.idp.model.IdpPrivateConfig.IdpConfigContainer.IdpPrivateClientConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
@@ -41,22 +42,6 @@ public class IdpConfigUtils {
             log.info("For tenant [{}] openIDConfig section not specified or have lack of configuration.", tenantKey);
             return false;
         }
-        if (idpPublicClientConfig.getFeatures() == null) {
-            log.info("For tenant [{}] features section not specified or have lack of configuration.", tenantKey);
-            return false;
-        }
-        if (idpPublicClientConfig.getFeatures().getBearirng() == null) {
-            log.info("For tenant [{}] features.bearing section not specified.", tenantKey);
-            return false;
-        }
-        if (StringUtils.isEmpty(idpPublicClientConfig.getFeatures().getBearirng().getIdpTokenHeader())) {
-            log.info("For tenant [{}] features.bearing.idpTokenHeader option not specified.", tenantKey);
-            return false;
-        }
-        if (StringUtils.isEmpty(idpPublicClientConfig.getFeatures().getBearirng().getXmTokenHeader())) {
-            log.info("For tenant [{}] features.bearing.xmTokenHeader option not specified.", tenantKey);
-            return false;
-        }
         if (idpPublicClientConfig.getOpenIdConfig().getAuthorizationEndpoint() == null
             || StringUtils.isEmpty(idpPublicClientConfig.getOpenIdConfig().getAuthorizationEndpoint().getUri())) {
             log.info("For tenant [{}] authorization endpoint uri not specified or have lack of configuration.", tenantKey);
@@ -82,6 +67,26 @@ public class IdpConfigUtils {
         if (idpPublicClientConfig.getOpenIdConfig().getJwksEndpoint() == null
             || StringUtils.isEmpty(idpPublicClientConfig.getOpenIdConfig().getJwksEndpoint().getUri())) {
             log.info("For tenant [{}] jwks endpoint uri not specified or have lack of configuration.", tenantKey);
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean isTenantFeaturesConfigValid(IdpPublicConfig.IdpConfigContainer.Features features) {
+        if (features == null) {
+            log.info("Features section not specified or have lack of configuration." );
+            return false;
+        }
+        if (features.getBearirng() == null) {
+            log.info("features.bearing section not specified." );
+            return false;
+        }
+        if (StringUtils.isEmpty(features.getBearirng().getIdpTokenHeader())) {
+            log.info("features.bearing.idpTokenHeader option not specified." );
+            return false;
+        }
+        if (StringUtils.isEmpty(features.getBearirng().getXmTokenHeader())) {
+            log.info("features.bearing.xmTokenHeader option not specified." );
             return false;
         }
         return true;

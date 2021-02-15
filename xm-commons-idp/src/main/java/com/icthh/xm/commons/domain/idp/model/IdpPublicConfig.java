@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.domain.idp;
+package com.icthh.xm.commons.domain.idp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -25,6 +25,9 @@ public class IdpPublicConfig {
         @JsonProperty("clients")
         private List<IdpPublicClientConfig> clients = new ArrayList<>();
 
+        @JsonProperty("features")
+        private Features features;
+
         @Data
         @JsonIgnoreProperties(ignoreUnknown = true)
         public static class IdpPublicClientConfig {
@@ -41,37 +44,8 @@ public class IdpPublicConfig {
             @JsonProperty("redirectUri")
             private String redirectUri;
 
-            @JsonProperty("features")
-            private Features features;
-
             @JsonProperty("openIdConfig")
             private OpenIdConfig openIdConfig;
-
-            @Data
-            @JsonIgnoreProperties(ignoreUnknown = true)
-            public static class Features {
-                @JsonProperty("pkce")
-                private boolean pkce;
-
-                @JsonProperty("stateful")
-                private boolean stateful;
-
-                @JsonProperty("bearirng")
-                private Bearirng bearirng;
-
-                @Data
-                @JsonIgnoreProperties(ignoreUnknown = true)
-                public static class Bearirng {
-                    @JsonProperty("enabled")
-                    private boolean enabled;
-
-                    @JsonProperty("idpTokenHeader")
-                    private String idpTokenHeader;
-
-                    @JsonProperty("xmTokenHeader")
-                    private String xmTokenHeader;
-                }
-            }
 
             @Data
             @JsonIgnoreProperties(ignoreUnknown = true)
@@ -139,6 +113,32 @@ public class IdpPublicConfig {
                     @JsonProperty("userNameAttributeName")
                     private String userNameAttributeName;
                 }
+            }
+        }
+
+        @Data
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        public static class Features {
+            @JsonProperty("pkce")
+            private boolean pkce;
+
+            @JsonProperty("stateful")
+            private boolean stateful;
+
+            @JsonProperty("bearirng")
+            private Bearirng bearirng;
+
+            @Data
+            @JsonIgnoreProperties(ignoreUnknown = true)
+            public static class Bearirng {
+                @JsonProperty("enabled")
+                private boolean enabled;
+
+                @JsonProperty("idpTokenHeader")
+                private String idpTokenHeader;
+
+                @JsonProperty("xmTokenHeader")
+                private String xmTokenHeader;
             }
         }
 
