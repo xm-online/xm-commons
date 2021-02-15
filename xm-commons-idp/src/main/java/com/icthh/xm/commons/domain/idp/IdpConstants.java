@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.domain.idp;
 
+// FIXME: use lombok @UtilityClass
 public class IdpConstants {
 
     public static final String IDP_PUBLIC_SETTINGS_CONFIG_PATH_PATTERN = "/config/tenants/{tenant}/webapp/public/idp-config-public.yml";
