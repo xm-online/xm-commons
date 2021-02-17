@@ -9,7 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
 @Slf4j
-@UtilityClass // FIXME: suggest using @UtilityClass
+@UtilityClass
 public class IdpConfigUtils {
 
     /**

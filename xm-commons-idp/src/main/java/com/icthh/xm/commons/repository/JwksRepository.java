@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.repository;
 
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -10,10 +11,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.icthh.xm.commons.domain.idp.IdpConstants.JWKS_FILE_NAME_PATTERN;
-import static com.icthh.xm.commons.domain.idp.IdpConstants.PUBLIC_JWKS_CONFIG_PATH_PATTERN;
+import static com.icthh.xm.commons.domain.idp.IdpConstants.PUBLIC_JWKS_CONFIG_PATTERN;
 import static com.icthh.xm.commons.domain.idp.IdpConstants.IDP_CLIENT_KEY;
 
+/**
+ * This class caches JWKS keys.
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -21,15 +24,30 @@ public class JwksRepository implements RefreshableConfiguration {
 
     private static final String KEY_TENANT = "tenant";
 
-    // FIXME: describe the meaning of Map keys
+    /**
+     * This map stores jwks keys.
+     * <p/>
+     * This information is needed for token signature verification.
+     * Each tenant has own idp clients list and each client has it's own JWKS keys.
+     * Generally speaking, JWKS keys might be the same for list of clients, but there are no such guaranties.
+     * For the sake of simplicity each client JWKS key stored separately.
+     * <p/>
+     * jwksStorage structure Map< tenantKey, Map< clientKey, JWKS > > where:
+     * <ul>
+     *    <li/> tenantKey - tenant id
+     *    <li/> clientKey - client id
+     *    <li/> JWKS - JWKS value
+     * </ul>
+     */
     private final Map<String, Map<String, String>> jwksStorage = new ConcurrentHashMap<>();
+
+    private final TenantContextHolder tenantContextHolder;
 
     private final AntPathMatcher matcher = new AntPathMatcher();
 
     @Override
     public boolean isListeningConfiguration(String updatedKey) {
-        //FIXME: suggest intorduce one static variable: PUBLIC_JWKS_CONFIG_PATTERN = PUBLIC_JWKS_CONFIG_PATH_PATTERN + JWKS_FILE_NAME_PATTERN
-        return matcher.match(PUBLIC_JWKS_CONFIG_PATH_PATTERN + JWKS_FILE_NAME_PATTERN, updatedKey);
+        return matcher.match(PUBLIC_JWKS_CONFIG_PATTERN, updatedKey);
     }
 
     @Override
@@ -47,29 +65,24 @@ public class JwksRepository implements RefreshableConfiguration {
         String clientKey = extractKeyFromPath(configPath, IDP_CLIENT_KEY);
 
         saveJwks(config, tenantKey, clientKey);
-        getIdpJwksByTenantKey(tenantKey); //FIXME: seems this invocation is useless here.
     }
 
     private void saveJwks(String config, String tenantKey, String clientKey) {
-        Map<String, String> jwksRecord =
-            jwksStorage.computeIfAbsent(tenantKey, key -> new ConcurrentHashMap<>());
-
-        jwksRecord.put(clientKey, config);
-        //FIXME: why do you use local variable (jwksRecord) and not just chain the calls? like that:
-//        jwksStorage.computeIfAbsent(tenantKey, key -> new ConcurrentHashMap<>())
-//                   .put(clientKey, config);
+        jwksStorage
+            .computeIfAbsent(tenantKey, key -> new ConcurrentHashMap<>())
+            .put(clientKey, config);
 
     }
 
     private String extractKeyFromPath(String configPath, String keyName) {
-        //FIXME: the same question: why local variable?
-        Map<String, String> configKeyParams =
-            matcher.extractUriTemplateVariables(PUBLIC_JWKS_CONFIG_PATH_PATTERN + JWKS_FILE_NAME_PATTERN, configPath);
-
-        return configKeyParams.get(keyName);
+        return matcher
+            .extractUriTemplateVariables(PUBLIC_JWKS_CONFIG_PATTERN, configPath)
+            .get(keyName);
     }
 
-    public Map<String, String> getIdpJwksByTenantKey(String tenantKey) {
+    public Map<String, String> getTenantIdpJwks() {
+        String tenantKey = tenantContextHolder.getTenantKey();
+
         return jwksStorage.getOrDefault(tenantKey, new HashMap<>());
     }
 }
