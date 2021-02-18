@@ -68,9 +68,9 @@ subprojects {
     }
 
     repositories {
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }//TODO remove
         mavenCentral()
         jcenter()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }//TODO remove
     }
 
     dependencies {
