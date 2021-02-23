@@ -10,6 +10,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import com.icthh.xm.commons.exceptions.SkipPermissionException;
+import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.permission.access.ResourceFactory;
 import com.icthh.xm.commons.permission.access.subject.Subject;
 import com.icthh.xm.commons.permission.domain.EnvironmentVariable;
@@ -40,8 +41,11 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.expression.OAuth2SecurityExpressionMethods;
+import org.springframework.stereotype.Service;
 
 @Slf4j
+@Service
+@IgnoreLogginAspect
 @RequiredArgsConstructor
 public class MultiRolePermissionCheckService {
     private static final String LOG_KEY = "log";
