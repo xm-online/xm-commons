@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.domain.idp;
+package com.icthh.xm.commons.domain.idp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

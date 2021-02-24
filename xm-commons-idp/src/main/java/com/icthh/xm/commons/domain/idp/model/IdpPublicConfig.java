@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.domain.idp;
+package com.icthh.xm.commons.domain.idp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -29,7 +29,7 @@ public class IdpPublicConfig {
         private List<IdpPublicClientConfig> clients = new ArrayList<>();
 
         @JsonProperty("features")
-        private Features features;
+        private Features features = new Features();
 
         @Getter
         @Setter
@@ -130,27 +130,27 @@ public class IdpPublicConfig {
         @Setter
         @JsonIgnoreProperties(ignoreUnknown = true)
         public static class Features {
-            @JsonProperty("pkce")
+            @JsonProperty(value = "pkce")
             private boolean pkce;
 
-            @JsonProperty("stateful")
+            @JsonProperty(value = "stateful")
             private boolean stateful;
 
-            @JsonProperty("bearirng")
-            private Bearirng bearirng;
+            @JsonProperty("idpAccessTokenInclusion")
+            private IdpAccessTokenInclusion idpAccessTokenInclusion = new IdpAccessTokenInclusion();
 
             @Getter
             @Setter
             @JsonIgnoreProperties(ignoreUnknown = true)
-            public static class Bearirng {
-                @JsonProperty("enabled")
+            public static class IdpAccessTokenInclusion {
+                @JsonProperty(value = "enabled")
                 private boolean enabled;
 
-                @JsonProperty("idpTokenHeader")
-                private String idpTokenHeader;
+                @JsonProperty(value = "idpTokenHeader")
+                private String idpTokenHeader = "Authorization";
 
-                @JsonProperty("xmTokenHeader")
-                private String xmTokenHeader;
+                @JsonProperty(value = "xmTokenHeader")
+                private String xmTokenHeader = "X-Authorization";
             }
         }
 
