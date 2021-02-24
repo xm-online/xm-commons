@@ -19,7 +19,7 @@ public class IdpConfigUtils {
      * @param idpPublicClientConfig public config for validation
      * @return true if config is valid, otherwise false
      */
-    public static boolean isPublicConfigValid(IdpPublicClientConfig idpPublicClientConfig) {
+    public static boolean isPublicClientConfigValid(IdpPublicClientConfig idpPublicClientConfig) {
         if (idpPublicClientConfig == null) {
             log.warn("Public idp config not specified.");
             return false;
@@ -102,7 +102,7 @@ public class IdpConfigUtils {
      * @param idpPrivateClientConfig private config for validation
      * @return true if config is valid, otherwise false
      */
-    public static boolean isPrivateConfigValid(IdpPrivateClientConfig idpPrivateClientConfig) {
+    public static boolean isPrivateClientConfigValid(IdpPrivateClientConfig idpPrivateClientConfig) {
         if (idpPrivateClientConfig == null) {
             log.warn("private idp config not specified.");
 
