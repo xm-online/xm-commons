@@ -231,4 +231,12 @@ public class ExceptionTranslatorIntTest {
                         .andExpect(jsonPath("$.error_description").value(
                                         "Меня зовут ${FULLName}. Я ${LANG} разработчик"));
     }
+
+    @Test
+    public void testBusinessNotFoundException() throws Exception {
+        mockMvc.perform(get("/test/business-not-found-exception"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.error").value("error.404"))
+            .andExpect(jsonPath("$.error_description").value("error.404"));
+    }
 }

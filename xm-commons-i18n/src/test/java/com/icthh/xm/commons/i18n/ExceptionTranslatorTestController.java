@@ -4,6 +4,7 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
+import com.icthh.xm.commons.exceptions.BusinessNotFoundException;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -82,6 +83,11 @@ public class ExceptionTranslatorTestController {
     @PostMapping("/test/custom-message-class-validation-error")
     public void classValidationError(@Valid @RequestBody CustomMessageTestClassValidation dummy) {
 
+    }
+
+    @GetMapping("/test/business-not-found-exception")
+    public void throwBusinessNotFoundException() {
+        throw new BusinessNotFoundException("error.404", "error.404");
     }
 
     @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "test response status")
