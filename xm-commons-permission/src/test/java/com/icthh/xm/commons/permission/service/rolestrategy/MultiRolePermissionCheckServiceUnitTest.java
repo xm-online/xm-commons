@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.permission.service;
+package com.icthh.xm.commons.permission.service.rolestrategy;
 
 import static com.icthh.xm.commons.permission.constants.RoleConstant.SUPER_ADMIN;
 import static java.util.Collections.singletonList;
@@ -15,6 +15,8 @@ import static org.mockito.Mockito.spy;
 import com.icthh.xm.commons.permission.access.ResourceFactory;
 import com.icthh.xm.commons.permission.access.subject.Subject;
 import com.icthh.xm.commons.permission.domain.Permission;
+import com.icthh.xm.commons.permission.service.PermissionService;
+import com.icthh.xm.commons.permission.service.RoleService;
 import com.icthh.xm.commons.permission.service.translator.SpelToJpqlTranslator;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
@@ -45,11 +47,11 @@ public class MultiRolePermissionCheckServiceUnitTest {
 
     private final SpelToJpqlTranslator spelToJpqlTranslator = new SpelToJpqlTranslator();
 
-    private MultiRolePermissionCheckService multiRolePermissionCheckService;
+    private MultiRoleStrategy multiRolePermissionCheckService;
 
     @Before
     public void before() {
-        multiRolePermissionCheckService = spy(new MultiRolePermissionCheckService(
+        multiRolePermissionCheckService = spy(new MultiRoleStrategy(
             xmAuthenticationContextHolder,
             tenantContextHolder,
             permissionService,

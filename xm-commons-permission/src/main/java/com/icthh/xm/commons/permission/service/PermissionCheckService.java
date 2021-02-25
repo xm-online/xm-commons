@@ -1,15 +1,10 @@
 package com.icthh.xm.commons.permission.service;
 
-import static java.util.Collections.emptyList;
-import static java.util.Optional.ofNullable;
-
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.permission.access.subject.Subject;
+import com.icthh.xm.commons.permission.service.rolestrategy.RoleStrategy;
 import com.icthh.xm.commons.permission.service.translator.SpelTranslator;
 import com.icthh.xm.commons.permission.utils.SecurityUtils;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.expression.spel.SpelNode;
@@ -17,27 +12,26 @@ import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.io.Serializable;
+import java.util.Collection;
+
 @Slf4j
 @Service
 @IgnoreLogginAspect
 public class PermissionCheckService {
 
-    private static final String MULTIROLE_FIELD_NAME = "multiRoleEnabled";
+    private static final String MULTI_ROLE_FIELD_NAME = "multiRoleEnabled";
 
     private final SecurityUtils securityUtils;
-    private final RolePermissionCheck multiRolePermissionCheckService;
-    private final RolePermissionCheck singleRolePermissionCheckService;
+    private final RoleStrategy multiRoleStrategy;
+    private final RoleStrategy singleRoleStrategy;
 
-    public PermissionCheckService(
-        final SecurityUtils securityUtils,
-        @Qualifier("multiRolePermissionCheckService")
-        final RolePermissionCheck multiRolePermissionCheckService,
-        @Qualifier("singleRolePermissionCheckService")
-        final RolePermissionCheck singleRolePermissionCheckService
-    ) {
+    public PermissionCheckService(final SecurityUtils securityUtils,
+                                  @Qualifier("multiRoleStrategy") final RoleStrategy multiRoleStrategy,
+                                  @Qualifier("singleRoleStrategy") final RoleStrategy singleRoleStrategy) {
         this.securityUtils = securityUtils;
-        this.multiRolePermissionCheckService = multiRolePermissionCheckService;
-        this.singleRolePermissionCheckService = singleRolePermissionCheckService;
+        this.multiRoleStrategy = multiRoleStrategy;
+        this.singleRoleStrategy = singleRoleStrategy;
     }
 
     /**
@@ -48,18 +42,7 @@ public class PermissionCheckService {
      * @return true if permitted
      */
     public boolean hasPermission(Authentication authentication, Object privilege) {
-
-        try {
-            Optional<Boolean> multiRoleEnabled = securityUtils.getAdditionalDetailsValueBoolean(authentication, MULTIROLE_FIELD_NAME);
-
-            if (multiRoleEnabled.isPresent() && multiRoleEnabled.get()) {
-                return multiRolePermissionCheckService.hasPermission(authentication, privilege);
-            }
-        } catch (Exception ex) {
-            log.error("Multirole check exception hasPermission privilege", ex);
-        }
-
-        return singleRolePermissionCheckService.hasPermission(authentication, privilege);
+        return withStrategy(authentication).hasPermission(authentication, privilege);
     }
 
     /**
@@ -70,23 +53,8 @@ public class PermissionCheckService {
      * @param privilege the privilege key
      * @return true if permitted
      */
-    public boolean hasPermission(
-        Authentication authentication,
-        Object resource,
-        Object privilege
-    ) {
-        try {
-            Optional<Boolean> multiRoleEnabled =
-                securityUtils.getAdditionalDetailsValueBoolean(authentication, MULTIROLE_FIELD_NAME);
-
-            if (multiRoleEnabled.isPresent() && multiRoleEnabled.get()) {
-                return multiRolePermissionCheckService.hasPermission(authentication, resource, privilege);
-            }
-        } catch (Exception ex) {
-            log.error("Multirole check exception hasPermission resource", ex);
-        }
-
-        return singleRolePermissionCheckService.hasPermission(authentication, resource, privilege);
+    public boolean hasPermission(Authentication authentication, Object resource, Object privilege) {
+        return withStrategy(authentication).hasPermission(authentication, resource, privilege);
     }
 
     /**
@@ -98,26 +66,9 @@ public class PermissionCheckService {
      * @param privilege the privilege key
      * @return true if permitted
      */
-    @SuppressWarnings("unchecked")
-    public boolean hasPermission(
-        Authentication authentication,
-        Serializable resource,
-        String resourceType,
-        Object privilege
-    ) {
-
-        try {
-            Optional<Boolean> multiRoleEnabled =
-                securityUtils.getAdditionalDetailsValueBoolean(authentication, MULTIROLE_FIELD_NAME);
-
-            if (multiRoleEnabled.isPresent() && multiRoleEnabled.get()) {
-                return multiRolePermissionCheckService.hasPermission(authentication, resource, resourceType, privilege);
-            }
-        } catch (Exception ex) {
-            log.error("Multirole check exception for hasPermission resourceType", ex);
-        }
-
-        return singleRolePermissionCheckService.hasPermission(authentication, resource, resourceType, privilege);
+    public boolean hasPermission(Authentication authentication, Serializable resource, String resourceType,
+                                 Object privilege) {
+        return withStrategy(authentication).hasPermission(authentication, resource, resourceType, privilege);
     }
 
     /**
@@ -135,21 +86,21 @@ public class PermissionCheckService {
      * @param translator the spel translator
      * @return condition if permitted, or null
      */
-    public Collection<String> createCondition(
-        Authentication authentication, Object privilegeKey, SpelTranslator translator
-    ) {
+    public Collection<String> createCondition(Authentication authentication, Object privilegeKey,
+                                              SpelTranslator translator) {
+        return withStrategy(authentication).createCondition(authentication, privilegeKey, translator);
+    }
+
+    private RoleStrategy withStrategy(Authentication authentication) {
+        return isMultiRoleEnabled(authentication) ? multiRoleStrategy : singleRoleStrategy;
+    }
+
+    private boolean isMultiRoleEnabled(final Authentication authentication) {
         try {
-            Optional<Boolean> multiRoleEnabled =
-                securityUtils.getAdditionalDetailsValueBoolean(authentication, MULTIROLE_FIELD_NAME);
-
-            if (multiRoleEnabled.isPresent() && multiRoleEnabled.get()) {
-                return multiRolePermissionCheckService.createCondition(authentication, privilegeKey, translator);
-            }
-        } catch (Exception ex) {
-            log.error("Multirole check exception on create condition", ex);
+            return securityUtils.getAdditionalDetailsValueBoolean(authentication, MULTI_ROLE_FIELD_NAME);
+        } catch (Exception e) {
+            log.error("Multi-role check failed, set multi-role as false, error: {}", e.getMessage(), e);
+            return false;
         }
-
-        return ofNullable(singleRolePermissionCheckService.createCondition(authentication, privilegeKey, translator))
-            .orElse(emptyList());
     }
 }

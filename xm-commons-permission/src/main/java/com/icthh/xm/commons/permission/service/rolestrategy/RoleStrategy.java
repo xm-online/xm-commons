@@ -1,11 +1,11 @@
-package com.icthh.xm.commons.permission.service;
+package com.icthh.xm.commons.permission.service.rolestrategy;
 
 import com.icthh.xm.commons.permission.service.translator.SpelTranslator;
 import java.io.Serializable;
 import java.util.Collection;
 import org.springframework.security.core.Authentication;
 
-public interface RolePermissionCheck {
+public interface RoleStrategy {
 
     boolean hasPermission(Authentication authentication, Object privilege);
 

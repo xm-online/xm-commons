@@ -10,9 +10,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.icthh.xm.commons.permission.service.rolestrategy.RoleStrategy;
 import com.icthh.xm.commons.permission.utils.SecurityUtils;
 import java.util.Collection;
-import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,10 +23,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class PermissionCheckServiceUnitTest {
 
     @Mock
-    private RolePermissionCheck multiRolePermissionCheckService;
+    private RoleStrategy multiRoleStrategy;
 
     @Mock
-    private RolePermissionCheck singleRolePermissionCheckService;
+    private RoleStrategy singleRoleStrategy;
 
     @Mock
     private SecurityUtils securityUtils;
@@ -36,87 +36,87 @@ public class PermissionCheckServiceUnitTest {
     @Before
     public void before() {
         permissionCheckService = spy(
-            new PermissionCheckService(securityUtils, multiRolePermissionCheckService, singleRolePermissionCheckService)
+            new PermissionCheckService(securityUtils, multiRoleStrategy, singleRoleStrategy)
         );
     }
 
     @Test
     public void shouldCallMultiRoleHasPermission() {
-        when(securityUtils.getAdditionalDetailsValueBoolean(any(),any())).thenReturn(Optional.of(true));
-        when(multiRolePermissionCheckService.hasPermission(any(), any())).thenReturn(true);
+        when(securityUtils.getAdditionalDetailsValueBoolean(any(),any())).thenReturn(true);
+        when(multiRoleStrategy.hasPermission(any(), any())).thenReturn(true);
 
         boolean multipleResponse = permissionCheckService.hasPermission(any(), any());
 
         assertTrue(multipleResponse);
-        verify(multiRolePermissionCheckService, times(1)).hasPermission(any(), any());
+        verify(multiRoleStrategy, times(1)).hasPermission(any(), any());
     }
 
     @Test
     public void shouldCallMultiRoleHasPermissionResource() {
-        when(securityUtils.getAdditionalDetailsValueBoolean(any(),any())).thenReturn(Optional.of(true));
-        when(multiRolePermissionCheckService.hasPermission(any(), any(), any())).thenReturn(true);
+        when(securityUtils.getAdditionalDetailsValueBoolean(any(),any())).thenReturn(true);
+        when(multiRoleStrategy.hasPermission(any(), any(), any())).thenReturn(true);
         boolean multipleResponse = permissionCheckService.hasPermission(any(), any(), any());
 
         assertTrue(multipleResponse);
-        verify(multiRolePermissionCheckService, times(1)).hasPermission(any(), any(), any());
+        verify(multiRoleStrategy, times(1)).hasPermission(any(), any(), any());
     }
 
     @Test
     public void shouldCallMultiRoleHasPermissionResourceType() {
-        when(securityUtils.getAdditionalDetailsValueBoolean(any(),any())).thenReturn(Optional.of(true));
-        when(multiRolePermissionCheckService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+        when(securityUtils.getAdditionalDetailsValueBoolean(any(),any())).thenReturn(true);
+        when(multiRoleStrategy.hasPermission(any(), any(), any(), any())).thenReturn(true);
         boolean multipleResponse = permissionCheckService.hasPermission(any(), any(), any(), any());
 
         assertTrue(multipleResponse);
-        verify(multiRolePermissionCheckService, times(1)).hasPermission(any(), any(), any(), any());
+        verify(multiRoleStrategy, times(1)).hasPermission(any(), any(), any(), any());
     }
 
     @Test
     public void shouldMultiRoleCreateCondition() {
-        when(securityUtils.getAdditionalDetailsValueBoolean(any(),any())).thenReturn(Optional.of(true));
-        when(multiRolePermissionCheckService.createCondition(any(), any(), any())).thenReturn(singletonList("Test"));
+        when(securityUtils.getAdditionalDetailsValueBoolean(any(),any())).thenReturn(true);
+        when(multiRoleStrategy.createCondition(any(), any(), any())).thenReturn(singletonList("Test"));
 
         Collection<String> condition = permissionCheckService.createCondition(any(), any(), any());
 
         assertNotNull(condition);
         assertFalse(condition.isEmpty());
-        verify(multiRolePermissionCheckService, times(1)).createCondition(any(), any(), any());
+        verify(multiRoleStrategy, times(1)).createCondition(any(), any(), any());
     }
 
     @Test
     public void shouldCallSingleRoleHasPermission() {
-        when(singleRolePermissionCheckService.hasPermission(any(), any())).thenReturn(true);
+        when(singleRoleStrategy.hasPermission(any(), any())).thenReturn(true);
         boolean multipleResponse = permissionCheckService.hasPermission(any(), any());
 
         assertTrue(multipleResponse);
-        verify(singleRolePermissionCheckService, times(1)).hasPermission(any(), any());
+        verify(singleRoleStrategy, times(1)).hasPermission(any(), any());
     }
 
     @Test
     public void shouldCallSingleRoleHasPermissionResource() {
-        when(singleRolePermissionCheckService.hasPermission(any(), any(), any())).thenReturn(true);
+        when(singleRoleStrategy.hasPermission(any(), any(), any())).thenReturn(true);
         boolean multipleResponse = permissionCheckService.hasPermission(any(), any(), any());
 
         assertTrue(multipleResponse);
-        verify(singleRolePermissionCheckService, times(1)).hasPermission(any(), any(), any());
+        verify(singleRoleStrategy, times(1)).hasPermission(any(), any(), any());
     }
 
     @Test
     public void shouldCallSingleRoleHasPermissionResourceType() {
-        when(singleRolePermissionCheckService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+        when(singleRoleStrategy.hasPermission(any(), any(), any(), any())).thenReturn(true);
         boolean multipleResponse = permissionCheckService.hasPermission(any(), any(), any(), any());
 
         assertTrue(multipleResponse);
-        verify(singleRolePermissionCheckService, times(1)).hasPermission(any(), any(), any(), any());
+        verify(singleRoleStrategy, times(1)).hasPermission(any(), any(), any(), any());
     }
 
     @Test
     public void shouldSingleCreateCondition() {
-        when(singleRolePermissionCheckService.createCondition(any(), any(), any())).thenReturn(singletonList("Test"));
+        when(singleRoleStrategy.createCondition(any(), any(), any())).thenReturn(singletonList("Test"));
         Collection<String> condition = permissionCheckService.createCondition(any(), any(), any());
 
         assertNotNull(condition);
         assertFalse(condition.isEmpty());
-        verify(singleRolePermissionCheckService, times(1)).createCondition(any(), any(), any());
+        verify(singleRoleStrategy, times(1)).createCondition(any(), any(), any());
     }
 }

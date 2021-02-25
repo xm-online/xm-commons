@@ -2,9 +2,10 @@ package com.icthh.xm.commons.permission.utils;
 
 import static java.lang.String.format;
 import static java.util.Objects.isNull;
-import static java.util.Optional.empty;
+import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -13,23 +14,27 @@ import org.springframework.security.oauth2.provider.authentication.OAuth2Authent
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
 
-@Component
+@Component // TODO should it be a @Component? Consider variant to mock Authentication object instead.
 public class SecurityUtils {
 
     public static final String AUTH_ADDITIONAL_DETAILS = "additionalDetails";
 
-    public Optional<Boolean> getAdditionalDetailsValueBoolean(Authentication authentication, String fieldName) {
+    public boolean getAdditionalDetailsValueBoolean(Authentication authentication, String fieldName) {
         return getDetailsValue(authentication, AUTH_ADDITIONAL_DETAILS, HashMap.class)
-            .map(additionalDetails -> (Boolean) additionalDetails.get(fieldName));
+            .map(additionalDetails ->  additionalDetails.get(fieldName))
+            .filter(Boolean.class::isInstance)
+            .map(Boolean.class::cast)
+            .orElse(false);
     }
 
     private <T> Optional<T> getDetailsValue(Authentication authentication, String key, Class<T> valueType) {
-        return ofNullable(authentication.getDetails())
-            .flatMap(this::toDetails)
+        return ofNullable(authentication)
+            .map(Authentication::getDetails)
+            .map(this::toDetailsMap)
             .map(allDetail -> toDetailsValue(allDetail, key, valueType));
     }
 
-    private <T> T toDetailsValue(final Map<String, Object> allDetail, final String key, final Class<T> valueType) {
+    private <T> T toDetailsValue(final Map<?, ?> allDetail, final String key, final Class<T> valueType) {
         Object value = allDetail.get(key);
         if (isNull(value)) {
             return null;
@@ -47,12 +52,16 @@ public class SecurityUtils {
         }
     }
 
-    private Optional<Map<String, Object>> toDetails(final Object details) {
+    private Map<?, ?> toDetailsMap(final Object details) {
         if (details instanceof OAuth2AuthenticationDetails) {
-            Object decodedDetails = ((OAuth2AuthenticationDetails) details).getDecodedDetails();
-            return ofNullable((Map<String, Object>) decodedDetails);
+            return of(details)
+                .map(OAuth2AuthenticationDetails.class::cast)
+                .map(OAuth2AuthenticationDetails::getDecodedDetails)
+                .filter(Map.class::isInstance)
+                .map(Map.class::cast)
+                .orElseGet(Collections::emptyMap);
         } else if (details instanceof WebAuthenticationDetails) {
-            return empty();
+            return Collections.emptyMap();
         } else {
             throw new IllegalStateException("Unsupported auth details type " + details.getClass());
         }

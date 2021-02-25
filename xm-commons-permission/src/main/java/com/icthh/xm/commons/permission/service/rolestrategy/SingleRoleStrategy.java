@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.permission.service;
+package com.icthh.xm.commons.permission.service.rolestrategy;
 
 import static java.util.Collections.singletonList;
 
@@ -10,6 +10,8 @@ import com.icthh.xm.commons.permission.constants.RoleConstant;
 import com.icthh.xm.commons.permission.domain.EnvironmentVariable;
 import com.icthh.xm.commons.permission.domain.Permission;
 import com.icthh.xm.commons.permission.domain.ReactionStrategy;
+import com.icthh.xm.commons.permission.service.PermissionService;
+import com.icthh.xm.commons.permission.service.RoleService;
 import com.icthh.xm.commons.permission.service.translator.SpelTranslator;
 import com.icthh.xm.commons.permission.utils.RequestHeaderUtils;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
@@ -19,6 +21,7 @@ import com.icthh.xm.commons.tenant.TenantContextUtils;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -38,8 +41,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @IgnoreLogginAspect
 @RequiredArgsConstructor
-@Component("singleRolePermissionCheckService")
-public class SingleRolePermissionCheckService implements RolePermissionCheck {
+@Component("singleRoleStrategy")
+public class SingleRoleStrategy implements RoleStrategy {
 
     private static final String ERROR_ROLE_IS_UNDEFINED = "Role is undefined";
     private static final String LOG_KEY = "log";
@@ -136,7 +139,7 @@ public class SingleRolePermissionCheckService implements RolePermissionCheck {
             && permission != null && permission.getResourceCondition() != null) {
             return singletonList(translator.translate(permission.getResourceCondition().getExpressionString(), subject));
         }
-        return null;
+        return Collections.emptyList();
     }
 
     @SuppressWarnings("unchecked")

@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.permission.service;
+package com.icthh.xm.commons.permission.service.rolestrategy;
 
 import static com.icthh.xm.commons.permission.constants.RoleConstant.SUPER_ADMIN;
 import static com.icthh.xm.commons.permission.utils.CollectionUtils.listsNotEqualsIgnoreOrder;
@@ -16,6 +16,8 @@ import com.icthh.xm.commons.permission.access.subject.Subject;
 import com.icthh.xm.commons.permission.domain.EnvironmentVariable;
 import com.icthh.xm.commons.permission.domain.Permission;
 import com.icthh.xm.commons.permission.domain.ReactionStrategy;
+import com.icthh.xm.commons.permission.service.PermissionService;
+import com.icthh.xm.commons.permission.service.RoleService;
 import com.icthh.xm.commons.permission.service.translator.SpelTranslator;
 import com.icthh.xm.commons.permission.utils.RequestHeaderUtils;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
@@ -46,8 +48,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @IgnoreLogginAspect
 @RequiredArgsConstructor
-@Component("multiRolePermissionCheckService")
-public class MultiRolePermissionCheckService implements RolePermissionCheck {
+@Component("multiRoleStrategy")
+public class MultiRoleStrategy implements RoleStrategy {
 
     private static final String LOG_KEY = "log";
     private static final Method GET_REQUEST_HEADER = lookupGetRequestHeaderMethod();
