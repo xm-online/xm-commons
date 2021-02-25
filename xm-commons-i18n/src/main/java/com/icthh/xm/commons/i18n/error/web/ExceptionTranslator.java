@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.i18n.error.web;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
+import com.icthh.xm.commons.exceptions.BusinessNotFoundException;
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import com.icthh.xm.commons.exceptions.ErrorConstants;
 import com.icthh.xm.commons.exceptions.NoContentException;
@@ -116,13 +117,18 @@ public class ExceptionTranslator {
         return builder.body(fieldErrorVM);
     }
 
+    @ExceptionHandler(BusinessNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseBody
+    public ParameterizedErrorVM processBusinessNotFoundException(BusinessNotFoundException ex) {
+        return createParameterizedErrorVM(ex);
+    }
+
     @ExceptionHandler(BusinessException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public ParameterizedErrorVM processParameterizedValidationError(BusinessException ex) {
-        String code = ex.getCode() == null ? ErrorConstants.ERR_BUSINESS : ex.getCode();
-        String message = localizationErrorMessageService.getMessage(code, ex.getParamMap(), false, ex.getMessage());
-        return new ParameterizedErrorVM(code, message, ex.getParamMap());
+      return createParameterizedErrorVM(ex);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
@@ -172,5 +178,11 @@ public class ExceptionTranslator {
                                             .getMessage(ErrorConstants.ERR_INTERNAL_SERVER_ERROR));
         }
         return builder.body(errorVM);
+    }
+
+    private ParameterizedErrorVM createParameterizedErrorVM(BusinessException ex) {
+        String code = ex.getCode() == null ? ErrorConstants.ERR_BUSINESS : ex.getCode();
+        String message = localizationErrorMessageService.getMessage(code, ex.getParamMap(), false, ex.getMessage());
+        return new ParameterizedErrorVM(code, message, ex.getParamMap());
     }
 }
