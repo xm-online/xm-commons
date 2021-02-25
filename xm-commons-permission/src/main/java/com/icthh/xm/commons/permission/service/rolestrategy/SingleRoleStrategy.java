@@ -3,7 +3,6 @@ package com.icthh.xm.commons.permission.service.rolestrategy;
 import static java.util.Collections.singletonList;
 
 import com.icthh.xm.commons.exceptions.SkipPermissionException;
-import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.permission.access.ResourceFactory;
 import com.icthh.xm.commons.permission.access.subject.Subject;
 import com.icthh.xm.commons.permission.constants.RoleConstant;
@@ -39,7 +38,6 @@ import org.springframework.security.oauth2.provider.expression.OAuth2SecurityExp
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@IgnoreLogginAspect
 @RequiredArgsConstructor
 @Component("singleRoleStrategy")
 public class SingleRoleStrategy implements RoleStrategy {

@@ -11,7 +11,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.permission.service.rolestrategy.RoleStrategy;
-import com.icthh.xm.commons.permission.utils.SecurityUtils;
 import java.util.Collection;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,21 +27,18 @@ public class PermissionCheckServiceUnitTest {
     @Mock
     private RoleStrategy singleRoleStrategy;
 
-    @Mock
-    private SecurityUtils securityUtils;
-
     private PermissionCheckService permissionCheckService;
 
     @Before
     public void before() {
         permissionCheckService = spy(
-            new PermissionCheckService(securityUtils, multiRoleStrategy, singleRoleStrategy)
+            new PermissionCheckService(multiRoleStrategy, singleRoleStrategy)
         );
     }
 
     @Test
     public void shouldCallMultiRoleHasPermission() {
-        when(securityUtils.getAdditionalDetailsValueBoolean(any(),any())).thenReturn(true);
+        when(permissionCheckService.isMultiRoleEnabled(any())).thenReturn(true);
         when(multiRoleStrategy.hasPermission(any(), any())).thenReturn(true);
 
         boolean multipleResponse = permissionCheckService.hasPermission(any(), any());
@@ -53,7 +49,7 @@ public class PermissionCheckServiceUnitTest {
 
     @Test
     public void shouldCallMultiRoleHasPermissionResource() {
-        when(securityUtils.getAdditionalDetailsValueBoolean(any(),any())).thenReturn(true);
+        when(permissionCheckService.isMultiRoleEnabled(any())).thenReturn(true);
         when(multiRoleStrategy.hasPermission(any(), any(), any())).thenReturn(true);
         boolean multipleResponse = permissionCheckService.hasPermission(any(), any(), any());
 
@@ -63,7 +59,7 @@ public class PermissionCheckServiceUnitTest {
 
     @Test
     public void shouldCallMultiRoleHasPermissionResourceType() {
-        when(securityUtils.getAdditionalDetailsValueBoolean(any(),any())).thenReturn(true);
+        when(permissionCheckService.isMultiRoleEnabled(any())).thenReturn(true);
         when(multiRoleStrategy.hasPermission(any(), any(), any(), any())).thenReturn(true);
         boolean multipleResponse = permissionCheckService.hasPermission(any(), any(), any(), any());
 
@@ -73,7 +69,8 @@ public class PermissionCheckServiceUnitTest {
 
     @Test
     public void shouldMultiRoleCreateCondition() {
-        when(securityUtils.getAdditionalDetailsValueBoolean(any(),any())).thenReturn(true);
+        when(permissionCheckService.isMultiRoleEnabled(any())).thenReturn(true);
+
         when(multiRoleStrategy.createCondition(any(), any(), any())).thenReturn(singletonList("Test"));
 
         Collection<String> condition = permissionCheckService.createCondition(any(), any(), any());

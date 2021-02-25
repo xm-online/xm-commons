@@ -9,17 +9,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import lombok.experimental.UtilityClass;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
-import org.springframework.stereotype.Component;
 
-@Component // TODO should it be a @Component? Consider variant to mock Authentication object instead.
+@UtilityClass
 public class SecurityUtils {
 
     public static final String AUTH_ADDITIONAL_DETAILS = "additionalDetails";
 
-    public boolean getAdditionalDetailsValueBoolean(Authentication authentication, String fieldName) {
+    public static boolean getAdditionalDetailsValueBoolean(Authentication authentication, String fieldName) {
         return getDetailsValue(authentication, AUTH_ADDITIONAL_DETAILS, HashMap.class)
             .map(additionalDetails ->  additionalDetails.get(fieldName))
             .filter(Boolean.class::isInstance)
@@ -27,14 +28,14 @@ public class SecurityUtils {
             .orElse(false);
     }
 
-    private <T> Optional<T> getDetailsValue(Authentication authentication, String key, Class<T> valueType) {
+    private static <T> Optional<T> getDetailsValue(Authentication authentication, String key, Class<T> valueType) {
         return ofNullable(authentication)
             .map(Authentication::getDetails)
-            .map(this::toDetailsMap)
+            .map(SecurityUtils::toDetailsMap)
             .map(allDetail -> toDetailsValue(allDetail, key, valueType));
     }
 
-    private <T> T toDetailsValue(final Map<?, ?> allDetail, final String key, final Class<T> valueType) {
+    private static <T> T toDetailsValue(final Map<?, ?> allDetail, final String key, final Class<T> valueType) {
         Object value = allDetail.get(key);
         if (isNull(value)) {
             return null;
@@ -52,7 +53,7 @@ public class SecurityUtils {
         }
     }
 
-    private Map<?, ?> toDetailsMap(final Object details) {
+    private static Map<?, ?> toDetailsMap(final Object details) {
         if (details instanceof OAuth2AuthenticationDetails) {
             return of(details)
                 .map(OAuth2AuthenticationDetails.class::cast)

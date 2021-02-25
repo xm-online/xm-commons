@@ -10,7 +10,6 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import com.icthh.xm.commons.exceptions.SkipPermissionException;
-import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.permission.access.ResourceFactory;
 import com.icthh.xm.commons.permission.access.subject.Subject;
 import com.icthh.xm.commons.permission.domain.EnvironmentVariable;
@@ -46,7 +45,6 @@ import org.springframework.security.oauth2.provider.expression.OAuth2SecurityExp
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@IgnoreLogginAspect
 @RequiredArgsConstructor
 @Component("multiRoleStrategy")
 public class MultiRoleStrategy implements RoleStrategy {
