@@ -23,10 +23,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class PermissionCheckServiceUnitTest {
 
     @Mock
-    private MultiRolePermissionCheckService multiRolePermissionCheckService;
+    private RolePermissionCheck multiRolePermissionCheckService;
 
     @Mock
-    private SingleRolePermissionCheckService singleRolePermissionCheckService;
+    private RolePermissionCheck singleRolePermissionCheckService;
 
     @Mock
     private SecurityUtils securityUtils;
@@ -112,7 +112,7 @@ public class PermissionCheckServiceUnitTest {
 
     @Test
     public void shouldSingleCreateCondition() {
-        when(singleRolePermissionCheckService.createCondition(any(), any(), any())).thenReturn("Test");
+        when(singleRolePermissionCheckService.createCondition(any(), any(), any())).thenReturn(singletonList("Test"));
         Collection<String> condition = permissionCheckService.createCondition(any(), any(), any());
 
         assertNotNull(condition);

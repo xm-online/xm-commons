@@ -9,11 +9,9 @@ import com.icthh.xm.commons.permission.service.translator.SpelTranslator;
 import com.icthh.xm.commons.permission.utils.SecurityUtils;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.expression.spel.SpelNode;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.security.core.Authentication;
@@ -21,15 +19,26 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 @IgnoreLogginAspect
 public class PermissionCheckService {
 
     private static final String MULTIROLE_FIELD_NAME = "multiRoleEnabled";
 
     private final SecurityUtils securityUtils;
-    private final MultiRolePermissionCheckService multiRolePermissionCheckService;
-    private final SingleRolePermissionCheckService singleRolePermissionCheckService;
+    private final RolePermissionCheck multiRolePermissionCheckService;
+    private final RolePermissionCheck singleRolePermissionCheckService;
+
+    public PermissionCheckService(
+        final SecurityUtils securityUtils,
+        @Qualifier("multiRolePermissionCheckService")
+        final RolePermissionCheck multiRolePermissionCheckService,
+        @Qualifier("singleRolePermissionCheckService")
+        final RolePermissionCheck singleRolePermissionCheckService
+    ) {
+        this.securityUtils = securityUtils;
+        this.multiRolePermissionCheckService = multiRolePermissionCheckService;
+        this.singleRolePermissionCheckService = singleRolePermissionCheckService;
+    }
 
     /**
      * Check permission for role and privilege key only.
@@ -141,8 +150,6 @@ public class PermissionCheckService {
         }
 
         return ofNullable(singleRolePermissionCheckService.createCondition(authentication, privilegeKey, translator))
-            .filter(StringUtils::isNotEmpty)
-            .map(Collections::singletonList)
             .orElse(emptyList());
     }
 }

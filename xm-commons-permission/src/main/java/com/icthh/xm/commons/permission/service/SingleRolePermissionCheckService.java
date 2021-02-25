@@ -1,5 +1,7 @@
 package com.icthh.xm.commons.permission.service;
 
+import static java.util.Collections.singletonList;
+
 import com.icthh.xm.commons.exceptions.SkipPermissionException;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.permission.access.ResourceFactory;
@@ -16,6 +18,7 @@ import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -30,13 +33,13 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.expression.OAuth2SecurityExpressionMethods;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 @Slf4j
-@Service
-@RequiredArgsConstructor
 @IgnoreLogginAspect
-public class SingleRolePermissionCheckService {
+@RequiredArgsConstructor
+@Component("singleRolePermissionCheckService")
+public class SingleRolePermissionCheckService implements RolePermissionCheck {
 
     private static final String ERROR_ROLE_IS_UNDEFINED = "Role is undefined";
     private static final String LOG_KEY = "log";
@@ -118,7 +121,7 @@ public class SingleRolePermissionCheckService {
      * @param translator the spel translator
      * @return condition if permitted, or null
      */
-    public String createCondition(Authentication authentication, Object privilegeKey, SpelTranslator translator) {
+    public Collection<String> createCondition(Authentication authentication, Object privilegeKey, SpelTranslator translator) {
         if (!hasPermission(authentication, privilegeKey)) {
             throw new AccessDeniedException("Access is denied");
         }
@@ -131,7 +134,7 @@ public class SingleRolePermissionCheckService {
 
         if (!RoleConstant.SUPER_ADMIN.equals(roleKey)
             && permission != null && permission.getResourceCondition() != null) {
-            return translator.translate(permission.getResourceCondition().getExpressionString(), subject);
+            return singletonList(translator.translate(permission.getResourceCondition().getExpressionString(), subject));
         }
         return null;
     }

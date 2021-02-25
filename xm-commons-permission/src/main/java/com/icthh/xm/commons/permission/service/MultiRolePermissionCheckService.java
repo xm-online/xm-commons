@@ -41,13 +41,14 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.expression.OAuth2SecurityExpressionMethods;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 @Slf4j
-@Service
 @IgnoreLogginAspect
 @RequiredArgsConstructor
-public class MultiRolePermissionCheckService {
+@Component("multiRolePermissionCheckService")
+public class MultiRolePermissionCheckService implements RolePermissionCheck {
+
     private static final String LOG_KEY = "log";
     private static final Method GET_REQUEST_HEADER = lookupGetRequestHeaderMethod();
 
@@ -61,7 +62,7 @@ public class MultiRolePermissionCheckService {
      * Check permission for role and privilege key only.
      *
      * @param authentication the authentication
-     * @param privilege      the privilege key
+     * @param privilege the privilege key
      * @return true if permitted
      */
     public boolean hasPermission(Authentication authentication, Object privilege) {
@@ -73,13 +74,15 @@ public class MultiRolePermissionCheckService {
      * Check permission for role, privilege key and resource condition.
      *
      * @param authentication the authentication
-     * @param resource       the resource
-     * @param privilege      the privilege key
+     * @param resource the resource
+     * @param privilege the privilege key
      * @return true if permitted
      */
-    public boolean hasPermission(Authentication authentication,
+    public boolean hasPermission(
+        Authentication authentication,
         Object resource,
-        Object privilege) {
+        Object privilege
+    ) {
         boolean logPermission = isLogPermission(resource);
         return checkRole(authentication, privilege, logPermission)
             || checkPermission(authentication, resource, privilege, true, logPermission);
@@ -89,16 +92,18 @@ public class MultiRolePermissionCheckService {
      * Check permission for role, privilege key, new resource and old resource.
      *
      * @param authentication the authentication
-     * @param resource       the old resource
-     * @param resourceType   the resource type
-     * @param privilege      the privilege key
+     * @param resource the old resource
+     * @param resourceType the resource type
+     * @param privilege the privilege key
      * @return true if permitted
      */
     @SuppressWarnings("unchecked")
-    public boolean hasPermission(Authentication authentication,
+    public boolean hasPermission(
+        Authentication authentication,
         Serializable resource,
         String resourceType,
-        Object privilege) {
+        Object privilege
+    ) {
         boolean logPermission = isLogPermission(resource);
         if (checkRole(authentication, privilege, logPermission)) {
             return true;
@@ -120,12 +125,12 @@ public class MultiRolePermissionCheckService {
      * and enriching #subject.* from Subject object (see {@link Subject}).
      *
      * <p>As an option, SpEL could be translated to SQL
-     * via {@link SpelExpression} method {@code getAST()}
-     * with traversing through {@link SpelNode} nodes and building SQL expression.
+     * via {@link SpelExpression} method {@code getAST()} with traversing through {@link SpelNode} nodes and building SQL
+     * expression.
      *
      * @param authentication the authentication
-     * @param privilegeKey   the privilege key
-     * @param translator     the spel translator
+     * @param privilegeKey the privilege key
+     * @param translator the spel translator
      * @return condition if permitted, or null
      */
     public Collection<String> createCondition(
@@ -146,17 +151,20 @@ public class MultiRolePermissionCheckService {
 
         return permissions.stream()
             .filter(permission -> nonNull(permission.getResourceCondition()))
-            .map(permission -> translator.translate(permission.getResourceCondition().getExpressionString(), subjects.get(permission.getRoleKey())))
+            .map(permission -> translator
+                .translate(permission.getResourceCondition().getExpressionString(), subjects.get(permission.getRoleKey())))
             .collect(toList());
     }
 
     @SuppressWarnings("unchecked")
     @SneakyThrows
-    private boolean checkPermission(Authentication authentication,
+    private boolean checkPermission(
+        Authentication authentication,
         Object resource,
         Object privilegeKey,
         boolean checkCondition,
-        boolean logPermission) {
+        boolean logPermission
+    ) {
         Collection<String> roleKey = getRoleKeys(authentication);
         Map<String, Object> resources = new HashMap<>();
 
