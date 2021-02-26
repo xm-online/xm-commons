@@ -16,7 +16,7 @@ import java.util.Map;
 public class IdpPublicConfig {
 
     @JsonProperty("idp")
-    private IdpConfigContainer config;
+    private IdpConfigContainer config = new IdpConfigContainer();
 
     @Getter
     @Setter
