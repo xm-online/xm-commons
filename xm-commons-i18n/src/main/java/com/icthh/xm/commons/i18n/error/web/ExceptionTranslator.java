@@ -56,7 +56,7 @@ public class ExceptionTranslator {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public ResponseEntity<Void> processSkipException(SkipPermissionException ex) {
-        log.debug("Skip permission {}", ex.getPermission());
+        log.debug("Skip permission {}", ex.getPermissions());
         return ResponseEntity.ok().build();
     }
 
