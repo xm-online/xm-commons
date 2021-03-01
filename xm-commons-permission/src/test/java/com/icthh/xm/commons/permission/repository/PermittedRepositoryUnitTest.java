@@ -128,8 +128,8 @@ public class PermittedRepositoryUnitTest {
 
         repository.findAll(null, PermittedRepositoryUnitTest.class, "key");
 
-        verify(em, times(1)).createQuery("select distinct count(returnObject) from PermittedRepositoryUnitTest returnObject where a = b OR v = g", Long.class);
-        verify(em, times(1)).createQuery("select distinct returnObject from PermittedRepositoryUnitTest returnObject where a = b OR v = g", PermittedRepositoryUnitTest.class);
+        verify(em, times(1)).createQuery("select distinct count(returnObject) from PermittedRepositoryUnitTest returnObject where (a = b) OR (v = g)", Long.class);
+        verify(em, times(1)).createQuery("select distinct returnObject from PermittedRepositoryUnitTest returnObject where (a = b) OR (v = g)", PermittedRepositoryUnitTest.class);
     }
 
     @Value

@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.permission.repository;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -147,8 +148,8 @@ public class PermittedRepository {
 
         if (isNotEmpty(permittedCondition)) {
             String orChainedPermittedCondition = String.join(" OR ", permittedCondition);
-            selectSql += AND_SQL + "(" + orChainedPermittedCondition + ")";
-            countSql += AND_SQL + "(" + orChainedPermittedCondition + ")";
+            selectSql += AND_SQL + orChainedPermittedCondition;
+            countSql += AND_SQL + orChainedPermittedCondition;
         }
 
         TypedQuery<T> selectQuery = createSelectQuery(selectSql, pageable, entityClass);
@@ -186,7 +187,9 @@ public class PermittedRepository {
             SecurityContextHolder.getContext().getAuthentication(),
             privilegeKey,
             spelToJpqlTranslator
-        );
+        ).stream()
+            .map(condition -> format("(%s)", condition))
+            .collect(toList());
     }
 
     private static String applyOrder(String sql, Sort sort) {
