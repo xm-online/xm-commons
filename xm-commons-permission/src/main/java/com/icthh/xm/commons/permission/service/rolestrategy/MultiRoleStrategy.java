@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -201,7 +203,7 @@ public class MultiRoleStrategy implements RoleStrategy {
 
         boolean validCondition = true;
 
-        if (isEnvConditionNotValid(permissions, context)) {
+        if (!isConditionValid(permissions, context, permission -> permission.getEnvCondition())) {
             log(logPermission,
                 Level.ERROR,
                 "access denied: privilege={}, role={}, userKey={} due to env condition: {} with context [{}]",
@@ -218,11 +220,10 @@ public class MultiRoleStrategy implements RoleStrategy {
             validCondition = false;
         }
 
-        if (checkCondition && isResourceConditionNotValid(permissions, context)) {
+        if (checkCondition && !isConditionValid(permissions, context, permission -> permission.getResourceCondition())) {
             log(logPermission,
                 Level.ERROR,
-                "access denied: privilege={}, role={}, userKey={} due to env condition: {} with context [{}] "
-                    + "with context [{}]",
+                "access denied: privilege={}, role={}, userKey={} due to resource condition: {} with context [{}] ",
                 privilegeKey,
                 roleKey,
                 getUserKey(),
@@ -292,39 +293,20 @@ public class MultiRoleStrategy implements RoleStrategy {
         return false;
     }
 
-    private boolean isEnvConditionNotValid(Collection<Permission> permissions, StandardEvaluationContext context) {
+    private boolean isConditionValid(Collection<Permission> permissions, StandardEvaluationContext context,
+                                     Function<Permission, Expression> func) {
         return permissions.stream()
             .anyMatch(permission ->
                 {
-                    Expression expression = permission.getEnvCondition();
+                    Expression expression = func.apply(permission);
                     if (isNull(expression) || isEmpty(expression.getExpressionString())) {
-                        return false;
-                    } else {
-                        try {
-                            return expression.getValue(context, Boolean.class);
-                        } catch (Exception e) {
-                            log.error("Exception while getting value ", e);
-                            return true;
-                        }
+                        return true;
                     }
-                }
-            );
-    }
-
-    private boolean isResourceConditionNotValid(Collection<Permission> permissions, StandardEvaluationContext context) {
-        return permissions.stream()
-            .anyMatch(permission ->
-                {
-                    Expression expression = permission.getResourceCondition();
-                    if (isNull(expression) || isEmpty(expression.getExpressionString())) {
+                    try {
+                        return expression.getValue(context, Boolean.class);
+                    } catch (Exception e) {
+                        log.error("Exception while getting value ", e);
                         return false;
-                    } else {
-                        try {
-                            return expression.getValue(context, Boolean.class);
-                        } catch (Exception e) {
-                            log.error("Exception while getting value ", e);
-                            return true;
-                        }
                     }
                 }
             );
