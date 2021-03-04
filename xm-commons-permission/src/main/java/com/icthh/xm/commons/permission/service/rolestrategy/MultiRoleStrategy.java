@@ -160,7 +160,7 @@ public class MultiRoleStrategy implements RoleStrategy {
 
     @SuppressWarnings("unchecked")
     @SneakyThrows
-    private boolean checkPermission(
+    boolean checkPermission(
         Authentication authentication,
         Object resource,
         Object privilegeKey,
