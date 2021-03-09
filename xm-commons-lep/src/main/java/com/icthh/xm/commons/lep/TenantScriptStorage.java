@@ -88,7 +88,7 @@ public enum TenantScriptStorage {
         } else if (path.startsWith(URL_PREFIX_COMMONS_TENANT)) {
             return new Details(singletonList(tenantKey.toLowerCase()), path.substring(URL_PREFIX_COMMONS_TENANT.length()));
         } else {
-            return new Details(singletonList(tenantKey.toLowerCase()), path);
+            return new Details(asList(tenantKey.toLowerCase(), appName), path);
         }
     }
 
