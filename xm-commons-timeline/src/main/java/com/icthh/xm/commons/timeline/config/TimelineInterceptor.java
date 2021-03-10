@@ -1,8 +1,14 @@
 package com.icthh.xm.commons.timeline.config;
 
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 
 import com.icthh.xm.commons.timeline.TimelineEventProducer;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -12,12 +18,6 @@ import org.springframework.security.oauth2.provider.authentication.OAuth2Authent
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 @Slf4j
 @Component
@@ -31,16 +31,20 @@ public class TimelineInterceptor extends HandlerInterceptorAdapter {
 
     private final TimelineEventProducer eventProducer;
     private final List<String> ignoredPatterns;
+    private final List<String> ignoredHttpMethods;
 
-    public TimelineInterceptor(TimelineEventProducer eventProducer,
-                               @Value("${application.tenant-ignored-path-list:true}") List<String> ignoredPatterns) {
+    public TimelineInterceptor(
+        TimelineEventProducer eventProducer,
+        @Value("${application.tenant-ignored-path-list:true}") List<String> ignoredPatterns,
+        @Value("${application.timeline-ignored-http-methods}") List<String> ignoredHttpMethods
+    ) {
         this.eventProducer = eventProducer;
         this.ignoredPatterns = ignoredPatterns;
+        this.ignoredHttpMethods = ignoredHttpMethods;
     }
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
-        throws Exception {
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
 
         if (isIgnoredRequest(request)) {
             return;
@@ -80,6 +84,12 @@ public class TimelineInterceptor extends HandlerInterceptorAdapter {
 
     private boolean isIgnoredRequest(HttpServletRequest request) {
         String path = request.getServletPath();
+        String httpMethod = request.getMethod();
+
+        if (isNotEmpty(ignoredHttpMethods) && ignoredHttpMethods.contains(httpMethod)) {
+            return true;
+        }
+
         if (ignoredPatterns != null && path != null) {
             for (String pattern : ignoredPatterns) {
                 if (matcher.match(pattern, path)) {
@@ -90,11 +100,13 @@ public class TimelineInterceptor extends HandlerInterceptorAdapter {
         return false;
     }
 
-    private void produceTimeline(HttpServletRequest request,
-                                 HttpServletResponse response,
-                                 String tenant,
-                                 String userLogin,
-                                 String userKey) {
+    private void produceTimeline(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        String tenant,
+        String userLogin,
+        String userKey
+    ) {
         String content = eventProducer.createEventJson(request, response, tenant, userLogin, userKey);
         eventProducer.send(tenant, content);
     }
