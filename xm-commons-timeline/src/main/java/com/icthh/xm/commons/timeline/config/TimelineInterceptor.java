@@ -100,13 +100,11 @@ public class TimelineInterceptor extends HandlerInterceptorAdapter {
         return false;
     }
 
-    private void produceTimeline(
-        HttpServletRequest request,
+    private void produceTimeline(HttpServletRequest request,
         HttpServletResponse response,
         String tenant,
         String userLogin,
-        String userKey
-    ) {
+        String userKey) {
         String content = eventProducer.createEventJson(request, response, tenant, userLogin, userKey);
         eventProducer.send(tenant, content);
     }
