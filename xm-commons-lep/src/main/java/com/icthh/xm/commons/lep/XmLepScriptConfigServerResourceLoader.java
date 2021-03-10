@@ -31,6 +31,12 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
     // /config/tenant/{tenant-key}/{ms-name}/lep/**
     private final String tenantLepScriptsAntPathPattern;
 
+    // /config/tenant/{tenant-key}/commons/lep/**
+    private static final String commonsLepScriptsAntPathPattern = "/config/tenants/{tenantKey}/commons/lep/**";
+
+    // /config/tenant/commons/lep/**
+    private static final String environmentLepScriptsAntPathPattern = "/config/tenants/commons/lep/**";
+
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     private ConcurrentHashMap<String, XmLepScriptResource> scriptResources = new ConcurrentHashMap<>();
@@ -45,7 +51,9 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
      */
     @Override
     public boolean isListeningConfiguration(String updatedKey) {
-        return pathMatcher.match(tenantLepScriptsAntPathPattern, updatedKey);
+        return pathMatcher.match(tenantLepScriptsAntPathPattern, updatedKey)
+            || pathMatcher.match(commonsLepScriptsAntPathPattern, updatedKey)
+            || pathMatcher.match(environmentLepScriptsAntPathPattern, updatedKey);
     }
 
     /**

@@ -9,7 +9,7 @@ import com.icthh.xm.commons.exceptions.BusinessException;
  */
 public final class TenantContextUtils {
 
-    public static String TENANT_KEY_REGEXP = "^(?!pg_)(?!_)[a-zA-Z][a-zA-Z0-9_]{0,47}$";
+    public static String TENANT_KEY_REGEXP = "^(?!commons$)(?!pg_)(?!_)[a-zA-Z][a-zA-Z0-9_]{0,47}$";
     public static Pattern TENANT_KEY_PATTERN = Pattern.compile(TENANT_KEY_REGEXP);
     public static final String TENANT_KEY_FORMAT_CODE = "xm.xmEntity.tenant.error.tenantKeyFormat";
 
