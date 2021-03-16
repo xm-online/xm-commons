@@ -24,7 +24,7 @@ public class TenantScriptStorageUnitTest {
 
         assertEquals("classpath:/lep/custom/commons/functions/aggregation", envLepPath);
         assertEquals("classpath:/lep/custom/xm/commons/functions/aggregation", tenantLepPath);
-        assertEquals("classpath:/lep/custom/xm/activation/commons/functions/aggregation", localLepPath);
+        assertEquals("classpath:/lep/custom/xm/commons/functions/aggregation", localLepPath);
     }
 
     @Test
