@@ -21,7 +21,6 @@ import com.icthh.xm.commons.permission.service.translator.SpelToJpqlTranslator;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,7 +64,7 @@ public class MultiRolePermissionCheckServiceUnitTest {
         doReturn(true).when(multiRolePermissionCheckService).hasPermission(any(), any());
         doReturn(singletonList(SUPER_ADMIN)).when(multiRolePermissionCheckService).getRoleKeys(any());
 
-        Collection<String> condition = multiRolePermissionCheckService.createCondition(any(), any(), any());
+        String condition = multiRolePermissionCheckService.createCondition(any(), any(), any());
 
         assertNotNull(condition);
         assertTrue(condition.isEmpty());
@@ -87,11 +86,11 @@ public class MultiRolePermissionCheckServiceUnitTest {
             .when(multiRolePermissionCheckService)
             .getSubjects(any());
 
-        List<String> condition = new ArrayList<>(multiRolePermissionCheckService.createCondition(
+        String condition = multiRolePermissionCheckService.createCondition(
             new TestingAuthenticationToken(new Object(), new Object()), new Object(), spelToJpqlTranslator
-        ));
+        );
 
         assertFalse(condition.isEmpty());
-        assertEquals(condition.get(0), "subject.userKey  =  'user key'");
+        assertEquals("(subject.userKey  =  'user key')", condition);
     }
 }

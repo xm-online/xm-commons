@@ -62,7 +62,7 @@ public class PermittedRepositoryUnitTest {
                 eq("TEST"),
                 any(SpelToJpqlTranslator.class)
             )
-        ).thenReturn(singletonList("f = g"));
+        ).thenReturn("(f = g)");
         when(selectQuery.getResultList()).thenReturn(asList(new TestEntity(1), new TestEntity(2)));
 
         Page<TestEntity> result = repository.findByCondition(
@@ -95,7 +95,7 @@ public class PermittedRepositoryUnitTest {
                 eq("TEST"),
                 any(SpelToJpqlTranslator.class)
             )
-        ).thenReturn(singletonList("f = g"));
+        ).thenReturn("(f = g)");
         when(selectQuery.getResultList()).thenReturn(asList(new TestEntity(1), new TestEntity(2)));
 
         Page<TestEntity> result = repository.findByCondition(
@@ -124,7 +124,7 @@ public class PermittedRepositoryUnitTest {
         when(em.createQuery(anyString(), any())).thenReturn(selectQuery);
         when(em.createQuery(anyString(), any())).thenReturn(countQuery);
 
-        doReturn(asList("a = b", "v = g")).when(permissionCheckService).createCondition(any(), any(), any());
+        doReturn("(a = b) OR (v = g)").when(permissionCheckService).createCondition(any(), any(), any());
 
         repository.findAll(null, PermittedRepositoryUnitTest.class, "key");
 

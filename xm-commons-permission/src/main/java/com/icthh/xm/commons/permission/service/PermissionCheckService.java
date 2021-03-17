@@ -13,14 +13,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
-import java.util.Collection;
 
 @Slf4j
 @Service
 @IgnoreLogginAspect
 public class PermissionCheckService {
 
-    private static final String MULTI_ROLE_FIELD_NAME = "multiRoleEnabled";
+    private static final String MULTIROLE_FLAG_FIELD_NAME = "multiRoleEnabled";
 
     private final RoleStrategy multiRoleStrategy;
     private final RoleStrategy singleRoleStrategy;
@@ -83,8 +82,7 @@ public class PermissionCheckService {
      * @param translator the spel translator
      * @return condition if permitted, or null
      */
-    public Collection<String> createCondition(Authentication authentication, Object privilegeKey,
-                                              SpelTranslator translator) {
+    public String createCondition(Authentication authentication, Object privilegeKey, SpelTranslator translator) {
         return withStrategy(authentication).createCondition(authentication, privilegeKey, translator);
     }
 
@@ -94,7 +92,7 @@ public class PermissionCheckService {
 
     boolean isMultiRoleEnabled(final Authentication authentication) {
         try {
-            return SecurityUtils.getAdditionalDetailsValueBoolean(authentication, MULTI_ROLE_FIELD_NAME);
+            return SecurityUtils.getAdditionalDetailsValueBoolean(authentication, MULTIROLE_FLAG_FIELD_NAME);
         } catch (Exception e) {
             log.error("Multi-role check failed, set multi-role as false, error: {}", e.getMessage(), e);
             return false;

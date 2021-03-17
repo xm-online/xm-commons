@@ -3,10 +3,12 @@ package com.icthh.xm.commons.permission.service.rolestrategy;
 import static com.icthh.xm.commons.permission.constants.RoleConstant.SUPER_ADMIN;
 import static com.icthh.xm.commons.permission.utils.CollectionUtils.listsNotEqualsIgnoreOrder;
 import static com.icthh.xm.commons.tenant.TenantContextUtils.getRequiredTenantKeyValue;
+import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import com.icthh.xm.commons.exceptions.SkipPermissionException;
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.event.Level;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelNode;
@@ -135,7 +138,7 @@ public class MultiRoleStrategy implements RoleStrategy {
      * @param translator the spel translator
      * @return condition if permitted, or null
      */
-    public Collection<String> createCondition(
+    public String createCondition(
         Authentication authentication, Object privilegeKey, SpelTranslator translator
     ) {
         if (!hasPermission(authentication, privilegeKey)) {
@@ -145,17 +148,27 @@ public class MultiRoleStrategy implements RoleStrategy {
         Collection<String> roleKeys = getRoleKeys(authentication);
 
         if (roleKeys.contains(SUPER_ADMIN)) {
-            return emptyList();
+            return EMPTY;
         }
 
         Collection<Permission> permissions = getPermissions(roleKeys, privilegeKey);
         Map<String, Subject> subjects = getSubjects(roleKeys);
 
+        if (permissions.size() > 1) {
+            return permissions.stream()
+                .filter(permission -> nonNull(permission.getResourceCondition()))
+                .map(permission -> translator
+                    .translate(permission.getResourceCondition().getExpressionString(), subjects.get(permission.getRoleKey())))
+                .map(condition -> format("(%s)", condition))
+                .reduce(" OR ", String::concat);
+        }
+
         return permissions.stream()
             .filter(permission -> nonNull(permission.getResourceCondition()))
             .map(permission -> translator
                 .translate(permission.getResourceCondition().getExpressionString(), subjects.get(permission.getRoleKey())))
-            .collect(toList());
+            .map(condition -> format("(%s)", condition))
+            .reduce("", String::concat);
     }
 
     @SuppressWarnings("unchecked")
