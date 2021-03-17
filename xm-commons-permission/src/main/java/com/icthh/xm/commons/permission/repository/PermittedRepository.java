@@ -2,7 +2,7 @@ package com.icthh.xm.commons.permission.repository;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.icthh.xm.commons.permission.service.PermissionCheckService;
@@ -74,10 +74,9 @@ public class PermittedRepository {
         String selectSql = format(SELECT_ALL_SQL, entityClass.getSimpleName());
         String countSql = format(COUNT_ALL_SQL, entityClass.getSimpleName());
 
-        Collection<String> permittedCondition = createPermissionCondition(privilegeKey);
+        String orChainedPermittedCondition = createPermissionCondition(privilegeKey);
 
-        if (isNotEmpty(permittedCondition)) {
-            String orChainedPermittedCondition = String.join(" OR ", permittedCondition);
+        if (isNotEmpty(orChainedPermittedCondition)) {
             selectSql += WHERE_SQL + orChainedPermittedCondition;
             countSql += WHERE_SQL + orChainedPermittedCondition;
         }
@@ -144,10 +143,9 @@ public class PermittedRepository {
         selectSql += WHERE_SQL + whereCondition;
         countSql += WHERE_SQL + whereCondition;
 
-        Collection<String> permittedCondition = createPermissionCondition(privilegeKey);
+        String orChainedPermittedCondition = createPermissionCondition(privilegeKey);
 
-        if (isNotEmpty(permittedCondition)) {
-            String orChainedPermittedCondition = String.join(" OR ", permittedCondition);
+        if (isNotEmpty(orChainedPermittedCondition)) {
             selectSql += AND_SQL + orChainedPermittedCondition;
             countSql += AND_SQL + orChainedPermittedCondition;
         }
@@ -182,14 +180,12 @@ public class PermittedRepository {
             : readPage(countSql, query, pageable);
     }
 
-    protected Collection<String> createPermissionCondition(String privilegeKey) {
+    protected String createPermissionCondition(String privilegeKey) {
         return permissionCheckService.createCondition(
             SecurityContextHolder.getContext().getAuthentication(),
             privilegeKey,
             spelToJpqlTranslator
-        ).stream()
-            .map(condition -> format("(%s)", condition))
-            .collect(toList());
+        );
     }
 
     private static String applyOrder(String sql, Sort sort) {

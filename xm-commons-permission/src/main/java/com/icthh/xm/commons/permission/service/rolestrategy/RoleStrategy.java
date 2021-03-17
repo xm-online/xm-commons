@@ -13,5 +13,5 @@ public interface RoleStrategy {
 
     boolean hasPermission(Authentication authentication, Serializable resource, String resourceType, Object privilege);
 
-    Collection<String> createCondition(Authentication authentication, Object privilegeKey, SpelTranslator translator);
+    String createCondition(Authentication authentication, Object privilegeKey, SpelTranslator translator);
 }

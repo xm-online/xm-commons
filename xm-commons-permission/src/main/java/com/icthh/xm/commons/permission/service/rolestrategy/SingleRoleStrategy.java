@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.permission.service.rolestrategy;
 
-import static java.util.Collections.singletonList;
+import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import com.icthh.xm.commons.exceptions.SkipPermissionException;
 import com.icthh.xm.commons.permission.access.ResourceFactory;
@@ -19,8 +20,6 @@ import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -122,7 +121,7 @@ public class SingleRoleStrategy implements RoleStrategy {
      * @param translator the spel translator
      * @return condition if permitted, or null
      */
-    public Collection<String> createCondition(Authentication authentication, Object privilegeKey, SpelTranslator translator) {
+    public String createCondition(Authentication authentication, Object privilegeKey, SpelTranslator translator) {
         if (!hasPermission(authentication, privilegeKey)) {
             throw new AccessDeniedException("Access is denied");
         }
@@ -135,9 +134,9 @@ public class SingleRoleStrategy implements RoleStrategy {
 
         if (!RoleConstant.SUPER_ADMIN.equals(roleKey)
             && permission != null && permission.getResourceCondition() != null) {
-            return singletonList(translator.translate(permission.getResourceCondition().getExpressionString(), subject));
+            return format("(%s)", translator.translate(permission.getResourceCondition().getExpressionString(), subject));
         }
-        return Collections.emptyList();
+        return EMPTY;
     }
 
     @SuppressWarnings("unchecked")

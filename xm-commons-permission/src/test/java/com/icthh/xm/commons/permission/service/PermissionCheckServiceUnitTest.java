@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.permission.service;
 
-import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -11,7 +10,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.permission.service.rolestrategy.RoleStrategy;
-import java.util.Collection;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,9 +69,9 @@ public class PermissionCheckServiceUnitTest {
     public void shouldMultiRoleCreateCondition() {
         when(permissionCheckService.isMultiRoleEnabled(any())).thenReturn(true);
 
-        when(multiRoleStrategy.createCondition(any(), any(), any())).thenReturn(singletonList("Test"));
+        when(multiRoleStrategy.createCondition(any(), any(), any())).thenReturn("Test");
 
-        Collection<String> condition = permissionCheckService.createCondition(any(), any(), any());
+        String condition = permissionCheckService.createCondition(any(), any(), any());
 
         assertNotNull(condition);
         assertFalse(condition.isEmpty());
@@ -109,8 +107,8 @@ public class PermissionCheckServiceUnitTest {
 
     @Test
     public void shouldSingleCreateCondition() {
-        when(singleRoleStrategy.createCondition(any(), any(), any())).thenReturn(singletonList("Test"));
-        Collection<String> condition = permissionCheckService.createCondition(any(), any(), any());
+        when(singleRoleStrategy.createCondition(any(), any(), any())).thenReturn("Test");
+        String condition = permissionCheckService.createCondition(any(), any(), any());
 
         assertNotNull(condition);
         assertFalse(condition.isEmpty());
