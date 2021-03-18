@@ -34,7 +34,7 @@ public class PermissionService implements RefreshableConfiguration {
 
     /**
      * Get permissions configuration for tenant.
-     * Map key is ROLE_KEY:PRIVILEGE_KEY and value id permission.
+     * Map key is APP_NAME:ROLE_KEY:PRIVILEGE_KEY and value id permission.
      *
      * @param tenant the tenant
      * @return permissions

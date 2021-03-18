@@ -39,6 +39,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.event.Level;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelNode;
 import org.springframework.expression.spel.standard.SpelExpression;
@@ -56,6 +57,9 @@ public class MultiRoleStrategy implements RoleStrategy {
 
     private static final String LOG_KEY = "log";
     private static final Method GET_REQUEST_HEADER = lookupGetRequestHeaderMethod();
+
+    @Value("${spring.application.name}")
+    private String appName;
 
     private final XmAuthenticationContextHolder xmAuthenticationContextHolder;
     private final TenantContextHolder tenantContextHolder;
@@ -258,7 +262,7 @@ public class MultiRoleStrategy implements RoleStrategy {
             throw new SkipPermissionException(
                 "Skip permission",
                 permissions.stream()
-                    .map(permission -> permission.getRoleKey() + ":" + permission.getPrivilegeKey())
+                    .map(permission -> String.join(":", appName, permission.getRoleKey(), permission.getPrivilegeKey()))
                     .collect(toList())
             );
         } else if (!validCondition) {
@@ -362,7 +366,7 @@ public class MultiRoleStrategy implements RoleStrategy {
             .getPermissions(getRequiredTenantKeyValue(tenantContextHolder.getContext()));
 
         return roleKeys.stream()
-            .map(roleKey -> permissions.get(roleKey + ":" + privilegeKey))
+            .map(roleKey -> permissions.get(String.join(":", appName, roleKey, (String) privilegeKey)))
             .collect(toList());
     }
 

@@ -27,6 +27,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.event.Level;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelNode;
 import org.springframework.expression.spel.standard.SpelExpression;
@@ -45,6 +46,9 @@ public class SingleRoleStrategy implements RoleStrategy {
     private static final String LOG_KEY = "log";
 
     private static final Method GET_REQUEST_HEADER = lookupGetRequestHeaderMethod();
+
+    @Value("${spring.application.name}")
+    private String appName;
 
     private final XmAuthenticationContextHolder xmAuthenticationContextHolder;
     private final TenantContextHolder tenantContextHolder;
@@ -263,7 +267,7 @@ public class SingleRoleStrategy implements RoleStrategy {
     private Permission getPermission(String roleKey, Object privilegeKey) {
         return permissionService.getPermissions(
             TenantContextUtils.getRequiredTenantKeyValue(tenantContextHolder.getContext()))
-            .get(roleKey + ":" + privilegeKey);
+            .get(String.join(":", appName, roleKey, (String) privilegeKey));
     }
 
     @SuppressWarnings("unchecked")

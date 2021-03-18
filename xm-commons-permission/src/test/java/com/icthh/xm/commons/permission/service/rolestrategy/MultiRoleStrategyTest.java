@@ -35,6 +35,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class MultiRoleStrategyTest {
 
+    public static final String APP_NAME = "APP";
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
     @Mock
     Authentication authentication;
@@ -117,6 +118,6 @@ public class MultiRoleStrategyTest {
         SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
         SpelExpression spelExpression = spelExpressionParser.parseRaw(spel);
         Permission permission = permissionBuilder.apply(spelExpression);
-        when(permissionService.getPermissions(eq("XM"))).thenReturn(Map.of(ROLE_ADMIN + ":" + privilege, permission));
+        when(permissionService.getPermissions(eq("XM"))).thenReturn(Map.of(String.join(":", APP_NAME, ROLE_ADMIN, privilege), permission));
     }
 }
