@@ -67,31 +67,14 @@ public class JwksRepository implements RefreshableConfiguration {
         String tenantKey = extractKeyFromPath(configPath, KEY_TENANT);
         String clientKey = extractKeyFromPath(configPath, IDP_CLIENT_KEY);
 
-        if (validateDataIntegrity(configPath, tenantKey, clientKey, config)) {
-            deleteInMemoryJwks(tenantKey, clientKey);
-            saveJwks(config, tenantKey, clientKey);
-        }
-    }
-
-    private boolean validateDataIntegrity(String configPath, String tenantKey, String clientKey, String config) {
-
-        if (StringUtils.isEmpty(tenantKey)) {
-            log.warn("tenantKey not specified. " + SKIP_MESSAGE_TEMPLATE, configPath);
-            return false;
-        }
-
-        if (StringUtils.isEmpty(clientKey)) {
-            log.warn("clientKey not specified for tenant [{}]. " + SKIP_MESSAGE_TEMPLATE, tenantKey, configPath);
-            return false;
-        }
-
         if (StringUtils.isEmpty(config)) {
-            log.warn("config not specified for tenant [{}] with clientKey [{}]. " + SKIP_MESSAGE_TEMPLATE,
+            log.info("config not specified for tenant [{}] with clientKey [{}]. " + SKIP_MESSAGE_TEMPLATE,
                 tenantKey, clientKey, configPath);
-            return false;
+            deleteInMemoryJwks(tenantKey, clientKey);
+            return;
         }
 
-        return true;
+        saveJwks(config, tenantKey, clientKey);
     }
 
     private void saveJwks(String config, String tenantKey, String clientKey) {
@@ -114,6 +97,7 @@ public class JwksRepository implements RefreshableConfiguration {
     }
 
     private void deleteInMemoryJwks(String tenantKey, String clientKey) {
+        log.info("Delete in-memory jwks keys for client with key [{}] in [{}] tenant", clientKey, tenantKey);
         jwksStorage.computeIfPresent(tenantKey, (k, v) -> { v.remove(clientKey); return v; });
     }
 }
