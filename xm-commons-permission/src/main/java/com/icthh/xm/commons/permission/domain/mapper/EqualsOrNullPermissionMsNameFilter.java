@@ -14,6 +14,6 @@ public class EqualsOrNullPermissionMsNameFilter implements PermissionMsNameFilte
 
     @Override
     public boolean filterPermission(String permissionMsName) {
-        return StringUtils.isBlank(msName) || StringUtils.startsWithIgnoreCase(permissionMsName, msName);
+        return StringUtils.isBlank(msName) || StringUtils.equals(permissionMsName, msName);
     }
 }
