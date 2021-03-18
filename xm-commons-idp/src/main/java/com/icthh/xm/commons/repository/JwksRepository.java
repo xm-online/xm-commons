@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +42,8 @@ public class JwksRepository implements RefreshableConfiguration {
      */
     private final Map<String, Map<String, String>> jwksStorage = new ConcurrentHashMap<>();
 
+    private static final String SKIP_MESSAGE_TEMPLATE = "Skipping process file with path [{}]";
+
     private final TenantContextHolder tenantContextHolder;
 
     private final AntPathMatcher matcher = new AntPathMatcher();
@@ -64,7 +67,31 @@ public class JwksRepository implements RefreshableConfiguration {
         String tenantKey = extractKeyFromPath(configPath, KEY_TENANT);
         String clientKey = extractKeyFromPath(configPath, IDP_CLIENT_KEY);
 
-        saveJwks(config, tenantKey, clientKey);
+        if (validateDataIntegrity(configPath, tenantKey, clientKey, config)) {
+            deleteInMemoryJwks(tenantKey, clientKey);
+            saveJwks(config, tenantKey, clientKey);
+        }
+    }
+
+    private boolean validateDataIntegrity(String configPath, String tenantKey, String clientKey, String config) {
+
+        if (StringUtils.isEmpty(tenantKey)) {
+            log.warn("tenantKey not specified. " + SKIP_MESSAGE_TEMPLATE, configPath);
+            return false;
+        }
+
+        if (StringUtils.isEmpty(clientKey)) {
+            log.warn("clientKey not specified for tenant [{}]. " + SKIP_MESSAGE_TEMPLATE, tenantKey, configPath);
+            return false;
+        }
+
+        if (StringUtils.isEmpty(config)) {
+            log.warn("config not specified for tenant [{}] with clientKey [{}]. " + SKIP_MESSAGE_TEMPLATE,
+                tenantKey, clientKey, configPath);
+            return false;
+        }
+
+        return true;
     }
 
     private void saveJwks(String config, String tenantKey, String clientKey) {
@@ -84,5 +111,9 @@ public class JwksRepository implements RefreshableConfiguration {
         String tenantKey = tenantContextHolder.getTenantKey();
 
         return jwksStorage.getOrDefault(tenantKey, new HashMap<>());
+    }
+
+    private void deleteInMemoryJwks(String tenantKey, String clientKey) {
+        jwksStorage.computeIfPresent(tenantKey, (k, v) -> { v.remove(clientKey); return v; });
     }
 }
