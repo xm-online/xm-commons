@@ -142,7 +142,7 @@ definitions:
     properties:
       tenantKey:
         type: "string"
-        pattern: '^(?!pg_)(?!_)[a-zA-Z][a-zA-Z0-9_]{0,47}$'
+        pattern: '^(?!commons$)(?!pg_)(?!_)[a-zA-Z][a-zA-Z0-9_]{0,47}$'
         description: "Unique tenant key. Alpha-numeric string with underscores. First alpha character. Not start with 'pg_'. Max length is 48"
       name:
         type: "string"

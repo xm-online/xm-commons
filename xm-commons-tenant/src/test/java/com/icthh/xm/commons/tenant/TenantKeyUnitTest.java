@@ -63,8 +63,11 @@ public class TenantKeyUnitTest {
         assertTrue(isTenantKeyValid("VALIDTENANT"));
         assertTrue(isTenantKeyValid("VALID_TENANT"));
         assertTrue(isTenantKeyValid("ValidTenant"));
+        assertTrue(isTenantKeyValid("commonsValid"));
+        assertTrue(isTenantKeyValid("validcommons"));
         assertFalse(isTenantKeyValid("INVALID TENANT NAME"));
         assertFalse(isTenantKeyValid("INVALIDTENANTNAME;"));
+        assertFalse(isTenantKeyValid("commons"));
     }
 
 }
