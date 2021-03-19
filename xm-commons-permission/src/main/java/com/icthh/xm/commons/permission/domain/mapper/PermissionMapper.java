@@ -74,7 +74,7 @@ public class PermissionMapper {
                                  permissions.forEach(permission -> {
                                      permission.setMsName(entry.getKey());
                                      permission.setRoleKey(roleKey);
-                                     result.put(entry.getKey() + ":" + roleKey + ":" + permission.getPrivilegeKey(), permission);
+                                     result.put(roleKey + ":" + permission.getPrivilegeKey(), permission);
                                  })
                     ));
         } catch (Exception e) {
