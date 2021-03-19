@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.permission.mapper;
 
-import static com.icthh.xm.commons.permission.domain.mapper.PermissionMapper.ymlToPermissions;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -44,58 +43,30 @@ public class PermissionMapperUnitTest {
         + "    resourceCondition: \"RESOLUTION_STRAT3\"\n"
         + "    reactionStrategy: \"SKIP\"\n";
 
-    private static final String YML_WITH_EQUAL_PERMISSIONS_FOR_TWO_APPS = "---\n"
-        + "MS1:\n"
-        + "  ROLE1:\n"
-        + "  - privilegeKey: \"PRIVILEGE_KEY1\"\n"
-        + "    disabled: false\n"
-        + "    deleted: false\n"
-        + "    envCondition: \"ENV_COND1\"\n"
-        + "    resourceCondition: \"RESOLUTION_STRAT1\"\n"
-        + "    reactionStrategy: \"SKIP\"\n"
-        + "MS2:\n"
-        + "  ROLE1:\n"
-        + "  - privilegeKey: \"PRIVILEGE_KEY1\"\n"
-        + "    disabled: false\n"
-        + "    deleted: false\n"
-        + "    envCondition: \"ENV_COND1\"\n"
-        + "    resourceCondition: \"RESOLUTION_STRAT1\"\n"
-        + "    reactionStrategy: \"SKIP\"\n";
-
     private ExpressionParser parser = new SpelExpressionParser();
 
     @Test
-    public void testCollectionToYml() {
+    public void testCollectionToYml() throws Exception {
         String yml = PermissionMapper.permissionsToYml(permissions());
 
         assertEquals(CORRECT_YML, yml);
     }
 
     @Test
-    public void testYmlToCollection() {
-        Map<String, Permission> permissions = ymlToPermissions(CORRECT_YML);
+    public void testYmlToCollection() throws Exception {
+        Map<String, Permission> permissions = PermissionMapper.ymlToPermissions(CORRECT_YML);
 
         assertEquals(3, permissions.size());
 
-        assertEquals(getPermission(1, 1), permissions.get("MS1:ROLE1:PRIVILEGE_KEY1"));
-        assertEquals(getPermission(2, 1), permissions.get("MS1:ROLE2:PRIVILEGE_KEY2"));
-        assertEquals(getPermission(3, 2), permissions.get("MS2:ROLE3:PRIVILEGE_KEY3"));
+        assertEquals(getPermission(1, 1), permissions.get("ROLE1:PRIVILEGE_KEY1"));
+        assertEquals(getPermission(2, 1), permissions.get("ROLE2:PRIVILEGE_KEY2"));
+        assertEquals(getPermission(3, 2), permissions.get("ROLE3:PRIVILEGE_KEY3"));
     }
 
     @Test
-    public void testYmlToCollection_shouldNotOverwriteMapEntry_whenTwoAppsHaveEqualRolesAndPrivilegeKeys() {
-        Map<String, Permission> permissions = ymlToPermissions(YML_WITH_EQUAL_PERMISSIONS_FOR_TWO_APPS);
-
-        assertEquals(2, permissions.size());
-
-        assertEquals(getPermission(1, 1), permissions.get("MS1:ROLE1:PRIVILEGE_KEY1"));
-        assertEquals(getPermission(1, 2), permissions.get("MS2:ROLE1:PRIVILEGE_KEY1"));
-    }
-
-    @Test
-    public void testError() {
+    public void testError() throws Exception {
         assertNull(PermissionMapper.permissionsToYml(null));
-        assertTrue(ymlToPermissions(null).isEmpty());
+        assertTrue(PermissionMapper.ymlToPermissions(null).isEmpty());
     }
 
     private Collection<Permission> permissions() {
