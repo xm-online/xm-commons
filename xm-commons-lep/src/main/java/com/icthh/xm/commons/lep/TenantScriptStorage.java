@@ -68,7 +68,7 @@ public enum TenantScriptStorage {
         String path = "/" + details.path;
 
         if (SystemUtils.IS_OS_WINDOWS) {
-            return "file:///" + lepDir + path;
+            return "file:///" + lepDir + FilenameUtils.separatorsToSystem(path);
         }
 
         return "file://" + lepDir + FilenameUtils.separatorsToSystem(path);
