@@ -252,6 +252,7 @@ public class MultiRoleStrategy implements RoleStrategy {
 
         List<ReactionStrategy> reactionStrategies = permissions.stream()
             .map(Permission::getReactionStrategy)
+            .filter(Objects::nonNull)
             .collect(toList());
 
         if (!validCondition && reactionStrategies.contains(ReactionStrategy.SKIP)) {
