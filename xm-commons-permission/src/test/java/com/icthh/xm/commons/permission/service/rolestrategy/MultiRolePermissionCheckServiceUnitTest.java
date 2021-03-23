@@ -1,8 +1,10 @@
 package com.icthh.xm.commons.permission.service.rolestrategy;
 
 import static com.icthh.xm.commons.permission.constants.RoleConstant.SUPER_ADMIN;
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -11,6 +13,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.permission.access.ResourceFactory;
 import com.icthh.xm.commons.permission.access.subject.Subject;
@@ -19,9 +22,14 @@ import com.icthh.xm.commons.permission.service.PermissionService;
 import com.icthh.xm.commons.permission.service.RoleService;
 import com.icthh.xm.commons.permission.service.translator.SpelToJpqlTranslator;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
+import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
+import com.icthh.xm.commons.tenant.TenantKey;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,6 +65,24 @@ public class MultiRolePermissionCheckServiceUnitTest {
             resourceFactory,
             roleService
         ));
+    }
+
+    @Test
+    public void shouldNotReturnNullInPermissionList() {
+        TenantContext tenantContext = mock(TenantContext.class);
+        TenantKey tenantKey = mock(TenantKey.class);
+
+        when(tenantContext.getTenantKey()).thenReturn(Optional.of(tenantKey));
+        when(tenantKey.getValue()).thenReturn("testKey");
+        when(tenantContextHolder.getContext()).thenReturn(tenantContext);
+        when(permissionService.getPermissions(any())).thenReturn(singletonMap("existingKey:privKey", mock(Permission.class)));
+
+        List<Permission> permissions = new ArrayList<>(multiRolePermissionCheckService
+            .getPermissions(asList("existingKey", "notExistingKey"), "privKey"));
+
+        assertFalse(permissions.isEmpty());
+        assertEquals(1, permissions.size());
+        assertNotNull(permissions.get(0));
     }
 
     @Test
