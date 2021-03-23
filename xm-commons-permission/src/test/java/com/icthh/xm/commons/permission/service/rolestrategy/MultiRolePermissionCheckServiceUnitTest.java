@@ -4,6 +4,7 @@ import static com.icthh.xm.commons.permission.constants.RoleConstant.SUPER_ADMIN
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -24,8 +25,11 @@ import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantKey;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,11 +77,12 @@ public class MultiRolePermissionCheckServiceUnitTest {
         when(tenantContextHolder.getContext()).thenReturn(tenantContext);
         when(permissionService.getPermissions(any())).thenReturn(singletonMap("existingKey:privKey", mock(Permission.class)));
 
-        Collection<Permission> permissions = multiRolePermissionCheckService
-            .getPermissions(asList("existingKey", "notExistingKey"), "privKey");
+        List<Permission> permissions = new ArrayList<>(multiRolePermissionCheckService
+            .getPermissions(asList("existingKey", "notExistingKey"), "privKey"));
 
         assertFalse(permissions.isEmpty());
         assertEquals(1, permissions.size());
+        assertNotNull(permissions.get(0));
     }
 
     @Test
