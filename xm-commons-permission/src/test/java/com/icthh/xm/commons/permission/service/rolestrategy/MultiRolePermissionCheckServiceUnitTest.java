@@ -4,7 +4,6 @@ import static com.icthh.xm.commons.permission.constants.RoleConstant.SUPER_ADMIN
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
-import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -26,10 +25,10 @@ import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantKey;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -118,5 +117,37 @@ public class MultiRolePermissionCheckServiceUnitTest {
 
         assertFalse(condition.isEmpty());
         assertEquals("(subject.userKey  =  'user key')", condition);
+    }
+
+    @Test
+    public void shouldCreateMultipleCondition() {
+        doReturn(true).when(multiRolePermissionCheckService).hasPermission(any(), any());
+        doReturn(asList("ROLE_B2B_EXPERT", "ROLE_B2C_EXPERT")).when(multiRolePermissionCheckService).getRoleKeys(any());
+
+        Permission permission = mock(Permission.class);
+        Permission permission2 = mock(Permission.class);
+        Expression expression = mock(Expression.class);
+        Expression expression2 = mock(Expression.class);
+
+        doReturn("subject.userKey == #subject.userKey").when(expression).getExpressionString();
+        doReturn("subject.userKey == #subject.userKey").when(expression2).getExpressionString();
+        doReturn(expression).when(permission).getResourceCondition();
+        doReturn(expression2).when(permission2).getResourceCondition();
+        doReturn("ROLE_B2B_EXPERT").when(permission).getRoleKey();
+        doReturn("ROLE_B2C_EXPERT").when(permission2).getRoleKey();
+        doReturn(asList(permission, permission2)).when(multiRolePermissionCheckService).getPermissions(any(), any());
+
+        Map<String, Subject> stringSubjectHashMap = new HashMap<>();
+        stringSubjectHashMap.put("ROLE_B2B_EXPERT", new Subject("", "user key", "ROLE_B2B_EXPERT"));
+        stringSubjectHashMap.put("ROLE_B2C_EXPERT", new Subject("", "user key 2", "ROLE_B2C_EXPERT"));
+
+        doReturn(stringSubjectHashMap).when(multiRolePermissionCheckService).getSubjects(any());
+
+        String condition = multiRolePermissionCheckService.createCondition(
+            new TestingAuthenticationToken(new Object(), new Object()), new Object(), spelToJpqlTranslator
+        );
+
+        assertFalse(condition.isEmpty());
+        assertEquals("(subject.userKey  =  'user key') OR (subject.userKey  =  'user key 2')", condition);
     }
 }
