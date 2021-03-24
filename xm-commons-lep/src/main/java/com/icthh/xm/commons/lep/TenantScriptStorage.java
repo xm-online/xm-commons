@@ -14,6 +14,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.SystemUtils;
 
 /**
  * The {@link TenantScriptStorage} class.
@@ -62,8 +63,15 @@ public enum TenantScriptStorage {
             .path("tenants")
             .paths(details.basePath)
             .build().asArray();
+
         String lepDir = Paths.get(FileSystemUtils.APP_HOME_DIR, paths).toString();
-        return "file://" + lepDir + FilenameUtils.separatorsToSystem("/" + details.path);
+        String path = "/" + details.path;
+
+        if (SystemUtils.IS_OS_WINDOWS) {
+            return "file:///" + lepDir + FilenameUtils.separatorsToSystem(path);
+        }
+
+        return "file://" + lepDir + FilenameUtils.separatorsToSystem(path);
     }
 
     /**
