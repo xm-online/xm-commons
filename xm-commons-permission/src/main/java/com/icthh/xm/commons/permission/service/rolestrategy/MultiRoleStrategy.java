@@ -216,7 +216,7 @@ public class MultiRoleStrategy implements RoleStrategy {
 
         boolean validCondition = true;
 
-        if (!isConditionValid(permissions, context, permission -> permission.getEnvCondition())) {
+        if (!isConditionValid(permissions, context, Permission::getEnvCondition)) {
             log(logPermission,
                 Level.ERROR,
                 "access denied: privilege={}, role={}, userKey={} due to env condition: {} with context [{}]",
@@ -233,7 +233,7 @@ public class MultiRoleStrategy implements RoleStrategy {
             validCondition = false;
         }
 
-        if (checkCondition && !isConditionValid(permissions, context, permission -> permission.getResourceCondition())) {
+        if (checkCondition && !isConditionValid(permissions, context, Permission::getResourceCondition)) {
             log(logPermission,
                 Level.ERROR,
                 "access denied: privilege={}, role={}, userKey={} due to resource condition: {} with context [{}] ",
@@ -252,6 +252,7 @@ public class MultiRoleStrategy implements RoleStrategy {
 
         List<ReactionStrategy> reactionStrategies = permissions.stream()
             .map(Permission::getReactionStrategy)
+            .filter(Objects::nonNull)
             .collect(toList());
 
         if (!validCondition && reactionStrategies.contains(ReactionStrategy.SKIP)) {
@@ -363,6 +364,7 @@ public class MultiRoleStrategy implements RoleStrategy {
 
         return roleKeys.stream()
             .map(roleKey -> permissions.get(roleKey + ":" + privilegeKey))
+            .filter(Objects::nonNull)
             .collect(toList());
     }
 
