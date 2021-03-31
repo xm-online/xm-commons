@@ -6,6 +6,7 @@ import static com.icthh.xm.commons.tenant.TenantContextUtils.getRequiredTenantKe
 import static java.lang.String.format;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -29,9 +30,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -357,10 +361,28 @@ public class MultiRoleStrategy implements RoleStrategy {
         Map<String, Permission> permissions = permissionService
             .getPermissions(getRequiredTenantKeyValue(tenantContextHolder.getContext()));
 
-        return roleKeys.stream()
+        List<Permission> rolesPermissions = roleKeys.stream()
             .map(roleKey -> permissions.get(roleKey + ":" + privilegeKey))
             .filter(Objects::nonNull)
             .collect(toList());
+
+        return rolesPermissions.stream()
+            .collect(groupingBy(Permission::getPrivilegeKey))
+            .entrySet().stream()
+            .flatMap(this::toPermissions)
+            .collect(toList());
+    }
+
+    private Stream<Permission> toPermissions(Entry<String, List<Permission>> privilegeKeyPermissions) {
+        Optional<Permission> permissionWithEmptyValue = privilegeKeyPermissions.getValue().stream()
+            .filter(permission -> isNull(permission.getResourceCondition()))
+            .findAny();
+
+        if (permissionWithEmptyValue.isPresent()) {
+            return permissionWithEmptyValue.stream();
+        }
+
+        return privilegeKeyPermissions.getValue().stream();
     }
 
     @SuppressWarnings("unchecked")
