@@ -1,0 +1,19 @@
+apply plugin: 'io.spring.dependency-management'
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:$versions.springBoot")
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
+    }
+}
+
+dependencies {
+    compile project(':xm-commons-config')
+    compile project(':xm-commons-tenant')
+
+    compile 'org.slf4j:slf4j-api'
+    compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+    compile 'org.springframework:spring-context'
+    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    compile 'com.fasterxml.jackson.core:jackson-databind'
+}

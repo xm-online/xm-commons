@@ -47,7 +47,9 @@ public class PermissionMapper {
      *
      * @param yml string
      * @return permissions map
+     * @deprecated use {@link com.icthh.xm.commons.permission.service.PermissionMappingService#ymlToPermissions}
      */
+    @Deprecated(forRemoval = true)
     public Map<String, Permission> ymlToPermissions(String yml) {
         return ymlToPermissions(yml, null);
     }
@@ -59,7 +61,9 @@ public class PermissionMapper {
      * @param yml    string
      * @param msName service name
      * @return permissions map
+     * @deprecated use {@link com.icthh.xm.commons.permission.service.PermissionMappingService#ymlToPermissions}
      */
+    @Deprecated(forRemoval = true)
     public Map<String, Permission> ymlToPermissions(String yml, String msName) {
         Map<String, Permission> result = new TreeMap<>();
         try {
