@@ -23,7 +23,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.security.core.Authentication;
@@ -69,6 +68,7 @@ public class MultiRoleStrategyUnitTest {
     public void envConditionMustBePassed() {
 
         prepareMock("#env[ipAddress]=='127.0.0.1'", spelExpression -> new Permission() {{
+            setPrivilegeKey("privKey");
             setEnvCondition(spelExpression);
         }});
         boolean result = multiRoleStrategy.checkPermission(authentication, null, privilege, false, false);
@@ -79,6 +79,7 @@ public class MultiRoleStrategyUnitTest {
     public void envConditionMustBeDenied() {
 
         prepareMock("#env[ipAddress]=='127.0.0.2'", spelExpression -> new Permission() {{
+            setPrivilegeKey("privKey");
             setEnvCondition(spelExpression);
         }});
         boolean result = multiRoleStrategy.checkPermission(authentication, null, privilege, false, false);
@@ -90,6 +91,7 @@ public class MultiRoleStrategyUnitTest {
     public void resourceConditionMustBePassed() {
 
         prepareMock("#firstName=='Homer'", spelExpression -> new Permission() {{
+            setPrivilegeKey("privKey");
             setResourceCondition(spelExpression);
         }});
         boolean result = multiRoleStrategy.checkPermission(authentication, Map.of("firstName", "Homer"), privilege, true, false);
@@ -100,14 +102,15 @@ public class MultiRoleStrategyUnitTest {
     public void resourceConditionMustBeDenied() {
 
         prepareMock("#firstName=='Bart'", spelExpression -> new Permission() {{
+            setPrivilegeKey("privKey");
             setResourceCondition(spelExpression);
         }});
         boolean result = multiRoleStrategy.checkPermission(authentication, Map.of("firstName", "Homer"), privilege, true, false);
         assertFalse(result);
     }
 
-    private void prepareMock(String spel, Function<SpelExpression, Permission > permissionBuilder){
-        when(authentication.getAuthorities()).thenAnswer((Answer<Object>) invocation -> List.of(new SimpleGrantedAuthority(ROLE_ADMIN)));
+    private void prepareMock(String spel, Function<SpelExpression, Permission> permissionBuilder) {
+        when(authentication.getAuthorities()).thenAnswer(invocation -> List.of(new SimpleGrantedAuthority(ROLE_ADMIN)));
         when(xmAuthenticationContextHolder.getContext()).thenReturn(xmAuthenticationContext);
         when(xmAuthenticationContext.getRemoteAddress()).thenReturn(Optional.of("127.0.0.1"));
         when(tenantContextHolder.getContext()).thenReturn(CONTEXT);

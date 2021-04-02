@@ -374,12 +374,12 @@ public class MultiRoleStrategy implements RoleStrategy {
     }
 
     private Stream<Permission> toPermissions(Entry<String, List<Permission>> privilegeKeyPermissions) {
-        Optional<Permission> permissionWithEmptyValue = privilegeKeyPermissions.getValue().stream()
+        Optional<Permission> permissionAllowsAll = privilegeKeyPermissions.getValue().stream()
             .filter(permission -> isNull(permission.getResourceCondition()))
             .findAny();
 
-        if (permissionWithEmptyValue.isPresent()) {
-            return permissionWithEmptyValue.stream();
+        if (permissionAllowsAll.isPresent()) {
+            return permissionAllowsAll.stream();
         }
 
         return privilegeKeyPermissions.getValue().stream();

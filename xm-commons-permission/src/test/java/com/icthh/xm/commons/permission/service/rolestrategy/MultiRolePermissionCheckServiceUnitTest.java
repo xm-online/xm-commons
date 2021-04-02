@@ -71,10 +71,13 @@ public class MultiRolePermissionCheckServiceUnitTest {
         TenantContext tenantContext = mock(TenantContext.class);
         TenantKey tenantKey = mock(TenantKey.class);
 
+        Permission permission = mock(Permission.class);
+
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(tenantKey));
         when(tenantKey.getValue()).thenReturn("testKey");
         when(tenantContextHolder.getContext()).thenReturn(tenantContext);
-        when(permissionService.getPermissions(any())).thenReturn(singletonMap("existingKey:privKey", mock(Permission.class)));
+        when(permissionService.getPermissions(any())).thenReturn(singletonMap("existingKey:privKey", permission));
+        when(permission.getPrivilegeKey()).thenReturn("privKey");
 
         List<Permission> permissions = new ArrayList<>(multiRolePermissionCheckService
             .getPermissions(asList("existingKey", "notExistingKey"), "privKey"));
