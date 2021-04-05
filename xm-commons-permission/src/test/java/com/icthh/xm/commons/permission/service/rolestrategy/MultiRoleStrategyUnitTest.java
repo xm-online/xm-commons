@@ -1,5 +1,10 @@
 package com.icthh.xm.commons.permission.service.rolestrategy;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
 import com.icthh.xm.commons.permission.domain.Permission;
 import com.icthh.xm.commons.permission.service.PermissionService;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
@@ -9,31 +14,22 @@ import com.icthh.xm.commons.tenant.Tenant;
 import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantKey;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-
 @RunWith(MockitoJUnitRunner.class)
-public class MultiRoleStrategyTest {
+public class MultiRoleStrategyUnitTest {
 
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
     @Mock
@@ -72,6 +68,7 @@ public class MultiRoleStrategyTest {
     public void envConditionMustBePassed() {
 
         prepareMock("#env[ipAddress]=='127.0.0.1'", spelExpression -> new Permission() {{
+            setPrivilegeKey("privKey");
             setEnvCondition(spelExpression);
         }});
         boolean result = multiRoleStrategy.checkPermission(authentication, null, privilege, false, false);
@@ -82,6 +79,7 @@ public class MultiRoleStrategyTest {
     public void envConditionMustBeDenied() {
 
         prepareMock("#env[ipAddress]=='127.0.0.2'", spelExpression -> new Permission() {{
+            setPrivilegeKey("privKey");
             setEnvCondition(spelExpression);
         }});
         boolean result = multiRoleStrategy.checkPermission(authentication, null, privilege, false, false);
@@ -93,6 +91,7 @@ public class MultiRoleStrategyTest {
     public void resourceConditionMustBePassed() {
 
         prepareMock("#firstName=='Homer'", spelExpression -> new Permission() {{
+            setPrivilegeKey("privKey");
             setResourceCondition(spelExpression);
         }});
         boolean result = multiRoleStrategy.checkPermission(authentication, Map.of("firstName", "Homer"), privilege, true, false);
@@ -103,14 +102,15 @@ public class MultiRoleStrategyTest {
     public void resourceConditionMustBeDenied() {
 
         prepareMock("#firstName=='Bart'", spelExpression -> new Permission() {{
+            setPrivilegeKey("privKey");
             setResourceCondition(spelExpression);
         }});
         boolean result = multiRoleStrategy.checkPermission(authentication, Map.of("firstName", "Homer"), privilege, true, false);
         assertFalse(result);
     }
 
-    private void prepareMock(String spel, Function<SpelExpression, Permission > permissionBuilder){
-        when(authentication.getAuthorities()).thenAnswer((Answer<Object>) invocation -> List.of(new SimpleGrantedAuthority(ROLE_ADMIN)));
+    private void prepareMock(String spel, Function<SpelExpression, Permission> permissionBuilder) {
+        when(authentication.getAuthorities()).thenAnswer(invocation -> List.of(new SimpleGrantedAuthority(ROLE_ADMIN)));
         when(xmAuthenticationContextHolder.getContext()).thenReturn(xmAuthenticationContext);
         when(xmAuthenticationContext.getRemoteAddress()).thenReturn(Optional.of("127.0.0.1"));
         when(tenantContextHolder.getContext()).thenReturn(CONTEXT);
