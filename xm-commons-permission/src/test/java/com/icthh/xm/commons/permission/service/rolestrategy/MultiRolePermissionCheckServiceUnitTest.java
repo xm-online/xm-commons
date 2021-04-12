@@ -7,6 +7,7 @@ import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -14,6 +15,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
 import com.icthh.xm.commons.permission.access.ResourceFactory;
 import com.icthh.xm.commons.permission.access.subject.Subject;
 import com.icthh.xm.commons.permission.domain.Permission;
@@ -25,6 +27,7 @@ import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantKey;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +53,10 @@ public class MultiRolePermissionCheckServiceUnitTest {
     private ResourceFactory resourceFactory;
     @Mock
     private RoleService roleService;
+    @Mock
+    TenantKey tenantKey;
+    @Mock
+    TenantContext tenantContext;
 
     private final SpelToJpqlTranslator spelToJpqlTranslator = new SpelToJpqlTranslator();
 
@@ -68,11 +75,8 @@ public class MultiRolePermissionCheckServiceUnitTest {
 
     @Test
     public void shouldNotReturnNullInPermissionList() {
-        TenantContext tenantContext = mock(TenantContext.class);
-        TenantKey tenantKey = mock(TenantKey.class);
 
         Permission permission = mock(Permission.class);
-
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(tenantKey));
         when(tenantKey.getValue()).thenReturn("testKey");
         when(tenantContextHolder.getContext()).thenReturn(tenantContext);
@@ -152,5 +156,33 @@ public class MultiRolePermissionCheckServiceUnitTest {
 
         assertFalse(condition.isEmpty());
         assertEquals("(subject.userKey  =  'user key') OR (subject.userKey  =  'user key 2')", condition);
+    }
+
+    @Test
+    public void disabledPermissionMustBeSkippedTest(){
+        Permission disabledPermission = new Permission() {{
+            setDisabled(true);
+            setMsName("User");
+            setPrivilegeKey("DO_ALL_PRIVILEGE");
+        }};
+
+        Permission enabledPermission = new Permission() {{
+            setDisabled(false);
+            setMsName("Admin");
+            setPrivilegeKey("DO_ALL_PRIVILEGE");
+        }};
+        when(tenantContext.getTenantKey()).thenReturn(Optional.of(tenantKey));
+        when(tenantKey.getValue()).thenReturn("XM");
+        when(tenantContextHolder.getContext()).thenReturn(tenantContext);
+        when(permissionService.getPermissions(any())).thenReturn(Map.of(
+            "ROLE_ADMIN:DO_ALL_PRIVILEGE", enabledPermission,
+            "ROLE_USER:DO_ALL_PRIVILEGE", disabledPermission
+            ));
+        Collection<Permission> permissions = multiRolePermissionCheckService.getPermissions(
+            List.of("ROLE_USER", "ROLE_ADMIN"), "DO_ALL_PRIVILEGE");
+
+        assertTrue(permissions.size() == 1);
+        assertFalse(Lists.newArrayList(permissions).get(0).isDisabled());
+
     }
 }
