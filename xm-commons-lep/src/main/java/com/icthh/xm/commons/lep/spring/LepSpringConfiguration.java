@@ -75,7 +75,7 @@ public abstract class LepSpringConfiguration {
 
     @Bean
     public XmGroovyScriptEngineProviderStrategy xmGroovyScriptEngineProviderStrategy() {
-        return new XmGroovyScriptEngineProviderStrategy(scriptNameLepResourceKeyMapper());
+        return new XmGroovyScriptEngineProviderStrategy(scriptNameLepResourceKeyMapper(), appName);
     }
 
     @Bean
