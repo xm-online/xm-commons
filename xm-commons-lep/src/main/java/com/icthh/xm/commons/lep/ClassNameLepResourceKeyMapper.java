@@ -39,7 +39,7 @@ public class ClassNameLepResourceKeyMapper implements ScriptNameLepResourceKeyMa
     }
 
     @Override
-    public UrlLepResourceKey map(String name) {
+    public UrlLepResourceKey map(final String name) {
         if (name == null) {
             return null;
         }
@@ -48,9 +48,13 @@ public class ClassNameLepResourceKeyMapper implements ScriptNameLepResourceKeyMa
         String classPrefix = String.join("/", List.of(tenantKey, appName, LEP_PROTOCOL));
         if (name.startsWith(classPrefix) && name.endsWith(FILE_EXTENSION) && !name.contains("$")) {
             String path = name.substring(classPrefix.length(), name.length() - FILE_EXTENSION.length());
-            name = LEP_PROTOCOL + "://" + tenantKey + path + LEP_SUFFIX;
+            String lepUrl = LEP_PROTOCOL + "://" + tenantKey + path + LEP_SUFFIX;
+            UrlLepResourceKey resourceKey = new UrlLepResourceKey(lepUrl, buildDefaultStreamHandler(contextsHolder, resourceService));
+            if (resourceService.isResourceExists(contextsHolder, resourceKey)) {
+                return resourceKey;
+            }
         }
-        return new UrlLepResourceKey(name, buildDefaultStreamHandler(contextsHolder, resourceService));
+        return mapper.map(name);
     }
 
     private static URLStreamHandler buildDefaultStreamHandler(ContextsHolder contextsHolder,
