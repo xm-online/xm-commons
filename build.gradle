@@ -291,7 +291,6 @@ subprojects {
         }
     }
 
-
 }
 
 boolean isRelease(Project project) {
