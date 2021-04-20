@@ -291,15 +291,6 @@ subprojects {
         }
     }
 
-    apply plugin: 'maven-publish'
-
-    publishing {
-        publications {
-            maven(MavenPublication) {
-                from components.java
-            }
-        }
-    }
 
 }
 
