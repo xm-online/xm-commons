@@ -1,0 +1,5 @@
+import TEST.testApp.lep.commons.folder.TestClassDeclaration
+import TEST.testApp.lep.commons.folder.TestClassDeclaration.InnerStaticClass
+
+InnerStaticClass classField = new TestClassDeclaration().classField
+return classField.hello

@@ -4,7 +4,6 @@ import com.icthh.xm.commons.lep.TenantScriptStorage;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -16,25 +15,25 @@ import org.springframework.core.io.ResourceLoader;
  *
  */
 @Configuration
-@EnableLepServices(basePackageClasses = TestLepService.class)
+@EnableLepServices(basePackageClasses = DynamicTestLepService.class)
 @ComponentScan("com.icthh.xm.commons.lep.spring")
 @EnableAutoConfiguration
-@Profile({"!resolveclasstest"})
-public class LepTestConfig extends LepSpringConfiguration {
+@Profile("resolveclasstest")
+public class DynamicLepTestConfig extends LepSpringConfiguration {
 
-    public LepTestConfig(final ApplicationEventPublisher eventPublisher,
-                         final ResourceLoader resourceLoader) {
+    public DynamicLepTestConfig(final ApplicationEventPublisher eventPublisher,
+                                final ResourceLoader resourceLoader) {
         super("testApp", eventPublisher, resourceLoader);
     }
 
     @Override
     protected TenantScriptStorage getTenantScriptStorageType() {
-        return TenantScriptStorage.CLASSPATH;
+        return TenantScriptStorage.XM_MS_CONFIG;
     }
 
     @Bean
-    public TestLepService testLepService() {
-        return new TestLepService();
+    public DynamicTestLepService testLepService() {
+        return new DynamicTestLepService();
     }
 
     @Bean

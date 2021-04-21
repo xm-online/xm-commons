@@ -1,0 +1,13 @@
+package TEST.testApp.lep.commons.folder
+
+class TestClassDeclaration {
+
+    String stringField = '1'
+
+    InnerStaticClass classField = new InnerStaticClass()
+
+    static class InnerStaticClass {
+            String hello = "${value}"
+    }
+
+}
