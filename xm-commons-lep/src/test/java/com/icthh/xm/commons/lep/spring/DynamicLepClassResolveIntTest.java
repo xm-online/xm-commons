@@ -76,8 +76,9 @@ public class DynamicLepClassResolveIntTest {
 
     @SneakyThrows
     private static String loadFile(String path) {
-        InputStream cfgInputStream = new ClassPathResource(path).getInputStream();
-        return IOUtils.toString(cfgInputStream, UTF_8);
+        try (InputStream cfgInputStream = new ClassPathResource(path).getInputStream()) {
+            return IOUtils.toString(cfgInputStream, UTF_8);
+        }
     }
 
 }
