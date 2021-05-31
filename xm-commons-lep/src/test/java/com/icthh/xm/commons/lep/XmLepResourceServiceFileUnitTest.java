@@ -84,7 +84,7 @@ public class XmLepResourceServiceFileUnitTest {
         }
         InputStream scriptIn = resourceLoader.getResource(SCRIPT_CLASSPATH_URL).getInputStream();
         Files.copy(scriptIn, scriptFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        log.info(">>> {} -> {}", testScriptDir.getAbsolutePath(), scriptFile.toPath());
+        log.info(">>> {} -> {}", FileSystemUtils.APP_HOME_DIR, scriptFile.toPath());
         scriptIn.close();
 
         // init resource service
