@@ -10,6 +10,7 @@ import com.icthh.xm.lep.api.LepResource;
 import com.icthh.xm.lep.api.LepResourceKey;
 import com.icthh.xm.lep.api.LepResourceService;
 import com.icthh.xm.lep.api.commons.UrlLepResourceKey;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -37,6 +38,7 @@ import java.util.Map;
 /**
  * The {@link XmLepResourceServiceFileUnitTest} class.
  */
+@Slf4j
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {EmptyTestConfig.class})
 public class XmLepResourceServiceFileUnitTest {
@@ -82,6 +84,7 @@ public class XmLepResourceServiceFileUnitTest {
         }
         InputStream scriptIn = resourceLoader.getResource(SCRIPT_CLASSPATH_URL).getInputStream();
         Files.copy(scriptIn, scriptFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        log.info(">>> {} -> {}", testScriptDir.getAbsolutePath(), scriptFile.toPath());
         scriptIn.close();
 
         // init resource service
