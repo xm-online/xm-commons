@@ -1,10 +1,12 @@
 package com.icthh.xm.commons.lep.spring;
 
+import com.icthh.xm.commons.lep.GroovyFileParser;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantKey;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
+import org.codehaus.groovy.tools.groovydoc.GroovyDocTool;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,7 +18,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Optional;
 
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
@@ -61,17 +65,20 @@ public class DynamicLepClassResolveIntTest {
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
         resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
                 loadFile("lep/TestClassUsage"));
-        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/commons/folder/TestClassDeclaration$$tenant.groovy",
-                loadFile("lep/TestClassDeclaration").replace("${value}", "I am class in lep!"));
+        String testClassDeclarationPath = "/config/tenants/TEST/testApp/lep/commons/folder/TestClassDeclaration$$tenant.groovy";
+        String testClassBody = loadFile("lep/TestClassDeclaration").replace("${value}", "I am class in lep!");
+        resourceLoader.onRefresh(testClassDeclarationPath, testClassBody);
+
         String result = testLepService.testLepMethod();
         assertEquals("I am class in lep!", result);
 
         // this sleep is needed because groovy has debounce time to lep update
         Thread.sleep(100);
-        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/commons/folder/TestClassDeclaration$$tenant.groovy",
+        resourceLoader.onRefresh(testClassDeclarationPath,
                 loadFile("lep/TestClassDeclaration").replace("${value}", "I am updated class in lep!"));
         result = testLepService.testLepMethod();
         assertEquals("I am updated class in lep!", result);
+
     }
 
     @SneakyThrows
