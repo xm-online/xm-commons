@@ -6,8 +6,10 @@ import static com.icthh.xm.commons.lep.TenantScriptStorage.XM_MS_CONFIG;
 import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 import static org.junit.Assert.assertEquals;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class TenantScriptStorageUnitTest {
 
     private static final String TENANT_KEY = "xm";
