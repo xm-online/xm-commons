@@ -162,7 +162,7 @@ public class XmLepResourceService implements LepResourceService {
 
     private Resource getScriptResource(ContextsHolder contextsHolder, LepResourceKey resourceKey) {
         String location = getResourceLocation(contextsHolder, resourceKey);
-        log.trace("LEP resource with key '{}' resolved to location '{}'", resourceKey, location);
+        log.info("LEP resource with key '{}' resolved to location '{}'", resourceKey, location);
 
         return routerResourceLoader.getResource(location);
     }
