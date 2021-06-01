@@ -13,9 +13,7 @@ import java.nio.file.Paths;
 @UtilityClass
 final class FileSystemUtils {
 
-    static final String APP_HOME_DIR = getAppHomeDir().toString();
-
-    private static Path getAppHomeDir() {
+    static String getAppHomeDir() {
         String base = SystemUtils.USER_HOME;
 
         if (StringUtils.isBlank(base)) {
@@ -40,7 +38,7 @@ final class FileSystemUtils {
             }
         }
 
-        return Paths.get(base, "xm-online");
+        return Paths.get(base, "xm-online").toString();
     }
 
 }
