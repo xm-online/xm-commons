@@ -64,7 +64,7 @@ public enum TenantScriptStorage {
             .paths(details.basePath)
             .build().asArray();
 
-        String lepDir = Paths.get(FileSystemUtils.APP_HOME_DIR, paths).toString();
+        String lepDir = Paths.get(FileSystemUtils.getAppHomeDir(), paths).toString();
         String path = "/" + details.path;
 
         if (SystemUtils.IS_OS_WINDOWS) {

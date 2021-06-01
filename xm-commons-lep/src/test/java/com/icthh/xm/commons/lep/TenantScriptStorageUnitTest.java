@@ -44,7 +44,7 @@ public class TenantScriptStorageUnitTest {
         String tenantLepPath = FILE.resolvePath(TENANT_KEY, APP_NAME, URL_PREFIX_COMMONS_TENANT + PATH);
         String localLepPath = FILE.resolvePath(TENANT_KEY, APP_NAME, PATH);
 
-        String basePath = "file://" + FileSystemUtils.APP_HOME_DIR;
+        String basePath = "file://" + FileSystemUtils.getAppHomeDir();
 
         assertEquals(separatorsToSystem("/config/tenants/commons/lep/commons/functions/aggregation"),
             envLepPath.substring(basePath.length()));
