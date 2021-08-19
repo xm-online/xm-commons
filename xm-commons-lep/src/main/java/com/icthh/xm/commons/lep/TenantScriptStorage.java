@@ -144,11 +144,11 @@ public enum TenantScriptStorage {
     /**
      * URL prefix for environment commons.
      */
-    private static final String URL_PREFIX_COMMONS_ENVIRONMENT = "/commons/environment";
+    public static final String URL_PREFIX_COMMONS_ENVIRONMENT = "/commons/environment";
 
     /**
      * URL prefix for tenant commons.
      */
-    private static final String URL_PREFIX_COMMONS_TENANT = "/commons/tenant";
+    public static final String URL_PREFIX_COMMONS_TENANT = "/commons/tenant";
 
 }
