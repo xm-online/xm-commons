@@ -7,7 +7,6 @@ import com.icthh.xm.commons.config.client.listener.ApplicationReadyEventListener
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.repository.kafka.ConfigTopicConsumer;
 import com.icthh.xm.commons.config.client.service.CommonConfigService;
-import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
