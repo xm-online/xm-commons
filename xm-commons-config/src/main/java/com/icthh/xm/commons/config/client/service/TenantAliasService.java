@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 
 @Slf4j
-@Service
 public class TenantAliasService implements RefreshableConfiguration {
 
     public static final String TENANT_ALIAS_CONFIG = "/config/tenants/tenant-aliases.yml";

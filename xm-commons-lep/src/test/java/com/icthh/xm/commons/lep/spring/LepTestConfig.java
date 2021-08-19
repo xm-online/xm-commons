@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.lep.spring;
 
+import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.TenantScriptStorage;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
@@ -40,6 +41,11 @@ public class LepTestConfig extends LepSpringConfiguration {
     @Bean
     public LoggingConfigService LoggingConfigService() {
         return new LoggingConfigServiceStub();
+    }
+
+    @Bean
+    public TenantAliasService tenantAliasService() {
+        return new TenantAliasService();
     }
 
 }
