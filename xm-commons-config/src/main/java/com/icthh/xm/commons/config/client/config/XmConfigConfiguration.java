@@ -57,9 +57,4 @@ public class XmConfigConfiguration {
         return new ApplicationReadyEventListener(consumerFactory, configTopicConsumer, kafkaProperties, xmConfigProperties);
     }
 
-    @Bean
-    public TenantAliasService tenantAliasService() {
-        return new TenantAliasService();
-    }
-
 }

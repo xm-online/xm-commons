@@ -42,9 +42,4 @@ public class DynamicLepTestConfig extends LepSpringConfiguration {
         return new LoggingConfigServiceStub();
     }
 
-    @Bean
-    public TenantAliasService tenantAliasService() {
-        return new TenantAliasService();
-    }
-
 }

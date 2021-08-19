@@ -27,9 +27,4 @@ public class TestConfig extends LepSpringConfiguration {
         return TenantScriptStorage.CLASSPATH;
     }
 
-    @Bean
-    public TenantAliasService tenantAliasService() {
-        return new TenantAliasService();
-    }
-
 }

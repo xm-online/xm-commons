@@ -130,4 +130,9 @@ public abstract class LepSpringConfiguration {
                                         routerResourceLoader());
     }
 
+    @Bean
+    public TenantAliasService tenantAliasService() {
+        return new TenantAliasService();
+    }
+
 }
