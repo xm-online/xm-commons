@@ -2,7 +2,6 @@ package com.icthh.xm.commons.logging.configurable;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.spring.SpringLepManager;
 import com.icthh.xm.commons.logging.config.LoggingConfig.LepLogConfiguration;
 import com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration;
