@@ -55,5 +55,4 @@ public class XmConfigConfiguration {
         XmConfigProperties xmConfigProperties) {
         return new ApplicationReadyEventListener(consumerFactory, configTopicConsumer, kafkaProperties, xmConfigProperties);
     }
-
 }
