@@ -1,8 +1,8 @@
-package TEST.testApp.lep.commons.folder
+package ${package}
 
 import static java.nio.charset.StandardCharsets.UTF_8 // for test resolving static import of variable
 
-class TestClassDeclaration {
+class TestClassDeclaration${suffix} {
 
     String stringField = '1'
 

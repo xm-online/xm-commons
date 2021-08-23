@@ -4,6 +4,7 @@ import static com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader.XM_
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 import static org.springframework.core.io.ResourceLoader.CLASSPATH_URL_PREFIX;
 
+import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.RouterResourceLoader;
 import com.icthh.xm.commons.lep.TenantScriptStorage;
 import com.icthh.xm.commons.lep.XmExtensionService;
@@ -50,6 +51,9 @@ public abstract class LepSpringConfiguration {
     @Autowired @Lazy
     private LoggingConfigService loggingConfigService;
 
+    @Autowired
+    private TenantAliasService tenantAliasService;
+
     protected LepSpringConfiguration(String appName,
                                      ApplicationEventPublisher eventPublisher,
                                      ResourceLoader resourceLoader) {
@@ -75,7 +79,10 @@ public abstract class LepSpringConfiguration {
 
     @Bean
     public XmGroovyScriptEngineProviderStrategy xmGroovyScriptEngineProviderStrategy() {
-        return new XmGroovyScriptEngineProviderStrategy(scriptNameLepResourceKeyMapper(), appName, lepResourceService());
+        return new XmGroovyScriptEngineProviderStrategy(scriptNameLepResourceKeyMapper(),
+                                                        appName,
+                                                        lepResourceService(),
+                                                        tenantAliasService);
     }
 
     @Bean
@@ -121,6 +128,11 @@ public abstract class LepSpringConfiguration {
         return new XmLepResourceService(appName,
                                         getTenantScriptStorageType(),
                                         routerResourceLoader());
+    }
+
+    @Bean
+    public TenantAliasService tenantAliasService() {
+        return new TenantAliasService();
     }
 
 }

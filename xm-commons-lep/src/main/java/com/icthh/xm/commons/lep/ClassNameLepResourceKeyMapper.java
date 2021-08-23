@@ -1,8 +1,9 @@
 package com.icthh.xm.commons.lep;
 
+import com.icthh.xm.commons.config.client.service.TenantAliasService;
+import com.icthh.xm.commons.config.domain.TenantAliasTree;
 import com.icthh.xm.lep.api.ContextsHolder;
 import com.icthh.xm.lep.api.LepResource;
-import com.icthh.xm.lep.api.LepResourceDescriptor;
 import com.icthh.xm.lep.api.LepResourceService;
 import com.icthh.xm.lep.api.commons.UrlLepResourceKey;
 import com.icthh.xm.lep.groovy.ScriptNameLepResourceKeyMapper;
@@ -16,11 +17,12 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Optional;
 
+import static com.icthh.xm.commons.lep.TenantScriptStorage.URL_PREFIX_COMMONS_ENVIRONMENT;
+import static com.icthh.xm.commons.lep.TenantScriptStorage.URL_PREFIX_COMMONS_TENANT;
 import static com.icthh.xm.commons.lep.XmLepResourceSubType.TENANT;
 import static com.icthh.xm.lep.api.commons.UrlLepResourceKey.LEP_PROTOCOL;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -28,6 +30,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @RequiredArgsConstructor
 public class ClassNameLepResourceKeyMapper implements ScriptNameLepResourceKeyMapper {
 
+    private static final String COMMONS = "commons";
     private final static String FILE_EXTENSION = ".groovy";
     private final static String LEP_SUFFIX = "$$" + TENANT.getName() + FILE_EXTENSION;
 
@@ -35,6 +38,7 @@ public class ClassNameLepResourceKeyMapper implements ScriptNameLepResourceKeyMa
     private final String appName;
     private final ContextsHolder contextsHolder;
     private final LepResourceService resourceService;
+    private final TenantAliasService tenantAliasService;
     private final GroovyFileParser groovyFileParser = new GroovyFileParser();
 
     @Override
@@ -49,17 +53,17 @@ public class ClassNameLepResourceKeyMapper implements ScriptNameLepResourceKeyMa
         }
 
         String tenantKey = LepContextUtils.getTenantKey(contextsHolder);
-        String classPrefix = String.join("/", List.of(tenantKey, appName, LEP_PROTOCOL));
-        if (name.startsWith(classPrefix) && name.endsWith(FILE_EXTENSION)) {
+        var optionalLepBasePath = getLepBasePath(name);
+        if (optionalLepBasePath.isPresent()) {
+            var lepBasePath = optionalLepBasePath.get();
 
-            final String path = name.substring(classPrefix.length(), name.length() - FILE_EXTENSION.length());
             URLStreamHandler urlStreamHandler = new LepURLStreamHandler(contextsHolder, resourceService);
-            String prefix = LEP_PROTOCOL + "://" + tenantKey;
 
             // While with cut path by $ for inner for classes support
+            String path = lepBasePath.getPath();
             String currentPath = path;
-            while(true) {
-                String lepUrl = prefix + currentPath + LEP_SUFFIX;
+            while (true) {
+                String lepUrl = currentPath + LEP_SUFFIX;
                 UrlLepResourceKey resourceKey = new UrlLepResourceKey(lepUrl, urlStreamHandler);
                 LepResource resource = resourceService.getResource(this.contextsHolder, resourceKey);
                 if (resource != null && containsClassDefinition(resource, path)) {
@@ -74,6 +78,31 @@ public class ClassNameLepResourceKeyMapper implements ScriptNameLepResourceKeyMa
             }
         }
         return mapper.map(name);
+    }
+
+    private Optional<LepRootPath> getLepBasePath(String name) {
+        if (!name.endsWith(FILE_EXTENSION)) {
+            return Optional.empty();
+        }
+
+        String tenantKey = LepContextUtils.getTenantKey(contextsHolder);
+
+        List<LepRootPath> rootPathVariants = new ArrayList<>();
+        rootPathVariants.add(new LepRootPath(
+                name, List.of(tenantKey, COMMONS, LEP_PROTOCOL), URL_PREFIX_COMMONS_TENANT));
+        rootPathVariants.add(new LepRootPath(
+                name, List.of(COMMONS, LEP_PROTOCOL), URL_PREFIX_COMMONS_ENVIRONMENT));
+
+        List<List<String>> rootFoldersVariants = new ArrayList<>();
+        rootFoldersVariants.add(List.of(tenantKey, appName, LEP_PROTOCOL));
+        tenantAliasService.getTenantAliasTree()
+                .getParents(tenantKey).stream()
+                .map(TenantAliasTree.TenantAlias::getKey)
+                .map(tenant -> List.of(tenant, appName, LEP_PROTOCOL))
+                .forEach(rootFoldersVariants::add);
+        rootFoldersVariants.stream().map(it -> new LepRootPath(name, it)).forEach(rootPathVariants::add);
+
+        return rootPathVariants.stream().filter(LepRootPath::isMatch).findFirst();
     }
 
     @SneakyThrows
@@ -92,6 +121,32 @@ public class ClassNameLepResourceKeyMapper implements ScriptNameLepResourceKeyMa
             }
         }
         return false;
+    }
+
+    static class LepRootPath {
+        private final String name;
+        private final String rootPath;
+        private final String prefix;
+
+        LepRootPath(String name, List<String> rootPath) {
+            this.name = name;
+            this.rootPath = String.join("/", rootPath);
+            this.prefix = LEP_PROTOCOL + "://" + rootPath.get(0);
+        }
+
+        LepRootPath(String name, List<String> rootPath, String prefix) {
+            this.name = name;
+            this.rootPath = String.join("/", rootPath);
+            this.prefix = LEP_PROTOCOL + "://" + prefix;
+        }
+
+        public String getPath() {
+            return prefix + name.substring(rootPath.length(), name.length() - FILE_EXTENSION.length());
+        }
+
+        public boolean isMatch() {
+            return name.startsWith(rootPath);
+        }
     }
 
     @RequiredArgsConstructor

@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.lep;
 
+import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.lep.api.LepManagerService;
 import com.icthh.xm.lep.api.LepResourceService;
 import com.icthh.xm.lep.groovy.LazyGroovyScriptEngineProviderStrategy;
@@ -20,16 +21,19 @@ public class XmGroovyScriptEngineProviderStrategy extends LazyGroovyScriptEngine
     private final ScriptNameLepResourceKeyMapper resourceKeyMapper;
     private final String appName;
     private final LepResourceService resourceService;
+    private final TenantAliasService tenantAliasService;
 
     private ClassLoader springClassLoader;
 
     public XmGroovyScriptEngineProviderStrategy(ScriptNameLepResourceKeyMapper resourceKeyMapper,
                                                 String appName,
-                                                LepResourceService resourceService) {
+                                                LepResourceService resourceService,
+                                                TenantAliasService tenantAliasService) {
         super(resourceKeyMapper);
         this.resourceKeyMapper = resourceKeyMapper;
         this.appName = appName;
         this.resourceService = resourceService;
+        this.tenantAliasService = tenantAliasService;
     }
 
     /**
@@ -51,7 +55,7 @@ public class XmGroovyScriptEngineProviderStrategy extends LazyGroovyScriptEngine
     @Override
     protected ResourceConnector buildResourceConnector(LepManagerService managerService) {
         return new LepScriptResourceConnector(managerService,
-                new ClassNameLepResourceKeyMapper(resourceKeyMapper, appName, managerService, resourceService));
+                new ClassNameLepResourceKeyMapper(resourceKeyMapper, appName, managerService, resourceService, tenantAliasService));
     }
 
 }
