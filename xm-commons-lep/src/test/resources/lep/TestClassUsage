@@ -1,5 +1,5 @@
-import TEST.testApp.lep.commons.folder.TestClassDeclaration
-import TEST.testApp.lep.commons.folder.TestClassDeclaration.InnerStaticClass
+import ${package}.TestClassDeclaration${suffix}
+import ${package}.TestClassDeclaration${suffix}.InnerStaticClass
 
-InnerStaticClass classField = new TestClassDeclaration().classField
+InnerStaticClass classField = new TestClassDeclaration${suffix}().classField
 return classField.hello
