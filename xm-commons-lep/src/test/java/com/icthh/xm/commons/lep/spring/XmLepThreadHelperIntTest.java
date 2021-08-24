@@ -46,7 +46,7 @@ import static org.mockito.Mockito.when;
         XmAuthenticationContextConfiguration.class
 })
 @ActiveProfiles("resolveclasstest")
-public class LepThreadHelperIntTest {
+public class XmLepThreadHelperIntTest {
 
     @Autowired
     private SpringLepManager lepManager;
