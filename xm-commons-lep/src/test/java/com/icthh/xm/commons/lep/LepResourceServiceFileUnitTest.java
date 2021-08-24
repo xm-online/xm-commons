@@ -35,11 +35,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The {@link XmLepResourceServiceFileUnitTest} class.
+ * The {@link LepResourceServiceFileUnitTest} class.
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {EmptyTestConfig.class})
-public class XmLepResourceServiceFileUnitTest {
+public class LepResourceServiceFileUnitTest {
 
     private static final String APP_NAME = "test-app";
     private static final String TENANT_KEY_VALUE = "test";
