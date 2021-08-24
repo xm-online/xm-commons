@@ -7,18 +7,14 @@ import com.icthh.xm.commons.tenant.Tenant;
 import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.lep.api.ContextScopes;
-import com.icthh.xm.lep.api.LepExecutor;
-import com.icthh.xm.lep.api.LepExecutorEvent;
-import com.icthh.xm.lep.api.LepExecutorListener;
 import com.icthh.xm.lep.api.LepManager;
-import com.icthh.xm.lep.api.LepProcessingEvent;
 import com.icthh.xm.lep.api.LepProcessingEvent.BeforeExecutionEvent;
 import com.icthh.xm.lep.api.ScopedContext;
 import lombok.SneakyThrows;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -27,7 +23,7 @@ import java.util.concurrent.Future;
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_AUTH_CONTEXT;
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
 
-@Service
+@Component
 public class LepThreadHelper implements ApplicationListener<ApplicationLepProcessingEvent> {
 
     private static final String THREAD = "thread";

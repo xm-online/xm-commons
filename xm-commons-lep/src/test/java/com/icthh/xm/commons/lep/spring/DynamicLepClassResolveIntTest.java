@@ -2,8 +2,11 @@ package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
+import com.icthh.xm.commons.security.XmAuthenticationContext;
+import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantKey;
+import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -21,6 +24,7 @@ import java.io.InputStream;
 import java.util.Optional;
 
 import static com.icthh.xm.commons.config.client.service.TenantAliasService.TENANT_ALIAS_CONFIG;
+import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_AUTH_CONTEXT;
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
@@ -31,7 +35,9 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {
-        DynamicLepTestConfig.class
+        DynamicLepTestConfig.class,
+        TenantContextConfiguration.class,
+        XmAuthenticationContextConfiguration.class
 })
 @ActiveProfiles("resolveclasstest")
 public class DynamicLepClassResolveIntTest {
@@ -41,6 +47,9 @@ public class DynamicLepClassResolveIntTest {
 
     @Mock
     private TenantContext tenantContext;
+
+    @Mock
+    private XmAuthenticationContext authContext;
 
     @Autowired
     private DynamicTestLepService testLepService;
@@ -57,6 +66,7 @@ public class DynamicLepClassResolveIntTest {
 
         lepManager.beginThreadContext(ctx -> {
             ctx.setValue(THREAD_CONTEXT_KEY_TENANT_CONTEXT, tenantContext);
+            ctx.setValue(THREAD_CONTEXT_KEY_AUTH_CONTEXT, authContext);
         });
     }
 

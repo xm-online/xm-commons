@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.lep.XmGroovyExecutionStrategy;
+import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantKey;
@@ -26,7 +27,9 @@ import java.util.Optional;
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {
-    LepTestConfig.class
+    LepTestConfig.class,
+    TenantContextConfiguration.class,
+    XmAuthenticationContextConfiguration.class
 })
 public class LepServiceInstanceUnitTest {
 
