@@ -192,7 +192,8 @@ public class LoggingRefreshableConfigurationUnitTest {
             .contains("srv:stop:  TestService:testMethodFirst, result: #hidden#, time ="));
 
         TestAppender.clearEvents();
-        testService.testMethodSecond("firstArgValue", "secondArgValue");
+        String value = testService.testMethodSecond("firstArgValue", "secondArgValue");
+        System.out.println(value);
         event = TestAppender.searchByMessage("srv:stop:  {}, result: {}, time = {} ms");
         assertTrue(event.getFormattedMessage()
             .contains("srv:stop:  TestService:testMethodSecond, result: lepResult, time ="));
