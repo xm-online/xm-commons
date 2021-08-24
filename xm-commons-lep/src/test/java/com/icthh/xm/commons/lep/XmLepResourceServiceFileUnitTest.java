@@ -13,6 +13,7 @@ import com.icthh.xm.lep.api.commons.UrlLepResourceKey;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
@@ -37,6 +38,7 @@ import java.util.Map;
 /**
  * The {@link XmLepResourceServiceFileUnitTest} class.
  */
+@Ignore
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {EmptyTestConfig.class})
 public class XmLepResourceServiceFileUnitTest {

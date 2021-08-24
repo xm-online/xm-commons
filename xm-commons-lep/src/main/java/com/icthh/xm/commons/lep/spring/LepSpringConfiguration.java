@@ -51,7 +51,7 @@ public abstract class LepSpringConfiguration {
     @Autowired @Lazy
     private LoggingConfigService loggingConfigService;
 
-    @Autowired
+    @Autowired @Lazy
     private TenantAliasService tenantAliasService;
 
     protected LepSpringConfiguration(String appName,
