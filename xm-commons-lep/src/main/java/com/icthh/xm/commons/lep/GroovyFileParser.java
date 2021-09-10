@@ -26,15 +26,34 @@ public class GroovyFileParser {
     @SneakyThrows
     public boolean isFileContainsClassDefinition(String source, String className) {
         try {
-            MutableBoolean isExistsClassDef = new MutableBoolean(false);
+            MutableBoolean isExistsDef = new MutableBoolean(false);
             parseGroovy(source, new VisitorAdapter() {
                 @Override
                 public void visitClassDef(GroovySourceAST t, int visit) {
+                    visitDef(t, className, isExistsDef);
+                }
+
+                @Override
+                public void visitInterfaceDef(GroovySourceAST t, int visit) {
+                    visitDef(t, className, isExistsDef);
+                }
+
+                @Override
+                public void visitEnumDef(GroovySourceAST t, int visit) {
+                    visitDef(t, className, isExistsDef);
+                }
+
+                @Override
+                public void visitAnnotationDef(GroovySourceAST t, int visit) {
+                    visitDef(t, className, isExistsDef);
+                }
+
+                private void visitDef(GroovySourceAST t, String className, MutableBoolean isExistsDef) {
                     boolean isClassDefPresent = className.equals(t.childOfType(GroovyTokenTypes.IDENT).getText());
-                    isExistsClassDef.setValue(isExistsClassDef.booleanValue() || isClassDefPresent);
+                    isExistsDef.setValue(isExistsDef.booleanValue() || isClassDefPresent);
                 }
             });
-            return isExistsClassDef.getValue();
+            return isExistsDef.getValue();
         } catch (Exception e) {
             log.error("Error parse groovy", e);
         }

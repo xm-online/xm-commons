@@ -1,0 +1,5 @@
+package TEST.testApp.lep.commons.folder
+
+@interface TestAnnotationDeclaration {
+    TestEnumDeclaration value();
+}

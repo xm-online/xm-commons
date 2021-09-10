@@ -1,0 +1,8 @@
+package TEST.testApp.lep.commons.folder
+
+@TestAnnotationDeclaration(value = TestEnumDeclaration.VAL2)
+class TestEnumInterfaceAnnotationDeclaration implements TestInterfaceDeclaration {
+    TestEnumDeclaration test() {
+        return TestEnumDeclaration.VAL1
+    }
+}
