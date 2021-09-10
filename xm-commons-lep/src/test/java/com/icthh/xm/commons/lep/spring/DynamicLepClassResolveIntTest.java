@@ -96,6 +96,31 @@ public class DynamicLepClassResolveIntTest {
         runTest("envCommons", "commons.lep.folder", "commons/lep/folder");
     }
 
+    @Test
+    @SneakyThrows
+    public void testEnumInterfaceAnnotationResolving() {
+        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
+        // this sleep is needed because groovy has debounce time to lep update
+        Thread.sleep(100);
+        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
+                loadFile("lep/TestEnumInterfaceAnnotationUsage")
+        );
+        loadDeclarationLep("TestEnumDeclaration");
+        loadDeclarationLep("TestInterfaceDeclaration");
+        loadDeclarationLep("TestAnnotationDeclaration");
+        loadDeclarationLep("TestEnumInterfaceAnnotationDeclaration");
+
+        String result = testLepService.testLepMethod();
+        assertEquals("VAL1", result);
+    }
+
+    private void loadDeclarationLep(String testEnumDeclaration) {
+        String testClassDeclarationPath = "/config/tenants/TEST/testApp/lep/commons/folder/" + testEnumDeclaration + "$$tenant.groovy";
+        String testClassBody = loadFile("lep/" + testEnumDeclaration);
+        resourceLoader.onRefresh(testClassDeclarationPath, testClassBody);
+    }
+
+
     private void runTest(String suffix, String packageName, String path) throws InterruptedException {
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
         // this sleep is needed because groovy has debounce time to lep update

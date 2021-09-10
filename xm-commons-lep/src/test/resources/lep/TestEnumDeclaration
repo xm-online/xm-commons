@@ -1,0 +1,5 @@
+package TEST.testApp.lep.commons.folder
+
+enum TestEnumDeclaration {
+    VAL1, VAL2;
+}
