@@ -59,6 +59,7 @@ task generateApi {
         config.setInputSpec("file:///$projectDir/$swaggerSourceFile")
         config.setOutputDir("$projectDir")
         config.setLang('spring')
+        config.setTemplateDir("$projectDir/src/main/resources/openapi/mustache/JavaSpring")
         config.setAdditionalProperties([
             //'interfaceOnly': 'true',
             'delegatePattern': 'true',
