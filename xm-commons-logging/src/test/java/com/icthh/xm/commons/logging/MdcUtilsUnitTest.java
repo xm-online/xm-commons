@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.icthh.xm.commons.logging.util.MdcUtils;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -47,10 +48,21 @@ public class MdcUtilsUnitTest {
     }
 
     @Test
+    @SneakyThrows
     public void testGetRidTimeNs() {
-        assertEquals(0L, MdcUtils.getRidTimeNs() );
-        MdcUtils.put("key", "value");
+        assertEquals(0L, MdcUtils.getRidTimeNs());
+        MdcUtils.putRid();
+        Thread.sleep(1L);
         assertTrue(MdcUtils.getExecTimeMs() > 0);
+    }
+
+    @Test
+    @SneakyThrows
+    public void shouldReturnExecTime0ForMissingRid() {
+        assertEquals(0L, MdcUtils.getRidTimeNs());
+        MdcUtils.put("key", "value");
+        Thread.sleep(1L);
+        assertEquals(0, MdcUtils.getExecTimeMs());
     }
 
     @Test
