@@ -39,8 +39,8 @@ public class ConfigTopicConsumer {
             try {
                 ConfigEvent event = mapper.readValue(message.value(), ConfigEvent.class);
 
-                log.info("Process event from topic [{}], event_id ='{}'",
-                    message.topic(), event.getEventId());
+                log.info("Process event from topic [{}], event_id ='{}', commit: '{}'",
+                    message.topic(), event.getEventId(), event.getCommit());
                 configService.updateConfigurations(event.getCommit(), event.getPaths());
             } catch (IOException e) {
                 log.error("Config topic message has incorrect format: '{}'", message.value(), e);
