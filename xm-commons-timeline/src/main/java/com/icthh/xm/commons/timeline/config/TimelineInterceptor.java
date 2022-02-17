@@ -36,7 +36,7 @@ public class TimelineInterceptor extends HandlerInterceptorAdapter {
     public TimelineInterceptor(
         TimelineEventProducer eventProducer,
         @Value("${application.tenant-ignored-path-list:true}") List<String> ignoredPatterns,
-        @Value("${application.timeline-ignored-http-methods}#{T(java.util.Collections).emptyList()}") List<String> ignoredHttpMethods
+        @Value("${application.timeline-ignored-http-methods:#{T(java.util.Collections).emptyList()}}") List<String> ignoredHttpMethods
     ) {
         this.eventProducer = eventProducer;
         this.ignoredPatterns = ignoredPatterns;
