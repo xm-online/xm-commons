@@ -6,6 +6,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Objects;
 
 /**
@@ -63,6 +64,10 @@ public class XmLepScriptResource extends AbstractResource {
     @Override
     public long lastModified() {
         return lastModified;
+    }
+
+    public void modifiedNow() {
+         lastModified = Instant.now().toEpochMilli();
     }
 
     @Override

@@ -1,0 +1,8 @@
+def classField = getInstance('${package}.TestClassDeclaration${suffix}').classField
+return classField.hello
+
+def getInstance(className) {
+    def clazz = Class.forName(className)
+    def taskInstance = clazz?.getDeclaredConstructor().newInstance()
+    return taskInstance
+}

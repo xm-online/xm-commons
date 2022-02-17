@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.InputStream;
@@ -40,6 +41,7 @@ import static org.mockito.Mockito.when;
         XmAuthenticationContextConfiguration.class
 })
 @ActiveProfiles("resolveclasstest")
+@TestPropertySource(properties = "application.lep.full-recompile-on-lep-update=true")
 public class DynamicLepClassResolveIntTest {
 
     @Autowired
@@ -147,6 +149,39 @@ public class DynamicLepClassResolveIntTest {
                         .replace("${package}", packageName)
                         .replace("${suffix}", suffix)
                         .replace("${value}", "I am updated class in lep!"));
+        result = testLepService.testLepMethod();
+        assertEquals("I am updated class in lep!", result);
+    }
+
+    @Test
+    @SneakyThrows
+    public void testReloadLepClass() {
+        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
+        // this sleep is needed because groovy has debounce time to lep update
+        Thread.sleep(100);
+        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
+                loadFile("lep/TestLoadClassByName")
+                        .replace("${package}", "commons.lep.folder")
+                        .replace("${suffix}", "ReloadClass")
+        );
+
+        String testClassDeclarationPath = "/config/tenants/commons/lep/folder/TestClassDeclarationReloadClass$$tenant.groovy";
+        String testClassBody = loadFile("lep/TestClassDeclaration")
+                .replace("${package}", "commons.lep.folder")
+                .replace("${suffix}", "ReloadClass")
+                .replace("${value}", "I am class in lep!");
+        resourceLoader.onRefresh(testClassDeclarationPath, testClassBody);
+
+        String result = testLepService.testLepMethod();
+        assertEquals("I am class in lep!", result);
+
+        resourceLoader.onRefresh(testClassDeclarationPath,
+                loadFile("lep/TestClassDeclaration")
+                        .replace("${package}", "commons.lep.folder")
+                        .replace("${suffix}", "ReloadClass")
+                        .replace("${value}", "I am updated class in lep!"));
+        // this sleep is needed because groovy has debounce time to lep update
+        Thread.sleep(110);
         result = testLepService.testLepMethod();
         assertEquals("I am updated class in lep!", result);
     }

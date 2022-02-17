@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.lep;
 
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,12 +11,14 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.util.ClassUtils;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The {@link XmLepScriptConfigServerResourceLoader} class.
  */
+@Slf4j
 public class XmLepScriptConfigServerResourceLoader implements RefreshableConfiguration, ResourceLoader {
 
     /**
@@ -39,11 +42,16 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
+    private final List<CacheableLepEngine> cacheableEngines;
+    private final Boolean fullRecompileOnLepUpdate;
+
     private ConcurrentHashMap<String, XmLepScriptResource> scriptResources = new ConcurrentHashMap<>();
 
-    public XmLepScriptConfigServerResourceLoader(String appName) {
+    public XmLepScriptConfigServerResourceLoader(String appName, List<CacheableLepEngine> cacheableEngines, Boolean fullRecompileOnLepUpdate) {
         Objects.requireNonNull(appName, "appName can't be null");
         this.tenantLepScriptsAntPathPattern = "/config/tenants/{tenantKey}/" + appName + "/lep/**";
+        this.cacheableEngines = cacheableEngines;
+        this.fullRecompileOnLepUpdate = Boolean.TRUE.equals(fullRecompileOnLepUpdate);
     }
 
     /**
@@ -91,6 +99,15 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
                     return new XmLepScriptResource(updatedKey, configContent, getCurrentMilli());
                 }
             });
+        }
+
+        if (fullRecompileOnLepUpdate) {
+            this.cacheableEngines.forEach(CacheableLepEngine::clearCache);
+            scriptResources.forEach((key, value) -> {
+                value.modifiedNow();
+            });
+        } else {
+            log.warn("Full recompile on lep update disabled, some class can be cached.");
         }
     }
 

@@ -5,6 +5,7 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 import static org.springframework.core.io.ResourceLoader.CLASSPATH_URL_PREFIX;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
+import com.icthh.xm.commons.lep.CacheableLepEngine;
 import com.icthh.xm.commons.lep.RouterResourceLoader;
 import com.icthh.xm.commons.lep.TenantScriptStorage;
 import com.icthh.xm.commons.lep.XmExtensionService;
@@ -21,6 +22,7 @@ import com.icthh.xm.lep.groovy.DefaultScriptNameLepResourceKeyMapper;
 import com.icthh.xm.lep.groovy.ScriptNameLepResourceKeyMapper;
 import com.icthh.xm.lep.groovy.StrategyGroovyLepExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +32,7 @@ import org.springframework.core.io.FileSystemResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -108,8 +111,9 @@ public abstract class LepSpringConfiguration {
     }
 
     @Bean
-    public XmLepScriptConfigServerResourceLoader cfgResourceLoader() {
-        return new XmLepScriptConfigServerResourceLoader(appName);
+    public XmLepScriptConfigServerResourceLoader cfgResourceLoader(List<CacheableLepEngine> cacheableEngines,
+                                                                   @Value("${application.lep.full-recompile-on-lep-update:false}") Boolean fullRecompileOnLepUpdate) {
+        return new XmLepScriptConfigServerResourceLoader(appName, cacheableEngines, fullRecompileOnLepUpdate);
     }
 
     @Bean
