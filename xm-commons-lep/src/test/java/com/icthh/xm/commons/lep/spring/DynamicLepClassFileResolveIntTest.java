@@ -94,7 +94,7 @@ public class DynamicLepClassFileResolveIntTest {
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
         tenantAliasService.onRefresh(TENANT_ALIAS_CONFIG, loadFile("lep/TenantAlias.yml"));
         String testString = "Hello from parent lep";
-        createFile("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy", "return '" + testString + "'");
+        createFile("/config/tenants/PARENT/testApp/lep/service/TestLepMethod$$around.groovy", "return '" + testString + "'");
         String result = testLepService.testLepMethod();
         assertEquals(testString, result);
     }
