@@ -1,5 +1,8 @@
 package com.icthh.xm.commons.lep.spring;
 
+import static com.icthh.xm.commons.lep.TenantScriptStorage.CLASSPATH;
+import static com.icthh.xm.commons.lep.TenantScriptStorage.FILE;
+import static com.icthh.xm.commons.lep.TenantScriptStorage.XM_MS_CONFIG;
 import static com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader.XM_MS_CONFIG_URL_PREFIX;
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 import static org.springframework.core.io.ResourceLoader.CLASSPATH_URL_PREFIX;
@@ -13,6 +16,10 @@ import com.icthh.xm.commons.lep.XmGroovyExecutionStrategy;
 import com.icthh.xm.commons.lep.XmGroovyScriptEngineProviderStrategy;
 import com.icthh.xm.commons.lep.XmLepResourceService;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
+import com.icthh.xm.commons.lep.storage.ClassPathTenantScriptPathResolver;
+import com.icthh.xm.commons.lep.storage.FileTenantScriptPathResolver;
+import com.icthh.xm.commons.lep.storage.TenantScriptPathResolver;
+import com.icthh.xm.commons.lep.storage.XmMsConfigTenantScriptPathResolver;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.lep.api.ExtensionService;
 import com.icthh.xm.lep.api.LepExecutor;
@@ -130,13 +137,21 @@ public abstract class LepSpringConfiguration {
     @Bean
     public LepResourceService lepResourceService() {
         return new XmLepResourceService(appName,
-                                        getTenantScriptStorageType(),
+                                        resolveResolver(),
                                         routerResourceLoader());
     }
 
     @Bean
     public TenantAliasService tenantAliasService() {
         return new TenantAliasService();
+    }
+
+    private TenantScriptPathResolver resolveResolver() {
+        Map<TenantScriptStorage, TenantScriptPathResolver> resolverMap = new HashMap<>();
+        resolverMap.put(CLASSPATH, new ClassPathTenantScriptPathResolver());
+        resolverMap.put(XM_MS_CONFIG, new XmMsConfigTenantScriptPathResolver());
+        resolverMap.put(FILE, new FileTenantScriptPathResolver());
+        return resolverMap.get(getTenantScriptStorageType());
     }
 
 }
