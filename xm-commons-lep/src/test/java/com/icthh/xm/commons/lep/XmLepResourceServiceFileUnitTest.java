@@ -37,7 +37,6 @@ import java.util.Map;
 /**
  * The {@link XmLepResourceServiceFileUnitTest} class.
  */
-//@Ignore
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {EmptyTestConfig.class})
 public class XmLepResourceServiceFileUnitTest {
@@ -71,6 +70,7 @@ public class XmLepResourceServiceFileUnitTest {
 
         // init system property
         File baseDir = Paths.get(folder.getRoot().toPath().toString(), "home").toFile();
+        String baseDirPath = Paths.get(baseDir.getAbsolutePath(), "xm-online").toString();
 
         // copy script from classpath to file system tmp folder
         File scriptFile = Paths.get(testScriptDir.getAbsolutePath(), "Script$$before.groovy").toFile();
@@ -85,12 +85,7 @@ public class XmLepResourceServiceFileUnitTest {
         Map<String, ResourceLoader> urlPrefixToResourceLoader = new HashMap<>();
         urlPrefixToResourceLoader.put("file:", new XmFileSystemResourceLoader(new FileSystemResourceLoader(), new TenantAliasService(), APP_NAME));
         RouterResourceLoader routerResourceLoader = new RouterResourceLoader(urlPrefixToResourceLoader);
-        resourceService = new XmLepResourceService(APP_NAME, new FileTenantScriptPathResolver() {
-            @Override
-            public String getBaseDir() {
-                return Paths.get(baseDir.getAbsolutePath(), "xm-online").toString();
-            }
-        }, routerResourceLoader);
+        resourceService = new XmLepResourceService(APP_NAME, new FileTenantScriptPathResolver(baseDirPath), routerResourceLoader);
     }
 
     @Test

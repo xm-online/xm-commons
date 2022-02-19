@@ -1,16 +1,16 @@
 package com.icthh.xm.commons.lep.storage;
 
-import com.icthh.xm.commons.lep.FileSystemUtils;
 import com.icthh.xm.commons.lep.TenantScriptStorage;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.SystemUtils;
 
 import java.nio.file.Paths;
-import java.util.List;
 
-import static org.springframework.core.io.ResourceLoader.CLASSPATH_URL_PREFIX;
-
+@RequiredArgsConstructor
 public class FileTenantScriptPathResolver extends BaseTenantScriptPathResolver {
+
+    private final String baseDir;
 
     @Override
     public TenantScriptStorage resolverType() {
@@ -26,7 +26,7 @@ public class FileTenantScriptPathResolver extends BaseTenantScriptPathResolver {
                 .paths(details.getBasePath())
                 .build().asArray();
 
-        String lepDir = Paths.get(getBaseDir(), paths).toString();
+        String lepDir = Paths.get(baseDir, paths).toString();
         String path = "/" + details.getPath();
 
         if (SystemUtils.IS_OS_WINDOWS) {
@@ -36,7 +36,4 @@ public class FileTenantScriptPathResolver extends BaseTenantScriptPathResolver {
         return "file://" + lepDir + FilenameUtils.separatorsToSystem(path);
     }
 
-    public String getBaseDir() {
-        return FileSystemUtils.getAppHomeDir();
-    }
 }

@@ -42,7 +42,7 @@ public class TenantScriptStorageUnitTest {
 
     @Test
     public void testResolveLepForFileScriptStorage() {
-        var file = new FileTenantScriptPathResolver();
+        var file = new FileTenantScriptPathResolver(FileSystemUtils.getAppHomeDir());
         String envLepPath = file.resolvePath(TENANT_KEY, APP_NAME, URL_PREFIX_COMMONS_ENVIRONMENT + PATH);
         String tenantLepPath = file.resolvePath(TENANT_KEY, APP_NAME, URL_PREFIX_COMMONS_TENANT + PATH);
         String localLepPath = file.resolvePath(TENANT_KEY, APP_NAME, PATH);

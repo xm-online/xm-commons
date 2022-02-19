@@ -9,9 +9,11 @@ import static org.springframework.core.io.ResourceLoader.CLASSPATH_URL_PREFIX;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.CacheableLepEngine;
+import com.icthh.xm.commons.lep.FileSystemUtils;
 import com.icthh.xm.commons.lep.RouterResourceLoader;
 import com.icthh.xm.commons.lep.TenantScriptStorage;
 import com.icthh.xm.commons.lep.XmExtensionService;
+import com.icthh.xm.commons.lep.XmFileSystemResourceLoader;
 import com.icthh.xm.commons.lep.XmGroovyExecutionStrategy;
 import com.icthh.xm.commons.lep.XmGroovyScriptEngineProviderStrategy;
 import com.icthh.xm.commons.lep.XmLepResourceService;
@@ -128,11 +130,18 @@ public abstract class LepSpringConfiguration {
         Map<String, ResourceLoader> routerMap = new HashMap<>(RESOURCE_LOADERS_CAPACITY);
         routerMap.put(CLASSPATH_URL_PREFIX, resourceLoader);
         routerMap.put(XM_MS_CONFIG_URL_PREFIX, xmLepScriptConfigServerResourceLoader);
-        routerMap.put(FILE_URL_PREFIX, new FileSystemResourceLoader());
+        routerMap.put(FILE_URL_PREFIX, xmFileSystemResourceLoader());
         return new RouterResourceLoader(routerMap);
     }
 
     protected abstract TenantScriptStorage getTenantScriptStorageType();
+
+    @Bean
+    public XmFileSystemResourceLoader xmFileSystemResourceLoader() {
+        return new XmFileSystemResourceLoader(new FileSystemResourceLoader(),
+                                              tenantAliasService(),
+                                              appName);
+    }
 
     @Bean
     public LepResourceService lepResourceService() {
@@ -150,8 +159,12 @@ public abstract class LepSpringConfiguration {
         Map<TenantScriptStorage, TenantScriptPathResolver> resolverMap = new HashMap<>();
         resolverMap.put(CLASSPATH, new ClassPathTenantScriptPathResolver());
         resolverMap.put(XM_MS_CONFIG, new XmMsConfigTenantScriptPathResolver());
-        resolverMap.put(FILE, new FileTenantScriptPathResolver());
+        resolverMap.put(FILE, new FileTenantScriptPathResolver(getFileTenantScriptPathResolverBaseDir()));
         return resolverMap.get(getTenantScriptStorageType());
+    }
+
+    protected String getFileTenantScriptPathResolverBaseDir() {
+        return FileSystemUtils.getAppHomeDir();
     }
 
 }
