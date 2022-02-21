@@ -1,11 +1,11 @@
 package com.icthh.xm.commons.lep;
 
-import static com.icthh.xm.commons.lep.TenantScriptStorage.CLASSPATH;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.icthh.xm.commons.lep.storage.ClassPathTenantScriptPathResolver;
 import com.icthh.xm.lep.api.ContextsHolder;
 import com.icthh.xm.lep.api.LepResource;
 import com.icthh.xm.lep.api.LepResourceDescriptor;
@@ -41,7 +41,7 @@ public class XmLepResourceServiceClassPathUnitTest {
 
     @Before
     public void before() {
-        resourceService = new XmLepResourceService("test-app", CLASSPATH, resourceLoader);
+        resourceService = new XmLepResourceService("test-app", new ClassPathTenantScriptPathResolver(), resourceLoader);
     }
 
     @Test

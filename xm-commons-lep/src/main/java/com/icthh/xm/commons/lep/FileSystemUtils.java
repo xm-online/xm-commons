@@ -4,16 +4,15 @@ import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
  * The {@link FileSystemUtils} class.
  */
 @UtilityClass
-final class FileSystemUtils {
+public final class FileSystemUtils {
 
-    static String getAppHomeDir() {
+    public static String getAppHomeDir() {
         String base = SystemUtils.USER_HOME;
 
         if (StringUtils.isBlank(base)) {

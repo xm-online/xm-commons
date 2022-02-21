@@ -1,19 +1,18 @@
 package com.icthh.xm.commons.lep;
 
-import static com.icthh.xm.commons.lep.TenantScriptStorage.FILE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
+import com.icthh.xm.commons.config.client.service.TenantAliasService;
+import com.icthh.xm.commons.lep.storage.FileTenantScriptPathResolver;
 import com.icthh.xm.lep.api.ContextsHolder;
 import com.icthh.xm.lep.api.LepResource;
 import com.icthh.xm.lep.api.LepResourceKey;
 import com.icthh.xm.lep.api.LepResourceService;
 import com.icthh.xm.lep.api.commons.UrlLepResourceKey;
 import org.apache.commons.io.IOUtils;
-import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
@@ -38,7 +37,6 @@ import java.util.Map;
 /**
  * The {@link XmLepResourceServiceFileUnitTest} class.
  */
-@Ignore
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {EmptyTestConfig.class})
 public class XmLepResourceServiceFileUnitTest {
@@ -61,11 +59,8 @@ public class XmLepResourceServiceFileUnitTest {
 
     private File testScriptDir;
 
-    private String oldUserHome;
-
     @Before
     public void before() throws IOException {
-        oldUserHome = System.getProperty(USER_HOME);
 
         // init temp folder
         testScriptDir = folder.newFolder("home", "xm-online", "config", "tenants",
@@ -74,8 +69,8 @@ public class XmLepResourceServiceFileUnitTest {
 
 
         // init system property
-        File userHomeDir = Paths.get(folder.getRoot().toPath().toString(), "home").toFile();
-        System.setProperty(USER_HOME, userHomeDir.getAbsolutePath());
+        File baseDir = Paths.get(folder.getRoot().toPath().toString(), "home").toFile();
+        String baseDirPath = Paths.get(baseDir.getAbsolutePath(), "xm-online").toString();
 
         // copy script from classpath to file system tmp folder
         File scriptFile = Paths.get(testScriptDir.getAbsolutePath(), "Script$$before.groovy").toFile();
@@ -88,14 +83,9 @@ public class XmLepResourceServiceFileUnitTest {
 
         // init resource service
         Map<String, ResourceLoader> urlPrefixToResourceLoader = new HashMap<>();
-        urlPrefixToResourceLoader.put("file:", new FileSystemResourceLoader());
+        urlPrefixToResourceLoader.put("file:", new XmFileSystemResourceLoader(new FileSystemResourceLoader(), new TenantAliasService(), APP_NAME));
         RouterResourceLoader routerResourceLoader = new RouterResourceLoader(urlPrefixToResourceLoader);
-        resourceService = new XmLepResourceService(APP_NAME, FILE, routerResourceLoader);
-    }
-
-    @After
-    public void after() {
-        System.setProperty(USER_HOME, oldUserHome);
+        resourceService = new XmLepResourceService(APP_NAME, new FileTenantScriptPathResolver(baseDirPath), routerResourceLoader);
     }
 
     @Test

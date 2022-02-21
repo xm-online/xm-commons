@@ -8,9 +8,11 @@ import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantKey;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import lombok.SneakyThrows;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -21,7 +23,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.File;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import static com.icthh.xm.commons.config.client.service.TenantAliasService.TENANT_ALIAS_CONFIG;
@@ -36,13 +40,12 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {
-        DynamicLepTestConfig.class,
+        DynamicLepTestFileConfig.class,
         TenantContextConfiguration.class,
         XmAuthenticationContextConfiguration.class
 })
 @ActiveProfiles("resolveclasstest")
-@TestPropertySource(properties = "application.lep.full-recompile-on-lep-update=true")
-public class DynamicLepClassResolveIntTest {
+public class DynamicLepClassFileResolveIntTest {
 
     @Autowired
     private SpringLepManager lepManager;
@@ -60,7 +63,7 @@ public class DynamicLepClassResolveIntTest {
     private TenantAliasService tenantAliasService;
 
     @Autowired
-    private XmLepScriptConfigServerResourceLoader resourceLoader;
+    private TemporaryFolder folder;
 
     @Before
     public void init() {
@@ -85,6 +88,16 @@ public class DynamicLepClassResolveIntTest {
         runTest("msCommons", "PARENT.testApp.lep.commons.folder", "TEST/testApp/lep/commons/folder");
     }
 
+    @Test
+    @SneakyThrows
+    public void testLepFromParentTenant() {
+        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
+        tenantAliasService.onRefresh(TENANT_ALIAS_CONFIG, loadFile("lep/TenantAlias.yml"));
+        String testString = "Hello from parent lep";
+        createFile("/config/tenants/PARENT/testApp/lep/service/TestLepMethod$$around.groovy", "return '" + testString + "'");
+        String result = testLepService.testLepMethod();
+        assertEquals(testString, result);
+    }
 
     @Test
     @SneakyThrows
@@ -98,36 +111,11 @@ public class DynamicLepClassResolveIntTest {
         runTest("envCommons", "commons.lep.folder", "commons/lep/folder");
     }
 
-    @Test
-    @SneakyThrows
-    public void testEnumInterfaceAnnotationResolving() {
-        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
-        // this sleep is needed because groovy has debounce time to lep update
-        Thread.sleep(100);
-        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
-                loadFile("lep/TestEnumInterfaceAnnotationUsage")
-        );
-        loadDeclarationLep("TestEnumDeclaration");
-        loadDeclarationLep("TestInterfaceDeclaration");
-        loadDeclarationLep("TestAnnotationDeclaration");
-        loadDeclarationLep("TestEnumInterfaceAnnotationDeclaration");
-
-        String result = testLepService.testLepMethod();
-        assertEquals("VAL1", result);
-    }
-
-    private void loadDeclarationLep(String testEnumDeclaration) {
-        String testClassDeclarationPath = "/config/tenants/TEST/testApp/lep/commons/folder/" + testEnumDeclaration + "$$tenant.groovy";
-        String testClassBody = loadFile("lep/" + testEnumDeclaration);
-        resourceLoader.onRefresh(testClassDeclarationPath, testClassBody);
-    }
-
-
     private void runTest(String suffix, String packageName, String path) throws InterruptedException {
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
         // this sleep is needed because groovy has debounce time to lep update
         Thread.sleep(100);
-        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
+        createFile("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
                 loadFile("lep/TestClassUsage")
                         .replace("${package}", packageName)
                         .replace("${suffix}", suffix)
@@ -137,14 +125,14 @@ public class DynamicLepClassResolveIntTest {
                 .replace("${package}", packageName)
                 .replace("${suffix}", suffix)
                 .replace("${value}", "I am class in lep!");
-        resourceLoader.onRefresh(testClassDeclarationPath, testClassBody);
+        createFile(testClassDeclarationPath, testClassBody);
 
         String result = testLepService.testLepMethod();
         assertEquals("I am class in lep!", result);
 
         // this sleep is needed because groovy has debounce time to lep update
         Thread.sleep(100);
-        resourceLoader.onRefresh(testClassDeclarationPath,
+        createFile(testClassDeclarationPath,
                 loadFile("lep/TestClassDeclaration")
                         .replace("${package}", packageName)
                         .replace("${suffix}", suffix)
@@ -153,37 +141,12 @@ public class DynamicLepClassResolveIntTest {
         assertEquals("I am updated class in lep!", result);
     }
 
-    @Test
     @SneakyThrows
-    public void testReloadLepClass() {
-        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
-        // this sleep is needed because groovy has debounce time to lep update
-        Thread.sleep(100);
-        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
-                loadFile("lep/TestLoadClassByName")
-                        .replace("${package}", "commons.lep.folder")
-                        .replace("${suffix}", "ReloadClass")
-        );
-
-        String testClassDeclarationPath = "/config/tenants/commons/lep/folder/TestClassDeclarationReloadClass$$tenant.groovy";
-        String testClassBody = loadFile("lep/TestClassDeclaration")
-                .replace("${package}", "commons.lep.folder")
-                .replace("${suffix}", "ReloadClass")
-                .replace("${value}", "I am class in lep!");
-        resourceLoader.onRefresh(testClassDeclarationPath, testClassBody);
-
-        String result = testLepService.testLepMethod();
-        assertEquals("I am class in lep!", result);
-
-        resourceLoader.onRefresh(testClassDeclarationPath,
-                loadFile("lep/TestClassDeclaration")
-                        .replace("${package}", "commons.lep.folder")
-                        .replace("${suffix}", "ReloadClass")
-                        .replace("${value}", "I am updated class in lep!"));
-        // this sleep is needed because groovy has debounce time to lep update
-        Thread.sleep(110);
-        result = testLepService.testLepMethod();
-        assertEquals("I am updated class in lep!", result);
+    private void createFile(String path, String content) {
+        File file = new File(folder.getRoot().toPath().toFile().getAbsolutePath() + path);
+        file.getParentFile().mkdirs();
+        file.createNewFile();
+        FileUtils.writeStringToFile(file, content, UTF_8);
     }
 
     @SneakyThrows

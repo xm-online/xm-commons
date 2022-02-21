@@ -2,6 +2,7 @@ package com.icthh.xm.commons.lep;
 
 import static org.springframework.core.io.ResourceLoader.CLASSPATH_URL_PREFIX;
 
+import com.icthh.xm.commons.lep.storage.TenantScriptPathResolver;
 import com.icthh.xm.lep.api.ContextsHolder;
 import com.icthh.xm.lep.api.LepKey;
 import com.icthh.xm.lep.api.LepResource;
@@ -40,17 +41,17 @@ public class XmLepResourceService implements LepResourceService {
         .compile("^.*\\Q" + XmLepConstants.SCRIPT_NAME_SEPARATOR + "\\E(.*?)\\Q"
                      + XmLepConstants.FILE_EXTENSION_GROOVY + "\\E$");
 
-    private final TenantScriptStorage tenantScriptStorage;
+    private final TenantScriptPathResolver tenantScriptPathResolver;
     private final String appName;
     @Getter
     private final ResourceLoader routerResourceLoader;
 
     public XmLepResourceService(String appName,
-                                TenantScriptStorage tenantScriptStorage,
+                                TenantScriptPathResolver tenantScriptPathResolver,
                                 ResourceLoader routerResourceLoader) {
         this.appName = Objects.requireNonNull(appName, "appName can't be null");
-        this.tenantScriptStorage = Objects.requireNonNull(tenantScriptStorage,
-                                                          "tenantScriptStorage can't be null");
+        this.tenantScriptPathResolver = Objects.requireNonNull(tenantScriptPathResolver,
+                                                          "tenantScriptPathResolver can't be null");
         this.routerResourceLoader = routerResourceLoader;
     }
 
@@ -207,6 +208,6 @@ public class XmLepResourceService implements LepResourceService {
 
     private String getTenantScriptLocation(String path, ContextsHolder contextsHolder) {
         String tenantKey = LepContextUtils.getTenantKey(contextsHolder);
-        return tenantScriptStorage.resolvePath(tenantKey, appName, path);
+        return tenantScriptPathResolver.resolvePath(tenantKey, appName, path);
     }
 }

@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.lep;
 
-import static com.icthh.xm.commons.lep.TenantScriptStorage.CLASSPATH;
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -9,6 +8,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.icthh.xm.commons.lep.storage.ClassPathTenantScriptPathResolver;
 import com.icthh.xm.lep.api.ContextScopes;
 import com.icthh.xm.lep.api.ContextsHolder;
 import com.icthh.xm.lep.api.LepInvocationCauseException;
@@ -97,7 +97,7 @@ public class XmGroovyExecutionStrategyUnitTest {
         Mockito.when(holder.getContext(eq(ContextScopes.THREAD))).thenReturn(threadContext);
         Mockito.when(holder.getContext(eq(ContextScopes.EXECUTION))).thenReturn(executionContext);
 
-        XmLepResourceService resourceService = new XmLepResourceService("test-app", CLASSPATH, resourceLoader);
+        XmLepResourceService resourceService = new XmLepResourceService("test-app", new ClassPathTenantScriptPathResolver(), resourceLoader);
 
         LepManagerService managerService = Mockito.mock(LepManagerService.class);
         Mockito.when(managerService.getResourceService()).thenReturn(resourceService);
