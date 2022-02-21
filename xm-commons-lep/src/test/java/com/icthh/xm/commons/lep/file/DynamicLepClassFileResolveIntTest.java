@@ -68,10 +68,6 @@ public class DynamicLepClassFileResolveIntTest {
     @Autowired
     private TemporaryFolder folder;
 
-    @Autowired
-    private CacheableLepEngine cacheableLepEngine;
-
-
     @Before
     @SneakyThrows
     public void init() {
