@@ -87,7 +87,6 @@ public class XmGroovyScriptEngineProviderStrategy extends LazyGroovyScriptEngine
     }
 
     @Override
-    @SneakyThrows
     public void clearCache() {
         GroovyScriptEngine engine = this.engine;
         if(engine != null) {
