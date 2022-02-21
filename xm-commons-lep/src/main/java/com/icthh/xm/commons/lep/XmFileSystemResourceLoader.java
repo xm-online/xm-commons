@@ -29,7 +29,7 @@ public class XmFileSystemResourceLoader implements ResourceLoader {
             return resource;
         }
 
-        return tenantAliasService.getTenantAliasTree().getParents(extractTenantName(location))
+        resource = tenantAliasService.getTenantAliasTree().getParents(extractTenantName(location))
                 .stream()
                 .map(TenantAliasTree.TenantAlias::getKey)
                 .map(tenantKey -> getPathInTenant(location, tenantKey))
@@ -37,6 +37,7 @@ public class XmFileSystemResourceLoader implements ResourceLoader {
                 .filter(Resource::exists)
                 .findFirst()
                 .orElse(resource);
+        return resource;
     }
 
     public String getPathInTenant(String path, String targetTenant) {

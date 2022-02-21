@@ -1,9 +1,6 @@
 package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.lep.TenantScriptStorage;
-import com.icthh.xm.commons.logging.config.LoggingConfigService;
-import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
-import com.icthh.xm.lep.api.ScopedContext;
 import lombok.SneakyThrows;
 import org.junit.rules.TemporaryFolder;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -15,10 +12,12 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ResourceLoader;
 
 import javax.annotation.PreDestroy;
-import java.io.File;
-import java.nio.file.Paths;
 
 @Configuration
+@EnableLepServices(basePackageClasses = DynamicTestLepService.class)
+@ComponentScan("com.icthh.xm.commons.lep.spring")
+@EnableAutoConfiguration
+@Profile("resolvefiletest")
 public class DynamicLepTestFileConfig extends DynamicLepTestConfig {
 
     private final TemporaryFolder folder = new TemporaryFolder();

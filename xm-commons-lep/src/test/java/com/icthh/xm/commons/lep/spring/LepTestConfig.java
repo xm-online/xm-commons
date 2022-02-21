@@ -18,7 +18,7 @@ import org.springframework.core.io.ResourceLoader;
 @EnableLepServices(basePackageClasses = TestLepService.class)
 @ComponentScan("com.icthh.xm.commons.lep.spring")
 @EnableAutoConfiguration
-@Profile({"!resolveclasstest"})
+@Profile({"!resolveclasstest && !resolvefiletest"})
 public class LepTestConfig extends LepSpringConfiguration {
 
     public LepTestConfig(final ApplicationEventPublisher eventPublisher,
