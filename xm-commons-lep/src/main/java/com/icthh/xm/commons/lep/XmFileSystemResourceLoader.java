@@ -29,7 +29,7 @@ public class XmFileSystemResourceLoader implements ResourceLoader {
             return resource;
         }
 
-         resource = tenantAliasService.getTenantAliasTree().getParents(extractTenantName(location))
+        resource = tenantAliasService.getTenantAliasTree().getParents(extractTenantName(location))
                 .stream()
                 .map(TenantAliasTree.TenantAlias::getKey)
                 .map(tenantKey -> getPathInTenant(location, tenantKey))
