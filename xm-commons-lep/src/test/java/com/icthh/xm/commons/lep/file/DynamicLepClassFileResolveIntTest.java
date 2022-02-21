@@ -1,13 +1,17 @@
-package com.icthh.xm.commons.lep.spring;
+package com.icthh.xm.commons.lep.file;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
-import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
+import com.icthh.xm.commons.lep.CacheableLepEngine;
+import com.icthh.xm.commons.lep.spring.DynamicLepTestFileConfig;
+import com.icthh.xm.commons.lep.spring.DynamicTestLepService;
+import com.icthh.xm.commons.lep.spring.SpringLepManager;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantKey;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -20,12 +24,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import static com.icthh.xm.commons.config.client.service.TenantAliasService.TENANT_ALIAS_CONFIG;
@@ -38,13 +40,14 @@ import static org.mockito.Mockito.when;
 /**
  *
  */
+@Slf4j
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {
         DynamicLepTestFileConfig.class,
         TenantContextConfiguration.class,
         XmAuthenticationContextConfiguration.class
 })
-@ActiveProfiles("resolveclasstest")
+@ActiveProfiles("resolvefiletest")
 public class DynamicLepClassFileResolveIntTest {
 
     @Autowired
@@ -65,7 +68,12 @@ public class DynamicLepClassFileResolveIntTest {
     @Autowired
     private TemporaryFolder folder;
 
+    @Autowired
+    private CacheableLepEngine cacheableLepEngine;
+
+
     @Before
+    @SneakyThrows
     public void init() {
         MockitoAnnotations.initMocks(this);
 
@@ -73,6 +81,8 @@ public class DynamicLepClassFileResolveIntTest {
             ctx.setValue(THREAD_CONTEXT_KEY_TENANT_CONTEXT, tenantContext);
             ctx.setValue(THREAD_CONTEXT_KEY_AUTH_CONTEXT, authContext);
         });
+
+        FileUtils.cleanDirectory(folder.getRoot());
     }
 
     @Test
@@ -90,11 +100,27 @@ public class DynamicLepClassFileResolveIntTest {
 
     @Test
     @SneakyThrows
+    public void testUpdateFileLep() {
+        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
+
+        runTest("msCommons", "TEST.testApp.lep.commons.folder", "TEST/testApp/lep/commons/folder");
+        FileUtils.cleanDirectory(folder.getRoot());
+        createFile("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy", "return '1'");
+        // this sleep is needed because groovy has debounce time to lep update
+        Thread.sleep(110);
+        String result = testLepService.testLepMethod();
+        assertEquals("1", result);
+    }
+
+    @Test
+    @SneakyThrows
     public void testLepFromParentTenant() {
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
         tenantAliasService.onRefresh(TENANT_ALIAS_CONFIG, loadFile("lep/TenantAlias.yml"));
         String testString = "Hello from parent lep";
         createFile("/config/tenants/PARENT/testApp/lep/service/TestLepMethod$$around.groovy", "return '" + testString + "'");
+        // this sleep is needed because groovy has debounce time to lep update
+        Thread.sleep(110);
         String result = testLepService.testLepMethod();
         assertEquals(testString, result);
     }
@@ -113,8 +139,6 @@ public class DynamicLepClassFileResolveIntTest {
 
     private void runTest(String suffix, String packageName, String path) throws InterruptedException {
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
-        // this sleep is needed because groovy has debounce time to lep update
-        Thread.sleep(100);
         createFile("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
                 loadFile("lep/TestClassUsage")
                         .replace("${package}", packageName)
@@ -127,16 +151,19 @@ public class DynamicLepClassFileResolveIntTest {
                 .replace("${value}", "I am class in lep!");
         createFile(testClassDeclarationPath, testClassBody);
 
+        // this sleep is needed because groovy has debounce time to lep update
+        Thread.sleep(110);
         String result = testLepService.testLepMethod();
         assertEquals("I am class in lep!", result);
 
-        // this sleep is needed because groovy has debounce time to lep update
-        Thread.sleep(100);
         createFile(testClassDeclarationPath,
                 loadFile("lep/TestClassDeclaration")
                         .replace("${package}", packageName)
                         .replace("${suffix}", suffix)
                         .replace("${value}", "I am updated class in lep!"));
+
+        // this sleep is needed because groovy has debounce time to lep update
+        Thread.sleep(110);
         result = testLepService.testLepMethod();
         assertEquals("I am updated class in lep!", result);
     }
@@ -147,6 +174,7 @@ public class DynamicLepClassFileResolveIntTest {
         file.getParentFile().mkdirs();
         file.createNewFile();
         FileUtils.writeStringToFile(file, content, UTF_8);
+        log.info("Path to file {}", file.getAbsolutePath());
     }
 
     @SneakyThrows

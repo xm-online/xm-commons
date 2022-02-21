@@ -5,13 +5,20 @@ import com.icthh.xm.lep.api.ContextsHolder;
 import com.icthh.xm.lep.api.LepManagerService;
 import com.icthh.xm.lep.api.LepResourceService;
 import com.icthh.xm.lep.groovy.LazyGroovyScriptEngineProviderStrategy;
+import com.icthh.xm.lep.groovy.LepResourceKeyURLConnection;
 import com.icthh.xm.lep.groovy.LepScriptResourceConnector;
 import com.icthh.xm.lep.groovy.ScriptNameLepResourceKeyMapper;
 import groovy.lang.GroovyClassLoader;
 import groovy.util.GroovyScriptEngine;
 import groovy.util.ResourceConnector;
+import groovy.util.ResourceException;
+import lombok.SneakyThrows;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+
+import java.lang.reflect.Field;
+import java.net.URLConnection;
+import java.util.Map;
 
 /**
  * The {@link XmGroovyScriptEngineProviderStrategy} class.
@@ -56,8 +63,21 @@ public class XmGroovyScriptEngineProviderStrategy extends LazyGroovyScriptEngine
 
     @Override
     protected ResourceConnector buildResourceConnector(LepManagerService managerService) {
-        return new LepScriptResourceConnector(managerService,
-                new ClassNameLepResourceKeyMapper(resourceKeyMapper, appName, managerService, resourceService, tenantAliasService));
+        ClassNameLepResourceKeyMapper mapper = new ClassNameLepResourceKeyMapper(resourceKeyMapper, appName, managerService, resourceService, tenantAliasService);
+        return new LepScriptResourceConnector(managerService, mapper) {
+            @Override
+            public URLConnection getResourceConnection(String scriptName) throws ResourceException {
+                try {
+                    return new XmLepResourceKeyURLConnection(mapper.map(scriptName),
+                            managerService.getResourceService(),
+                            managerService);
+                } catch (Exception e) {
+                    throw new ResourceException("Error while building "
+                            + LepResourceKeyURLConnection.class.getSimpleName()
+                            + ": " + e.getMessage(), e);
+                }
+            }
+        };
     }
 
     @Override
@@ -67,6 +87,7 @@ public class XmGroovyScriptEngineProviderStrategy extends LazyGroovyScriptEngine
     }
 
     @Override
+    @SneakyThrows
     public void clearCache() {
         GroovyScriptEngine engine = this.engine;
         if(engine != null) {
