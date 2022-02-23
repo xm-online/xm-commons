@@ -139,7 +139,7 @@ public abstract class LepSpringConfiguration {
     @Bean
     public XmFileSystemResourceLoader xmFileSystemResourceLoader() {
         return new XmFileSystemResourceLoader(new FileSystemResourceLoader(),
-                                              tenantAliasService(),
+                                              tenantAliasService,
                                               appName);
     }
 
