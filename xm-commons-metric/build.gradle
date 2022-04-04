@@ -14,7 +14,7 @@ dependencies {
     compile "com.ryantenney.metrics:metrics-spring:${versions.springMetrics}"
     compile 'org.springframework.kafka:spring-kafka'
 
-    compileOnly "io.github.jhipster:jhipster-framework:${versions.jhipster}"
+    compileOnly "tech.jhipster:jhipster-framework:${versions.jhipster}"
     compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
 
     compile "io.prometheus:simpleclient_dropwizard:0.8.1"

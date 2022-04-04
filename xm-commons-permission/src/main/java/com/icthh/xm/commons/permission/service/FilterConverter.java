@@ -2,9 +2,9 @@ package com.icthh.xm.commons.permission.service;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
-import io.github.jhipster.service.filter.Filter;
-import io.github.jhipster.service.filter.RangeFilter;
-import io.github.jhipster.service.filter.StringFilter;
+import tech.jhipster.service.filter.Filter;
+import tech.jhipster.service.filter.RangeFilter;
+import tech.jhipster.service.filter.StringFilter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;

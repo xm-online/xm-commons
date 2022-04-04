@@ -23,17 +23,19 @@ ext.versions = [
     lep                        : '0.2.0',
     jsr305                     : '3.0.2',
 
-    jhipster                   : '3.0.7',
+    jhipster                   : '7.7.0',
     lombok                     : '1.18.10',
-    logstashLogbackEncoder     : '6.2',
+    logstashLogbackEncoder     : '7.0.1',
 
     propdepsPlugin             : '0.0.7',
 
     swaggerCodegen             : '2.4.9',
     springfoxSwagger           : '2.9.2',
-    reflections                : '0.9.11',
+    reflections                : '0.10.2',
 
     systemRules                : '1.16.0',
 
-    hibernate                  : '5.3.13.Final'
+    hibernate                  : '5.3.13.Final',
+
+    guava                      : '31.1-jre'
 ]

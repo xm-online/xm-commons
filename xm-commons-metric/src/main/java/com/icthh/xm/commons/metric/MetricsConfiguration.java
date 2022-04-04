@@ -16,7 +16,7 @@ import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.ryantenney.metrics.spring.config.annotation.EnableMetrics;
 import com.ryantenney.metrics.spring.config.annotation.MetricsConfigurerAdapter;
-import io.github.jhipster.config.JHipsterProperties;
+import tech.jhipster.config.JHipsterProperties;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.dropwizard.DropwizardExports;
 import java.util.List;
@@ -67,6 +67,11 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
     @Value("${management.metrics.export.prometheus.enabled}")
     private Boolean prometheusExportEnabled;
 
+    @Value("${application.metrics.logs.enabled:false}")
+    private Boolean metricsLogsEnabled;
+    @Value("${application.metrics.logs.reportFrequency:60}")
+    private Long metricsLogsReportFrequency;
+
     public MetricsConfiguration(JHipsterProperties jhipsterProperties, KafkaAdmin kafkaAdmin,
           CollectorRegistry collectorRegistry) {
         this.jhipsterProperties = jhipsterProperties;
@@ -105,7 +110,7 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
             JmxReporter jmxReporter = JmxReporter.forRegistry(metricRegistry).build();
             jmxReporter.start();
         }
-        if (jhipsterProperties.getMetrics().getLogs().isEnabled()) {
+        if (metricsLogsEnabled) {
             log.info("Initializing Metrics Log reporting");
             Marker metricsMarker = MarkerFactory.getMarker("metrics");
             final Slf4jReporter reporter = Slf4jReporter.forRegistry(metricRegistry)
@@ -114,7 +119,7 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
                 .convertRatesTo(TimeUnit.SECONDS)
                 .convertDurationsTo(TimeUnit.MILLISECONDS)
                 .build();
-            reporter.start(jhipsterProperties.getMetrics().getLogs().getReportFrequency(), TimeUnit.SECONDS);
+            reporter.start(metricsLogsReportFrequency, TimeUnit.SECONDS);
         }
 
         if (TRUE.equals(kafkaMetricEnabled)) {
