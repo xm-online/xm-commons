@@ -1,8 +1,6 @@
 package com.icthh.xm.commons.config.client.api;
 
-import com.icthh.xm.commons.config.domain.Configuration;
-
-import java.util.List;
+import java.util.Collection;
 
 public interface RefreshableConfiguration {
 
@@ -14,7 +12,7 @@ public interface RefreshableConfiguration {
         onRefresh(configKey, configValue);
     }
 
-    default void refreshFinished() {
+    default void refreshFinished(Collection<String> paths) {
         //
     }
 }

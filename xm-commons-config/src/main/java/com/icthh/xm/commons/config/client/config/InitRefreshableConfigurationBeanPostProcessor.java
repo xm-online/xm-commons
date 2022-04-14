@@ -12,7 +12,10 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -62,7 +65,11 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
                 refreshableConfiguration.onInit(key, value.getContent());
             }
         });
-        refreshFinished(refreshableConfiguration);
+        List<String> initedPaths = configMap.keySet()
+                .stream()
+                .filter(refreshableConfiguration::isListeningConfiguration)
+                .collect(Collectors.toList());
+        refreshFinished(refreshableConfiguration, initedPaths);
 
         log.info("refreshable configuration bean [{}] initialized by configMap with {} entries",
             getBeanName(refreshableConfiguration), configMap.size());
@@ -75,17 +82,18 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
 
             @Override
             public void refreshFinished(Collection<String> paths) {
-                long count = paths.stream().filter(refreshableConfiguration::isListeningConfiguration).count();
-                if (count > 0) {
-                    InitRefreshableConfigurationBeanPostProcessor.this.refreshFinished(refreshableConfiguration);
+                List<String> listenPaths = paths.stream()
+                        .filter(refreshableConfiguration::isListeningConfiguration).collect(Collectors.toList());
+                if (!listenPaths.isEmpty()) {
+                    InitRefreshableConfigurationBeanPostProcessor.this.refreshFinished(refreshableConfiguration, listenPaths);
                 }
             }
         });
     }
 
-    private void refreshFinished(RefreshableConfiguration refreshableConfiguration) {
+    private void refreshFinished(RefreshableConfiguration refreshableConfiguration, Collection<String> paths) {
         try {
-            refreshableConfiguration.refreshFinished();
+            refreshableConfiguration.refreshFinished(paths);
         } catch (Exception e) {
             log.error("Error during refresh finished", e);
         }
