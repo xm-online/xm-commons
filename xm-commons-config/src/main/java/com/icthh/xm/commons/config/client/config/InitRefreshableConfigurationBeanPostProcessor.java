@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.config.client.config;
 
 import com.icthh.xm.commons.config.client.api.ConfigService;
+import com.icthh.xm.commons.config.client.api.ConfigurationChangedListener;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.RequiredArgsConstructor;
@@ -9,8 +10,12 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -21,7 +26,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
     private final ConfigService configService;
 
     private final Map<String, RefreshableConfiguration> refreshableConfigurations = new HashMap<>();
-    private Map<String, Configuration> configMap;
+    private volatile Map<String, Configuration> configMap;
 
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
@@ -60,11 +65,38 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
                 refreshableConfiguration.onInit(key, value.getContent());
             }
         });
+        List<String> initedPaths = configMap.keySet()
+                .stream()
+                .filter(refreshableConfiguration::isListeningConfiguration)
+                .collect(Collectors.toList());
+        refreshFinished(refreshableConfiguration, initedPaths);
 
         log.info("refreshable configuration bean [{}] initialized by configMap with {} entries",
             getBeanName(refreshableConfiguration), configMap.size());
 
-        configService.addConfigurationChangedListener(configuration -> onEntryChange(refreshableConfiguration, configuration));
+        configService.addConfigurationChangedListener(new ConfigurationChangedListener() {
+            @Override
+            public void onConfigurationChanged(Configuration configuration) {
+                onEntryChange(refreshableConfiguration, configuration);
+            }
+
+            @Override
+            public void refreshFinished(Collection<String> paths) {
+                List<String> listenPaths = paths.stream()
+                        .filter(refreshableConfiguration::isListeningConfiguration).collect(Collectors.toList());
+                if (!listenPaths.isEmpty()) {
+                    InitRefreshableConfigurationBeanPostProcessor.this.refreshFinished(refreshableConfiguration, listenPaths);
+                }
+            }
+        });
+    }
+
+    private void refreshFinished(RefreshableConfiguration refreshableConfiguration, Collection<String> paths) {
+        try {
+            refreshableConfiguration.refreshFinished(paths);
+        } catch (Exception e) {
+            log.error("Error during refresh finished", e);
+        }
     }
 
     private void onEntryChange(RefreshableConfiguration refreshableConfiguration, Configuration configuration) {

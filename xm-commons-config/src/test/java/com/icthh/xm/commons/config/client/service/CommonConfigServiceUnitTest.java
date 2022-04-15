@@ -53,7 +53,34 @@ public class CommonConfigServiceUnitTest {
         configurationListeners.forEach(configurationListener ->
                                            verify(configurationListener)
                                                .onConfigurationChanged(refEq(config.get("path"))));
+        configurationListeners.forEach(configurationListener ->
+                verify(configurationListener).refreshFinished(Collections.singletonList("path")));
+    }
 
+    @Test
+    public void updateMultiplyConfigurationsWithSingleFinished() {
+        Map<String, Configuration> config = Map.of(
+                "path1", new Configuration("path1", "content1"),
+                "path2", new Configuration("path2", "content2")
+        );
+        when(commonConfigRepository.getConfig(eq("commit"), anyList())).thenReturn(config);
+
+        List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
+        configurationListeners.add(mock(ConfigurationChangedListener.class));
+        configurationListeners.add(mock(ConfigurationChangedListener.class));
+
+        configurationListeners.forEach(configService::addConfigurationChangedListener);
+        configService.updateConfigurations("commit", List.of("path1", "path2"));
+
+        configurationListeners.forEach(configurationListener ->
+                verify(configurationListener)
+                        .onConfigurationChanged(refEq(config.get("path1"))));
+        configurationListeners.forEach(configurationListener ->
+                verify(configurationListener)
+                        .onConfigurationChanged(refEq(config.get("path2"))));
+
+        configurationListeners.forEach(configurationListener ->
+                verify(configurationListener).refreshFinished(List.of("path1", "path2")));
     }
 
     @Test
@@ -71,6 +98,8 @@ public class CommonConfigServiceUnitTest {
         configurationListeners.forEach(configurationListener ->
                                            verify(configurationListener)
                                                .onConfigurationChanged(refEq(new Configuration("path", null))));
+        configurationListeners.forEach(configurationListener ->
+                verify(configurationListener).refreshFinished(Collections.singletonList("path")));
     }
 
 }

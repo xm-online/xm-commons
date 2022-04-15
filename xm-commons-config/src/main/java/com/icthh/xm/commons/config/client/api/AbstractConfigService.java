@@ -29,6 +29,7 @@ public abstract class AbstractConfigService implements ConfigService {
     public void updateConfigurations(String commit, Collection<String> paths) {
         Map<String, Configuration> configurationsMap = getConfigurationMap(commit, paths);
         paths.forEach(path -> notifyUpdated(getNonNullConfiguration(configurationsMap, path)));
+        configurationListeners.forEach(it -> it.refreshFinished(paths));
     }
 
     protected void notifyUpdated(Configuration configuration) {
