@@ -354,14 +354,14 @@ public final class LogObjectPrinter {
      */
     public static String printResult(final JoinPoint joinPoint, final Object object, LogResult config) {
         if (config == null) {
-            printResult(joinPoint, object);
+            return printResult(joinPoint, object);
         }
 
-        if (config.getResultDetails()) {
+        if (config.getResultDetails() == null) {
             config.setResultDetails(DEFAULT_LOG_RESULT_DETAILS);
         }
 
-        if (config.getResultCollectionAware()) {
+        if (config.getResultCollectionAware() == null) {
             config.setResultCollectionAware(DEFAULT_LOG_RESULT_COLLECTION_AWARE);
         }
 
