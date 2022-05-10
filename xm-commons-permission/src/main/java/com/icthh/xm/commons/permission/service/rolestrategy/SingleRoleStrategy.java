@@ -10,6 +10,7 @@ import com.icthh.xm.commons.permission.constants.RoleConstant;
 import com.icthh.xm.commons.permission.domain.EnvironmentVariable;
 import com.icthh.xm.commons.permission.domain.Permission;
 import com.icthh.xm.commons.permission.domain.ReactionStrategy;
+import com.icthh.xm.commons.permission.service.PermissionEvaluationContextBuilder;
 import com.icthh.xm.commons.permission.service.PermissionService;
 import com.icthh.xm.commons.permission.service.RoleService;
 import com.icthh.xm.commons.permission.service.translator.SpelTranslator;
@@ -27,6 +28,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.event.Level;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelNode;
 import org.springframework.expression.spel.standard.SpelExpression;
@@ -44,13 +46,12 @@ public class SingleRoleStrategy implements RoleStrategy {
     private static final String ERROR_ROLE_IS_UNDEFINED = "Role is undefined";
     private static final String LOG_KEY = "log";
 
-    private static final Method GET_REQUEST_HEADER = lookupGetRequestHeaderMethod();
-
     private final XmAuthenticationContextHolder xmAuthenticationContextHolder;
     private final TenantContextHolder tenantContextHolder;
     private final PermissionService permissionService;
     private final ResourceFactory resourceFactory;
     private final RoleService roleService;
+    private final PermissionEvaluationContextBuilder permissionEvaluationContextBuilder;
 
     /**
      * Check permission for role and privilege key only.
@@ -160,9 +161,7 @@ public class SingleRoleStrategy implements RoleStrategy {
             .getContext().getRemoteAddress().orElse(null));
         resources.put("env", env);//put some env variables in this map
 
-        StandardEvaluationContext context = new StandardEvaluationContext();
-        context.setVariables(resources);
-        context.registerFunction("getRequestHeader", GET_REQUEST_HEADER);
+        EvaluationContext context = permissionEvaluationContextBuilder.build(resources);
 
         Permission permission = getPermission(roleKey, privilegeKey);
 
@@ -220,7 +219,7 @@ public class SingleRoleStrategy implements RoleStrategy {
         return false;
     }
 
-    private static boolean isConditionValid(Expression expression, StandardEvaluationContext context) {
+    private static boolean isConditionValid(Expression expression, EvaluationContext context) {
         boolean result;
         if (expression == null || StringUtils.isEmpty(expression.getExpressionString())) {
             result = true;
@@ -293,10 +292,5 @@ public class SingleRoleStrategy implements RoleStrategy {
             default:
                 break;
         }
-    }
-
-    @SneakyThrows
-    private static Method lookupGetRequestHeaderMethod() {
-        return RequestHeaderUtils.class.getDeclaredMethod("getRequestHeader", String.class);
     }
 }

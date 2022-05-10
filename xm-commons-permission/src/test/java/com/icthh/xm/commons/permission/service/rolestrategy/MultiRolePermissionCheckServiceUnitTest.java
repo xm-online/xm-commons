@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import com.icthh.xm.commons.permission.access.ResourceFactory;
 import com.icthh.xm.commons.permission.access.subject.Subject;
 import com.icthh.xm.commons.permission.domain.Permission;
+import com.icthh.xm.commons.permission.service.PermissionEvaluationContextBuilder;
 import com.icthh.xm.commons.permission.service.PermissionService;
 import com.icthh.xm.commons.permission.service.RoleService;
 import com.icthh.xm.commons.permission.service.translator.SpelToJpqlTranslator;
@@ -57,6 +58,8 @@ public class MultiRolePermissionCheckServiceUnitTest {
     TenantKey tenantKey;
     @Mock
     TenantContext tenantContext;
+    @Mock
+    PermissionEvaluationContextBuilder permissionEvaluationContextBuilder;
 
     private final SpelToJpqlTranslator spelToJpqlTranslator = new SpelToJpqlTranslator();
 
@@ -69,7 +72,8 @@ public class MultiRolePermissionCheckServiceUnitTest {
             tenantContextHolder,
             permissionService,
             resourceFactory,
-            roleService
+            roleService,
+            permissionEvaluationContextBuilder
         ));
     }
 

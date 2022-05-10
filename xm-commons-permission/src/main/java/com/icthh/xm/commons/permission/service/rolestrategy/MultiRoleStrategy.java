@@ -17,6 +17,7 @@ import com.icthh.xm.commons.permission.access.subject.Subject;
 import com.icthh.xm.commons.permission.domain.EnvironmentVariable;
 import com.icthh.xm.commons.permission.domain.Permission;
 import com.icthh.xm.commons.permission.domain.ReactionStrategy;
+import com.icthh.xm.commons.permission.service.PermissionEvaluationContextBuilder;
 import com.icthh.xm.commons.permission.service.PermissionService;
 import com.icthh.xm.commons.permission.service.RoleService;
 import com.icthh.xm.commons.permission.service.translator.SpelTranslator;
@@ -40,6 +41,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.event.Level;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelNode;
 import org.springframework.expression.spel.standard.SpelExpression;
@@ -56,13 +58,13 @@ import org.springframework.stereotype.Component;
 public class MultiRoleStrategy implements RoleStrategy {
 
     private static final String LOG_KEY = "log";
-    private static final Method GET_REQUEST_HEADER = lookupGetRequestHeaderMethod();
 
     private final XmAuthenticationContextHolder xmAuthenticationContextHolder;
     private final TenantContextHolder tenantContextHolder;
     private final PermissionService permissionService;
     private final ResourceFactory resourceFactory;
     private final RoleService roleService;
+    private final PermissionEvaluationContextBuilder permissionEvaluationContextBuilder;
 
     /**
      * Check permission for role and privilege key only.
@@ -196,10 +198,7 @@ public class MultiRoleStrategy implements RoleStrategy {
         );
         resources.put("env", env);
 
-        StandardEvaluationContext context = new StandardEvaluationContext();
-        context.setVariables(resources);
-        context.registerFunction("getRequestHeader", GET_REQUEST_HEADER);
-
+        EvaluationContext context = permissionEvaluationContextBuilder.build(resources);;
         Collection<Permission> permissions = getPermissions(roleKey, privilegeKey);
 
         if (!isPermissionEnabled(permissions)) {
@@ -306,7 +305,7 @@ public class MultiRoleStrategy implements RoleStrategy {
         return false;
     }
 
-    private boolean isConditionValid(Collection<Permission> permissions, StandardEvaluationContext context,
+    private boolean isConditionValid(Collection<Permission> permissions, EvaluationContext context,
                                      Function<Permission, Expression> func) {
         return permissions.stream()
             .anyMatch(permission ->
