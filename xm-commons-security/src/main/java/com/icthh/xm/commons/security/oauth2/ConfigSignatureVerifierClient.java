@@ -61,7 +61,7 @@ public class ConfigSignatureVerifierClient implements OAuth2SignatureVerifierCli
 
             return new RsaVerifier(String.format(PUBLIC_KEY, new String(Base64.getEncoder().encode(pk.getEncoded()))));
         } catch (IllegalStateException ex) {
-            log.warn("could not contact Config to get public key");
+            log.warn("could not contact Config to get public key, exception: {}", ex.getMessage());
             return null;
         }
     }
