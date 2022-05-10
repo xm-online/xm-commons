@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.permission.domain.Permission;
 import com.icthh.xm.commons.permission.service.PermissionService;
+import com.icthh.xm.commons.permission.service.XmPermissionEvaluationContextBuilder;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.PlainTenant;
@@ -22,6 +23,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -46,6 +48,9 @@ public class MultiRoleStrategyUnitTest {
 
     @Mock
     PermissionService permissionService;
+
+    @Spy
+    XmPermissionEvaluationContextBuilder permissionEvaluationContextBuilder;
 
     @InjectMocks
     MultiRoleStrategy multiRoleStrategy;
