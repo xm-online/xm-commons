@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.permission.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+@Slf4j
 @Configuration
 public class ReflectionConfig {
 
@@ -22,6 +24,7 @@ public class ReflectionConfig {
      */
     @Bean
     public Reflections reflections() {
+        log.info("Configuring reflections to scan permissions in package: {}", scanPackage);
         return new Reflections(new ConfigurationBuilder()
                                     .setUrls(ClasspathHelper.forPackage(scanPackage.trim()))
                                     .setScanners(new MethodAnnotationsScanner())
