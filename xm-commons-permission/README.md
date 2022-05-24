@@ -5,7 +5,7 @@ XM^online commons project for permissions.
 
 By default, permissions are scanned in `com.icthh.xm` package. 
 
-Scanned package can be overridden with `pase-package` property
+Scanned package can be overridden with `base-package` property
 
 ```yaml
 base-package: com.my.custom.package
