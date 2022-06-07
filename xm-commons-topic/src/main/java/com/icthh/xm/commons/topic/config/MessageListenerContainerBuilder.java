@@ -7,6 +7,7 @@ import static org.apache.kafka.clients.consumer.ConsumerConfig.ISOLATION_LEVEL_C
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
 import static org.springframework.kafka.listener.ContainerProperties.AckMode.MANUAL_IMMEDIATE;
 
+import com.icthh.xm.commons.logging.trace.SleuthWrapper;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,8 @@ public class MessageListenerContainerBuilder {
 
     public AbstractMessageListenerContainer build(String tenantKey,
                                                   TopicConfig topicConfig,
-                                                  MessageHandler messageHandler) {
+                                                  MessageHandler messageHandler,
+                                                  SleuthWrapper sleuthWrapper) {
         Map<String, Object> consumerConfig = buildConsumerConfig(topicConfig);
         DefaultKafkaConsumerFactory<String, String> kafkaConsumerFactory =
             new DefaultKafkaConsumerFactory<>(
@@ -44,7 +46,7 @@ public class MessageListenerContainerBuilder {
         ContainerProperties containerProperties = new ContainerProperties(topicConfig.getTopicName());
         containerProperties.setAckMode(MANUAL_IMMEDIATE);
         containerProperties.setMessageListener(new RetryingMessageListenerAdapter<>(
-            new MessageListener(messageHandler, tenantKey, topicConfig),
+            new MessageListener(messageHandler, tenantKey, topicConfig, sleuthWrapper),
             new MessageRetryTemplate(topicConfig),
             new ConsumerRecoveryCallback(tenantKey, topicConfig, kafkaTemplate),
             true
