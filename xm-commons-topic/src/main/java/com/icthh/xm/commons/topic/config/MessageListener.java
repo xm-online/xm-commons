@@ -10,6 +10,8 @@ import com.icthh.xm.commons.topic.message.MessageHandler;
 import com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.MessageRetryDetails;
 import java.math.BigInteger;
 import java.util.StringJoiner;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -17,6 +19,7 @@ import org.springframework.kafka.listener.AcknowledgingMessageListener;
 import org.springframework.kafka.support.Acknowledgment;
 
 @Slf4j
+@RequiredArgsConstructor
 public class MessageListener implements AcknowledgingMessageListener<String, String> {
 
     private final TopicConfig topicConfig;
@@ -24,30 +27,18 @@ public class MessageListener implements AcknowledgingMessageListener<String, Str
     private final String tenantKey;
     private final SleuthWrapper sleuthWrapper;
 
-    public MessageListener(MessageHandler messageHandler,
-                           String tenantKey,
-                           TopicConfig topicConfig,
-                           SleuthWrapper sleuthWrapper) {
-        this.topicConfig = topicConfig;
-        this.messageHandler = messageHandler;
-        this.tenantKey = tenantKey;
-        this.sleuthWrapper = sleuthWrapper;
-    }
-
     @Override
     public void onMessage(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) {
-        MessageRetryDetails retryDetails = getUpdatedOrGenerateRetryDetails(record);
-        putRid(retryDetails.getRetryCount(), retryDetails.getRid());
-        sleuthWrapper.runWithSleuth(record, () -> processMessage(record, acknowledgment, retryDetails));
+        sleuthWrapper.runWithSleuth(record, () -> processMessage(record, acknowledgment));
     }
 
     private void processMessage(ConsumerRecord<String, String> record,
-                                Acknowledgment acknowledgment,
-                                MessageRetryDetails retryDetails) {
+                                Acknowledgment acknowledgment) {
+        MessageRetryDetails retryDetails = getUpdatedOrGenerateRetryDetails(record);
+        putRid(retryDetails.getRetryCount(), retryDetails.getRid());
         final StopWatch stopWatch = StopWatch.createStarted();
         String rawBody = record.value();
         log.info("start processing message, size = {}, body = [{}]", rawBody.length(), formatBody(rawBody));
-
         try {
             messageHandler.onMessage(rawBody, tenantKey, topicConfig);
             acknowledgment.acknowledge();

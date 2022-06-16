@@ -18,7 +18,7 @@ public class SleuthWrapper {
     private static final String SPAN_NAME_FROM_MESSAGE = "on-message";
 
     private final Tracer tracer;
-    public final KafkaTracing kafkaTracing;
+    private final KafkaTracing kafkaTracing;
     private final TracingChannelInterceptor tracingChannelInterceptor;
 
     public void runWithSleuth(ConsumerRecord<?, ?> record, Runnable codeToRun) {

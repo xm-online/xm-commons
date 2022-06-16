@@ -9,6 +9,6 @@ dependencies {
     compile "org.slf4j:slf4j-api"
 
     implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
-    compileOnly('org.springframework.cloud:spring-cloud-stream-binder-kafka')
-    compileOnly "org.springframework.cloud:spring-cloud-stream"
+    compileOnly 'org.springframework.cloud:spring-cloud-stream-binder-kafka'
+    compileOnly 'org.springframework.cloud:spring-cloud-stream'
 }
