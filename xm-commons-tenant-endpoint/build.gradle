@@ -37,6 +37,7 @@ dependencies {
 
     testCompile 'junit:junit'
     testCompile "org.mockito:mockito-core"
+    testCompile 'org.springframework:spring-test'
 }
 
 

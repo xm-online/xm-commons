@@ -13,13 +13,17 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+@TestPropertySource(properties = "application.tenant-with-creation-access-list:['XM', 'MANAGER']")
 public class TenantAbilityCheckerProvisionerUnitTest {
 
     @Rule

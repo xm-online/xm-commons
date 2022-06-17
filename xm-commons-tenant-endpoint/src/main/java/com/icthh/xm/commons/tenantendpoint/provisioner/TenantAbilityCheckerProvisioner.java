@@ -5,9 +5,9 @@ import com.icthh.xm.commons.gen.model.Tenant;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,7 +16,6 @@ import java.util.Set;
 public class TenantAbilityCheckerProvisioner implements TenantProvisioner {
 
     private static final String DEFAULT_TENANT_XM = "XM";
-    private static final String MANAGER_TENANT = "MANAGER";
 
     private final TenantContextHolder tenantContextHolder;
 
@@ -24,10 +23,14 @@ public class TenantAbilityCheckerProvisioner implements TenantProvisioner {
 
     @Autowired
     public TenantAbilityCheckerProvisioner(final TenantContextHolder tenantContextHolder) {
-        this(tenantContextHolder, new HashSet<>(Arrays.asList(DEFAULT_TENANT_XM, MANAGER_TENANT)));
+        this(tenantContextHolder, Collections.singleton(DEFAULT_TENANT_XM));
     }
 
-    public TenantAbilityCheckerProvisioner(final TenantContextHolder tenantContextHolder, Set<String> allowedTenants) {
+    public TenantAbilityCheckerProvisioner(
+        final TenantContextHolder tenantContextHolder,
+        @Value("${application.tenant-with-creation-access-list:#{T(java.util.HashSet).of('XM')}}")
+        Set<String> allowedTenants
+    ) {
         this.tenantContextHolder = tenantContextHolder;
         this.allowedTenants = allowedTenants;
     }
