@@ -54,7 +54,7 @@ public class TenantAbilityCheckerProvisionerUnitTest {
 
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(new TenantKey("NONXM")));
         expectedEx.expect(BusinessException.class);
-        expectedEx.expectMessage("Only [XM] tenants allowed to create new tenant");
+        expectedEx.expectMessage("Only [XM, MANAGER] tenants allowed to create new tenant");
 
         provisioner.createTenant(new Tenant().tenantKey("NEWTENANT"));
         verify(tenantContext).getTenantKey();
@@ -99,7 +99,7 @@ public class TenantAbilityCheckerProvisionerUnitTest {
 
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(new TenantKey("NONXM")));
         expectedEx.expect(BusinessException.class);
-        expectedEx.expectMessage("Only [XM] tenants allowed to manage tenant");
+        expectedEx.expectMessage("Only [XM, MANAGER] tenants allowed to manage tenant");
 
         provisioner.manageTenant("NEWTENANT", "ACTIVE");
         verify(tenantContext).getTenantKey();
@@ -117,7 +117,7 @@ public class TenantAbilityCheckerProvisionerUnitTest {
     public void deleteTenantNotAllowed() {
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(new TenantKey("NONXM")));
         expectedEx.expect(BusinessException.class);
-        expectedEx.expectMessage("Only [XM] tenants allowed to delete tenant");
+        expectedEx.expectMessage("Only [XM, MANAGER] tenants allowed to delete tenant");
 
         provisioner.deleteTenant("NEWTENANT");
         verify(tenantContext).getTenantKey();
