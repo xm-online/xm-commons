@@ -8,6 +8,7 @@ class TestLepServiceDeclaration {
     String testString;
 
     TestLepServiceDeclaration(def lepContext) {
+        assert lepContext.inArgs.type == this.class
         TestLepServiceDeclaration.countConstructorCall.incrementAndGet()
         testString = TestLepServiceDeclaration.globalTestString
     }

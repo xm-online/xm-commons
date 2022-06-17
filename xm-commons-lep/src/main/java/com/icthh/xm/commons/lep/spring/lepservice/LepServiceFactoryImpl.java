@@ -43,7 +43,7 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
     private final String applicationName;
     private final LepManager lepManager;
 
-    private final Map<String, Map<String, ?>> serviceInstances = new ConcurrentHashMap<>();
+    private final Map<String, Map<Class<?>, Object>> serviceInstances = new ConcurrentHashMap<>();
 
     @Setter(onMethod = @__(@Autowired))
     private LepServiceFactoryImpl self;
@@ -63,31 +63,29 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
         String simpleClassName = lepServiceClass.getSimpleName();
 
         String tenantKey = tenantContextHolder.getTenantKey();
-        Map<String, ?> tenantInstances = serviceInstances.computeIfAbsent(tenantKey, key -> new ConcurrentHashMap<>());
-        return (T) tenantInstances.computeIfAbsent(simpleClassName, key -> {
-            createServiceFactory(lepServiceClass, simpleClassName, tenantKey);
-            return self.createServiceByLepFactory(simpleClassName);
+        Map<Class<?>, Object> tenantInstances = serviceInstances.computeIfAbsent(tenantKey, key -> new ConcurrentHashMap<>());
+        return (T) tenantInstances.computeIfAbsent(lepServiceClass, key -> {
+            createServiceFactory(simpleClassName, tenantKey);
+            return self.createServiceByLepFactory(simpleClassName, lepServiceClass);
         });
     }
 
-    private <T> void createServiceFactory(Class<T> lepServiceClass, String simpleClassName, String tenantKey) {
+    private <T> void createServiceFactory(String simpleClassName, String tenantKey) {
         String tenantName = tenantKey.toUpperCase();
-        String fullClassName = lepServiceClass.getCanonicalName();
-        String factoryLep = factoryTemplate.replace("__fullClassName__", fullClassName);
-        factoryLep = factoryLep.replace("__simpleClassName__", simpleClassName);
         String pathForFactoryLep = "/config/tenants/" + tenantName + "/" + applicationName + "/lep";
         String lepKey = translateToLepConvention(simpleClassName);
         String lepName = GENERATED_SERVICE_FACTORY_LEP_NAME + "$$" + lepKey + LEP_SUFFIX;
-        resourceLoader.onRefresh(pathForFactoryLep + FACTORY_PACKAGE_NAME + lepName, factoryLep);
+        resourceLoader.onRefresh(pathForFactoryLep + FACTORY_PACKAGE_NAME + lepName, factoryTemplate);
+        // no refreshFinished to avoid clear classLoader (class have just loaded)
     }
 
     @LogicExtensionPoint(value = "ServiceFactory", resolver = LepServiceFactoryResolver.class)
-    public <T> T createServiceByLepFactory(String serviceClassName) {
-        return self.createServiceByGeneratedLepFactory(serviceClassName);
+    public <T> T createServiceByLepFactory(String serviceClassName, Class<T> type) {
+        return self.createServiceByGeneratedLepFactory(serviceClassName, type);
     }
 
     @LogicExtensionPoint(value = GENERATED_SERVICE_FACTORY_LEP_NAME, resolver = LepServiceFactoryResolver.class)
-    public <T> T createServiceByGeneratedLepFactory(String serviceClassName) {
+    public <T> T createServiceByGeneratedLepFactory(String serviceClassName, Class<T> type) {
         // Exception will never happen
         throw new RuntimeException("Error with service factory generation " + serviceClassName);
     }

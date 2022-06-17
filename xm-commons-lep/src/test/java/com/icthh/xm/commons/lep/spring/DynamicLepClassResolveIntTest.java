@@ -238,7 +238,6 @@ public class DynamicLepClassResolveIntTest {
         assertEquals(1, countConstructorCall.get());
 
         refreshLep(testClassDeclarationPath, testClassBody);
-        // TODO resolve issue groovy script cache
         result = testLepService.testLepMethod(Map.of(
                 "countConstructorCall", countConstructorCall,
                 "testString", "New_argument"

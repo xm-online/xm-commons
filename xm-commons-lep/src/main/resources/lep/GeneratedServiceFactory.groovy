@@ -1,9 +1,9 @@
-import __fullClassName__
 import org.springframework.util.ClassUtils
 
-Class type = __simpleClassName__.class
-if (ClassUtils.hasConstructor(type)) {
-    return new __simpleClassName__();
+if (ClassUtils.hasConstructor(lepContext.inArgs.type)) {
+    def ctor = lepContext.inArgs.type.getConstructor();
+    return ctor.newInstance();
 } else {
-    return new __simpleClassName__(lepContext);
+    def ctor = lepContext.inArgs.type.getConstructors()[0];
+    return ctor.newInstance(lepContext)
 }
