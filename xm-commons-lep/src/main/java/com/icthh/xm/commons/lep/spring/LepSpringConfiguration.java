@@ -18,15 +18,11 @@ import com.icthh.xm.commons.lep.XmGroovyExecutionStrategy;
 import com.icthh.xm.commons.lep.XmGroovyScriptEngineProviderStrategy;
 import com.icthh.xm.commons.lep.XmLepResourceService;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
-import com.icthh.xm.commons.lep.spring.lepservice.ApplicationNameHolder;
-import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactory;
-import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryImpl;
 import com.icthh.xm.commons.lep.storage.ClassPathTenantScriptPathResolver;
 import com.icthh.xm.commons.lep.storage.FileTenantScriptPathResolver;
 import com.icthh.xm.commons.lep.storage.TenantScriptPathResolver;
 import com.icthh.xm.commons.lep.storage.XmMsConfigTenantScriptPathResolver;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
-import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.lep.api.ExtensionService;
 import com.icthh.xm.lep.api.LepExecutor;
 import com.icthh.xm.lep.api.LepManager;
@@ -91,12 +87,6 @@ public abstract class LepSpringConfiguration {
     @Bean
     public ScriptNameLepResourceKeyMapper scriptNameLepResourceKeyMapper() {
         return new DefaultScriptNameLepResourceKeyMapper();
-    }
-
-
-    @Bean
-    public ApplicationNameHolder applicationNameHolder() {
-        return new ApplicationNameHolder(appName);
     }
 
     @Bean

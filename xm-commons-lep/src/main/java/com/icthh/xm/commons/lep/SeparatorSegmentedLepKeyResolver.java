@@ -41,7 +41,7 @@ public abstract class SeparatorSegmentedLepKeyResolver implements LepKeyResolver
      * @param xmEntitySpecKey input XmEntity key value
      * @return key value in LEP convention
      */
-    public static String translateToLepConvention(String xmEntitySpecKey) {
+    protected static String translateToLepConvention(String xmEntitySpecKey) {
         Objects.requireNonNull(xmEntitySpecKey, "xmEntitySpecKey can't be null");
         return xmEntitySpecKey.replaceAll("-", "_").replaceAll("\\.", "\\$");
     }
