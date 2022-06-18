@@ -39,7 +39,6 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
 
     private final XmLepScriptConfigServerResourceLoader resourceLoader;
     private final TenantContextHolder tenantContextHolder;
-    private final String factoryTemplate = loadFactoryTemplate();
     private final String applicationName;
     private final LepManager lepManager;
 
@@ -65,18 +64,8 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
         String tenantKey = tenantContextHolder.getTenantKey();
         Map<Class<?>, Object> tenantInstances = serviceInstances.computeIfAbsent(tenantKey, key -> new ConcurrentHashMap<>());
         return (T) tenantInstances.computeIfAbsent(lepServiceClass, key -> {
-            createServiceFactory(simpleClassName, tenantKey);
             return self.createServiceByLepFactory(simpleClassName, lepServiceClass);
         });
-    }
-
-    private <T> void createServiceFactory(String simpleClassName, String tenantKey) {
-        String tenantName = tenantKey.toUpperCase();
-        String pathForFactoryLep = "/config/tenants/" + tenantName + "/" + applicationName + "/lep";
-        String lepKey = translateToLepConvention(simpleClassName);
-        String lepName = GENERATED_SERVICE_FACTORY_LEP_NAME + "$$" + lepKey + LEP_SUFFIX;
-        resourceLoader.onRefresh(pathForFactoryLep + FACTORY_PACKAGE_NAME + lepName, factoryTemplate);
-        // no refreshFinished to avoid clear classLoader (class have just loaded)
     }
 
     @LogicExtensionPoint(value = "ServiceFactory", resolver = LepServiceFactoryResolver.class)
@@ -84,7 +73,7 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
         return self.createServiceByGeneratedLepFactory(serviceClassName, type);
     }
 
-    @LogicExtensionPoint(value = GENERATED_SERVICE_FACTORY_LEP_NAME, resolver = LepServiceFactoryResolver.class)
+    @LogicExtensionPoint(value = GENERATED_SERVICE_FACTORY_LEP_NAME)
     public <T> T createServiceByGeneratedLepFactory(String serviceClassName, Class<T> type) {
         // Exception will never happen
         throw new RuntimeException("Error with service factory generation " + serviceClassName);
@@ -111,12 +100,6 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
     @Override
     public void onRefresh(String updatedKey, String config) {
         // Do nothing
-    }
-
-    @SneakyThrows
-    private String loadFactoryTemplate() {
-        InputStream templateResource = this.getClass().getClassLoader().getResourceAsStream(TEMPLATE_NAME);
-        return IOUtils.toString(templateResource, UTF_8);
     }
 
 }
