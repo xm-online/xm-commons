@@ -1,9 +1,12 @@
 import org.springframework.util.ClassUtils
 
-if (ClassUtils.hasConstructor(lepContext.inArgs.type)) {
-    def ctor = lepContext.inArgs.type.getConstructor();
+Class type = lepContext.inArgs.type
+if (ClassUtils.hasConstructor(type)) {
+    def ctor = type.getConstructor();
     return ctor.newInstance();
 } else {
-    def ctor = lepContext.inArgs.type.getConstructors()[0];
-    return ctor.newInstance(lepContext)
+    def ctor = type.getConstructors()[0];
+    def parameter = ctor.getParameters()[0]
+    def lepContextType = parameter.getType()
+    return ctor.newInstance(lepContextType.cast(lepContext))
 }
