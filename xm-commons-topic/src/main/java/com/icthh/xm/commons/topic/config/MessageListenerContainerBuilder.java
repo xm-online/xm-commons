@@ -46,7 +46,7 @@ public class MessageListenerContainerBuilder {
         ContainerProperties containerProperties = new ContainerProperties(topicConfig.getTopicName());
         containerProperties.setAckMode(MANUAL_IMMEDIATE);
         containerProperties.setMessageListener(new RetryingMessageListenerAdapter<>(
-            new MessageListener(messageHandler, tenantKey, topicConfig, sleuthWrapper),
+            new MessageListener(topicConfig, messageHandler, tenantKey, sleuthWrapper),
             new MessageRetryTemplate(topicConfig),
             new ConsumerRecoveryCallback(tenantKey, topicConfig, kafkaTemplate),
             true
