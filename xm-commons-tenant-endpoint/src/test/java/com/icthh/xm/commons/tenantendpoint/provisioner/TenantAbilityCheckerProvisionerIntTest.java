@@ -5,8 +5,8 @@ import com.icthh.xm.commons.gen.model.Tenant;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
-import com.icthh.xm.commons.tenant.TenantKey;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,7 +39,12 @@ public class TenantAbilityCheckerProvisionerIntTest {
 
     @Before
     public void init() {
-        TenantContextUtils.setTenant(tenantContextHolder, new TenantKey("XM"));
+        TenantContextUtils.setTenant(tenantContextHolder, "XM");
+    }
+
+    @After
+    public void after() {
+        tenantContextHolder.getPrivilegedContext().destroyCurrentContext();
     }
 
     @Test
