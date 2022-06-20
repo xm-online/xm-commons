@@ -21,14 +21,9 @@ public class TenantAbilityCheckerProvisioner implements TenantProvisioner {
 
     private final Set<String> allowedTenants;
 
-    @Autowired
-    public TenantAbilityCheckerProvisioner(final TenantContextHolder tenantContextHolder) {
-        this(tenantContextHolder, Collections.singleton(DEFAULT_TENANT_XM));
-    }
-
     public TenantAbilityCheckerProvisioner(
         final TenantContextHolder tenantContextHolder,
-        @Value("${application.tenant-with-creation-access-list:#{T(java.util.HashSet).of('XM')}}")
+        @Value("${application.tenant-with-creation-access-list:#{T(java.util.Set).of('XM')}}")
         Set<String> allowedTenants
     ) {
         this.tenantContextHolder = tenantContextHolder;
