@@ -18,6 +18,7 @@ import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.domain.TenantState;
+import com.icthh.xm.commons.logging.trace.SleuthWrapper;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.scheduler.domain.ScheduledEvent;
 import com.icthh.xm.commons.scheduler.service.SchedulerEventService;
@@ -49,6 +50,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -85,6 +87,7 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
     private final KafkaExtendedBindingProperties kafkaExtendedBindingProperties = new KafkaExtendedBindingProperties();
     private final Map<String, SubscribableChannel> channels = new ConcurrentHashMap<>();
     private final SchedulerEventService schedulerEventService;
+    private final SleuthWrapper sleuthWrapper;
     private CompositeHealthIndicator bindersHealthIndicator;
     private KafkaBinderHealthIndicator kafkaBinderHealthIndicator;
 
@@ -118,10 +121,12 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
                                    SchedulerEventService schedulerEventService,
                                    CompositeHealthIndicator bindersHealthIndicator,
                                    KafkaBinderHealthIndicator kafkaBinderHealthIndicator,
-                                   XmConfigProperties xmConfigProperties) {
+                                   XmConfigProperties xmConfigProperties,
+                                   SleuthWrapper sleuthWrapper) {
         this.bindingServiceProperties = bindingServiceProperties;
         this.bindingTargetFactory = bindingTargetFactory;
         this.bindingService = bindingService;
+        this.sleuthWrapper = sleuthWrapper;
         this.schedulerEventService = schedulerEventService;
         this.objectMapper = objectMapper;
         this.bindersHealthIndicator = bindersHealthIndicator;
@@ -179,33 +184,38 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
 
             channels.put(chanelName, channel);
 
-            channel.subscribe(message -> {
-                try {
-                    MdcUtils.putRid(MdcUtils.generateRid() + ":" + tenantName);
-                    StopWatch stopWatch = StopWatch.createStarted();
-                    String payloadString = (String) message.getPayload();
-                    payloadString = unwrap(payloadString);
-                    log.debug("start processing message for tenant: [{}], raw body in base64 = {}",
-                              tenantName, payloadString);
-                    String eventBody = new String(Base64.getDecoder().decode(payloadString), UTF_8);
-                    log.info("start processing message for tenant: [{}], body = {}", tenantName, eventBody);
-
-                    schedulerEventService.processSchedulerEvent(mapToEvent(eventBody), tenantName);
-
-                    Optional.ofNullable(message.getHeaders().get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class))
-                            .ifPresent(Acknowledgment::acknowledge);
-
-                    log.info("stop processing message for tenant: [{}], time = {}",
-                             tenantName,
-                             stopWatch.getTime());
-                } catch (Exception e) {
-                    log.error("error processing event for tenant [{}]", tenantName, e);
-                    throw e;
-                } finally {
-                    MdcUtils.clear();
-                }
-            });
+            channel.subscribe(
+                message -> sleuthWrapper.runWithSleuth(
+                    message, () -> processMessage(tenantName, message)));
         }
+    }
+
+    private void processMessage(String tenantName, Message<?> message) {
+        try {
+            MdcUtils.putRid(MdcUtils.generateRid() + ":" + tenantName);
+            StopWatch stopWatch = StopWatch.createStarted();
+            String payloadString = (String) message.getPayload();
+            payloadString = unwrap(payloadString);
+            log.debug("start processing message for tenant: [{}], raw body in base64 = {}",
+                tenantName, payloadString);
+            String eventBody = new String(Base64.getDecoder().decode(payloadString), UTF_8);
+            log.info("start processing message for tenant: [{}], body = {}", tenantName, eventBody);
+
+            schedulerEventService.processSchedulerEvent(mapToEvent(eventBody), tenantName);
+
+            Optional.ofNullable(message.getHeaders().get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class))
+                .ifPresent(Acknowledgment::acknowledge);
+
+            log.info("stop processing message for tenant: [{}], time = {}",
+                tenantName,
+                stopWatch.getTime());
+        } catch (Exception e) {
+            log.error("error processing event for tenant [{}]", tenantName, e);
+            throw e;
+        } finally {
+            MdcUtils.clear();
+        }
+
     }
 
 

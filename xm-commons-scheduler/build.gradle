@@ -24,6 +24,7 @@ dependencies {
     compile project(':xm-commons-tenant')
     compile project(":xm-commons-config")
     compile project(":xm-commons-lep")
+    compile project(":xm-commons-logging-trace")
 
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-json-org'
