@@ -60,7 +60,6 @@ public class TenantAbilityCheckerProvisionerIntTest {
         exception.expectMessage("Only [XM] tenants allowed to create new tenant");
 
         tenantAbilityCheckerProvisioner.createTenant(new Tenant().tenantKey("NEWTENANT"));
-        System.out.println("tenantContextHolder: " + tenantContextHolder.getTenantKey());
         verify(tenantContextHolder).getTenantKey();
 
     }

@@ -4,18 +4,14 @@ import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.gen.model.Tenant;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 @Service
 public class TenantAbilityCheckerProvisioner implements TenantProvisioner {
-
-    private static final String DEFAULT_TENANT_XM = "XM";
 
     private final TenantContextHolder tenantContextHolder;
 
@@ -27,7 +23,7 @@ public class TenantAbilityCheckerProvisioner implements TenantProvisioner {
         Set<String> allowedTenants
     ) {
         this.tenantContextHolder = tenantContextHolder;
-        this.allowedTenants = allowedTenants;
+        this.allowedTenants = Collections.unmodifiableSet(allowedTenants);
     }
 
     @Override
