@@ -5,6 +5,7 @@ import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.lep.spring.ApplicationLepProcessingEvent;
 import com.icthh.xm.commons.lep.spring.LepService;
+import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.lep.api.ContextScopes;
 import com.icthh.xm.lep.api.LepManager;
@@ -23,6 +24,7 @@ import static org.springframework.core.Ordered.LOWEST_PRECEDENCE;
 
 @LepService(group = "service.factory")
 @Order(LOWEST_PRECEDENCE)
+@IgnoreLogginAspect
 public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConfiguration,
         ApplicationListener<ApplicationLepProcessingEvent> {
 
