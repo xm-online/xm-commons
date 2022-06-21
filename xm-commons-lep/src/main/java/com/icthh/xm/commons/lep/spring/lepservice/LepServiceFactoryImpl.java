@@ -34,7 +34,6 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
 
     private final Map<String, Map<Class<?>, Object>> serviceInstances = new ConcurrentHashMap<>();
 
-    @Setter(onMethod = @__(@Autowired))
     private LepServiceFactoryImpl self;
 
     public LepServiceFactoryImpl(XmLepScriptConfigServerResourceLoader resourceLoader,
@@ -90,4 +89,8 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
         // Do nothing
     }
 
+    @Autowired
+    public void setSelf(LepServiceFactoryImpl self) {
+        this.self = self;
+    }
 }
