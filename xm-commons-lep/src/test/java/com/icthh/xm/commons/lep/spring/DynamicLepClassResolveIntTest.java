@@ -2,9 +2,12 @@ package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
+import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryImpl;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.tenant.TenantContext;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
+import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.TenantKey;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import lombok.SneakyThrows;
@@ -22,7 +25,10 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.icthh.xm.commons.config.client.service.TenantAliasService.TENANT_ALIAS_CONFIG;
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_AUTH_CONTEXT;
@@ -54,6 +60,9 @@ public class DynamicLepClassResolveIntTest {
     private XmAuthenticationContext authContext;
 
     @Autowired
+    private TenantContextHolder tenantContextHolder;
+
+    @Autowired
     private DynamicTestLepService testLepService;
 
     @Autowired
@@ -61,6 +70,9 @@ public class DynamicLepClassResolveIntTest {
 
     @Autowired
     private XmLepScriptConfigServerResourceLoader resourceLoader;
+
+    @Autowired
+    private LepServiceFactoryImpl serviceFactoryService;
 
     @Before
     public void init() {
@@ -98,13 +110,20 @@ public class DynamicLepClassResolveIntTest {
         runTest("envCommons", "commons.lep.folder", "commons/lep/folder");
     }
 
+    public void refreshLep(String path, String content) {
+        resourceLoader.onRefresh(path, content);
+        resourceLoader.refreshFinished(List.of(path));
+        serviceFactoryService.onRefresh(path, content);
+        serviceFactoryService.refreshFinished(List.of(path));
+    }
+
     @Test
     @SneakyThrows
     public void testEnumInterfaceAnnotationResolving() {
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
         // this sleep is needed because groovy has debounce time to lep update
         Thread.sleep(100);
-        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
+        refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
                 loadFile("lep/TestEnumInterfaceAnnotationUsage")
         );
         loadDeclarationLep("TestEnumDeclaration");
@@ -119,7 +138,7 @@ public class DynamicLepClassResolveIntTest {
     private void loadDeclarationLep(String testEnumDeclaration) {
         String testClassDeclarationPath = "/config/tenants/TEST/testApp/lep/commons/folder/" + testEnumDeclaration + "$$tenant.groovy";
         String testClassBody = loadFile("lep/" + testEnumDeclaration);
-        resourceLoader.onRefresh(testClassDeclarationPath, testClassBody);
+        refreshLep(testClassDeclarationPath, testClassBody);
     }
 
 
@@ -127,7 +146,7 @@ public class DynamicLepClassResolveIntTest {
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
         // this sleep is needed because groovy has debounce time to lep update
         Thread.sleep(100);
-        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
+        refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
                 loadFile("lep/TestClassUsage")
                         .replace("${package}", packageName)
                         .replace("${suffix}", suffix)
@@ -137,14 +156,14 @@ public class DynamicLepClassResolveIntTest {
                 .replace("${package}", packageName)
                 .replace("${suffix}", suffix)
                 .replace("${value}", "I am class in lep!");
-        resourceLoader.onRefresh(testClassDeclarationPath, testClassBody);
+        refreshLep(testClassDeclarationPath, testClassBody);
 
         String result = testLepService.testLepMethod();
         assertEquals("I am class in lep!", result);
 
         // this sleep is needed because groovy has debounce time to lep update
         Thread.sleep(100);
-        resourceLoader.onRefresh(testClassDeclarationPath,
+        refreshLep(testClassDeclarationPath,
                 loadFile("lep/TestClassDeclaration")
                         .replace("${package}", packageName)
                         .replace("${suffix}", suffix)
@@ -159,7 +178,7 @@ public class DynamicLepClassResolveIntTest {
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
         // this sleep is needed because groovy has debounce time to lep update
         Thread.sleep(100);
-        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
+        refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
                 loadFile("lep/TestLoadClassByName")
                         .replace("${package}", "commons.lep.folder")
                         .replace("${suffix}", "ReloadClass")
@@ -170,12 +189,12 @@ public class DynamicLepClassResolveIntTest {
                 .replace("${package}", "commons.lep.folder")
                 .replace("${suffix}", "ReloadClass")
                 .replace("${value}", "I am class in lep!");
-        resourceLoader.onRefresh(testClassDeclarationPath, testClassBody);
+        refreshLep(testClassDeclarationPath, testClassBody);
 
         String result = testLepService.testLepMethod();
         assertEquals("I am class in lep!", result);
 
-        resourceLoader.onRefresh(testClassDeclarationPath,
+        refreshLep(testClassDeclarationPath,
                 loadFile("lep/TestClassDeclaration")
                         .replace("${package}", "commons.lep.folder")
                         .replace("${suffix}", "ReloadClass")
@@ -184,6 +203,48 @@ public class DynamicLepClassResolveIntTest {
         Thread.sleep(110);
         result = testLepService.testLepMethod();
         assertEquals("I am updated class in lep!", result);
+    }
+
+    @Test
+    @SneakyThrows
+    public void testLepServiceFactory() {
+        TenantContextUtils.setTenant(tenantContextHolder, "TEST");
+        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
+        // this sleep is needed because groovy has debounce time to lep update
+        Thread.sleep(100);
+        refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethodWithInput$$around.groovy",
+                loadFile("lep/TestLepServiceMethod")
+        );
+
+        String testClassDeclarationPath = "/config/tenants/TEST/testApp/lep/commons/TestLepServiceDeclaration$$tenant.groovy";
+        String testClassBody = loadFile("lep/TestLepServiceDeclaration");
+        refreshLep(testClassDeclarationPath, testClassBody);
+
+        AtomicInteger countConstructorCall = new AtomicInteger();
+
+        String result = testLepService.testLepMethod(Map.of(
+                "countConstructorCall", countConstructorCall,
+                "testString", "It_works"
+        ));
+        assertEquals("It_works", result);
+        assertEquals(1, countConstructorCall.get());
+
+        result = testLepService.testLepMethod(Map.of(
+                "countConstructorCall", countConstructorCall,
+                "testString", "New_argument"
+        ));
+        // checks that argument not updated, constructor was not called
+        assertEquals("It_works", result);
+        assertEquals(1, countConstructorCall.get());
+
+        refreshLep(testClassDeclarationPath, testClassBody);
+        result = testLepService.testLepMethod(Map.of(
+                "countConstructorCall", countConstructorCall,
+                "testString", "New_argument"
+        ));
+        // checks service recreated after refresh
+        assertEquals(2, countConstructorCall.get());
+        assertEquals("New_argument", result);
     }
 
     @SneakyThrows
