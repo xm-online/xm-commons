@@ -14,6 +14,7 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 import static org.springframework.kafka.test.utils.KafkaTestUtils.consumerProps;
 import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
 
@@ -24,6 +25,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -31,6 +33,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -72,7 +75,7 @@ public class MessageListenerIntTest {
     @Autowired
     private KafkaProperties kafkaProperties;
 
-    @Autowired
+    @Mock
     private SleuthWrapper sleuthWrapper;
 
     private MessageHandler messageHandler;
@@ -80,6 +83,14 @@ public class MessageListenerIntTest {
     @Before
     public void before() {
         messageHandler = mock(MessageHandler.class);
+        mockSleuth();
+    }
+
+    private void mockSleuth() {
+        doAnswer(invocation -> {
+            ((Runnable) invocation.getArgument(1)).run();
+            return null;
+        }).when(sleuthWrapper).runWithSleuth(any(ConsumerRecord.class), any(Runnable.class));
     }
 
     @SneakyThrows
