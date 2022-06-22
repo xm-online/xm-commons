@@ -14,6 +14,7 @@ import static org.springframework.cloud.stream.binder.kafka.properties.KafkaCons
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
+import com.icthh.xm.commons.logging.trace.SleuthWrapper;
 import com.icthh.xm.commons.scheduler.service.SchedulerEventService;
 import lombok.SneakyThrows;
 import org.junit.Before;
@@ -61,6 +62,8 @@ public class SchedulerChannelManagerUnitTest {
     CompositeHealthIndicator bindersHealthIndicator;
     @Mock
     KafkaBinderHealthIndicator kafkaBinderHealthIndicator;
+    @Mock
+    SleuthWrapper sleuthWrapper;
     @Spy
     XmConfigProperties xmConfigProperties;
 
@@ -174,7 +177,8 @@ public class SchedulerChannelManagerUnitTest {
                                                                           schedulerEventService,
                                                                           bindersHealthIndicator,
                                                                           kafkaBinderHealthIndicator,
-                                                                          xmConfigProperties));
+                                                                          xmConfigProperties,
+                                                                          sleuthWrapper));
 
         doNothing().when(manager).createHandler(any(), any(), any(), any());
 

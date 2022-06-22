@@ -3,6 +3,7 @@ package com.icthh.xm.commons.topic;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.logging.trace.SleuthWrapper;
 import com.icthh.xm.commons.topic.config.MessageListenerContainerBuilder;
 import com.icthh.xm.commons.topic.domain.ConsumerHolder;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
@@ -37,6 +38,7 @@ public class TopicManager implements RefreshableConfiguration {
     private ObjectMapper ymlMapper = new ObjectMapper(new YAMLFactory());
 
     private final String configPath;
+    private final SleuthWrapper sleuthWrapper;
 
     @Getter
     private Map<String, Map<String, ConsumerHolder>> tenantTopicConsumers = new ConcurrentHashMap<>();
@@ -44,10 +46,12 @@ public class TopicManager implements RefreshableConfiguration {
     public TopicManager(@Value("${spring.application.name}") String appName,
                         KafkaProperties kafkaProperties,
                         KafkaTemplate<String, String> kafkaTemplate,
-                        MessageHandler messageHandler) {
+                        MessageHandler messageHandler,
+                        SleuthWrapper sleuthWrapper) {
         this.kafkaProperties = kafkaProperties;
         this.kafkaTemplate = kafkaTemplate;
         this.messageHandler = messageHandler;
+        this.sleuthWrapper = sleuthWrapper;
         this.configPath = "/config/tenants/{tenant}/" + appName + "/topic-consumers.yml";
     }
 
@@ -146,7 +150,7 @@ public class TopicManager implements RefreshableConfiguration {
 
     protected AbstractMessageListenerContainer buildListenerContainer(String tenantKey, TopicConfig topicConfig) {
         return new MessageListenerContainerBuilder(kafkaProperties, kafkaTemplate)
-            .build(tenantKey, topicConfig, messageHandler);
+            .build(tenantKey, topicConfig, messageHandler, sleuthWrapper);
     }
 
     private void stopAllTenantConsumers(String tenantKey,

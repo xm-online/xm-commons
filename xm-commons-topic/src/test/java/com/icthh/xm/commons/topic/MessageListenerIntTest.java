@@ -18,6 +18,7 @@ import static org.springframework.kafka.test.utils.KafkaTestUtils.consumerProps;
 import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
+import com.icthh.xm.commons.logging.trace.SleuthWrapper;
 import com.icthh.xm.commons.topic.message.MessageHandler;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -71,6 +72,9 @@ public class MessageListenerIntTest {
     @Autowired
     private KafkaProperties kafkaProperties;
 
+    @Autowired
+    private SleuthWrapper sleuthWrapper;
+
     private MessageHandler messageHandler;
 
     @Before
@@ -94,7 +98,8 @@ public class MessageListenerIntTest {
         TopicManager topicManager = new TopicManager(APP_NAME,
                                                      kafkaProperties,
                                                      new KafkaTemplate<>(kafkaProducerFactory),
-                                                     messageHandler);
+                                                     messageHandler,
+                                                     sleuthWrapper);
         topicManager.onRefresh(UPDATE_KEY, readConfig(CONFIG));
         Thread.sleep(50); // for rebalance cluster, and avoid message will be consumed by other consumer
 
@@ -136,7 +141,8 @@ public class MessageListenerIntTest {
         TopicManager topicManager = new TopicManager(APP_NAME,
             kafkaProperties,
             null,
-            messageHandler);
+            messageHandler,
+            sleuthWrapper);
         topicManager.onRefresh(UPDATE_KEY, readConfig(TX_CONFIG));
 
         Producer<String, String> producer = createTxProducer();
@@ -169,7 +175,8 @@ public class MessageListenerIntTest {
         TopicManager topicManager = new TopicManager(APP_NAME,
             kafkaProperties,
             null,
-            messageHandler);
+            messageHandler,
+            sleuthWrapper);
         topicManager.onRefresh(UPDATE_KEY, readConfig(TX_RC_CONFIG));
 
         Producer<String, String> producer = createTxProducer();

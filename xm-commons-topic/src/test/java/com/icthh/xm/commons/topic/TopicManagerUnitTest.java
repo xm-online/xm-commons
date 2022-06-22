@@ -10,6 +10,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import com.icthh.xm.commons.logging.trace.SleuthWrapper;
 import com.icthh.xm.commons.topic.domain.ConsumerHolder;
 import com.icthh.xm.commons.topic.message.MessageHandler;
 import lombok.SneakyThrows;
@@ -54,9 +55,12 @@ public class TopicManagerUnitTest {
     @Mock
     private MessageHandler messageHandler;
 
+    @Mock
+    private SleuthWrapper sleuthWrapper;
+
     @Before
     public void setUp() {
-        topicManager = spy(new TopicManager(APP_NAME, kafkaProperties, kafkaTemplate, messageHandler));
+        topicManager = spy(new TopicManager(APP_NAME, kafkaProperties, kafkaTemplate, messageHandler, sleuthWrapper));
         doReturn(container).when(topicManager).buildListenerContainer(any(), any());
     }
 
