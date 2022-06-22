@@ -36,7 +36,7 @@ public class TenantAbilityCheckerProvisionerUnitTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        provisioner = new TenantAbilityCheckerProvisioner(tenantContextHolder);
+        provisioner = new TenantAbilityCheckerProvisioner(tenantContextHolder, Set.of("XM"));
         when(tenantContextHolder.getContext()).thenReturn(tenantContext);
     }
 

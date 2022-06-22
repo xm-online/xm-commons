@@ -11,6 +11,7 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.util.ClassUtils;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -100,7 +101,10 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
                 }
             });
         }
+    }
 
+    @Override
+    public void refreshFinished(Collection<String> paths) {
         if (fullRecompileOnLepUpdate) {
             this.cacheableEngines.forEach(CacheableLepEngine::clearCache);
             scriptResources.forEach((key, value) -> {
