@@ -14,7 +14,6 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
 import static org.springframework.kafka.test.utils.KafkaTestUtils.consumerProps;
 import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
 
@@ -33,17 +32,16 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.messaging.Message;
 import org.springframework.test.context.junit4.SpringRunner;
 import java.util.Map;
 
@@ -75,7 +73,6 @@ public class MessageListenerIntTest {
     @Autowired
     private KafkaProperties kafkaProperties;
 
-    @Mock
     private SleuthWrapper sleuthWrapper;
 
     private MessageHandler messageHandler;
@@ -83,6 +80,7 @@ public class MessageListenerIntTest {
     @Before
     public void before() {
         messageHandler = mock(MessageHandler.class);
+        sleuthWrapper = mock(SleuthWrapper.class);
         mockSleuth();
     }
 
@@ -91,6 +89,10 @@ public class MessageListenerIntTest {
             ((Runnable) invocation.getArgument(1)).run();
             return null;
         }).when(sleuthWrapper).runWithSleuth(any(ConsumerRecord.class), any(Runnable.class));
+        doAnswer(invocation -> {
+            ((Runnable) invocation.getArgument(1)).run();
+            return null;
+        }).when(sleuthWrapper).runWithSleuth(any(Message.class), any(Runnable.class));
     }
 
     @SneakyThrows
