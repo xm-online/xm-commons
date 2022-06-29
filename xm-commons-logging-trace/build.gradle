@@ -1,11 +1,14 @@
 apply plugin: 'io.spring.dependency-management'
 dependencyManagement {
     imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:$versions.springBoot")
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
     }
 }
 
 dependencies {
+    compile project(':xm-commons-lep')
+
     compile "org.slf4j:slf4j-api"
 
     implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
