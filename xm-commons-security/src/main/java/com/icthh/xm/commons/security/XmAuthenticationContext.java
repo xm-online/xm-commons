@@ -1,6 +1,11 @@
 package com.icthh.xm.commons.security;
 
+import org.springframework.security.core.GrantedAuthority;
+
+import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * The {@link XmAuthenticationContext} class.
@@ -130,4 +135,13 @@ public interface XmAuthenticationContext {
      */
     String getAdditionalDetailsValue(String key, String defaultValue);
 
+    String getClientId();
+
+    Set<String> getScope();
+
+    Collection<? extends GrantedAuthority> getAuthorities();
+
+    Set<String> getAuthoritiesSet();
+
+    Map<String, Object> getDecodedDetails();
 }

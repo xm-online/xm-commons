@@ -5,15 +5,26 @@ import com.icthh.xm.commons.security.XmAuthenticationContext;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.RememberMeAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * The {@link SpringSecurityXmAuthenticationContext} class.
@@ -31,6 +42,13 @@ class SpringSecurityXmAuthenticationContext implements XmAuthenticationContext {
 
     private Optional<Authentication> getAuthentication() {
         return Optional.ofNullable(securityContext.getAuthentication());
+    }
+
+    // DO not use this method in LEP! It will be removed in future!
+    private Optional<OAuth2Authentication> getOAuth2Authentication() {
+        return Optional.ofNullable(securityContext.getAuthentication())
+                .filter(it -> it instanceof OAuth2Authentication)
+                .map(it -> (OAuth2Authentication) it);
     }
 
     private Optional<Object> getDetails() {
@@ -226,7 +244,31 @@ class SpringSecurityXmAuthenticationContext implements XmAuthenticationContext {
         return getAdditionalDetailsValue(key).orElse(defaultValue);
     }
 
+    @Override
+    public Map<String, Object> getDecodedDetails() {
+        return  getDetails().map(this::toDecodedDetails).orElseGet(HashMap::new);
+    }
+
     @SuppressWarnings("unchecked")
+    private Map<String, Object> toDecodedDetails(Object details) {
+        if (details instanceof OAuth2AuthenticationDetails) {
+            return Optional.of(details)
+                           .map(OAuth2AuthenticationDetails.class::cast)
+                           .map(OAuth2AuthenticationDetails::getDecodedDetails)
+                           .map(Map.class::cast)
+                           .orElseGet(Collections::emptyMap);
+        } else if (details instanceof WebAuthenticationDetails) {
+            return emptyMap();
+        } else {
+            throw new IllegalStateException("Unsupported auth details type " + details.getClass());
+        }
+    }
+
+    /**
+     * Deprecated - do not use in LEPs!!! Will be removed in future.
+     */
+    @SuppressWarnings("unchecked")
+    @Deprecated(forRemoval = true)
     private Optional<Map<String, Object>> getDetailsMap() {
         return getDetails().flatMap(
                         details -> {
@@ -260,4 +302,42 @@ class SpringSecurityXmAuthenticationContext implements XmAuthenticationContext {
                             }
                         });
     }
+
+    @Override
+    public String getClientId() {
+        return getOAuth2Authentication()
+                .map(OAuth2Authentication::getOAuth2Request)
+                .map(OAuth2Request::getClientId)
+                .orElse(null);
+    }
+
+    @Override
+    public Set<String> getScope() {
+        return getOAuth2Authentication()
+                .map(OAuth2Authentication::getOAuth2Request)
+                .map(OAuth2Request::getScope)
+                .orElse(emptySet());
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return getAuthentication()
+            .map(Authentication::getAuthorities)
+            .orElse(emptyList());
+    }
+
+    @Override
+    public Set<String> getAuthoritiesSet() {
+        return getAuthentication()
+            .map(Authentication::getAuthorities)
+            .map(this::toAuthoritiesSet)
+            .orElse(emptySet());
+    }
+
+    private Set<String> toAuthoritiesSet(Collection<? extends GrantedAuthority> authorities) {
+        return authorities.stream()
+                          .map(GrantedAuthority::getAuthority)
+                          .collect(toSet());
+    }
+
 }
