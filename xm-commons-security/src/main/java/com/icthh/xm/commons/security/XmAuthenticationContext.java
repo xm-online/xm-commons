@@ -135,7 +135,9 @@ public interface XmAuthenticationContext {
      */
     String getAdditionalDetailsValue(String key, String defaultValue);
 
-    String getClientId();
+    Optional<String> getClientId();
+
+    String getRequiredClientId();
 
     Set<String> getScope();
 

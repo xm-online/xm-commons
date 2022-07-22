@@ -304,11 +304,16 @@ class SpringSecurityXmAuthenticationContext implements XmAuthenticationContext {
     }
 
     @Override
-    public String getClientId() {
+    public Optional<String> getClientId() {
         return getOAuth2Authentication()
-                .map(OAuth2Authentication::getOAuth2Request)
-                .map(OAuth2Request::getClientId)
-                .orElse(null);
+            .map(OAuth2Authentication::getOAuth2Request)
+            .map(OAuth2Request::getClientId);
+    }
+
+    @Override
+    public String getRequiredClientId() {
+        return getClientId()
+            .orElseThrow(() -> new IllegalStateException("Can't get clientId from authentication"));
     }
 
     @Override
