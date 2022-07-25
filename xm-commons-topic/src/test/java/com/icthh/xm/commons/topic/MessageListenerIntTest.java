@@ -49,8 +49,9 @@ import java.util.Map;
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
                 classes = {KafkaAutoConfiguration.class})
-@EmbeddedKafka(topics = "kafka-queue", partitions = 1,
+@EmbeddedKafka(topics = "kafka-queue", partitions = 1, controlledShutdown = true,
     brokerProperties = {
+    "log.dir=out/embedded-kafka",
     "transaction.state.log.replication.factor=1",
     "offsets.topic.replication.facto=1",
     "transaction.state.log.min.isr=1"
