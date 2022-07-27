@@ -1,8 +1,5 @@
 package com.icthh.xm.commons.permission.service.rolestrategy;
 
-import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-
 import com.icthh.xm.commons.exceptions.SkipPermissionException;
 import com.icthh.xm.commons.permission.access.ResourceFactory;
 import com.icthh.xm.commons.permission.access.subject.Subject;
@@ -10,19 +7,15 @@ import com.icthh.xm.commons.permission.constants.RoleConstant;
 import com.icthh.xm.commons.permission.domain.EnvironmentVariable;
 import com.icthh.xm.commons.permission.domain.Permission;
 import com.icthh.xm.commons.permission.domain.ReactionStrategy;
+import com.icthh.xm.commons.permission.service.AuthenticationSecurityExpressionMethods;
 import com.icthh.xm.commons.permission.service.PermissionEvaluationContextBuilder;
 import com.icthh.xm.commons.permission.service.PermissionService;
 import com.icthh.xm.commons.permission.service.RoleService;
 import com.icthh.xm.commons.permission.service.translator.SpelTranslator;
-import com.icthh.xm.commons.permission.utils.RequestHeaderUtils;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
-import java.io.Serializable;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -32,11 +25,16 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelNode;
 import org.springframework.expression.spel.standard.SpelExpression;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.provider.expression.OAuth2SecurityExpressionMethods;
 import org.springframework.stereotype.Component;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
+import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -154,7 +152,7 @@ public class SingleRoleStrategy implements RoleStrategy {
             resources.putAll((Map<String, Object>) resource);
         }
         resources.put("subject", getSubject(roleKey));
-        resources.put("oauth2", new OAuth2SecurityExpressionMethods(authentication));
+        resources.put("oauth2", new AuthenticationSecurityExpressionMethods(authentication));
 
         Map<String, String> env = new HashMap<>();
         env.put(EnvironmentVariable.IP.getName(), xmAuthenticationContextHolder

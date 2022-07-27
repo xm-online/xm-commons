@@ -13,7 +13,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.kafka.test.utils.KafkaTestUtils.consumerProps;
 import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
 
@@ -42,6 +42,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.junit4.SpringRunner;
 import java.util.Map;
 
@@ -93,7 +94,7 @@ public class MessageListenerIntTest {
         doAnswer(invocation -> {
             ((Runnable) invocation.getArgument(1)).run();
             return null;
-        }).when(sleuthWrapper).runWithSleuth(any(Message.class), any(Runnable.class));
+        }).when(sleuthWrapper).runWithSleuth(any(Message.class), any(MessageChannel.class), any(Runnable.class));
     }
 
     @SneakyThrows
@@ -160,7 +161,6 @@ public class MessageListenerIntTest {
         topicManager.onRefresh(UPDATE_KEY, readConfig(TX_CONFIG));
 
         Producer<String, String> producer = createTxProducer();
-        producer.initTransactions();
         producer.beginTransaction();
         producer.send(new ProducerRecord<>("kafka-tx-queue", "value1"));
         producer.flush();
@@ -194,19 +194,18 @@ public class MessageListenerIntTest {
         topicManager.onRefresh(UPDATE_KEY, readConfig(TX_RC_CONFIG));
 
         Producer<String, String> producer = createTxProducer();
-        producer.initTransactions();
         producer.beginTransaction();
         producer.send(new ProducerRecord<>("kafka-tx-queue", "value1"));
         producer.flush();
 
         Thread.sleep(1000);
-        verifyZeroInteractions(messageHandler);
+        verifyNoInteractions(messageHandler);
 
         producer.send(new ProducerRecord<>("kafka-tx-queue", "value2"));
         producer.flush();
 
         Thread.sleep(1000);
-        verifyZeroInteractions(messageHandler);
+        verifyNoInteractions(messageHandler);
 
         producer.commitTransaction();
 

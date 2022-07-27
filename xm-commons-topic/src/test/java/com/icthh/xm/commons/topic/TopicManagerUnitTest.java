@@ -125,7 +125,7 @@ public class TopicManagerUnitTest {
         assertTrue(holderMap.containsKey("key3"));
 
         ConsumerHolder consumerHolder = holderMap.get("key2");
-        assertEquals(new Integer(2), consumerHolder.getTopicConfig().getRetriesCount());
+        assertEquals(Integer.valueOf(2), consumerHolder.getTopicConfig().getRetriesCount());
     }
 
     @Test

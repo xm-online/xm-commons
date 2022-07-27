@@ -7,10 +7,11 @@ dependencyManagement {
 }
 
 dependencies {
-    compile project(':xm-commons-lep')
+    api project(':xm-commons-lep')
 
-    compile "org.slf4j:slf4j-api"
+    api "org.slf4j:slf4j-api"
 
+    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
     implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
     compileOnly 'org.springframework.cloud:spring-cloud-stream-binder-kafka'
     compileOnly 'org.springframework.cloud:spring-cloud-stream'

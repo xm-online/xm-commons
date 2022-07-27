@@ -8,21 +8,21 @@ dependencyManagement {
 }
 
 dependencies {
-    compile project(':xm-commons-config')
-    compile project(':xm-commons-lep')
-    compile "org.springframework:spring-context"
+    api project(':xm-commons-config')
+    api project(':xm-commons-lep')
+    api "org.springframework:spring-context"
 
-    compile "org.slf4j:slf4j-api"
-    compile "ch.qos.logback:logback-classic"
+    api "org.slf4j:slf4j-api"
+    api "ch.qos.logback:logback-classic"
 
-    compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
-    compile ("net.logstash.logback:logstash-logback-encoder:${versions.logstashLogbackEncoder}") {
+    api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+    implementation ("net.logstash.logback:logstash-logback-encoder:${versions.logstashLogbackEncoder}") {
         exclude(group: 'ch.qos.logback')
     }
 
-    testCompile "junit:junit"
-    testCompile "org.mockito:mockito-core"
-    testCompile 'org.springframework:spring-test'
-    testCompile "commons-io:commons-io:${versions.commonsIo}"
-    testCompile "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "junit:junit"
+    testImplementation "org.mockito:mockito-core"
+    testImplementation 'org.springframework:spring-test'
+    testImplementation "commons-io:commons-io:${versions.commonsIo}"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
 }

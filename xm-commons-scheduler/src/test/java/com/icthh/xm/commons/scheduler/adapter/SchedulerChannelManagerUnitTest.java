@@ -27,8 +27,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.boot.actuate.health.CompositeHealthIndicator;
-import org.springframework.cloud.stream.binder.kafka.KafkaBinderHealthIndicator;
 import org.springframework.cloud.stream.binder.kafka.KafkaMessageChannelBinder;
 import org.springframework.cloud.stream.binding.BindingService;
 import org.springframework.cloud.stream.binding.SubscribableChannelBindingTargetFactory;
@@ -58,10 +56,6 @@ public class SchedulerChannelManagerUnitTest {
     ObjectMapper objectMapper;
     @Mock
     SchedulerEventService schedulerEventService;
-    @Mock
-    CompositeHealthIndicator bindersHealthIndicator;
-    @Mock
-    KafkaBinderHealthIndicator kafkaBinderHealthIndicator;
     @Mock
     SleuthWrapper sleuthWrapper;
     @Spy
@@ -175,8 +169,6 @@ public class SchedulerChannelManagerUnitTest {
                                                                           kafkaMessageChannelBinder,
                                                                           objectMapper,
                                                                           schedulerEventService,
-                                                                          bindersHealthIndicator,
-                                                                          kafkaBinderHealthIndicator,
                                                                           xmConfigProperties,
                                                                           sleuthWrapper));
 

@@ -63,7 +63,7 @@ public class PrivilegeMapper {
      */
     public Map<String, Set<Privilege>> ymlToPrivileges(String yml) {
         try {
-            Map<String, Set<Privilege>> map = mapper.readValue(yml,
+            var map = mapper.readValue(yml,
                 new TypeReference<TreeMap<String, TreeSet<Privilege>>>() {
                 });
             map.forEach((msName, privileges) -> privileges.forEach(privilege -> privilege.setMsName(msName)));

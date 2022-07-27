@@ -1,23 +1,23 @@
 package com.icthh.xm.commons.timeline.config;
 
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
-
+import com.icthh.xm.commons.security.internal.XmAuthentication;
 import com.icthh.xm.commons.timeline.TimelineEventProducer;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 
 @Slf4j
 @Component
@@ -50,34 +50,34 @@ public class TimelineInterceptor extends HandlerInterceptorAdapter {
             return;
         }
 
-        final OAuth2Authentication auth = getAuthentication();
+        var auth = getAuthentication();
         if (auth == null) {
             String tenant = request.getHeader(HEADER_TENANT);
             produceTimeline(request, response, tenant, null, null);
         } else {
-            Map<String, String> details = getUserDetails(auth);
-            String tenant = details.getOrDefault(AUTH_TENANT_KEY, "");
-            String userKey = details.getOrDefault(AUTH_USER_KEY, "");
-            String userLogin = (String) auth.getPrincipal();
+            Map<String, Object> details = getUserDetails(auth);
+            String tenant = String.valueOf(details.getOrDefault(AUTH_TENANT_KEY, ""));
+            String userKey = String.valueOf(details.getOrDefault(AUTH_USER_KEY, ""));
+            String userLogin = auth.getPrincipal();
             // produce timeline event if enabled
             produceTimeline(request, response, tenant, userLogin, userKey);
         }
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, String> getUserDetails(OAuth2Authentication auth) {
-        Map<String, String> details = null;
+    private Map<String, Object> getUserDetails(XmAuthentication auth) {
+        Map<String, Object> details = null;
         if (auth.getDetails() != null) {
-            details = Map.class.cast(OAuth2AuthenticationDetails.class.cast(auth.getDetails()).getDecodedDetails());
+            details = auth.getDetails().getDecodedDetails();
         }
         details = firstNonNull(details, new HashMap<>());
         return details;
     }
 
-    private static OAuth2Authentication getAuthentication() {
+    private static XmAuthentication getAuthentication() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth instanceof OAuth2Authentication) {
-            return (OAuth2Authentication) SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof XmAuthentication xmAuthentication) {
+            return xmAuthentication;
         }
         return null;
     }

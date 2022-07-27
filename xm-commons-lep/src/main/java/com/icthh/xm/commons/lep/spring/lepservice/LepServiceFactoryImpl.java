@@ -14,6 +14,7 @@ import com.icthh.xm.lep.api.ScopedContext;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 
 import java.util.Collection;
@@ -91,7 +92,7 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
         // Do nothing
     }
 
-    @Autowired
+    @Autowired @Lazy
     public void setSelf(LepServiceFactoryImpl self) {
         this.self = self;
     }

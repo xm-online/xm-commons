@@ -16,7 +16,6 @@ import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.ryantenney.metrics.spring.config.annotation.EnableMetrics;
 import com.ryantenney.metrics.spring.config.annotation.MetricsConfigurerAdapter;
-import io.github.jhipster.config.JHipsterProperties;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.dropwizard.DropwizardExports;
 import java.util.List;
@@ -50,10 +49,13 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
 
     private HealthCheckRegistry healthCheckRegistry = new HealthCheckRegistry();
 
-    private final JHipsterProperties jhipsterProperties;
     private final KafkaAdmin kafkaAdmin;
     private final CollectorRegistry collectorRegistry;
 
+    @Value("${jhipster.metrics.logs.enabled:false}")
+    private Boolean logsEnabled;
+    @Value("${jhipster.metrics.logs.report-frequency:#{null}}")
+    private Integer reportFrequency;
 
     @Value("${spring.jmx.enabled:false}")
     private Boolean jmxEnabled;
@@ -67,9 +69,7 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
     @Value("${management.metrics.export.prometheus.enabled}")
     private Boolean prometheusExportEnabled;
 
-    public MetricsConfiguration(JHipsterProperties jhipsterProperties, KafkaAdmin kafkaAdmin,
-          CollectorRegistry collectorRegistry) {
-        this.jhipsterProperties = jhipsterProperties;
+    public MetricsConfiguration(KafkaAdmin kafkaAdmin, CollectorRegistry collectorRegistry) {
         this.kafkaAdmin = kafkaAdmin;
         this.collectorRegistry = collectorRegistry;
     }
@@ -105,7 +105,7 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
             JmxReporter jmxReporter = JmxReporter.forRegistry(metricRegistry).build();
             jmxReporter.start();
         }
-        if (jhipsterProperties.getMetrics().getLogs().isEnabled()) {
+        if (TRUE.equals(logsEnabled)) {
             log.info("Initializing Metrics Log reporting");
             Marker metricsMarker = MarkerFactory.getMarker("metrics");
             final Slf4jReporter reporter = Slf4jReporter.forRegistry(metricRegistry)
@@ -114,7 +114,7 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
                 .convertRatesTo(TimeUnit.SECONDS)
                 .convertDurationsTo(TimeUnit.MILLISECONDS)
                 .build();
-            reporter.start(jhipsterProperties.getMetrics().getLogs().getReportFrequency(), TimeUnit.SECONDS);
+            reporter.start(reportFrequency, TimeUnit.SECONDS);
         }
 
         if (TRUE.equals(kafkaMetricEnabled)) {

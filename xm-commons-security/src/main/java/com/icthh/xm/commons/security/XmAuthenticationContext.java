@@ -38,7 +38,10 @@ public interface XmAuthenticationContext {
      *
      * @return true if the Authentication authenticated using 'remember me', else false
      */
-    boolean isRememberMe();
+    @Deprecated(forRemoval = true)
+    default boolean isRememberMe() {
+        return false;
+    }
 
     /**
      * Determines if the Authentication authenticated without the use of 'remember me' and not anonymous.
@@ -53,6 +56,16 @@ public interface XmAuthenticationContext {
      * @return login optional
      */
     Optional<String> getLogin();
+
+    Optional<String> getClientId();
+
+    String getRequiredClientId();
+
+    Set<String> getScope();
+
+    Collection<? extends GrantedAuthority> getAuthorities();
+
+    Set<String> getAuthoritiesSet();
 
     /**
      * Return login or throws exception if no Authentication or Authentication sub type not supported.
@@ -134,16 +147,6 @@ public interface XmAuthenticationContext {
      * @return 'details' value or {@code defaultValue}
      */
     String getAdditionalDetailsValue(String key, String defaultValue);
-
-    Optional<String> getClientId();
-
-    String getRequiredClientId();
-
-    Set<String> getScope();
-
-    Collection<? extends GrantedAuthority> getAuthorities();
-
-    Set<String> getAuthoritiesSet();
 
     Map<String, Object> getDecodedDetails();
 }

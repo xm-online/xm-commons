@@ -30,7 +30,7 @@ public class PermissionMappingService {
     public Map<String, Permission> ymlToPermissions(String yml) {
         Map<String, Permission> result = new TreeMap<>();
         try {
-            Map<String, Map<String, Set<Permission>>> permissionMap = deserializeYml(yml);
+            var permissionMap = deserializeYml(yml);
             permissionMap.entrySet().stream()
                 .filter(entry -> permissionMsNameFilter.filterPermission(entry.getKey()))
                 .filter(entry -> entry.getValue() != null)
@@ -52,7 +52,7 @@ public class PermissionMappingService {
     public List<Permission> ymlToPermissionsList(String yml) {
         List<Permission> result = new ArrayList<>();
         try {
-            Map<String, Map<String, Set<Permission>>> map = deserializeYml(yml);
+            var map = deserializeYml(yml);
             map.entrySet().stream()
                 .filter(entry -> permissionMsNameFilter.filterPermission(entry.getKey()))
                 .filter(entry -> entry.getValue() != null)
@@ -71,7 +71,7 @@ public class PermissionMappingService {
         return Collections.unmodifiableList(result);
     }
 
-    private Map<String, Map<String, Set<Permission>>> deserializeYml(String yml) throws java.io.IOException {
+    private Map<String, ? extends Map<String, ? extends  Set<Permission>>> deserializeYml(String yml) throws java.io.IOException {
         return mapper.readValue(yml, new TypeReference<TreeMap<String, TreeMap<String, TreeSet<Permission>>>>() {
         });
     }

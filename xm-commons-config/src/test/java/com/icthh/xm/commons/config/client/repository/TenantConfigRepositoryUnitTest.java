@@ -8,11 +8,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.domain.Configuration;
+import com.icthh.xm.commons.security.internal.XmAuthentication;
+import com.icthh.xm.commons.security.internal.XmAuthenticationDetails;
+import io.jsonwebtoken.Claims;
 import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,11 +31,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -51,14 +55,15 @@ public class TenantConfigRepositoryUnitTest {
     private XmConfigProperties xmConfigProperties;
 
     @Mock
-    OAuth2Authentication authentication;
+    XmAuthentication authentication;
 
     @Before
     public void setUp() {
         when(xmConfigProperties.getXmConfigUrl()).thenReturn(CONFIG_URL);
         repository = new TenantConfigRepository(restTemplate, APP_NAME, xmConfigProperties);
 
-        when(authentication.getDetails()).thenReturn(API_TOKEN);
+        XmAuthenticationDetails details = new XmAuthenticationDetails(mock(Claims.class), mock(HttpServletRequest.class), API_TOKEN);
+        when(authentication.getDetails()).thenReturn(details);
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
     }
 

@@ -6,7 +6,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
@@ -99,11 +99,11 @@ public class TenantDatabaseProvisionerUnitTest {
     @SneakyThrows
     public void testManageTenant() {
         tenantDatabaseProvisioner.manageTenant(TENANT_KEY, TENANT_STATE);
-        verifyZeroInteractions(dataSource);
-        verifyZeroInteractions(connection);
-        verifyZeroInteractions(statement);
-        verifyZeroInteractions(resourceLoader);
-        verifyZeroInteractions(schemaDropResolver);
+        verifyNoInteractions(dataSource);
+        verifyNoInteractions(connection);
+        verifyNoInteractions(statement);
+        verifyNoInteractions(resourceLoader);
+        verifyNoInteractions(schemaDropResolver);
     }
 
     @Test

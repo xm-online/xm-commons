@@ -17,9 +17,9 @@ import java.util.stream.Collectors;
 public class XmConfigProperties {
 
     private Boolean enabled;
-    private String xmConfigUrl;
+    private String xmConfigUrl = "http://config";
     private String tenantConfigPattern;
-    private String kafkaConfigTopic;
+    private String kafkaConfigTopic = "config_topic";
     private Set<String> includeTenants;
 
     public Set<String> getIncludeTenantLowercase() {

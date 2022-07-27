@@ -8,6 +8,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.instrument.messaging.TracingChannelInterceptor;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -39,9 +40,16 @@ public class SleuthWrapper {
         runWithExistingSpan(kafkaSpan, codeToRun);
     }
 
-    public void runWithSleuth(Message<?> message, Runnable codeToRun) {
-        Span messageSpan = tracingChannelInterceptor.nextSpan(message).name(SPAN_NAME_FROM_MESSAGE).start();
-        runWithExistingSpan(messageSpan, codeToRun);
+    public void runWithSleuth(Message<?> message, MessageChannel channel, Runnable codeToRun) {
+        tracingChannelInterceptor.postReceive(message, channel);
+        Exception exceptionFromExecution = null;
+        try {
+            codeToRun.run();
+        } catch (Exception e) {
+            exceptionFromExecution = e;
+        } finally {
+            tracingChannelInterceptor.afterReceiveCompletion(message, channel, exceptionFromExecution);
+        }
     }
 
     private void runWithExistingSpan(Span existingSpan, Runnable codeToRun) {

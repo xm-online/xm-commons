@@ -4,6 +4,8 @@ import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.lep.commons.CommonsExecutor;
 import com.icthh.xm.commons.lep.commons.CommonsService;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
+import com.icthh.xm.commons.security.internal.XmAuthentication;
+import com.icthh.xm.commons.security.internal.XmAuthenticationDetails;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
@@ -21,8 +23,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -37,6 +37,7 @@ import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_
 import static com.icthh.xm.commons.lep.spring.DynamicLepClassResolveIntTest.loadFile;
 import static java.util.Collections.emptySet;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
@@ -68,10 +69,7 @@ public class LepThreadHelperIntTest {
         TenantContextUtils.setTenant(tenantContextHolder, "TEST");
 
         var authorities = List.of(new SimpleGrantedAuthority("SUPER-ADMIN"));
-        var token = new UsernamePasswordAuthenticationToken("xm", "N/A", authorities);
-        var request = new OAuth2Request(Map.of(), "webapp", authorities, true, emptySet(),
-                emptySet(), null, emptySet(), Map.of());
-        OAuth2Authentication auth = new OAuth2Authentication(request, token);
+        XmAuthentication auth = new XmAuthentication(mock(XmAuthenticationDetails.class), "", authorities);
         SecurityContextHolder.setContext(new SecurityContextImpl(auth));
 
         lepManager.beginThreadContext(ctx -> {

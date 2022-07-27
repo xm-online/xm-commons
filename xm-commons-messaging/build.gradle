@@ -6,8 +6,8 @@ dependencyManagement {
 }
 
 dependencies {
-    compile 'com.fasterxml.jackson.core:jackson-databind'
-    compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+    api 'com.fasterxml.jackson.core:jackson-databind'
+    api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
 
-    testCompile 'junit:junit'
+    testImplementation 'junit:junit'
 }

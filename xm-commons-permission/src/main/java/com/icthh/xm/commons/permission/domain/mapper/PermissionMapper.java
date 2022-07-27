@@ -67,7 +67,7 @@ public class PermissionMapper {
     public Map<String, Permission> ymlToPermissions(String yml, String msName) {
         Map<String, Permission> result = new TreeMap<>();
         try {
-            Map<String, Map<String, Set<Permission>>> map = mapper
+            var map = mapper
                 .readValue(yml, new TypeReference<TreeMap<String, TreeMap<String, TreeSet<Permission>>>>() {
                 });
             map.entrySet().stream()

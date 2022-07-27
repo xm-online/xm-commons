@@ -8,7 +8,8 @@ import ch.qos.logback.core.spi.ContextAwareBase;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.experimental.UtilityClass;
-import net.logstash.logback.appender.LogstashSocketAppender;
+import net.logstash.logback.appender.LogstashUdpSocketAppender;
+import net.logstash.logback.layout.LogstashLayout;
 import net.logstash.logback.stacktrace.ShortenedThrowableConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +44,9 @@ public final class LogstashConfigurer {
     private static void addLogstashAppender(LoggerContext context, XmLogstashConfig config) {
         LOGGER.info("Initializing Logstash logging");
 
-        LogstashSocketAppender logstashAppender = new LogstashSocketAppender();
+        LogstashUdpSocketAppender logstashAppender = new LogstashUdpSocketAppender();
+        LogstashLayout layout = new LogstashLayout();
+        logstashAppender.setLayout(layout);
         logstashAppender.setName("LOGSTASH");
         logstashAppender.setContext(context);
         String customFields = "{\"app_name\":\"" + config.getAppName() + "\",\"app_port\":\"" + config.getAppPort()
@@ -52,13 +55,13 @@ public final class LogstashConfigurer {
         // Set the Logstash appender config from JHipster properties
         logstashAppender.setSyslogHost(config.getLogstashHost());
         logstashAppender.setPort(config.getLogstashPort());
-        logstashAppender.setCustomFields(customFields);
+        layout.setCustomFields(customFields);
 
         // Limit the maximum length of the forwarded stacktrace so that it won't exceed the 8KB UDP limit of logstash
         ShortenedThrowableConverter throwableConverter = new ShortenedThrowableConverter();
         throwableConverter.setMaxLength(7500);
         throwableConverter.setRootCauseFirst(true);
-        logstashAppender.setThrowableConverter(throwableConverter);
+        layout.setThrowableConverter(throwableConverter);
 
         logstashAppender.start();
 

@@ -8,13 +8,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -22,9 +18,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * The {@link SpringSecurityXmAuthenticationContext} class.
@@ -40,15 +34,8 @@ class SpringSecurityXmAuthenticationContext implements XmAuthenticationContext {
         this.securityContext = Objects.requireNonNull(securityContext, "securityContext can't be null");
     }
 
-    private Optional<Authentication> getAuthentication() {
+    public Optional<Authentication> getAuthentication() {
         return Optional.ofNullable(securityContext.getAuthentication());
-    }
-
-    // DO not use this method in LEP! It will be removed in future!
-    private Optional<OAuth2Authentication> getOAuth2Authentication() {
-        return Optional.ofNullable(securityContext.getAuthentication())
-                .filter(it -> it instanceof OAuth2Authentication)
-                .map(it -> (OAuth2Authentication) it);
     }
 
     private Optional<Object> getDetails() {
@@ -83,14 +70,6 @@ class SpringSecurityXmAuthenticationContext implements XmAuthenticationContext {
      * {@inheritDoc}
      */
     @Override
-    public boolean isRememberMe() {
-        return getAuthentication().filter(auth -> REMEMBER_ME_AUTH_CLASS.isAssignableFrom(auth.getClass())).isPresent();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public boolean isFullyAuthenticated() {
         return getAuthentication().filter(auth -> !ANONYMOUS_AUTH_CLASS.isAssignableFrom(auth.getClass()) &&
             !REMEMBER_ME_AUTH_CLASS.isAssignableFrom(auth.getClass())).isPresent();
@@ -103,15 +82,46 @@ class SpringSecurityXmAuthenticationContext implements XmAuthenticationContext {
     public Optional<String> getLogin() {
         return getAuthentication().map(auth -> {
             Object principal = auth.getPrincipal();
-            if (principal instanceof UserDetails) {
-                UserDetails springSecurityUser = UserDetails.class.cast(principal);
-                return springSecurityUser.getUsername();
+            if (principal instanceof UserDetails userDetails) {
+                return userDetails.getUsername();
             } else if (principal instanceof String) {
                 return (String) principal;
             }
 
             return null;
         });
+    }
+
+    @Override
+    public Optional<String> getClientId() {
+        return xmAuthenticationDetails().map(XmAuthenticationDetails::getClientId);
+    }
+
+    @Override
+    public String getRequiredClientId() {
+        return getClientId()
+                .orElseThrow(() -> new IllegalStateException("Can't get clientId from authentication"));
+    }
+
+    @Override
+    public Set<String> getScope() {
+        return xmAuthenticationDetails().map(XmAuthenticationDetails::getScope).orElse(emptySet());
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return getAuthentication().map(Authentication::getAuthorities).orElse(emptyList());
+    }
+
+    @Override
+    public Set<String> getAuthoritiesSet() {
+        return xmAuthenticationDetails().map(XmAuthenticationDetails::getAuthorities).orElse(emptySet());
+    }
+
+    // DON'T USE IN LEP
+    private Optional<XmAuthenticationDetails> xmAuthenticationDetails() {
+        return getAuthentication().map(Authentication::getDetails)
+                .filter(it -> it instanceof XmAuthenticationDetails).map(XmAuthenticationDetails.class::cast);
     }
 
     /**
@@ -129,10 +139,10 @@ class SpringSecurityXmAuthenticationContext implements XmAuthenticationContext {
     public Optional<String> getRemoteAddress() {
         return getDetails().flatMap(details -> {
             String address;
-            if (details instanceof OAuth2AuthenticationDetails) {
-                address = OAuth2AuthenticationDetails.class.cast(details).getRemoteAddress();
-            } else if (details instanceof WebAuthenticationDetails) {
-                address = WebAuthenticationDetails.class.cast(details).getRemoteAddress();
+            if (details instanceof XmAuthenticationDetails xmDetails) {
+                address = xmDetails.getRemoteAddress();
+            } else if (details instanceof WebAuthenticationDetails webAuthenticationDetails) {
+                address = webAuthenticationDetails.getRemoteAddress();
             } else {
                 throw new IllegalStateException("Unsupported auth details type " + details.getClass());
             }
@@ -148,10 +158,10 @@ class SpringSecurityXmAuthenticationContext implements XmAuthenticationContext {
     public Optional<String> getSessionId() {
         return getDetails().flatMap(details -> {
             String sessionId;
-            if (details instanceof OAuth2AuthenticationDetails) {
-                sessionId = OAuth2AuthenticationDetails.class.cast(details).getSessionId();
-            } else if (details instanceof WebAuthenticationDetails) {
-                sessionId = WebAuthenticationDetails.class.cast(details).getSessionId();
+            if (details instanceof XmAuthenticationDetails xmDetails) {
+                sessionId = xmDetails.getSessionId();
+            } else if (details instanceof WebAuthenticationDetails webAuthenticationDetails) {
+                sessionId = webAuthenticationDetails.getSessionId();
             } else {
                 throw new IllegalStateException("Unsupported auth details type " + details.getClass());
             }
@@ -184,8 +194,8 @@ class SpringSecurityXmAuthenticationContext implements XmAuthenticationContext {
     public Optional<String> getTokenValue() {
         return getDetails().flatMap(details -> {
             String tokenValue;
-            if (details instanceof OAuth2AuthenticationDetails) {
-                tokenValue = OAuth2AuthenticationDetails.class.cast(details).getTokenValue();
+            if (details instanceof XmAuthenticationDetails xmDetails) {
+                tokenValue = xmDetails.getTokenValue();
             } else {
                 throw new IllegalStateException("Unsupported token auth details type " + details.getClass());
             }
@@ -201,8 +211,8 @@ class SpringSecurityXmAuthenticationContext implements XmAuthenticationContext {
     public Optional<String> getTokenType() {
         return getDetails().flatMap(details -> {
             String tokenType;
-            if (details instanceof OAuth2AuthenticationDetails) {
-                tokenType = OAuth2AuthenticationDetails.class.cast(details).getTokenType();
+            if (details instanceof XmAuthenticationDetails xmDetails) {
+                tokenType = xmDetails.getTokenType();
             } else {
                 throw new IllegalStateException("Unsupported token type auth details type " + details.getClass());
             }
@@ -249,40 +259,22 @@ class SpringSecurityXmAuthenticationContext implements XmAuthenticationContext {
         return  getDetails().map(this::toDecodedDetails).orElseGet(HashMap::new);
     }
 
-    @SuppressWarnings("unchecked")
     private Map<String, Object> toDecodedDetails(Object details) {
-        if (details instanceof OAuth2AuthenticationDetails) {
-            return Optional.of(details)
-                           .map(OAuth2AuthenticationDetails.class::cast)
-                           .map(OAuth2AuthenticationDetails::getDecodedDetails)
-                           .map(Map.class::cast)
-                           .orElseGet(Collections::emptyMap);
+        if (details instanceof XmAuthenticationDetails xmDetails) {
+            return xmDetails.getDecodedDetails();
         } else if (details instanceof WebAuthenticationDetails) {
-            return emptyMap();
+            return null;
         } else {
             throw new IllegalStateException("Unsupported auth details type " + details.getClass());
         }
     }
 
     /**
-     * Deprecated - do not use in LEPs!!! Will be removed in future.
+     * @deprecated use getDecodedDetails instead
      */
-    @SuppressWarnings("unchecked")
     @Deprecated(forRemoval = true)
     private Optional<Map<String, Object>> getDetailsMap() {
-        return getDetails().flatMap(
-                        details -> {
-                            if (details instanceof OAuth2AuthenticationDetails) {
-                                Object decodedDetails = OAuth2AuthenticationDetails.class.cast(
-                                                details).getDecodedDetails();
-                                return Optional.ofNullable((Map<String, Object>) decodedDetails);
-                            } else if (details instanceof WebAuthenticationDetails) {
-                                return Optional.empty();
-                            } else {
-                                throw new IllegalStateException("Unsupported auth details type "
-                                                + details.getClass());
-                            }
-                        });
+        return Optional.of(getDecodedDetails());
     }
 
     private <T> Optional<T> getDetailsValue(String key, Class<T> valueType) {
@@ -302,47 +294,4 @@ class SpringSecurityXmAuthenticationContext implements XmAuthenticationContext {
                             }
                         });
     }
-
-    @Override
-    public Optional<String> getClientId() {
-        return getOAuth2Authentication()
-            .map(OAuth2Authentication::getOAuth2Request)
-            .map(OAuth2Request::getClientId);
-    }
-
-    @Override
-    public String getRequiredClientId() {
-        return getClientId()
-            .orElseThrow(() -> new IllegalStateException("Can't get clientId from authentication"));
-    }
-
-    @Override
-    public Set<String> getScope() {
-        return getOAuth2Authentication()
-                .map(OAuth2Authentication::getOAuth2Request)
-                .map(OAuth2Request::getScope)
-                .orElse(emptySet());
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return getAuthentication()
-            .map(Authentication::getAuthorities)
-            .orElse(emptyList());
-    }
-
-    @Override
-    public Set<String> getAuthoritiesSet() {
-        return getAuthentication()
-            .map(Authentication::getAuthorities)
-            .map(this::toAuthoritiesSet)
-            .orElse(emptySet());
-    }
-
-    private Set<String> toAuthoritiesSet(Collection<? extends GrantedAuthority> authorities) {
-        return authorities.stream()
-                          .map(GrantedAuthority::getAuthority)
-                          .collect(toSet());
-    }
-
 }

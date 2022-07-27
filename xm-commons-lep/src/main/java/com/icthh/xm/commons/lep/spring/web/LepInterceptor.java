@@ -7,6 +7,7 @@ import com.icthh.xm.lep.api.LepManager;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.servlet.AsyncHandlerInterceptor;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import java.io.IOException;
@@ -17,7 +18,7 @@ import javax.servlet.http.HttpServletResponse;
  * The {@link LepInterceptor} class.
  */
 @RequiredArgsConstructor
-public class LepInterceptor extends HandlerInterceptorAdapter {
+public class LepInterceptor implements AsyncHandlerInterceptor {
 
     private final LepManager lepManager;
     private final TenantContextHolder tenantContextHolder;

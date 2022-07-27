@@ -28,8 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.health.CompositeHealthIndicator;
-import org.springframework.boot.actuate.health.HealthIndicatorRegistry;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.stream.annotation.EnableBinding;
@@ -88,8 +86,6 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
     private final Map<String, SubscribableChannel> channels = new ConcurrentHashMap<>();
     private final SchedulerEventService schedulerEventService;
     private final SleuthWrapper sleuthWrapper;
-    private CompositeHealthIndicator bindersHealthIndicator;
-    private KafkaBinderHealthIndicator kafkaBinderHealthIndicator;
 
     private final ObjectMapper objectMapper;
 
@@ -119,8 +115,6 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
                                    KafkaMessageChannelBinder kafkaMessageChannelBinder,
                                    ObjectMapper objectMapper,
                                    SchedulerEventService schedulerEventService,
-                                   CompositeHealthIndicator bindersHealthIndicator,
-                                   KafkaBinderHealthIndicator kafkaBinderHealthIndicator,
                                    XmConfigProperties xmConfigProperties,
                                    SleuthWrapper sleuthWrapper) {
         this.bindingServiceProperties = bindingServiceProperties;
@@ -129,8 +123,6 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
         this.sleuthWrapper = sleuthWrapper;
         this.schedulerEventService = schedulerEventService;
         this.objectMapper = objectMapper;
-        this.bindersHealthIndicator = bindersHealthIndicator;
-        this.kafkaBinderHealthIndicator = kafkaBinderHealthIndicator;
         this.includedTenants = xmConfigProperties.getIncludeTenantLowercase();
         kafkaMessageChannelBinder.setExtendedBindingProperties(kafkaExtendedBindingProperties);
     }
@@ -177,16 +169,10 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
             SubscribableChannel channel = bindingTargetFactory.createInput(chanelName);
             bindingService.bindConsumer(channel, chanelName);
 
-            HealthIndicatorRegistry registry = bindersHealthIndicator.getRegistry();
-            if (registry.get(KAFKA) == null) {
-                bindersHealthIndicator.getRegistry().register(KAFKA, kafkaBinderHealthIndicator);
-            }
-
             channels.put(chanelName, channel);
 
             channel.subscribe(
-                message -> sleuthWrapper.runWithSleuth(
-                    message, () -> processMessage(tenantName, message)));
+                message -> sleuthWrapper.runWithSleuth(message, channel, () -> processMessage(tenantName, message)));
         }
     }
 

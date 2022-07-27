@@ -7,15 +7,16 @@ dependencyManagement {
 }
 dependencies {
 
-    compile project(':xm-commons-tenant')
-    compile project(':xm-commons-config')
-    compile project(':xm-commons-tenant-endpoint')
+    api project(':xm-commons-tenant')
+    api project(':xm-commons-config')
+    api project(':xm-commons-tenant-endpoint')
 
-    compile 'org.slf4j:slf4j-api'
-    compile 'org.liquibase:liquibase-core'
-    compile 'org.springframework:spring-context'
-    compile 'org.hibernate:hibernate-core'
+    api 'org.slf4j:slf4j-api'
+    api 'org.liquibase:liquibase-core'
+    api 'org.springframework:spring-context'
+    api 'org.springframework:spring-orm'
+    api 'org.hibernate:hibernate-core'
 
-    testCompile 'junit:junit'
-    testCompile 'org.mockito:mockito-core'
+    testImplementation 'junit:junit'
+    testImplementation 'org.mockito:mockito-core'
 }
