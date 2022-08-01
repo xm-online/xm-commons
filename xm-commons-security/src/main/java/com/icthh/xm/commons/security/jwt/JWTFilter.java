@@ -43,7 +43,7 @@ public class JWTFilter extends GenericFilterBean {
         if (StringUtils.hasText(bearerToken) && (bearerToken.startsWith("Bearer ") || bearerToken.toUpperCase().startsWith("BEARER "))) {
             String token = bearerToken.substring(7);
             if (StringUtils.hasText(token)) {
-                token = token.trim();
+                token = token.strip();
             }
             return token;
         }
