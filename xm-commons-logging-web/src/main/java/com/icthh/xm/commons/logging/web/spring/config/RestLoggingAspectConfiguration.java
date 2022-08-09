@@ -13,6 +13,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 public class RestLoggingAspectConfiguration {
 
     @Bean
+    @ConditionalOnProperty(value = "aspects.rest-logging", matchIfMissing = true)
     public RestLoggingAspect restLoggingAspect(LoggingConfigService loggingConfigService) {
         return new RestLoggingAspect(loggingConfigService);
     }
