@@ -39,7 +39,6 @@ import static com.icthh.xm.commons.logging.util.LogObjectPrinter.logWithLevel;
  */
 @Slf4j
 @Aspect
-@Component
 @RequiredArgsConstructor
 public class RestLoggingAspect {
 
