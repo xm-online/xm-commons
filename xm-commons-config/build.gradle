@@ -37,6 +37,7 @@ dependencies {
     api 'com.fasterxml.jackson.datatype:jackson-datatype-json-org'
 
     api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+    api "commons-io:commons-io:${versions.commonsIo}"
     api "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
     testImplementation 'junit:junit'

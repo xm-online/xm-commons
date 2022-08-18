@@ -1,23 +1,20 @@
 package com.icthh.xm.commons.security.oauth2;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 /**
  * Client fetching the public key from MS Config to create a SignatureVerifier.
  */
-@Component
+@Slf4j
 public class ConfigVerificationKeyClient implements JwtVerificationKeyClient {
 
-    private final Logger log = LoggerFactory.getLogger(ConfigVerificationKeyClient.class);
     private final RestTemplate restTemplate;
     private final OAuth2Properties oauth2Properties;
 
@@ -41,13 +38,13 @@ public class ConfigVerificationKeyClient implements JwtVerificationKeyClient {
                 HttpMethod.GET, request, byte[].class).getBody();
 
             if (ArrayUtils.isEmpty(content)) {
-                log.info("Public key not fetched");
+                log.warn("Public key not fetched from endpoint: {}", getPublicKeyEndpoint());
                 return null;
             }
 
             return content;
         } catch (IllegalArgumentException ex) {
-            log.warn("Could not contact xm-ms-config to get public key, exception: {}", ex.getMessage());
+            log.error("Could not contact xm-ms-config to get public key, exception: {}", ex.getMessage());
             return null;
         }
     }

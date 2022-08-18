@@ -27,7 +27,7 @@ import java.util.Map;
 public class CommonConfigRepositoryUnitTest {
 
     @InjectMocks
-    private CommonConfigRepository configRepository;
+    private XmMsConfigCommonConfigRepository configRepository;
     @Mock
     private RestTemplate restTemplate;
     @Mock
