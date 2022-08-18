@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.permission.service;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import tech.jhipster.service.filter.Filter;
@@ -21,7 +22,11 @@ public class FilterConverter {
 
     @SuppressWarnings("unchecked")
     public static <T> QueryPart toJpql(T criteria) {
-        return toJpql(BeanMap.create(criteria));
+        BeanMap.Generator gen = new BeanMap.Generator();
+        gen.setBean(criteria);
+        gen.setContextClass(criteria.getClass());
+        BeanMap beanMap = gen.create();
+        return toJpql(beanMap);
     }
 
     private static QueryPart toJpql(Map<String, Filter> filterMap) {
@@ -46,6 +51,9 @@ public class FilterConverter {
         if (filter.getEquals() != null) {
             expressions.add(new Expression(fieldName, Operation.EQUALS, filter.getEquals()));
         }
+        if (filter.getNotEquals() != null) {
+            expressions.add(new Expression(fieldName, Operation.NOT_EQUALS, filter.getNotEquals()));
+        }
         if (filter.getSpecified() != null) {
             Boolean specified = filter.getSpecified();
             expressions.add(new Expression(fieldName,
@@ -55,9 +63,15 @@ public class FilterConverter {
         if (filter.getIn() != null) {
             expressions.add(new Expression(fieldName, Operation.IN, filter.getIn()));
         }
+        if (filter.getNotIn() != null) {
+            expressions.add(new Expression(fieldName, Operation.NOT_IN, filter.getNotIn()));
+        }
 
         if (filter instanceof StringFilter && ((StringFilter) filter).getContains() != null) {
             expressions.add(new Expression(fieldName, Operation.CONTAINS, ((StringFilter) filter).getContains()));
+        }
+        if (filter instanceof StringFilter && ((StringFilter) filter).getDoesNotContain() != null) {
+            expressions.add(new Expression(fieldName, Operation.NOT_CONTAINS, ((StringFilter) filter).getDoesNotContain()));
         }
 
         if (filter instanceof RangeFilter) {
@@ -97,7 +111,7 @@ public class FilterConverter {
      */
     private static String preProcessForeignKeyField(String fieldName) {
         if (fieldName.endsWith("Id")) {
-            return fieldName.replaceFirst("Id$", "_id");
+            return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, fieldName);
         }
         return fieldName;
     }
@@ -177,10 +191,13 @@ public class FilterConverter {
     public enum Operation {
 
         EQUALS(" = ", true),
+        NOT_EQUALS(" <> ", true),
         SPECIFIED(" is not null ", false),
         NOT_SPECIFIED(" is null ", false),
         IN(" in ", true),
+        NOT_IN(" not in ", true),
         CONTAINS(" like ", true),
+        NOT_CONTAINS(" not like ", true),
         GREATER_THAN(" > ", true),
         LESS_THAN(" < ", true),
         GREATER_OR_EQ_THAN(" >= ", true),
