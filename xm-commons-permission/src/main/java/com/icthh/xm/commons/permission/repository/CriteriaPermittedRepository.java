@@ -51,4 +51,23 @@ public class CriteriaPermittedRepository {
         }
         return result;
     }
+
+    public <T> long countByCondition(final Class<T> type,
+                                     final Object criteria,
+                                     final String privilegeKey) {
+        FilterConverter.QueryPart queryPart = FilterConverter.toJpql(criteria);
+
+        long result;
+        if (queryPart.isEmpty()) {
+            result = permittedRepository.count(type, privilegeKey);
+        } else {
+            log.debug("find with condition: {}", queryPart);
+            result = permittedRepository.countByCondition(queryPart.getQuery().toString(),
+                    queryPart.getParams(),
+                    type,
+                    privilegeKey);
+        }
+        return result;
+    }
+
 }

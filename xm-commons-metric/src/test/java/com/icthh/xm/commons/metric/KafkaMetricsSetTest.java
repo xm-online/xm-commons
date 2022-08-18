@@ -7,7 +7,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.core.KafkaAdmin;
-import org.springframework.kafka.test.rule.KafkaEmbedded;
+import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.HashMap;
@@ -25,7 +25,7 @@ public class KafkaMetricsSetTest {
     @MockBean
     private KafkaAdmin kafkaAdmin;
 
-    private static KafkaEmbedded kafkaEmbedded;
+    private static EmbeddedKafkaRule kafkaEmbedded;
 
     private Map<String, Object> mockConfig = new HashMap<>();
 
@@ -33,10 +33,10 @@ public class KafkaMetricsSetTest {
     @SneakyThrows
     public void setup() {
         if (Objects.isNull(kafkaEmbedded)) {
-            kafkaEmbedded = new KafkaEmbedded(1,
+            kafkaEmbedded = new EmbeddedKafkaRule(1,
                 true,
                 "test_topic1", "test_topic2", "test_topic3");
-            kafkaEmbedded.setKafkaPorts(9092);
+            kafkaEmbedded.kafkaPorts(9092);
         }
         kafkaEmbedded.before();
     }
@@ -56,7 +56,7 @@ public class KafkaMetricsSetTest {
     @SneakyThrows
     public void connectionToKafkaTopicsIsNotSuccess() {
         KafkaMetricsSet kafkaMetricsSet = initKafkaMetricSet();
-        kafkaEmbedded.destroy();
+        kafkaEmbedded.after();
         assertFalse(kafkaMetricsSet.connectionToKafkaTopicsIsSuccess());
     }
 
@@ -68,13 +68,13 @@ public class KafkaMetricsSetTest {
 
     private KafkaMetricsSet initKafkaMetricSet() {
         mockConfig.put("bootstrap.servers", "localhost:9092");
-        when(kafkaAdmin.getConfig()).thenReturn(mockConfig);
+        when(kafkaAdmin.getConfigurationProperties()).thenReturn(mockConfig);
         return new KafkaMetricsSet(kafkaAdmin, 1000, asList("test_topic1", "test_topic2"));
     }
 
     private KafkaMetricsSet initNotExistTopic() {
         mockConfig.put("bootstrap.servers", "localhost:9092");
-        when(kafkaAdmin.getConfig()).thenReturn(mockConfig);
+        when(kafkaAdmin.getConfigurationProperties()).thenReturn(mockConfig);
         return new KafkaMetricsSet(kafkaAdmin,
             1000,
             asList("test_topic1", "test_topic2", "test_topic6"));

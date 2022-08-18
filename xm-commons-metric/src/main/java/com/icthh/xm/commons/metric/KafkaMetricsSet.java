@@ -44,7 +44,7 @@ public class KafkaMetricsSet implements MetricSet {
             StopWatch executionTime = StopWatch.createStarted();
             DescribeTopicsOptions describeTopicsOptions = new DescribeTopicsOptions().timeoutMs(
                 connectionTimeoutTopic);
-            try (AdminClient adminClient = AdminClient.create(kafkaAdmin.getConfig())) {
+            try (AdminClient adminClient = AdminClient.create(kafkaAdmin.getConfigurationProperties())) {
                 try {
                     DescribeTopicsResult describeTopicsResult = adminClient.describeTopics(
                         metricTopics,

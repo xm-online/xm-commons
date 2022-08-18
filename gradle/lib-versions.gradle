@@ -1,39 +1,44 @@
 ext.versions = [
-    gradle                     : '5.6.4',
-    grgit                      : '2.0.0',
-    sonarqube                  : '2.8',
-    checkstyle                 : '7.6.1',
-    spotbug                   : '3.1.12',
-    pmd                        : '5.5.4',
+    gradle                     : '7.4.2',
+    grgit                      : '2.0.0', //TODO choose correct version
+    sonarqube                  : '4.29',
+    checkstyle                 : '10.3.1',
+    spotbug                    : '5.0.9',
+    spotbugToolVersion         : '4.7.1',
+    pmd                        : '6.47.0',
 
-    equalsverifier             : '3.1.10',
-    commonsLang3               : '3.8.1',
-    commonsCodec               : '1.11',
-    commonsIo                  : '2.6',
+    equalsverifier             : '3.10',
+    commonsLang3               : '3.12.0',
+    commonsCodec               : '1.15',
+    commonsIo                  : '2.11.0',
     commonsCollections         : '3.2.2',
-    commonsText                : '1.6',
+    commonsText                : '1.9',
+    guava                      : '29.0-jre',
 
-    springBoot                 : '2.1.10.RELEASE',
-    springCloud                : 'Greenwich.SR3',
-    springSecurityOAuth2       : '2.3.7.RELEASE',
-    springSecurityJwt          : '1.0.11.RELEASE',
-    springData                 : '2.1.12.RELEASE',
-    springMetrics              : '3.1.3',
+    springBoot                 : '2.6.6',
+    springCloud                : '2021.0.3',
+    springSecurityOAuth2       : '2.3.7.RELEASE', // migrate to simple JWT
+    springSecurityJwt          : '1.0.11.RELEASE', // migrate to simple JWT
+    springMetrics              : '3.1.3', // TODO check is it need and remove this
 
     lep                        : '0.2.0',
     jsr305                     : '3.0.2',
 
-    jhipster                   : '3.0.7',
-    lombok                     : '1.18.10',
-    logstashLogbackEncoder     : '6.2',
+    jhipster                   : '7.8.1',
+    lombok                     : '1.18.24',
+    logstashLogbackEncoder     : '7.2',
 
     propdepsPlugin             : '0.0.7',
 
-    swaggerCodegen             : '2.4.9',
-    springfoxSwagger           : '2.9.2',
-    reflections                : '0.9.11',
+    swaggerCodegen             : '2.4.27',
+    springfoxSwagger           : '3.0.0',
+    reflections                : '0.10.2',
+    hibernateValidation        : '6.2.3.Final',
+    javaxEl                    : '3.0.0',
 
-    systemRules                : '1.16.0',
+    systemRules                : '1.19.0',
 
-    hibernate                  : '5.3.13.Final'
+    hibernate                  : '5.6.7.Final',
+
+    jjwt                       : '0.11.2'
 ]

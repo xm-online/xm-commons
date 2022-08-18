@@ -19,8 +19,11 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.listener.SeekToCurrentErrorHandler;
 import org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter;
+import org.springframework.util.backoff.FixedBackOff;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
@@ -54,7 +57,7 @@ public class MessageListenerContainerBuilder {
 
         ConcurrentMessageListenerContainer<String, String> container =
               new ConcurrentMessageListenerContainer<>(kafkaConsumerFactory, containerProperties);
-        container.setErrorHandler(new SeekToCurrentErrorHandler(topicConfig.getRetriesCount() + 1));
+        container.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(topicConfig.getBackOffPeriod(), topicConfig.getRetriesCount() + 1)));
         return container;
     }
 

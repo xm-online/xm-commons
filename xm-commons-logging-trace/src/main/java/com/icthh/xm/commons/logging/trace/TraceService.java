@@ -1,13 +1,14 @@
 package com.icthh.xm.commons.logging.trace;
 
-import brave.spring.web.TracingClientHttpRequestInterceptor;
 import com.icthh.xm.commons.lep.spring.ApplicationLepProcessingEvent;
 import com.icthh.xm.lep.api.ContextScopes;
 import com.icthh.xm.lep.api.LepManager;
 import com.icthh.xm.lep.api.LepProcessingEvent;
 import com.icthh.xm.lep.api.ScopedContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cloud.sleuth.instrument.web.mvc.TracingClientHttpRequestInterceptor;
 import org.springframework.context.ApplicationListener;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -25,7 +26,7 @@ public class TraceService implements ApplicationListener<ApplicationLepProcessin
         }
     }
 
-    public TracingClientHttpRequestInterceptor getTraceInterceptor() {
+    public ClientHttpRequestInterceptor getTraceInterceptor() {
         return tracingClientHttpRequestInterceptor;
     }
 }

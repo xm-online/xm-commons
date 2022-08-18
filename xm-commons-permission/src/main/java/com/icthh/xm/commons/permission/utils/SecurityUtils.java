@@ -1,19 +1,19 @@
 package com.icthh.xm.commons.permission.utils;
 
-import static java.lang.String.format;
-import static java.util.Objects.isNull;
-import static java.util.Optional.of;
-import static java.util.Optional.ofNullable;
+import com.icthh.xm.commons.security.internal.XmAuthenticationDetails;
+import lombok.experimental.UtilityClass;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import lombok.experimental.UtilityClass;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import static java.lang.String.format;
+import static java.util.Objects.isNull;
+import static java.util.Optional.of;
+import static java.util.Optional.ofNullable;
 
 @UtilityClass
 public class SecurityUtils {
@@ -54,12 +54,10 @@ public class SecurityUtils {
     }
 
     private static Map<?, ?> toDetailsMap(final Object details) {
-        if (details instanceof OAuth2AuthenticationDetails) {
+        if (details instanceof XmAuthenticationDetails) {
             return of(details)
-                .map(OAuth2AuthenticationDetails.class::cast)
-                .map(OAuth2AuthenticationDetails::getDecodedDetails)
-                .filter(Map.class::isInstance)
-                .map(Map.class::cast)
+                .map(XmAuthenticationDetails.class::cast)
+                .map(XmAuthenticationDetails::getDecodedDetails)
                 .orElseGet(Collections::emptyMap);
         } else if (details instanceof WebAuthenticationDetails) {
             return Collections.emptyMap();

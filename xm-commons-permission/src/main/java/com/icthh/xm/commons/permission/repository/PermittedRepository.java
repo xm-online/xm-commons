@@ -1,10 +1,8 @@
 package com.icthh.xm.commons.permission.repository;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.icthh.xm.commons.permission.service.PermissionCheckService;
 import com.icthh.xm.commons.permission.service.translator.SpelToJpqlTranslator;
 import lombok.AccessLevel;
@@ -47,7 +45,6 @@ public class PermittedRepository {
     private final PermissionCheckService permissionCheckService;
 
     @Setter(AccessLevel.PACKAGE)
-    @VisibleForTesting
     @PersistenceContext
     private EntityManager em;
 
@@ -84,6 +81,16 @@ public class PermittedRepository {
         log.debug("Executing SQL '{}'", selectSql);
 
         return execute(createCountQuery(countSql), pageable, createSelectQuery(selectSql, pageable, entityClass));
+    }
+
+    public <T> long count(Class<T> entityClass, String privilegeKey) {
+        String countSql = format(COUNT_ALL_SQL, entityClass.getSimpleName());
+        String orChainedPermittedCondition = createPermissionCondition(privilegeKey);
+        if (isNotEmpty(orChainedPermittedCondition)) {
+            countSql += WHERE_SQL + orChainedPermittedCondition;
+        }
+        log.debug("Executing SQL '{}'", countSql);
+        return executeCountQuery(createCountQuery(countSql));
     }
 
     /**
@@ -164,6 +171,26 @@ public class PermittedRepository {
         log.debug("Executing SQL '{}' with params '{}'", selectQuery, conditionParams);
 
         return execute(countQuery, pageable, selectQuery);
+    }
+
+    public <T> long countByCondition(String whereCondition,
+                                       Map<String, Object> conditionParams,
+                                       Class<T> entityClass,
+                                       String privilegeKey) {
+        String countSql = format(COUNT_ALL_SQL, entityClass.getSimpleName());
+        countSql += WHERE_SQL + whereCondition;
+        String orChainedPermittedCondition = createPermissionCondition(privilegeKey);
+
+        if (isNotEmpty(orChainedPermittedCondition)) {
+            countSql += AND_SQL + orChainedPermittedCondition;
+        }
+
+        TypedQuery<Long> countQuery = createCountQuery(countSql);
+        conditionParams.forEach(countQuery::setParameter);
+
+        log.debug("Executing SQL '{}' with params '{}'", countQuery, conditionParams);
+
+        return executeCountQuery(countQuery);
     }
 
     protected <T> TypedQuery<T> createSelectQuery(String selectSql, Pageable pageable, Class<T> entityClass) {

@@ -8,7 +8,7 @@ buildscript {
     }
 }
 
-apply plugin: 'propdeps'
+//apply plugin: 'propdeps'
 apply plugin: 'io.spring.dependency-management'
 
 dependencyManagement {
@@ -18,27 +18,27 @@ dependencyManagement {
 }
 
 dependencies {
-    optional("org.springframework.boot:spring-boot-configuration-processor") {
+    implementation("org.springframework.boot:spring-boot-configuration-processor") {
         exclude group: 'com.vaadin.external.google', module: 'android-json'
     }
 
-    compile project(":xm-commons-logging")
-    compile project(":xm-commons-security")
+    api project(":xm-commons-logging")
+    api project(":xm-commons-security")
     compileOnly 'javax.servlet:javax.servlet-api'
 
-    compile 'org.slf4j:slf4j-api'
-    compile "commons-collections:commons-collections:${versions.commonsCollections}"
-    compile 'com.jayway.jsonpath:json-path'
-    compile 'org.springframework.kafka:spring-kafka'
-    compile 'com.fasterxml.jackson.datatype:jackson-datatype-json-org'
+    api 'org.slf4j:slf4j-api'
+    api "commons-collections:commons-collections:${versions.commonsCollections}"
+    api 'com.jayway.jsonpath:json-path'
+    api 'org.springframework.kafka:spring-kafka'
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-json-org'
 
-    compile("org.springframework.boot:spring-boot-starter-web") {
+    implementation("org.springframework.boot:spring-boot-starter-web") {
         exclude module: 'spring-boot-starter-tomcat'
     }
 
-    testCompile 'junit:junit'
-    testCompile 'org.mockito:mockito-core'
-    testCompile 'javax.servlet:javax.servlet-api'
+    testImplementation 'junit:junit'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'javax.servlet:javax.servlet-api'
 }
 
 compileJava.dependsOn(processResources)

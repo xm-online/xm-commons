@@ -2,6 +2,7 @@ package com.icthh.xm.commons.logging.aop;
 
 import com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
+import com.icthh.xm.commons.logging.util.BasePackageDetector;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ public class ServiceLoggingAspect {
     private static final String LOG_ERROR_PATTERN = "srv:stop:  {}, error: {}, time = {} ms";
 
     private final LoggingConfigService loggingConfigService;
+    private final BasePackageDetector basePackageDetector;
 
     @Value("${base-package:'-'}")
     private String basePackage;
@@ -93,7 +95,8 @@ public class ServiceLoggingAspect {
     }
 
     private boolean withLogging(String className) {
-        return className.startsWith(XM_BASE_PACKAGE) || className.startsWith(basePackage);
+        String detectedBasePackage = basePackageDetector.getBasePackage();
+        return className.startsWith(XM_BASE_PACKAGE) || className.startsWith(basePackage) || className.startsWith(detectedBasePackage);
     }
 
 

@@ -2,7 +2,7 @@ package com.icthh.xm.commons.web.spring.config;
 
 import com.icthh.xm.commons.logging.LogstashConfigurer;
 import com.icthh.xm.commons.logging.LogstashConfigurer.XmLogstashConfig;
-import io.github.jhipster.config.JHipsterProperties;
+import tech.jhipster.config.JHipsterProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 

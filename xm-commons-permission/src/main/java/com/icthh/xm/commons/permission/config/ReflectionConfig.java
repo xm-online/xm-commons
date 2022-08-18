@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.permission.config;
 
+import com.icthh.xm.commons.logging.util.BasePackageDetector;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
@@ -14,8 +15,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ReflectionConfig {
 
-    @Value("${base-package:com.icthh.xm}")
-    private String scanPackage;
+    private final String scanPackage;
+
+    public ReflectionConfig(BasePackageDetector basePackageDetector, @Value("${base-package:'-'}") String scanPackage) {
+        if (scanPackage.equals("'-'")) {
+            this.scanPackage = basePackageDetector.getBasePackage();
+        } else {
+            this.scanPackage = scanPackage;
+        }
+    }
 
     /**
      * {@link Reflections} bean.

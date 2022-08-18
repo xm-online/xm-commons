@@ -7,24 +7,25 @@ dependencyManagement {
 }
 
 dependencies {
-    compile project(':xm-commons-exceptions')
-    compile project(':xm-commons-config')
+    api project(':xm-commons-exceptions')
+    api project(':xm-commons-config')
 
     compileOnly 'javax.servlet:javax.servlet-api'
 
-    compile 'org.slf4j:slf4j-api'
-    compile('org.springframework.boot:spring-boot-starter-web') {
+    api 'org.slf4j:slf4j-api'
+    implementation('org.springframework.boot:spring-boot-starter-web') {
         exclude module: 'spring-boot-starter-tomcat'
     }
-    compile 'org.springframework:spring-tx'
-    compile 'org.springframework.security:spring-security-core'
-    compile 'org.glassfish:javax.el'
-    compile 'com.jayway.jsonpath:json-path'
-    compile "org.apache.commons:commons-text:${versions.commonsText}"
+    api 'org.springframework:spring-tx'
+    api 'org.springframework.security:spring-security-core'
+    api "org.glassfish:javax.el:${versions.javaxEl}" // TODO check it's need for test or real need in microservice
+    api "org.hibernate.validator:hibernate-validator:${versions.hibernateValidation}"
+    api 'com.jayway.jsonpath:json-path'
+    api "org.apache.commons:commons-text:${versions.commonsText}"
 
-    testCompile 'javax.servlet:javax.servlet-api'
-    testCompile 'junit:junit'
-    testCompile 'org.mockito:mockito-core'
-    testCompile 'org.springframework:spring-test'
-    testCompile "commons-io:commons-io:${versions.commonsIo}"
+    testImplementation 'javax.servlet:javax.servlet-api'
+    testImplementation 'junit:junit'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.springframework:spring-test'
+    testImplementation "commons-io:commons-io:${versions.commonsIo}"
 }

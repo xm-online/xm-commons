@@ -20,14 +20,17 @@ import javax.persistence.EntityManager;
 import javax.persistence.Subgraph;
 import javax.persistence.TypedQuery;
 import java.util.Collections;
+import java.util.List;
 
-import static com.google.common.collect.ImmutableSet.of;
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PermittedRepositoryUnitTest {
@@ -69,7 +72,7 @@ public class PermittedRepositoryUnitTest {
             "a = :b",
             Collections.singletonMap("b", "bbb"),
             null,
-            PageRequest.of(5, 10, new Sort(Sort.DEFAULT_DIRECTION, "d")),
+            PageRequest.of(5, 10, Sort.by(Sort.DEFAULT_DIRECTION, "d")),
             TestEntity.class,
             "TEST"
         );
@@ -101,8 +104,8 @@ public class PermittedRepositoryUnitTest {
         Page<TestEntity> result = repository.findByCondition(
             "a = :b",
             Collections.singletonMap("b", "bbb"),
-            of("c", "d.e"),
-            PageRequest.of(5, 10, new Sort(Sort.DEFAULT_DIRECTION, "d")),
+            List.of("c", "d.e"),
+            PageRequest.of(5, 10, Sort.by(Sort.DEFAULT_DIRECTION, "d")),
             TestEntity.class,
             "TEST"
         );

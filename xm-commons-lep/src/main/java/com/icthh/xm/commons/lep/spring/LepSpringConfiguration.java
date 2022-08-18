@@ -76,7 +76,7 @@ public abstract class LepSpringConfiguration {
 
     @Bean
     @Scope(SCOPE_SINGLETON)
-    protected LepManager lepManager() {
+    public LepManager lepManager() {
         return new SpringLepManager(extensionService(),
             lepExecutor(),
             applicationLepProcessingEventPublisher(),

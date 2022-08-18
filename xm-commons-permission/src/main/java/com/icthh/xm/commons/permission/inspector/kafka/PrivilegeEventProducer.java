@@ -35,7 +35,7 @@ public class PrivilegeEventProducer {
     @Value("${spring.application.name}")
     private String appName;
 
-    @Value("${application.kafka-system-queue}")
+    @Value("${application.kafka-system-queue:'system_queue'}")
     private String topicName;
 
     /**

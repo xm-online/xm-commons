@@ -2,6 +2,7 @@ package com.icthh.xm.commons.logging.web.aop;
 
 import com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
+import com.icthh.xm.commons.logging.util.BasePackageDetector;
 import com.icthh.xm.commons.logging.util.LogObjectPrinter;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.logging.web.util.WebLogObjectPrinter;
@@ -47,12 +48,14 @@ public class RestLoggingAspect {
     private static final String LOG_ERROR_PATTERN = "STOP  {} : {} --> {}, error: {}, time = {} ms";
 
     private final LoggingConfigService loggingConfigService;
+    private final BasePackageDetector basePackageDetector;
 
     @Value("${base-package:'-'}")
     private String basePackage;
 
     private boolean withLogging(String className) {
-        return className.startsWith(XM_BASE_PACKAGE) || className.startsWith(basePackage);
+        String detectedBasePackage = basePackageDetector.getBasePackage();
+        return className.startsWith(XM_BASE_PACKAGE) || className.startsWith(basePackage) || className.startsWith(detectedBasePackage);
     }
 
     @SuppressWarnings("squid:S1186") //suppress enpty method warning

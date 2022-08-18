@@ -6,7 +6,7 @@ import static com.icthh.xm.commons.tenantendpoint.provisioner.TenantConfigProvis
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.icthh.xm.commons.config.client.repository.TenantConfigRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
@@ -68,7 +68,7 @@ public class TenantConfigProvisionerUnitTest {
     @Test
     public void manageTenant() {
         tenantConfigProvisioner.manageTenant(TENANT_KEY, "SUSPEND");
-        verifyZeroInteractions(tenantConfigRepository);
+        verifyNoInteractions(tenantConfigRepository);
     }
 
     @Test
@@ -83,7 +83,7 @@ public class TenantConfigProvisionerUnitTest {
         tenantConfigProvisioner.createTenant(new Tenant().tenantKey(TENANT_KEY));
         tenantConfigProvisioner.manageTenant(TENANT_KEY, "SUSPEND");
         tenantConfigProvisioner.deleteTenant(TENANT_KEY);
-        verifyZeroInteractions(tenantConfigRepository);
+        verifyNoInteractions(tenantConfigRepository);
     }
 
     @Test

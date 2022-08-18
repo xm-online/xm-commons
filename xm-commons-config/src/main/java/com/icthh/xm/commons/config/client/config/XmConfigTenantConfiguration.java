@@ -20,7 +20,7 @@ import org.springframework.web.client.RestTemplate;
 @Import({
     XmRestTemplateConfiguration.class
 })
-@ConditionalOnExpression("${xm-config.enabled} && ${tenant.reject-suspended:true}")
+@ConditionalOnExpression("${xm-config.enabled}")
 public class XmConfigTenantConfiguration {
 
     @Bean

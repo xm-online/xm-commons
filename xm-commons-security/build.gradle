@@ -1,19 +1,22 @@
 apply plugin: 'io.spring.dependency-management'
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.boot:spring-boot-dependencies:$versions.springBoot")
+        mavenBom("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}")
     }
 }
 
 dependencies {
-    compileOnly "javax.servlet:javax.servlet-api"
+    api "javax.servlet:javax.servlet-api"
 
-    compile project(":xm-commons-logging-web")
+    api project(":xm-commons-logging-web")
+    api 'org.springframework.security:spring-security-config'
+    api 'org.springframework.security:spring-security-web'
 
-    compile "org.springframework:spring-context"
-    compile "org.springframework.security:spring-security-jwt:${versions.springSecurityJwt}"
-    compile "org.springframework.security.oauth:spring-security-oauth2:${versions.springSecurityOAuth2}"
+    api "io.jsonwebtoken:jjwt-api:${versions.jjwt}"
+    api "io.jsonwebtoken:jjwt-impl:${versions.jjwt}"
+    api "io.jsonwebtoken:jjwt-jackson:${versions.jjwt}"
 
-    testCompile "junit:junit"
-    testCompile "org.mockito:mockito-core"
+    testImplementation "junit:junit"
+    testImplementation "org.mockito:mockito-core"
+    testImplementation 'org.springframework:spring-test'
 }
