@@ -144,8 +144,8 @@ subprojects {
         required {
             isRelease(project) && gradle.taskGraph.hasTask("publish")
         }
-        //sign configurations.archives
-        sign publishing.publications.mavenJava
+        sign configurations.archives
+        //sign publishing.publications.mavenJava
     }
 
     checkstyle {
