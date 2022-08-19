@@ -142,9 +142,10 @@ subprojects {
         // Because we are inspecting the task graph to determine if we are going to be publishing,
         // we must set the signing.required property to a closure to defer the evaluation
         required {
-            isRelease(project) && gradle.taskGraph.hasTask("uploadArchives")
+            isRelease(project) && gradle.taskGraph.hasTask("publish")
         }
-        sign configurations.archives
+        //sign configurations.archives
+        sign publishing.publications.mavenJava
     }
 
     checkstyle {
@@ -211,6 +212,9 @@ subprojects {
                 mavenJava(MavenPublication) {
                     from components.java
 
+                    artifact javadocJar
+                    artifact sourcesJar
+
                     versionMapping {
                         usage('java-api') {
                             fromResolutionOf('runtimeClasspath')
@@ -237,6 +241,30 @@ subprojects {
                             license {
                                 name = 'The Apache License, Version 2.0'
                                 url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            }
+                        }
+
+                        developers {
+                            developer {
+                                id  = 'vkyrychenko'
+                                name = 'Vitalii Kyrychenko'
+                                email = 'vitalii.kyrychenko@jevera.software'
+                            }
+
+                            developer {
+                                id = 'amedvedchuk'
+                                name = 'Anatoliy Medvedchuk'
+                            }
+
+                            developer {
+                                id = 'ishkurko'
+                                name = 'Igor Shkurko'
+                                email = 'ishkurko@icthh.com'
+                            }
+
+                            developer {
+                                id = 'ssenko'
+                                name = 'Serhii Senko'
                             }
                         }
 
