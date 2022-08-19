@@ -137,17 +137,6 @@ subprojects {
 
     task allDeps(type: DependencyReportTask) {}
 
-    signing {
-        // We only want to require signing if we are building a release version and we are going to publish it.
-        // Because we are inspecting the task graph to determine if we are going to be publishing,
-        // we must set the signing.required property to a closure to defer the evaluation
-        required {
-            isRelease(project) && gradle.taskGraph.hasTask("publish")
-        }
-        sign configurations.archives
-        //sign publishing.publications.mavenJava
-    }
-
     checkstyle {
         toolVersion = versions.checkstyle
         ignoreFailures = true
@@ -283,6 +272,16 @@ subprojects {
                 }
             }
 
+        }
+        signing {
+            // We only want to require signing if we are building a release version and we are going to publish it.
+            // Because we are inspecting the task graph to determine if we are going to be publishing,
+            // we must set the signing.required property to a closure to defer the evaluation
+            required {
+                isRelease(project) && gradle.taskGraph.hasTask("publish")
+            }
+            //sign configurations.archives
+            sign publishing.publications.mavenJava
         }
     }
 
