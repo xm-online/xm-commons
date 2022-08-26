@@ -13,6 +13,7 @@ dependencies {
     api "io.dropwizard.metrics:metrics-jmx"
     api "com.ryantenney.metrics:metrics-spring:${versions.springMetrics}"
     api 'org.springframework.kafka:spring-kafka'
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
 
     compileOnly "tech.jhipster:jhipster-framework:${versions.jhipster}"
     api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
