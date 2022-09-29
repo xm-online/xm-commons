@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestWrapper;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.util.ContentCachingRequestWrapper;
@@ -121,7 +122,15 @@ public class TimelineEventProducer {
 
     private static String getRequestContent(HttpServletRequest request) {
         if (request instanceof ContentCachingRequestWrapper) {
+            log.warn("ContentCachingRequestWrapper request class {}", request.getClass());
             return new String(((ContentCachingRequestWrapper) request).getContentAsByteArray());
+        }
+        if (request instanceof HttpServletRequestWrapper) {
+            log.warn("HttpServletRequestWrapper request class {}", request.getClass());
+            log.warn("ServletRequest request class {}", ((HttpServletRequestWrapper) request).getRequest().getClass());
+        }
+        if (request instanceof SecurityContextHolderAwareRequestWrapper) {
+            log.warn("SecurityContextHolderAwareRequestWrapper request class {}", request.getClass());
         }
         if (request instanceof HttpServletRequestWrapper
             && ((HttpServletRequestWrapper) request).getRequest() instanceof ContentCachingRequestWrapper) {
@@ -134,7 +143,12 @@ public class TimelineEventProducer {
 
     private static String getResponseContent(HttpServletResponse response) {
         if (response instanceof ContentCachingResponseWrapper) {
+            log.warn("ContentCachingResponseWrapper response class {}", response.getClass());
             return new String(((ContentCachingResponseWrapper) response).getContentAsByteArray());
+        }
+        if (response instanceof HttpServletResponseWrapper) {
+            log.warn("HttpServletResponseWrapper response class {}", response.getClass());
+            log.warn("ServletResponse response class {}", ((HttpServletResponseWrapper) response).getResponse().getClass());
         }
         if (response instanceof HttpServletResponseWrapper
             && ((HttpServletResponseWrapper) response).getResponse() instanceof ContentCachingResponseWrapper) {
