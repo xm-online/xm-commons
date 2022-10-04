@@ -84,8 +84,11 @@ public class LepThreadHelperIntTest {
         String body = loadFile("lep/LepWithThread.groovy");
         String threadBody = loadFile("lep/LepThreadBody.groovy");
 
-        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy", threadBody);
-        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethodWithInput$$around.groovy", body);
+        String pathMethod = "/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy";
+        String pathMethodInput = "/config/tenants/TEST/testApp/lep/service/TestLepMethodWithInput$$around.groovy";
+        resourceLoader.onRefresh(pathMethod, threadBody);
+        resourceLoader.onRefresh(pathMethodInput, body);
+        resourceLoader.refreshFinished(List.of(pathMethod, pathMethodInput));
         String result = testLepService.testLepMethod(Map.of("testLepService", testLepService));
         assertEquals("TEST", result);
     }

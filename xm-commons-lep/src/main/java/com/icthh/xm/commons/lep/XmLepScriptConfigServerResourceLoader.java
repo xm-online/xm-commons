@@ -1,6 +1,11 @@
 package com.icthh.xm.commons.lep;
 
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -36,23 +41,23 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
     private final String tenantLepScriptsAntPathPattern;
 
     // /config/tenant/{tenant-key}/commons/lep/**
-    private static final String commonsLepScriptsAntPathPattern = "/config/tenants/{tenantKey}/commons/lep/**";
+    public static final String commonsLepScriptsAntPathPattern = "/config/tenants/{tenantKey}/commons/lep/**";
 
     // /config/tenant/commons/lep/**
-    private static final String environmentLepScriptsAntPathPattern = "/config/tenants/commons/lep/**";
+    public static final String environmentLepScriptsAntPathPattern = "/config/tenants/commons/lep/**";
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     private final List<CacheableLepEngine> cacheableEngines;
-    private final Boolean fullRecompileOnLepUpdate;
 
     private ConcurrentHashMap<String, XmLepScriptResource> scriptResources = new ConcurrentHashMap<>();
 
-    public XmLepScriptConfigServerResourceLoader(String appName, List<CacheableLepEngine> cacheableEngines, Boolean fullRecompileOnLepUpdate) {
+    private Queue<XmLepScriptResource> queueToUpdate = new LinkedBlockingQueue<>();
+
+    public XmLepScriptConfigServerResourceLoader(String appName, List<CacheableLepEngine> cacheableEngines) {
         Objects.requireNonNull(appName, "appName can't be null");
         this.tenantLepScriptsAntPathPattern = "/config/tenants/{tenantKey}/" + appName + "/lep/**";
         this.cacheableEngines = cacheableEngines;
-        this.fullRecompileOnLepUpdate = Boolean.TRUE.equals(fullRecompileOnLepUpdate);
     }
 
     /**
@@ -73,8 +78,8 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
         final String scriptContent = (configContent == null) ? "" : configContent;
         XmLepScriptResource resource = new XmLepScriptResource(configKey, scriptContent, getCurrentMilli());
 
-        LOGGER.info("LEP xm-ms-config file inited by config path: {}", configKey);
-        scriptResources.put(configKey, resource);
+        LOGGER.info("LEP added to update queue by config path: {}", configKey);
+        queueToUpdate.add(resource);
     }
 
     /**
@@ -88,31 +93,24 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
             // delete
             scriptResources.remove(updatedKey);
         } else {
-            scriptResources.compute(updatedKey, (key, currentValue) -> {
-                if (currentValue != null) {
-                    LOGGER.info("LEP script updated by config path: {}", updatedKey);
-                    // update
-                    currentValue.update(configContent, getCurrentMilli());
-                    return currentValue;
-                } else {
-                    LOGGER.info("LEP script created by config path: {}", updatedKey);
-                    // create
-                    return new XmLepScriptResource(updatedKey, configContent, getCurrentMilli());
-                }
-            });
+            LOGGER.info("LEP added to update queue by config path: {}", updatedKey);
+            XmLepScriptResource resource = new XmLepScriptResource(updatedKey, configContent, getCurrentMilli());
+            queueToUpdate.add(resource);
         }
     }
 
     @Override
     public void refreshFinished(Collection<String> paths) {
-        if (fullRecompileOnLepUpdate) {
-            this.cacheableEngines.forEach(CacheableLepEngine::clearCache);
-            scriptResources.forEach((key, value) -> {
-                value.modifiedNow();
-            });
-        } else {
-            log.warn("Full recompile on lep update disabled, some class can be cached.");
+        Map<String, XmLepScriptResource> updatePart = new HashMap<>(scriptResources);
+        while (!queueToUpdate.isEmpty()) {
+            XmLepScriptResource scriptResource = queueToUpdate.poll();
+            updatePart.put(scriptResource.getDescription(), scriptResource);
         }
+
+        this.cacheableEngines.forEach(it -> it.clearCache(updatePart));
+        LOGGER.info("LEP xm-ms-config file inited by configs {}", updatePart.keySet());
+        // put source AFTER replace engine, because groovy will not recompile classes with lover modification time then current
+        scriptResources.putAll(updatePart);
     }
 
     private static long getCurrentMilli() {

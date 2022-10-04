@@ -7,6 +7,7 @@ import static com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader.XM_
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 import static org.springframework.core.io.ResourceLoader.CLASSPATH_URL_PREFIX;
 
+import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.CacheableLepEngine;
 import com.icthh.xm.commons.lep.FileSystemUtils;
@@ -66,6 +67,9 @@ public abstract class LepSpringConfiguration {
     @Autowired @Lazy
     private TenantAliasService tenantAliasService;
 
+    @Autowired @Lazy
+    private TenantListRepository tenantListRepository;
+
     protected LepSpringConfiguration(String appName,
                                      ApplicationEventPublisher eventPublisher,
                                      ResourceLoader resourceLoader) {
@@ -93,8 +97,9 @@ public abstract class LepSpringConfiguration {
     public XmGroovyScriptEngineProviderStrategy xmGroovyScriptEngineProviderStrategy() {
         return new XmGroovyScriptEngineProviderStrategy(scriptNameLepResourceKeyMapper(),
                                                         appName,
-                                                        lepResourceService(),
-                                                        tenantAliasService);
+                                                        tenantAliasService,
+                                                        resolveResolver(),
+                                                        tenantListRepository);
     }
 
     @Bean
@@ -120,9 +125,8 @@ public abstract class LepSpringConfiguration {
     }
 
     @Bean
-    public XmLepScriptConfigServerResourceLoader cfgResourceLoader(List<CacheableLepEngine> cacheableEngines,
-                                                                   @Value("${application.lep.full-recompile-on-lep-update:false}") Boolean fullRecompileOnLepUpdate) {
-        return new XmLepScriptConfigServerResourceLoader(appName, cacheableEngines, fullRecompileOnLepUpdate);
+    public XmLepScriptConfigServerResourceLoader cfgResourceLoader(List<CacheableLepEngine> cacheableEngines) {
+        return new XmLepScriptConfigServerResourceLoader(appName, cacheableEngines);
     }
 
     @Bean

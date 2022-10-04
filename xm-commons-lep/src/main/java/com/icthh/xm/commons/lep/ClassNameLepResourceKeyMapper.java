@@ -3,6 +3,7 @@ package com.icthh.xm.commons.lep;
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.config.domain.TenantAliasTree;
 import com.icthh.xm.lep.api.ContextsHolder;
+import com.icthh.xm.lep.api.LepManagerService;
 import com.icthh.xm.lep.api.LepResource;
 import com.icthh.xm.lep.api.LepResourceService;
 import com.icthh.xm.lep.api.commons.UrlLepResourceKey;
@@ -36,8 +37,7 @@ public class ClassNameLepResourceKeyMapper implements ScriptNameLepResourceKeyMa
 
     private final ScriptNameLepResourceKeyMapper mapper;
     private final String appName;
-    private final ContextsHolder contextsHolder;
-    private final LepResourceService resourceService;
+    private final LepManagerService lepManagerService;
     private final TenantAliasService tenantAliasService;
     private final GroovyFileParser groovyFileParser = new GroovyFileParser();
 
@@ -52,12 +52,12 @@ public class ClassNameLepResourceKeyMapper implements ScriptNameLepResourceKeyMa
             return null;
         }
 
-        String tenantKey = LepContextUtils.getTenantKey(contextsHolder);
         var optionalLepBasePath = getLepBasePath(name);
         if (optionalLepBasePath.isPresent()) {
             var lepBasePath = optionalLepBasePath.get();
 
-            URLStreamHandler urlStreamHandler = new LepURLStreamHandler(contextsHolder, resourceService);
+            var resourceService = lepManagerService.getResourceService();
+            URLStreamHandler urlStreamHandler = new LepURLStreamHandler(lepManagerService, resourceService);
 
             // While with cut path by $ for inner for classes support
             String path = lepBasePath.getPath();
@@ -65,7 +65,7 @@ public class ClassNameLepResourceKeyMapper implements ScriptNameLepResourceKeyMa
             while (true) {
                 String lepUrl = currentPath + LEP_SUFFIX;
                 UrlLepResourceKey resourceKey = new UrlLepResourceKey(lepUrl, urlStreamHandler);
-                LepResource resource = resourceService.getResource(this.contextsHolder, resourceKey);
+                LepResource resource = resourceService.getResource(this.lepManagerService, resourceKey);
                 if (resource != null && containsClassDefinition(resource, path)) {
                     return resourceKey;
                 }
@@ -85,7 +85,7 @@ public class ClassNameLepResourceKeyMapper implements ScriptNameLepResourceKeyMa
             return Optional.empty();
         }
 
-        String tenantKey = LepContextUtils.getTenantKey(contextsHolder);
+        String tenantKey = LepContextUtils.getTenantKey(lepManagerService);
 
         List<LepRootPath> rootPathVariants = new ArrayList<>();
         rootPathVariants.add(new LepRootPath(
