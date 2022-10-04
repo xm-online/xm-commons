@@ -21,7 +21,7 @@ public class OAuth2JwtAccessTokenConverter extends JwtAccessTokenConverter {
     /**
      * When did we last fetch the public key?
      */
-    private long lastKeyFetchTimestamp;
+    private volatile long lastKeyFetchTimestamp;
 
     public OAuth2JwtAccessTokenConverter(OAuth2Properties oAuth2Properties, OAuth2SignatureVerifierClient signatureVerifierClient) {
         this.oAuth2Properties = oAuth2Properties;
@@ -63,13 +63,18 @@ public class OAuth2JwtAccessTokenConverter extends JwtAccessTokenConverter {
     private boolean tryCreateSignatureVerifier() {
         long t = System.currentTimeMillis();
         if (t - lastKeyFetchTimestamp < oAuth2Properties.getSignatureVerification().getPublicKeyRefreshRateLimit()) {
+            log.info("tryCreateSignatureVerifier: public key refresh limit reached");
             return false;
         }
+        return createSignatureVerifier();
+    }
+
+    private synchronized boolean createSignatureVerifier() {
         try {
             SignatureVerifier verifier = signatureVerifierClient.getSignatureVerifier();
             if (verifier != null) {
                 setVerifier(verifier);
-                lastKeyFetchTimestamp = t;
+                lastKeyFetchTimestamp = System.currentTimeMillis();
                 log.debug("Public key retrieved from OAuth2 server to create SignatureVerifier");
                 return true;
             }
@@ -78,6 +83,7 @@ public class OAuth2JwtAccessTokenConverter extends JwtAccessTokenConverter {
         }
         return false;
     }
+
     /**
      * Extract JWT claims and set it to OAuth2Authentication decoded details.
      * Here is how to get details:
