@@ -61,6 +61,7 @@ public class XmMultiTenantSpringLiquibase extends MultiTenantSpringLiquibase {
                 log.error("Failed to initialize Liquibase for schema {}", schema, e);
             }
         }
+
     }
 
     private SpringLiquibase getXmSpringLiquibase(DataSource dataSource) {
