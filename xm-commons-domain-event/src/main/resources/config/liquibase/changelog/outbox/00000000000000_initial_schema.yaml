@@ -1,0 +1,82 @@
+databaseChangeLog:
+    -   changeSet:
+            id: 20221108134021
+            author: vbilenko
+            comment: Outbox table
+            changes:
+                -   createTable:
+                        tableName: outbox
+                        columns:
+                            -   column:
+                                    name: id
+                                    type: ${uuidType}
+                                    defaultValueComputed: ${uuid_function}
+                                    constraints:
+                                        primaryKey: true
+                                        nullable: false
+                            -   column:
+                                    name: tx_id
+                                    type: varchar(128)
+                                    constraints:
+                                        nullable: false
+                            -   column:
+                                    name: event_date
+                                    type: timestamp
+                                    constraints:
+                                        nullable: false
+                            -   column:
+                                    name: status
+                                    type: varchar(16)
+                                    constraints:
+                                        nullable: false
+                            -   column:
+                                    name: aggregate_id
+                                    type: varchar(128)
+                                    constraints:
+                                        nullable: false
+                            -   column:
+                                    name: aggregate_type
+                                    type: varchar(255)
+                                    constraints:
+                                        nullable: false
+                            -   column:
+                                    name: operation
+                                    type: varchar(128)
+                                    constraints:
+                                        nullable: false
+                            -   column:
+                                    name: source
+                                    type: varchar(128)
+                                    constraints:
+                                        nullable: false
+                            -   column:
+                                    name: user_key
+                                    type: varchar(64)
+                                    constraints:
+                                        nullable: true
+                            -   column:
+                                    name: client_id
+                                    type: varchar(64)
+                                    constraints:
+                                        nullable: false
+                            -   column:
+                                    name: valid_from
+                                    type: timestamp
+                                    constraints:
+                                        nullable: true
+                            -   column:
+                                    name: valid_to
+                                    type: timestamp
+                                    constraints:
+                                        nullable: true
+                            -   column:
+                                    name: meta
+                                    type: ${json_type}
+                                    constraints:
+                                        nullable: true
+                            -   column:
+                                    name: payload
+                                    type: ${json_type}
+                                    constraints:
+                                        nullable: true
+

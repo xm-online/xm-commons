@@ -1,0 +1,52 @@
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        gradlePluginPortal()
+        maven { url "https://repo.spring.io/plugins-release" }
+    }
+}
+
+plugins {
+    id "maven-publish"
+}
+
+apply plugin: 'io.spring.dependency-management'
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:$versions.springBoot")
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
+    }
+}
+
+dependencies {
+    compileOnly "org.projectlombok:lombok:${versions.lombok}"
+
+    implementation project(':xm-commons-migration-db')
+    implementation project(':xm-commons-config')
+    implementation project(':xm-commons-lep')
+    implementation 'com.vladmihalcea:hibernate-types-52:2.4.3'
+
+    implementation "org.mapstruct:mapstruct:1.5.3.Final"
+    implementation 'org.liquibase:liquibase-core'
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa:${versions.springBoot}"
+    implementation "org.springframework.boot:spring-boot-starter-web:${versions.springBoot}"
+
+    annotationProcessor "org.mapstruct:mapstruct-processor:1.5.3.Final"
+
+    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
+    testCompile 'junit:junit'
+    testCompile 'org.assertj:assertj-core'
+    testCompile 'org.mockito:mockito-core'
+}
+
+compileJava.dependsOn(processResources)
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
