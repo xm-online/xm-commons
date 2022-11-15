@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.domain.event.domain;
 
-import com.icthh.xm.commons.domain.event.config.jsonb.Jsonb;
 import com.icthh.xm.commons.domain.event.domain.converter.MapToStringConverter;
+import com.icthh.xm.commons.migration.db.jsonb.Jsonb;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.domain.Persistable;

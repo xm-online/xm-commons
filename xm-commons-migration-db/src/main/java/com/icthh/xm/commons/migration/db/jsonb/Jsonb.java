@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.domain.event.config.jsonb;
+package com.icthh.xm.commons.migration.db.jsonb;
 
 import java.lang.annotation.Retention;
 

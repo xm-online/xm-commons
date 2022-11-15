@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.domain.event.config.jsonb;
+package com.icthh.xm.commons.migration.db.jsonb;
 
 import org.hibernate.dialect.PostgreSQL95Dialect;
 import org.hibernate.dialect.function.SQLFunctionTemplate;

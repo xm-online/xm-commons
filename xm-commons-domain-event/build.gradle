@@ -26,7 +26,6 @@ dependencies {
     implementation project(':xm-commons-migration-db')
     implementation project(':xm-commons-config')
     implementation project(':xm-commons-lep')
-    implementation 'com.vladmihalcea:hibernate-types-52:2.4.3'
 
     implementation "org.mapstruct:mapstruct:1.5.3.Final"
     implementation 'org.liquibase:liquibase-core'
