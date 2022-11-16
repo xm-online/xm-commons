@@ -11,10 +11,10 @@ import org.springframework.core.io.ResourceLoader;
 
 import javax.sql.DataSource;
 
-@Configuration
-@EnableConfigurationProperties({LiquibaseProperties.class})
-@RequiredArgsConstructor
 @Slf4j
+@Configuration
+@RequiredArgsConstructor
+@EnableConfigurationProperties({LiquibaseProperties.class})
 public class LiquibaseRunner {
 
     private static final String CHANGE_LOG_PATH
