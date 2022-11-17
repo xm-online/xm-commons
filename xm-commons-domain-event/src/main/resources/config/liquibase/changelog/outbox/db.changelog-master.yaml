@@ -42,3 +42,6 @@ databaseChangeLog:
 
   - include:
         file: config/liquibase/changelog/outbox/00000000000000_initial_schema.yaml
+
+  - include:
+        file: config/liquibase/changelog/outbox/00000000000001_initial_indexes.yaml

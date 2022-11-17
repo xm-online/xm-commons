@@ -24,13 +24,14 @@ public abstract class DomainEventMapper {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Mapping(target = "payload", source = "payload", qualifiedByName = "mapToPayload")
-    public abstract Outbox toEntity(DomainEvent domainEvent);
+    @Mapping(target = "payload", source = "payload", qualifiedByName = "mapToDtoPayload")
+    @Mapping(target = "status", constant = "NEW")
+    public abstract Outbox toDto(DomainEvent domainEvent);
 
     @Mapping(target = "msName", constant = "ignored", qualifiedByName = "mapMsName")
     @Mapping(target = "tenant", constant = "ignored", qualifiedByName = "mapTenant")
-    @Mapping(target = "payload", source = "payload", qualifiedByName = "mapToDtoPayload")
-    public abstract DomainEvent toDto(Outbox outbox);
+    @Mapping(target = "payload", source = "payload", qualifiedByName = "mapToPayload")
+    public abstract DomainEvent toEntity(Outbox outbox);
 
     @Named("mapMsName")
     String mapMsName(String ignored) {
@@ -42,8 +43,8 @@ public abstract class DomainEventMapper {
         return tenantContextHolder == null ? null : tenantContextHolder.getTenantKey();
     }
 
-    @Named("mapToDtoPayload")
-    DomainEventPayload mapToDtoPayload(Map<String, Object> payload) throws ClassNotFoundException {
+    @Named("mapToPayload")
+    DomainEventPayload mapToPayload(Map<String, Object> payload) throws ClassNotFoundException {
         if (payload == null) {
             return new DomainEventPayload();
         }
@@ -57,8 +58,8 @@ public abstract class DomainEventMapper {
         return (DomainEventPayload) objectMapper.convertValue(payload, payloadClass);
     }
 
-    @Named("mapToPayload")
-    Map<String, Object> mapToPayload(DomainEventPayload payload) {
+    @Named("mapToDtoPayload")
+    Map<String, Object> mapToDtoPayload(DomainEventPayload payload) {
         if (payload == null) {
             return new HashMap<>();
         }

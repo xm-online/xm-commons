@@ -19,7 +19,7 @@ public class OutboxTransport implements Transport {
 
     @Override
     public void send(DomainEvent event) {
-        Outbox outbox = domainEventMapper.toEntity(event);
+        Outbox outbox = domainEventMapper.toDto(event);
         outbox.setStatus(RecordStatus.NEW);
         outboxRepository.save(outbox);
     }

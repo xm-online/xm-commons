@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.UUID;
@@ -39,10 +40,11 @@ public class OutboxTransportServiceTest {
     public void shouldFindAllDomainEvents() {
         PageRequest pageRequest = PageRequest.of(0, 10);
         PageImpl<Outbox> resultPage = new PageImpl(List.of(new Outbox(), new Outbox()));
-        when(outboxRepository.findAll(pageRequest)).thenReturn(resultPage);
-        outboxTransportService.findAll(pageRequest);
-        verify(outboxRepository, times(1)).findAll(eq(pageRequest));
-        verify(domainEventMapper, times(resultPage.getNumberOfElements())).toDto(any());
+        Specification<Outbox> filter = Specification.where(null);
+        when(outboxRepository.findAll(eq(filter), eq(pageRequest))).thenReturn(resultPage);
+        outboxTransportService.findAll(filter, pageRequest);
+        verify(outboxRepository, times(1)).findAll(eq(filter), eq(pageRequest));
+        verify(domainEventMapper, times(resultPage.getNumberOfElements())).toEntity(any());
     }
 
     @Test

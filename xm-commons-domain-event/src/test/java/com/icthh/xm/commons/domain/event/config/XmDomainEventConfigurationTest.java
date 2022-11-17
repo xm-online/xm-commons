@@ -67,8 +67,8 @@ public class XmDomainEventConfigurationTest {
 
     @Test
     public void shouldNotInitDisabledConfig() {
-        String enabledConfig = readConfigFile("/disabledDomainEvents.yml");
-        xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
+        String disabledConfig = readConfigFile("/disabledDomainEvents.yml");
+        xmDomainEventConfiguration.onRefresh(UPDATE_KEY, disabledConfig);
         Exception exception = null;
         try {
             xmDomainEventConfiguration.getInterceptorConfig("db");
@@ -77,6 +77,24 @@ public class XmDomainEventConfigurationTest {
         }
         assertEquals(IllegalStateException.class, exception.getClass());
         verify(liquibaseRunner, times(0)).runOnTenant(TENANT);
+    }
+
+    @Test
+    public void shouldRemoveDisabledConfig() {
+        String enabledConfig = readConfigFile("/enabledDomainEvents.yml");
+        String configSource = "db";
+        xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
+        SourceConfig db = xmDomainEventConfiguration.getInterceptorConfig(configSource);
+        assertNotNull(db);
+        String disabledConfig = readConfigFile("/disabledDomainEvents.yml");
+        xmDomainEventConfiguration.onRefresh(UPDATE_KEY, disabledConfig);
+        Exception exception = null;
+        try {
+            xmDomainEventConfiguration.getInterceptorConfig(configSource);
+        } catch (Exception e) {
+            exception = e;
+        }
+        assertEquals(IllegalStateException.class, exception.getClass());
     }
 
     @Test

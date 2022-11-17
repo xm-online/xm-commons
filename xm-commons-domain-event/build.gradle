@@ -1,4 +1,3 @@
-
 buildscript {
     repositories {
         mavenLocal()
@@ -27,12 +26,12 @@ dependencies {
     implementation project(':xm-commons-config')
     implementation project(':xm-commons-lep')
 
-    implementation "org.mapstruct:mapstruct:1.5.3.Final"
+    implementation "org.mapstruct:mapstruct:${versions.mapstruct}"
     implementation 'org.liquibase:liquibase-core'
     implementation "org.springframework.boot:spring-boot-starter-data-jpa:${versions.springBoot}"
     implementation "org.springframework.boot:spring-boot-starter-web:${versions.springBoot}"
 
-    annotationProcessor "org.mapstruct:mapstruct-processor:1.5.3.Final"
+    annotationProcessor "org.mapstruct:mapstruct-processor:${versions.mapstruct}"
 
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
     testCompile 'junit:junit'

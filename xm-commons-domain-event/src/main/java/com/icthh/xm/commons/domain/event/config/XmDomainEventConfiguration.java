@@ -82,6 +82,8 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
         if (publisherConfig.isEnabled()) {
             configByTenant.put(tenantKey, publisherConfig);
             liquibaseRunner.runOnTenant(tenantKey);
+        } else {
+            configByTenant.remove(tenantKey);
         }
     }
 
