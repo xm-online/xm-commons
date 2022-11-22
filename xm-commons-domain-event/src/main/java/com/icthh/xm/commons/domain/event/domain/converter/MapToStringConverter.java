@@ -29,8 +29,7 @@ public class MapToStringConverter implements AttributeConverter<Map<String, Obje
         try {
             return mapper.writeValueAsString(data != null ? data : new HashMap<>());
         } catch (JsonProcessingException e) {
-            log.warn("Error during JSON to String converting", e);
-            return "";
+            throw new IllegalArgumentException("Cannot convert map to JSON string", e);
         }
     }
 

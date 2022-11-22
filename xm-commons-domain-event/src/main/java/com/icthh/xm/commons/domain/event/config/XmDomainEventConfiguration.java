@@ -3,6 +3,7 @@ package com.icthh.xm.commons.domain.event.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.migration.db.liquibase.LiquibaseRunner;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +18,8 @@ import java.util.Map;
 @Component
 public class XmDomainEventConfiguration implements RefreshableConfiguration {
 
+    private static final String OUTBOX_CHANGE_LOG_PATH
+        = "classpath:config/liquibase/changelog/outbox/db.changelog-master.yaml";
     private static final String TENANT_NAME = "tenant";
 
     private final AntPathMatcher matcher = new AntPathMatcher();
@@ -36,7 +39,7 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
         this.liquibaseRunner = liquibaseRunner;
     }
 
-    public SourceConfig getInterceptorConfig(String source) {
+    public SourceConfig getSourceConfig(String source) {
         return getEventPublisherConfig().getSources().get(source);
     }
 
@@ -81,7 +84,7 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
 
         if (publisherConfig.isEnabled()) {
             configByTenant.put(tenantKey, publisherConfig);
-            liquibaseRunner.runOnTenant(tenantKey);
+            liquibaseRunner.runOnTenant(tenantKey, OUTBOX_CHANGE_LOG_PATH);
         } else {
             configByTenant.remove(tenantKey);
         }

@@ -1,6 +1,8 @@
 package com.icthh.xm.commons.domain.event.service.dto;
 
 import com.icthh.xm.commons.domain.event.domain.ValidFor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,24 +12,23 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class DomainEvent {
 
     public DomainEvent(UUID id,
-                       String txId,
-                       Instant eventDate,
                        String aggregateId,
                        String aggregateType,
                        String operation,
                        String msName,
                        String source,
                        String clientId,
-                       String tenant) {
+                       String tenant,
+                       DomainEventPayload payload) {
         this.id = id;
-        this.txId = txId;
-        this.eventDate = eventDate;
         this.aggregateId = aggregateId;
         this.aggregateType = aggregateType;
         this.operation = operation;
@@ -35,11 +36,13 @@ public class DomainEvent {
         this.source = source;
         this.clientId = clientId;
         this.tenant = tenant;
+        this.payload = payload;
     }
 
     private UUID id;
     private String txId;
-    private Instant eventDate;
+    @Builder.Default
+    private Instant eventDate = Instant.now();
     private String aggregateId;
     private String aggregateType;
     private String operation;

@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.domain.event.config;
 
 import com.icthh.xm.commons.domain.event.service.impl.OutboxTransport;
+import com.icthh.xm.commons.migration.db.liquibase.LiquibaseRunner;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +17,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -60,9 +63,9 @@ public class XmDomainEventConfigurationTest {
     public void shouldInitEnabledConfig() {
         String enabledConfig = readConfigFile("/enabledDomainEvents.yml");
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
-        SourceConfig db = xmDomainEventConfiguration.getInterceptorConfig("db");
+        SourceConfig db = xmDomainEventConfiguration.getSourceConfig("db");
         assertNotNull(db);
-        verify(liquibaseRunner, times(1)).runOnTenant(TENANT);
+        verify(liquibaseRunner, times(1)).runOnTenant(eq(TENANT), any());
     }
 
     @Test
@@ -71,12 +74,12 @@ public class XmDomainEventConfigurationTest {
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, disabledConfig);
         Exception exception = null;
         try {
-            xmDomainEventConfiguration.getInterceptorConfig("db");
+            xmDomainEventConfiguration.getSourceConfig("db");
         } catch (Exception e) {
             exception = e;
         }
         assertEquals(IllegalStateException.class, exception.getClass());
-        verify(liquibaseRunner, times(0)).runOnTenant(TENANT);
+        verify(liquibaseRunner, times(0)).runOnTenant(eq(TENANT), any());
     }
 
     @Test
@@ -84,13 +87,13 @@ public class XmDomainEventConfigurationTest {
         String enabledConfig = readConfigFile("/enabledDomainEvents.yml");
         String configSource = "db";
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
-        SourceConfig db = xmDomainEventConfiguration.getInterceptorConfig(configSource);
+        SourceConfig db = xmDomainEventConfiguration.getSourceConfig(configSource);
         assertNotNull(db);
         String disabledConfig = readConfigFile("/disabledDomainEvents.yml");
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, disabledConfig);
         Exception exception = null;
         try {
-            xmDomainEventConfiguration.getInterceptorConfig(configSource);
+            xmDomainEventConfiguration.getSourceConfig(configSource);
         } catch (Exception e) {
             exception = e;
         }
@@ -101,17 +104,17 @@ public class XmDomainEventConfigurationTest {
     public void shouldInitConfig() {
         String enabledConfig = readConfigFile("/enabledDomainEvents.yml");
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
-        SourceConfig dbSourceConfig = xmDomainEventConfiguration.getInterceptorConfig("db");
+        SourceConfig dbSourceConfig = xmDomainEventConfiguration.getSourceConfig("db");
         assertNotNull(dbSourceConfig);
         assertEquals(OutboxTransport.class, dbSourceConfig.getTransport());
         assertTrue(dbSourceConfig.isEnabled());
 
-        SourceConfig webSourceConfig = xmDomainEventConfiguration.getInterceptorConfig("web");
+        SourceConfig webSourceConfig = xmDomainEventConfiguration.getSourceConfig("web");
         assertNotNull(webSourceConfig);
         assertEquals(OutboxTransport.class, webSourceConfig.getTransport());
         assertFalse(webSourceConfig.isEnabled());
 
-        SourceConfig nonExistentConfig = xmDomainEventConfiguration.getInterceptorConfig("nonExistentConfig");
+        SourceConfig nonExistentConfig = xmDomainEventConfiguration.getSourceConfig("nonExistentConfig");
         assertNull(nonExistentConfig);
     }
 

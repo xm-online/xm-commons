@@ -21,12 +21,13 @@ public class EventPublisher {
 
     @LogicExtensionPoint(value = "Publish")
     public void publish(String source, DomainEvent event) {
+        event.setSource(source);
         Transport transportToPublish = getTransportBySource(source);
         transportToPublish.send(event);
     }
 
     private Transport getTransportBySource(String source) {
-        SourceConfig interceptorConfig = xmDomainEventConfiguration.getInterceptorConfig(source);
+        SourceConfig interceptorConfig = xmDomainEventConfiguration.getSourceConfig(source);
         return context.getBean(interceptorConfig.getTransport());
     }
 }

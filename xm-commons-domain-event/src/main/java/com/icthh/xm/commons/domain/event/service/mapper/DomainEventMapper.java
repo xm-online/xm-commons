@@ -11,18 +11,29 @@ import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Mapper(componentModel = "spring")
 public abstract class DomainEventMapper {
 
-    @Value("${spring.application.name}")
     private String msName;
-    @Autowired
     private TenantContextHolder tenantContextHolder;
-    @Autowired
     private ObjectMapper objectMapper;
+
+    @Value("${spring.application.name}")
+    public void setMsName(String msName) {
+        this.msName = msName;
+    }
+
+    @Autowired
+    public void setTenantContextHolder(TenantContextHolder tenantContextHolder) {
+        this.tenantContextHolder = tenantContextHolder;
+    }
+
+    @Autowired
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper.copy();
+    }
 
     @Mapping(target = "payload", source = "payload", qualifiedByName = "mapToDtoPayload")
     @Mapping(target = "status", constant = "NEW")
@@ -45,26 +56,11 @@ public abstract class DomainEventMapper {
 
     @Named("mapToPayload")
     DomainEventPayload mapToPayload(Map<String, Object> payload) throws ClassNotFoundException {
-        if (payload == null) {
-            return new DomainEventPayload();
-        }
-        Object type = payload.get("type");
-        if (!(type instanceof String)) {
-            type = DomainEventPayload.class.getSimpleName();
-        }
-        String payloadClassName = DomainEventPayload.class.getPackageName() + "." + type;
-
-        Class payloadClass = Class.forName(payloadClassName);
-        return (DomainEventPayload) objectMapper.convertValue(payload, payloadClass);
+        return objectMapper.convertValue(payload, DomainEventPayload.class);
     }
 
     @Named("mapToDtoPayload")
     Map<String, Object> mapToDtoPayload(DomainEventPayload payload) {
-        if (payload == null) {
-            return new HashMap<>();
-        }
-        Map<String, Object> payloadMap = objectMapper.convertValue(payload, Map.class);
-        payloadMap.put("type", payload.getClass().getSimpleName());
-        return payloadMap;
+        return objectMapper.convertValue(payload, Map.class);
     }
 }

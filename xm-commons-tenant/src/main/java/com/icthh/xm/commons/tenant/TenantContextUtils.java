@@ -121,4 +121,25 @@ public final class TenantContextUtils {
         throw new IllegalAccessError("access not allowed");
     }
 
+
+    /**
+     * Tries to normalize tenant key, eg transform tenant key to schema name.
+     *
+     * @param tenantKey tenant key.
+     * @return transformed value, appropriate for schema name.
+     * @throws IllegalArgumentException if tenant key cannot be flawlessly transformed exception is thrown.
+     */
+    public static String normalizeTenant(String tenantKey) {
+        if (isTenantKeyValid(tenantKey)) {
+            return tenantKey;
+        } else {
+            String normalizedTenant = tenantKey.replace("-", "_");
+            if (isTenantKeyValid(normalizedTenant)) {
+                return normalizedTenant;
+            } else {
+                throw new IllegalArgumentException(String.format("Tenant %s cannot be normalized.", tenantKey));
+            }
+        }
+    }
+
 }

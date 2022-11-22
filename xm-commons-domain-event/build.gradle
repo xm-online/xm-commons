@@ -7,9 +7,6 @@ buildscript {
     }
 }
 
-plugins {
-    id "maven-publish"
-}
 
 apply plugin: 'io.spring.dependency-management'
 dependencyManagement {
@@ -40,11 +37,3 @@ dependencies {
 }
 
 compileJava.dependsOn(processResources)
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
-    }
-}

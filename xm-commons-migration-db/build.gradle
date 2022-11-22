@@ -15,7 +15,7 @@ dependencies {
     compile 'org.liquibase:liquibase-core'
     compile 'org.springframework:spring-context'
     compile 'org.hibernate:hibernate-core'
-    implementation 'com.vladmihalcea:hibernate-types-52:2.4.3'
+    implementation "com.vladmihalcea:hibernate-types-52:${versions.hibernateTypes52}"
 
     testCompile 'junit:junit'
     testCompile 'org.mockito:mockito-core'

@@ -42,6 +42,8 @@ public class HibernateConfig {
         return new HibernateJpaVendorAdapter();
     }
 
+    //TODO In commons v3.0 this config should be already in commons (not in any microservice)
+    //should not forget to use one from commons v3.
     @Bean
     @Primary
     LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource,
