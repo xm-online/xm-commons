@@ -26,6 +26,8 @@ public class DomainEventFactory {
     /**
      * With this configuration factory will retrieve current transaction id from database
      * and insert it into txId field. Additional database query will be executed.
+     * If method is called multiple times for the same transaction, query will be run only once,
+     * next method calls will return cached transaction id.
      *
      * @return factory that will set current transaction id to txId field.
      */

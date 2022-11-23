@@ -27,7 +27,10 @@ public class EventPublisher {
     }
 
     private Transport getTransportBySource(String source) {
-        SourceConfig interceptorConfig = xmDomainEventConfiguration.getSourceConfig(source);
-        return context.getBean(interceptorConfig.getTransport());
+        SourceConfig sourceConfig = xmDomainEventConfiguration.getSourceConfig(source);
+        if (sourceConfig == null) {
+            throw new IllegalStateException("Source config is not configured for source: " + source);
+        }
+        return context.getBean(sourceConfig.getTransport());
     }
 }

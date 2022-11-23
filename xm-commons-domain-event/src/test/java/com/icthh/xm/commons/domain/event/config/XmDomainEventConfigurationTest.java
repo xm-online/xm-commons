@@ -63,7 +63,7 @@ public class XmDomainEventConfigurationTest {
     public void shouldInitEnabledConfig() {
         String enabledConfig = readConfigFile("/enabledDomainEvents.yml");
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
-        SourceConfig db = xmDomainEventConfiguration.getSourceConfig("db");
+        SourceConfig db = xmDomainEventConfiguration.getSourceConfig("DB");
         assertNotNull(db);
         verify(liquibaseRunner, times(1)).runOnTenant(eq(TENANT), any());
     }
@@ -74,7 +74,7 @@ public class XmDomainEventConfigurationTest {
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, disabledConfig);
         Exception exception = null;
         try {
-            xmDomainEventConfiguration.getSourceConfig("db");
+            xmDomainEventConfiguration.getSourceConfig("DB");
         } catch (Exception e) {
             exception = e;
         }
@@ -85,7 +85,7 @@ public class XmDomainEventConfigurationTest {
     @Test
     public void shouldRemoveDisabledConfig() {
         String enabledConfig = readConfigFile("/enabledDomainEvents.yml");
-        String configSource = "db";
+        String configSource = "DB";
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
         SourceConfig db = xmDomainEventConfiguration.getSourceConfig(configSource);
         assertNotNull(db);
@@ -104,12 +104,12 @@ public class XmDomainEventConfigurationTest {
     public void shouldInitConfig() {
         String enabledConfig = readConfigFile("/enabledDomainEvents.yml");
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
-        SourceConfig dbSourceConfig = xmDomainEventConfiguration.getSourceConfig("db");
+        SourceConfig dbSourceConfig = xmDomainEventConfiguration.getSourceConfig("DB");
         assertNotNull(dbSourceConfig);
         assertEquals(OutboxTransport.class, dbSourceConfig.getTransport());
         assertTrue(dbSourceConfig.isEnabled());
 
-        SourceConfig webSourceConfig = xmDomainEventConfiguration.getSourceConfig("web");
+        SourceConfig webSourceConfig = xmDomainEventConfiguration.getSourceConfig("WEB");
         assertNotNull(webSourceConfig);
         assertEquals(OutboxTransport.class, webSourceConfig.getTransport());
         assertFalse(webSourceConfig.isEnabled());

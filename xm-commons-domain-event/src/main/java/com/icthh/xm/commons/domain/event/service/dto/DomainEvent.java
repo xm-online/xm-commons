@@ -3,84 +3,57 @@ package com.icthh.xm.commons.domain.event.service.dto;
 import com.icthh.xm.commons.domain.event.domain.ValidFor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 @Builder
 @Getter
 @Setter
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class DomainEvent {
 
-    public DomainEvent(UUID id,
-                       String aggregateId,
-                       String aggregateType,
-                       String operation,
-                       String msName,
-                       String source,
-                       String clientId,
-                       String tenant,
-                       DomainEventPayload payload) {
-        this.id = id;
-        this.aggregateId = aggregateId;
-        this.aggregateType = aggregateType;
-        this.operation = operation;
-        this.msName = msName;
-        this.source = source;
-        this.clientId = clientId;
-        this.tenant = tenant;
-        this.payload = payload;
-    }
-
+    @EqualsAndHashCode.Include
     private UUID id;
+
     private String txId;
+
     @Builder.Default
     private Instant eventDate = Instant.now();
+
     private String aggregateId;
+
     private String aggregateType;
+
     private String operation;
+
     private String msName;
+
     private String source;
+
+    @ToString.Exclude
     private String userKey;
+
     private String clientId;
+
     private String tenant;
+
+    @ToString.Exclude
     private ValidFor validFor;
+
+    @ToString.Exclude
     private Map<String, Object> meta;
+
+    @ToString.Exclude
     private DomainEventPayload payload;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DomainEvent that = (DomainEvent) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return "DomainEvent{" +
-            "id=" + id +
-            ", txId='" + txId + '\'' +
-            ", eventDate=" + eventDate +
-            ", aggregateId='" + aggregateId + '\'' +
-            ", aggregateType='" + aggregateType + '\'' +
-            ", operation='" + operation + '\'' +
-            ", msName='" + msName + '\'' +
-            ", source='" + source + '\'' +
-            ", clientId='" + clientId + '\'' +
-            ", tenant='" + tenant + '\'' +
-            '}';
-    }
 }

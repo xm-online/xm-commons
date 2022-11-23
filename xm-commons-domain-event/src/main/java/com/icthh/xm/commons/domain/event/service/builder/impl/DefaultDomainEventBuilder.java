@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.domain.event.service.builder.impl;
 
-import com.icthh.xm.commons.domain.event.service.TransactionService;
 import com.icthh.xm.commons.domain.event.service.builder.DomainEventBuilder;
 import com.icthh.xm.commons.domain.event.service.dto.DomainEvent;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
@@ -18,7 +17,6 @@ class DefaultDomainEventBuilder implements DomainEventBuilder {
 
     private final TenantContextHolder tenantContextHolder;
     private final XmAuthenticationContextHolder xmAuthenticationContextHolder;
-    private final TransactionService transactionService;
 
     @Value("${spring.application.name}")
     private String msName;
