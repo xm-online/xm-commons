@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.domain.event.service;
 
+import com.google.common.collect.Iterables;
 import com.icthh.xm.commons.domain.event.domain.Outbox;
 import com.icthh.xm.commons.domain.event.domain.RecordStatus;
 import com.icthh.xm.commons.domain.event.repository.OutboxRepository;
@@ -25,6 +26,9 @@ public class OutboxTransportService {
     }
 
     public void changeStatus(RecordStatus status, Iterable<UUID> ids) {
+        if  (ids == null || Iterables.isEmpty(ids)) {
+            return;
+        }
         outboxRepository.updateStatus(status, ids);
     }
 
