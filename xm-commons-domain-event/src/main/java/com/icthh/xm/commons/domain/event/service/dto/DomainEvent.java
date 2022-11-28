@@ -56,4 +56,6 @@ public class DomainEvent {
     @ToString.Exclude
     private DomainEventPayload payload;
 
+    //mock builder class declaration needed to prevent javadoc cannot find symbol error on build
+    public static class DomainEventBuilder {}
 }
