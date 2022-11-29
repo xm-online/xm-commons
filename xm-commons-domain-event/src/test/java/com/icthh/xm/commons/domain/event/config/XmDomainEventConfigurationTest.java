@@ -78,7 +78,7 @@ public class XmDomainEventConfigurationTest {
         } catch (Exception e) {
             exception = e;
         }
-        assertEquals(IllegalStateException.class, exception.getClass());
+        assertEquals(NullPointerException.class, exception.getClass());
         verify(liquibaseRunner, times(0)).runOnTenant(eq(TENANT), any());
     }
 
@@ -97,7 +97,7 @@ public class XmDomainEventConfigurationTest {
         } catch (Exception e) {
             exception = e;
         }
-        assertEquals(IllegalStateException.class, exception.getClass());
+        assertEquals(NullPointerException.class, exception.getClass());
     }
 
     @Test

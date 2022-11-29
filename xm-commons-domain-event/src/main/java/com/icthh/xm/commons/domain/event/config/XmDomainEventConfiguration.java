@@ -13,6 +13,7 @@ import org.springframework.util.AntPathMatcher;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -50,11 +51,7 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
     private EventPublisherConfig getEventPublisherConfig() {
         String tenantKey = tenantContextHolder.getTenantKey();
         EventPublisherConfig config = configByTenant.get(tenantKey);
-        if (config == null) {
-            throw new IllegalStateException(
-                String.format("EventPublisherConfig does not exists for tenant: %s", tenantKey)
-            );
-        }
+        Objects.requireNonNull(config, String.format("EventPublisherConfig does not exists for tenant: %s", tenantKey));
         return config;
     }
 
