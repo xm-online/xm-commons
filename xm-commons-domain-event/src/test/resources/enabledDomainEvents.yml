@@ -2,7 +2,7 @@ enabled: true
 sources:
     DB:
         enabled: true
-        transport: OutboxTransport
+        transport: outboxTransport
     WEB:
         enabled: false
-        transport: OutboxTransport
+        transport: outboxTransport

@@ -2,4 +2,4 @@ enabled: false
 sources:
     DB:
         enabled: true
-        transport: OutboxTransport
+        transport: outboxTransport

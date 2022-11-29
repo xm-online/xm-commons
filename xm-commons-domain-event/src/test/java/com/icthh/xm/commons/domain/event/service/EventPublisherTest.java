@@ -36,14 +36,10 @@ public class EventPublisherTest {
         MockitoAnnotations.initMocks(this);
         SourceConfig sourceConfig = new SourceConfig();
         sourceConfig.setEnabled(true);
-        try {
-            sourceConfig.setTransport(OutboxTransport.class.getSimpleName());
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-        when(xmDomainEventConfiguration.getSourceConfig(eq(DB_SOURCE))).thenReturn(sourceConfig);
+            sourceConfig.setTransport("outboxTransport");
+        when(xmDomainEventConfiguration.getTransport(eq(DB_SOURCE))).thenReturn(outboxTransport);
         when(context.getBean(eq(OutboxTransport.class))).thenReturn(outboxTransport);
-        this.eventPublisher = new EventPublisher(xmDomainEventConfiguration, context);
+        this.eventPublisher = new EventPublisher(xmDomainEventConfiguration);
     }
 
     @Test
@@ -65,6 +61,6 @@ public class EventPublisherTest {
             exception = e;
         }
         assertNotNull(exception);
-        assertEquals(IllegalStateException.class, exception.getClass());
+        assertEquals(NullPointerException.class, exception.getClass());
     }
 }

@@ -1,12 +1,12 @@
 package com.icthh.xm.commons.domain.event.config;
 
-import com.icthh.xm.commons.domain.event.service.impl.OutboxTransport;
 import com.icthh.xm.commons.migration.db.liquibase.LiquibaseRunner;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.context.ApplicationContext;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -36,13 +36,19 @@ public class XmDomainEventConfigurationTest {
     @Mock
     private LiquibaseRunner liquibaseRunner;
 
+    @Mock
+    private ApplicationContext applicationContext;
+
 
     @Before
     public void init() {
         MockitoAnnotations.initMocks(this);
 
         when(tenantContextHolder.getTenantKey()).thenReturn(TENANT);
-        xmDomainEventConfiguration = new XmDomainEventConfiguration(APP_NAME, tenantContextHolder, liquibaseRunner);
+        xmDomainEventConfiguration = new XmDomainEventConfiguration(APP_NAME,
+            tenantContextHolder,
+            liquibaseRunner,
+            applicationContext);
     }
 
     @Test
@@ -106,12 +112,12 @@ public class XmDomainEventConfigurationTest {
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
         SourceConfig dbSourceConfig = xmDomainEventConfiguration.getSourceConfig("DB");
         assertNotNull(dbSourceConfig);
-        assertEquals(OutboxTransport.class, dbSourceConfig.getTransport());
+        assertEquals("outboxTransport", dbSourceConfig.getTransport());
         assertTrue(dbSourceConfig.isEnabled());
 
         SourceConfig webSourceConfig = xmDomainEventConfiguration.getSourceConfig("WEB");
         assertNotNull(webSourceConfig);
-        assertEquals(OutboxTransport.class, webSourceConfig.getTransport());
+        assertEquals("outboxTransport", webSourceConfig.getTransport());
         assertFalse(webSourceConfig.isEnabled());
 
         SourceConfig nonExistentConfig = xmDomainEventConfiguration.getSourceConfig("nonExistentConfig");

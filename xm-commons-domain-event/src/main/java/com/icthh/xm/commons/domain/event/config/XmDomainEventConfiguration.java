@@ -3,17 +3,21 @@ package com.icthh.xm.commons.domain.event.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.domain.event.service.Transport;
 import com.icthh.xm.commons.migration.db.liquibase.LiquibaseRunner;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.WeakHashMap;
 
 @Slf4j
 @Component
@@ -27,17 +31,22 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
     private final ObjectMapper ymlMapper = new ObjectMapper(new YAMLFactory());
     private final TenantContextHolder tenantContextHolder;
     private final LiquibaseRunner liquibaseRunner;
+    private final ApplicationContext applicationContext;
     private final String configPath;
 
     private final Map<String, EventPublisherConfig> configByTenant = new HashMap<>();
+    //<tenant, <source, transport>>
+    private final Map<String, Map<String, Transport>> transportBySource = new WeakHashMap<>();
 
 
     public XmDomainEventConfiguration(@Value("${spring.application.name}") String appName,
                                       TenantContextHolder tenantContextHolder,
-                                      LiquibaseRunner liquibaseRunner) {
+                                      LiquibaseRunner liquibaseRunner,
+                                      ApplicationContext applicationContext) {
         this.tenantContextHolder = tenantContextHolder;
         this.configPath = "/config/tenants/{tenant}/" + appName + "/domain-events.yml";
         this.liquibaseRunner = liquibaseRunner;
+        this.applicationContext = applicationContext;
     }
 
     public SourceConfig getSourceConfig(String source) {
@@ -46,6 +55,16 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
 
     public PublisherConfig getPublisherConfig(String source) {
         return getEventPublisherConfig().getPublisher();
+    }
+
+    public Transport getTransport(String source) {
+        String tenantKey = tenantContextHolder.getTenantKey();
+        return Optional
+            .ofNullable(transportBySource.get(tenantKey))
+            .map(sourceTransportMap -> sourceTransportMap.get(source))
+            .orElseThrow(() -> new IllegalStateException(
+                String.format("Transport is not configured for tenant: %s and source: %s", tenantKey, source))
+            );
     }
 
     private EventPublisherConfig getEventPublisherConfig() {
@@ -79,12 +98,23 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
         }
         EventPublisherConfig publisherConfig = readConfig(updatedKey, config);
 
-        if (publisherConfig.isEnabled()) {
+        if (publisherConfig != null && publisherConfig.isEnabled()) {
             configByTenant.put(tenantKey, publisherConfig);
+            initTransportSourceMap(tenantKey, publisherConfig.getSources());
             liquibaseRunner.runOnTenant(tenantKey, OUTBOX_CHANGE_LOG_PATH);
         } else {
             configByTenant.remove(tenantKey);
         }
+    }
+
+    private void initTransportSourceMap(String tenantKey, Map<String, SourceConfig> sourceConfigMap) {
+        Map<String, Transport> sourceTransportMap = transportBySource.computeIfAbsent(tenantKey, k -> new HashMap<>());
+        sourceTransportMap.clear();
+        sourceConfigMap.forEach((s, sourceConfig) -> {
+            if (sourceConfig.isEnabled()) {
+                sourceTransportMap.put(s, applicationContext.getBean(sourceConfig.getTransport(), Transport.class));
+            }
+        });
     }
 
     private String extractTenant(final String updatedKey) {
