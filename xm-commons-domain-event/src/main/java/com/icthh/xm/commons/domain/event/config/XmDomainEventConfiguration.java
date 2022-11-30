@@ -3,8 +3,8 @@ package com.icthh.xm.commons.domain.event.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.domain.event.config.event.InitSourceEventPublisher;
 import com.icthh.xm.commons.domain.event.service.Transport;
-import com.icthh.xm.commons.migration.db.liquibase.LiquibaseRunner;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -23,29 +23,27 @@ import java.util.WeakHashMap;
 @Component
 public class XmDomainEventConfiguration implements RefreshableConfiguration {
 
-    private static final String OUTBOX_CHANGE_LOG_PATH
-        = "classpath:config/liquibase/changelog/outbox/db.changelog-master.yaml";
     private static final String TENANT_NAME = "tenant";
 
     private final AntPathMatcher matcher = new AntPathMatcher();
     private final ObjectMapper ymlMapper = new ObjectMapper(new YAMLFactory());
     private final TenantContextHolder tenantContextHolder;
-    private final LiquibaseRunner liquibaseRunner;
+    private final InitSourceEventPublisher initSourceEventPublisher;
     private final ApplicationContext applicationContext;
     private final String configPath;
 
     private final Map<String, EventPublisherConfig> configByTenant = new HashMap<>();
     //<tenant, <source, transport>>
-    private final Map<String, Map<String, Transport>> transportBySource = new WeakHashMap<>();
+    private final Map<String, Map<String, Transport>> transportBySource = new HashMap<>();
 
 
     public XmDomainEventConfiguration(@Value("${spring.application.name}") String appName,
                                       TenantContextHolder tenantContextHolder,
-                                      LiquibaseRunner liquibaseRunner,
+                                      InitSourceEventPublisher initSourceEventPublisher,
                                       ApplicationContext applicationContext) {
         this.tenantContextHolder = tenantContextHolder;
         this.configPath = "/config/tenants/{tenant}/" + appName + "/domain-events.yml";
-        this.liquibaseRunner = liquibaseRunner;
+        this.initSourceEventPublisher = initSourceEventPublisher;
         this.applicationContext = applicationContext;
     }
 
@@ -92,24 +90,22 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
     }
 
     private void setConfig(String updatedKey, String config) {
-        String tenantKey = extractTenant(updatedKey);
         if (StringUtils.isEmpty(config)) {
             return;
         }
-        EventPublisherConfig publisherConfig = readConfig(updatedKey, config);
-
-        if (publisherConfig != null && publisherConfig.isEnabled()) {
-            configByTenant.put(tenantKey, publisherConfig);
-            initTransportSourceMap(tenantKey, publisherConfig.getSources());
-            liquibaseRunner.runOnTenant(tenantKey, OUTBOX_CHANGE_LOG_PATH);
-        } else {
-            configByTenant.remove(tenantKey);
+        String tenantKey = extractTenant(updatedKey);
+        configByTenant.remove(tenantKey);
+        EventPublisherConfig eventPublisherConfig = readConfig(updatedKey, config);
+        if (eventPublisherConfig != null && eventPublisherConfig.isEnabled()) {
+            configByTenant.put(tenantKey, eventPublisherConfig);
+            initTransportSourceMap(tenantKey, eventPublisherConfig.getSources());
+            initSourceEventPublisher.publish(tenantKey, eventPublisherConfig.getSources().values());
         }
     }
 
     private void initTransportSourceMap(String tenantKey, Map<String, SourceConfig> sourceConfigMap) {
-        Map<String, Transport> sourceTransportMap = transportBySource.computeIfAbsent(tenantKey, k -> new HashMap<>());
-        sourceTransportMap.clear();
+        Map<String, Transport> sourceTransportMap = new HashMap<>();
+        transportBySource.put(tenantKey, sourceTransportMap);
         sourceConfigMap.forEach((s, sourceConfig) -> {
             if (sourceConfig.isEnabled()) {
                 sourceTransportMap.put(s, applicationContext.getBean(sourceConfig.getTransport(), Transport.class));

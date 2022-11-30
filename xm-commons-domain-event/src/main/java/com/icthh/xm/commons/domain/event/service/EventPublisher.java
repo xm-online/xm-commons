@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.domain.event.service;
 
 import com.icthh.xm.commons.domain.event.config.XmDomainEventConfiguration;
-import com.icthh.xm.commons.domain.event.service.dto.DomainEvent;
+import com.icthh.xm.commons.domain.event.domain.DomainEvent;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
 import lombok.RequiredArgsConstructor;

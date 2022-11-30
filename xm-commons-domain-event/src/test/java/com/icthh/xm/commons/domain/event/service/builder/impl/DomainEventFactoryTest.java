@@ -1,13 +1,14 @@
 package com.icthh.xm.commons.domain.event.service.builder.impl;
 
+import com.icthh.xm.commons.domain.event.domain.DomainEvent;
 import com.icthh.xm.commons.domain.event.service.builder.DomainEventFactory;
-import com.icthh.xm.commons.domain.event.service.dto.DomainEvent;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.time.Instant;
+import java.util.Optional;
 
 import static com.icthh.xm.commons.domain.event.domain.enums.DefaultDomainEventOperation.CREATE;
 import static org.junit.Assert.assertEquals;
@@ -27,7 +28,7 @@ public class DomainEventFactoryTest {
     @Mock
     private DefaultDomainEventBuilder defaultDomainEventBuilder;
     @Mock
-    private TransactionalDomainEventBuilder transactionalDomainEventBuilder;
+    private DefaultDomainEventBuilder transactionalDomainEventBuilder;
 
     @Before
     public void init() {
@@ -51,7 +52,7 @@ public class DomainEventFactoryTest {
                 .userKey(USER_KEY)
                 .txId(TX_ID)
         );
-        this.domainEventFactory = new DomainEventFactory(defaultDomainEventBuilder, transactionalDomainEventBuilder);
+        this.domainEventFactory = new DomainEventFactory(defaultDomainEventBuilder, Optional.of(transactionalDomainEventBuilder));
     }
 
     @Test

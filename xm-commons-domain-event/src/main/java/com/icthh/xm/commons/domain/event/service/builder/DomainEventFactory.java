@@ -1,20 +1,24 @@
 package com.icthh.xm.commons.domain.event.service.builder;
 
 import com.icthh.xm.commons.domain.event.domain.enums.DefaultDomainEventOperation;
-import com.icthh.xm.commons.domain.event.service.dto.DomainEvent;
-import com.icthh.xm.commons.domain.event.service.dto.DomainEventPayload;
+import com.icthh.xm.commons.domain.event.domain.DomainEvent;
+import com.icthh.xm.commons.domain.event.domain.DomainEventPayload;
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 public class DomainEventFactory {
     private final DomainEventBuilder domainEventBuilder;
-    private DomainEventBuilder transactionalDomainEventBuilder;
+    private Optional<DomainEventBuilder> transactionalDomainEventBuilder;
 
     @Autowired
     public DomainEventFactory(@Qualifier("defaultDomainEventBuilder") DomainEventBuilder defaultDomainEventBuilder,
-                              @Qualifier("txDomainEventBuilder") DomainEventBuilder transactionalDomainEventBuilder) {
+                              @Qualifier("txDomainEventBuilder")
+                              Optional<DomainEventBuilder> transactionalDomainEventBuilder) {
         this.transactionalDomainEventBuilder = transactionalDomainEventBuilder;
         this.domainEventBuilder = defaultDomainEventBuilder;
     }
@@ -32,7 +36,12 @@ public class DomainEventFactory {
      * @return factory that will set current transaction id to txId field.
      */
     public DomainEventFactory withTransaction() {
-        return new DomainEventFactory(transactionalDomainEventBuilder);
+//        if (transactionalDomainEventBuilder == null) {
+//            throw ;
+//        }
+        return new DomainEventFactory(transactionalDomainEventBuilder.orElseThrow(
+            () -> new NotImplementedException("Transactional domain event builder is not implemented." +
+            " No txDomainEventBuilder bean in scope.")));
     }
 
     public DomainEvent.DomainEventBuilder builder() {

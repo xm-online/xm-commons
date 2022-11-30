@@ -1,18 +1,10 @@
 package com.icthh.xm.commons.domain.event.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 
-import javax.persistence.Embeddable;
 import java.time.Instant;
 
-@Embeddable
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 public class ValidFor {
     private Instant validFrom;
     private Instant validTo;

@@ -7,7 +7,6 @@ buildscript {
     }
 }
 
-
 apply plugin: 'io.spring.dependency-management'
 dependencyManagement {
     imports {
@@ -19,10 +18,14 @@ dependencyManagement {
 dependencies {
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
 
-    implementation project(':xm-commons-config')
-    implementation project(':xm-commons-lep')
+    implementation project(':xm-commons-migration-db')
+    implementation project(':xm-commons-domain-event')
+    implementation project(':xm-commons-domain-event-db')
 
-    implementation "org.springframework.boot:spring-boot-starter-web:${versions.springBoot}"
+    implementation "org.mapstruct:mapstruct:${versions.mapstruct}"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa:${versions.springBoot}"
+
+    annotationProcessor "org.mapstruct:mapstruct-processor:${versions.mapstruct}"
 
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
     testCompile 'junit:junit'

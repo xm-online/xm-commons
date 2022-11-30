@@ -2,13 +2,11 @@ package com.icthh.xm.commons.domain.event.service;
 
 import com.icthh.xm.commons.domain.event.config.SourceConfig;
 import com.icthh.xm.commons.domain.event.config.XmDomainEventConfiguration;
-import com.icthh.xm.commons.domain.event.service.dto.DomainEvent;
-import com.icthh.xm.commons.domain.event.service.impl.OutboxTransport;
+import com.icthh.xm.commons.domain.event.domain.DomainEvent;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.context.ApplicationContext;
 
 import java.util.UUID;
 
@@ -27,9 +25,7 @@ public class EventPublisherTest {
     @Mock
     private XmDomainEventConfiguration xmDomainEventConfiguration;
     @Mock
-    private ApplicationContext context;
-    @Mock
-    private OutboxTransport outboxTransport;
+    private Transport testTransport;
 
     @Before
     public void init() {
@@ -37,8 +33,7 @@ public class EventPublisherTest {
         SourceConfig sourceConfig = new SourceConfig();
         sourceConfig.setEnabled(true);
             sourceConfig.setTransport("outboxTransport");
-        when(xmDomainEventConfiguration.getTransport(eq(DB_SOURCE))).thenReturn(outboxTransport);
-        when(context.getBean(eq(OutboxTransport.class))).thenReturn(outboxTransport);
+        when(xmDomainEventConfiguration.getTransport(eq(DB_SOURCE))).thenReturn(testTransport);
         this.eventPublisher = new EventPublisher(xmDomainEventConfiguration);
     }
 
@@ -47,7 +42,7 @@ public class EventPublisherTest {
         DomainEvent domainEvent = new DomainEvent();
         domainEvent.setId(UUID.randomUUID());
         eventPublisher.publish(DB_SOURCE, domainEvent);
-        verify(outboxTransport).send(domainEvent);
+        verify(testTransport).send(domainEvent);
     }
 
     @Test

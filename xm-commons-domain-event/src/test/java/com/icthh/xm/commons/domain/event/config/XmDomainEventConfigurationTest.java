@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.domain.event.config;
 
-import com.icthh.xm.commons.migration.db.liquibase.LiquibaseRunner;
+import com.icthh.xm.commons.domain.event.config.event.InitSourceEventPublisher;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,6 +19,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,7 +35,7 @@ public class XmDomainEventConfigurationTest {
     private TenantContextHolder tenantContextHolder;
 
     @Mock
-    private LiquibaseRunner liquibaseRunner;
+    private InitSourceEventPublisher initSourceEventPublisher;
 
     @Mock
     private ApplicationContext applicationContext;
@@ -47,7 +48,7 @@ public class XmDomainEventConfigurationTest {
         when(tenantContextHolder.getTenantKey()).thenReturn(TENANT);
         xmDomainEventConfiguration = new XmDomainEventConfiguration(APP_NAME,
             tenantContextHolder,
-            liquibaseRunner,
+            initSourceEventPublisher,
             applicationContext);
     }
 
@@ -71,7 +72,7 @@ public class XmDomainEventConfigurationTest {
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
         SourceConfig db = xmDomainEventConfiguration.getSourceConfig("DB");
         assertNotNull(db);
-        verify(liquibaseRunner, times(1)).runOnTenant(eq(TENANT), any());
+        verify(initSourceEventPublisher, times(1)).publish(eq(TENANT), any());
     }
 
     @Test
@@ -85,7 +86,7 @@ public class XmDomainEventConfigurationTest {
             exception = e;
         }
         assertEquals(NullPointerException.class, exception.getClass());
-        verify(liquibaseRunner, times(0)).runOnTenant(eq(TENANT), any());
+        verify(initSourceEventPublisher, never()).publish(eq(TENANT), any());
     }
 
     @Test
