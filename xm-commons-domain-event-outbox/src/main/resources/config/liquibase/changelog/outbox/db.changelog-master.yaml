@@ -33,15 +33,15 @@ databaseChangeLog:
       dbms: oracle
 
   - changeSet:
-      id:  20221108133921
-      author:  vbilenko
+      id: 20221108133921
+      author: vbilenko
       changes:
-       -  sql:
-           dbms: postgresql
-           sql:  CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+        - sql:
+            dbms: postgresql
+            sql: CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
   - include:
-        file: config/liquibase/changelog/outbox/00000000000000_initial_schema.yaml
+      file: config/liquibase/changelog/outbox/00000000000000_initial_schema.yaml
 
   - include:
-        file: config/liquibase/changelog/outbox/00000000000001_initial_indexes.yaml
+      file: config/liquibase/changelog/outbox/00000000000001_initial_indexes.yaml

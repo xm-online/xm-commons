@@ -1,22 +1,22 @@
 databaseChangeLog:
-    -   changeSet:
-            id: 20221109134021
-            author: vbilenko
-            comment: initial indexes
-            changes:
-                -   createIndex:
-                        columns:
-                            -   column:
-                                    name: status
-                        indexName: outbox_status_index
-                        tableName: outbox
-                -   createIndex:
-                        columns:
-                            -   column:
-                                    name: valid_from
-                            -   column:
-                                    name: valid_to
-                            -   column:
-                                    name: status
-                        indexName: outbox_valid_for_status_index
-                        tableName: outbox
+  - changeSet:
+      id: 20221109134021
+      author: vbilenko
+      comment: initial indexes
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: status
+            indexName: outbox_status_index
+            tableName: outbox
+        - createIndex:
+            columns:
+              - column:
+                  name: valid_from
+              - column:
+                  name: valid_to
+              - column:
+                  name: status
+            indexName: outbox_valid_for_status_index
+            tableName: outbox
