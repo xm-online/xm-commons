@@ -1,3 +1,7 @@
+plugins {
+    id "maven-publish"
+}
+
 apply plugin: 'io.spring.dependency-management'
 dependencyManagement {
     imports {
@@ -15,7 +19,16 @@ dependencies {
     compile 'org.liquibase:liquibase-core'
     compile 'org.springframework:spring-context'
     compile 'org.hibernate:hibernate-core'
+    implementation "com.vladmihalcea:hibernate-types-52:${versions.hibernateTypes52}"
 
     testCompile 'junit:junit'
     testCompile 'org.mockito:mockito-core'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
 }

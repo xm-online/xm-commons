@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.gen.model.Tenant;
+import com.icthh.xm.commons.migration.db.liquibase.LiquibaseRunner;
 import com.icthh.xm.commons.migration.db.tenant.DropSchemaResolver;
 import lombok.SneakyThrows;
 import org.junit.Before;
@@ -22,7 +23,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
-import org.springframework.core.io.ResourceLoader;
 
 import java.sql.Connection;
 import java.sql.Statement;
@@ -51,10 +51,10 @@ public class TenantDatabaseProvisionerUnitTest {
     private LiquibaseProperties properties;
 
     @Mock
-    private ResourceLoader resourceLoader;
+    private DropSchemaResolver schemaDropResolver;
 
     @Mock
-    private DropSchemaResolver schemaDropResolver;
+    private LiquibaseRunner liquibaseRunner;
 
     @Before
     @SneakyThrows
@@ -65,7 +65,7 @@ public class TenantDatabaseProvisionerUnitTest {
         when(connection.createStatement()).thenReturn(statement);
 
         tenantDatabaseProvisioner = Mockito.spy(new TenantDatabaseProvisioner(dataSource, properties,
-                                                                              resourceLoader, schemaDropResolver));
+                                                                              schemaDropResolver, liquibaseRunner));
     }
 
     @Test
@@ -102,7 +102,7 @@ public class TenantDatabaseProvisionerUnitTest {
         verifyZeroInteractions(dataSource);
         verifyZeroInteractions(connection);
         verifyZeroInteractions(statement);
-        verifyZeroInteractions(resourceLoader);
+        verifyZeroInteractions(liquibaseRunner);
         verifyZeroInteractions(schemaDropResolver);
     }
 

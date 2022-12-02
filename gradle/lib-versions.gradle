@@ -35,5 +35,9 @@ ext.versions = [
 
     systemRules                : '1.16.0',
 
-    hibernate                  : '5.3.13.Final'
+    hibernate                  : '5.3.13.Final',
+
+    mapstruct                  : '1.5.3.Final',
+
+    hibernateTypes52           : '2.4.3'
 ]

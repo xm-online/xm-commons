@@ -1,0 +1,5 @@
+enabled: false
+sources:
+    DB:
+        enabled: true
+        transport: outboxTransport

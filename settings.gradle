@@ -1,4 +1,7 @@
 include ':xm-commons-config'
+include ':xm-commons-domainevent'
+include ':xm-commons-domainevent-db'
+include ':xm-commons-domainevent-outbox'
 include ':xm-commons-exceptions'
 include ':xm-commons-i18n'
 include ':xm-commons-lep'
