@@ -12,8 +12,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.icthh.xm.commons.domainevent.idp.IdpConstants.PUBLIC_JWKS_CONFIG_PATTERN;
-import static com.icthh.xm.commons.domainevent.idp.IdpConstants.IDP_CLIENT_KEY;
+import static com.icthh.xm.commons.domain.idp.IdpConstants.PUBLIC_JWKS_CONFIG_PATTERN;
+import static com.icthh.xm.commons.domain.idp.IdpConstants.IDP_CLIENT_KEY;
 
 /**
  * This class caches JWKS keys.
