@@ -6,6 +6,7 @@ import com.icthh.xm.commons.migration.db.tenant.SchemaResolver;
 import liquibase.integration.spring.MultiTenantSpringLiquibase;
 import liquibase.integration.spring.SpringLiquibase;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.MultiTenancyStrategy;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
@@ -23,7 +24,9 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.icthh.xm.commons.migration.db.Constants.CHANGE_LOG_PATH;
 import static org.hibernate.cfg.AvailableSettings.JPA_VALIDATION_FACTORY;
@@ -98,7 +101,8 @@ public abstract class DatabaseConfiguration {
             DataSource dataSource,
             MultiTenantConnectionProvider multiTenantConnectionProviderImpl,
             CurrentTenantIdentifierResolver currentTenantIdentifierResolverImpl,
-            LocalValidatorFactoryBean localValidatorFactoryBean) {
+            LocalValidatorFactoryBean localValidatorFactoryBean,
+            List<EntityScanPackageProvider> entityScanPackageProviderList) {
 
         Map<String, Object> properties = new HashMap<>(jpaProperties.getProperties());
         properties.put(MULTI_TENANT, MultiTenancyStrategy.SCHEMA);
@@ -108,12 +112,26 @@ public abstract class DatabaseConfiguration {
 
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource);
-        em.setPackagesToScan(getJpaPackages());
+        em.setPackagesToScan(getJpaPackages(entityScanPackageProviderList));
         em.setJpaVendorAdapter(jpaVendorAdapter());
         em.setJpaPropertyMap(properties);
         return em;
     }
 
     public abstract String getJpaPackages();
+
+    private String[] getJpaPackages(List<EntityScanPackageProvider> entityScanPackageProviderList) {
+        List<String> packageList = entityScanPackageProviderList.stream()
+            .filter(it -> it != null && StringUtils.isNotBlank(it.getJpaPackages()))
+            .map(EntityScanPackageProvider::getJpaPackages)
+            .collect(Collectors.toList());
+
+        String jpaPackage = getJpaPackages();
+        if (StringUtils.isNotBlank(jpaPackage)){
+            packageList.add(jpaPackage);
+        }
+
+        return packageList.toArray(String[]::new);
+    }
 }
 
