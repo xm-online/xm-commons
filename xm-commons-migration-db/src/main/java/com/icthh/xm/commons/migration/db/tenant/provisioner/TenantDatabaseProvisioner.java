@@ -6,16 +6,14 @@ import static com.icthh.xm.commons.migration.db.util.DatabaseUtil.executeUpdateW
 import static com.icthh.xm.commons.tenant.TenantContextUtils.assertTenantKeyValid;
 
 import com.icthh.xm.commons.gen.model.Tenant;
+import com.icthh.xm.commons.migration.db.liquibase.LiquibaseRunner;
 import com.icthh.xm.commons.migration.db.tenant.DropSchemaResolver;
 import com.icthh.xm.commons.tenantendpoint.provisioner.TenantProvisioner;
-import liquibase.integration.spring.SpringLiquibase;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
@@ -29,8 +27,8 @@ public class TenantDatabaseProvisioner implements TenantProvisioner {
 
     private final DataSource dataSource;
     private final LiquibaseProperties properties;
-    private final ResourceLoader resourceLoader;
     private final DropSchemaResolver schemaDropResolver;
+    private final LiquibaseRunner liquibaseRunner;
 
     @SneakyThrows
     @Override
@@ -64,25 +62,8 @@ public class TenantDatabaseProvisioner implements TenantProvisioner {
 
     @SneakyThrows
     protected void migrateSchema(String tenantKey) {
-
         String changeLogPath = getChangelogPath();
-        StopWatch stopWatch = StopWatch.createStarted();
-        log.info("start Liquibase migration for tenant {}, changelog path: {}", tenantKey, changeLogPath);
-        try {
-            SpringLiquibase liquibase = new SpringLiquibase();
-            liquibase.setResourceLoader(resourceLoader);
-            liquibase.setDataSource(dataSource);
-            liquibase.setChangeLog(changeLogPath);
-            liquibase.setContexts(properties.getContexts());
-            liquibase.setDefaultSchema(tenantKey);
-            liquibase.setDropFirst(properties.isDropFirst());
-            liquibase.setChangeLogParameters(properties.getParameters());
-            liquibase.setShouldRun(true);
-
-            liquibase.afterPropertiesSet();
-        } finally {
-            log.info("stop  Liquibase migration for tenant {}, time: {} ms", tenantKey, stopWatch.getTime());
-        }
+        liquibaseRunner.runOnTenant(tenantKey, changeLogPath);
     }
 
     private String getChangelogPath() {

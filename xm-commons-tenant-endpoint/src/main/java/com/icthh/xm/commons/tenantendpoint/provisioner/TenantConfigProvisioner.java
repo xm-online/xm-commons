@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @Builder
 @Slf4j
 @AllArgsConstructor
-@RequiredArgsConstructor(onConstructor = @__({@Autowired}))
+@RequiredArgsConstructor
 public class TenantConfigProvisioner implements TenantProvisioner {
 
     @Singular

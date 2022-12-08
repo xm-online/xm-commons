@@ -1,0 +1,38 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        gradlePluginPortal()
+        maven { url "https://repo.spring.io/plugins-release" }
+    }
+}
+
+apply plugin: 'io.spring.dependency-management'
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:$versions.springBoot")
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
+    }
+}
+
+dependencies {
+    compileOnly "org.projectlombok:lombok:${versions.lombok}"
+
+    implementation project(':xm-commons-migration-db')
+    implementation project(':xm-commons-domainevent')
+    implementation project(':xm-commons-domainevent-db')
+
+    implementation "org.mapstruct:mapstruct:${versions.mapstruct}"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa:${versions.springBoot}"
+
+    implementation "com.google.guava:guava:31.0.1-jre"
+
+    annotationProcessor "org.mapstruct:mapstruct-processor:${versions.mapstruct}"
+
+    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
+    testImplementation 'junit:junit'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.mockito:mockito-core'
+}
+
+compileJava.dependsOn(processResources)

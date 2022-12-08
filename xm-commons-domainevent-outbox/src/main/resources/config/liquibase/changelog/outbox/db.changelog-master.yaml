@@ -1,0 +1,47 @@
+databaseChangeLog:
+  - property:
+      name: uuidType
+      value: uuid
+      dbms: 'h2, postgresql'
+  - property:
+      name: uuidType
+      value: RAW(16)
+      dbms: oracle
+  - property:
+      name: uuid_function
+      value: uuid_generate_v4()
+      dbms: postgresql
+  - property:
+      name: uuid_function
+      value: RANDOM_UUID()
+      dbms: h2
+  - property:
+      name: uuid_function
+      value: sys_guid()
+      dbms: oracle
+  - property:
+      name: json_type
+      value: varchar(10485760)
+      dbms: h2
+  - property:
+      name: json_type
+      value: jsonb
+      dbms: postgresql
+  - property:
+      name: json_type
+      value: text
+      dbms: oracle
+
+  - changeSet:
+      id: 20221108133921
+      author: vbilenko
+      changes:
+        - sql:
+            dbms: postgresql
+            sql: CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+  - include:
+      file: config/liquibase/changelog/outbox/00000000000000_initial_schema.yaml
+
+  - include:
+      file: config/liquibase/changelog/outbox/00000000000001_initial_indexes.yaml

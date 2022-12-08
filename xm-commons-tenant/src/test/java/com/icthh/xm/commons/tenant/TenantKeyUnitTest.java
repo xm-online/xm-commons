@@ -3,6 +3,7 @@ package com.icthh.xm.commons.tenant;
 import static com.icthh.xm.commons.tenant.TenantContextUtils.isTenantKeyValid;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
@@ -68,6 +69,24 @@ public class TenantKeyUnitTest {
         assertFalse(isTenantKeyValid("INVALID TENANT NAME"));
         assertFalse(isTenantKeyValid("INVALIDTENANTNAME;"));
         assertFalse(isTenantKeyValid("commons"));
+    }
+
+    @Test
+    public void testNormalizeTenantKey() {
+        assertEquals("ValidTenant", TenantContextUtils.normalizeTenant("ValidTenant"));
+        assertEquals("Valid_Tenant", TenantContextUtils.normalizeTenant("Valid-Tenant"));
+    }
+
+    @Test
+    public void testNormalizeTenantKeyShouldThrow() {
+        Exception exception = null;
+        try {
+            TenantContextUtils.normalizeTenant("Not valid tenant!");
+        } catch (Exception e) {
+            exception = e;
+        }
+        assertNotNull(exception);
+        assertEquals(IllegalArgumentException.class, exception.getClass());
     }
 
 }
