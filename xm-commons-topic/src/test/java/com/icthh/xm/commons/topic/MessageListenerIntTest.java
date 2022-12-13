@@ -1,22 +1,5 @@
 package com.icthh.xm.commons.topic;
 
-import static java.lang.Thread.sleep;
-import static java.nio.charset.Charset.defaultCharset;
-import static java.util.Collections.singleton;
-import static org.apache.kafka.clients.producer.ProducerConfig.RETRIES_CONFIG;
-import static org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_CONFIG;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.after;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.springframework.kafka.test.utils.KafkaTestUtils.consumerProps;
-import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
-
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.logging.trace.SleuthWrapper;
 import com.icthh.xm.commons.topic.message.MessageHandler;
@@ -44,7 +27,25 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.junit4.SpringRunner;
+
 import java.util.Map;
+
+import static java.lang.Thread.sleep;
+import static java.nio.charset.Charset.defaultCharset;
+import static java.util.Collections.singleton;
+import static org.apache.kafka.clients.producer.ProducerConfig.RETRIES_CONFIG;
+import static org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_CONFIG;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.after;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.springframework.kafka.test.utils.KafkaTestUtils.consumerProps;
+import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
 
 @Slf4j
 @RunWith(SpringRunner.class)
@@ -116,7 +117,7 @@ public class MessageListenerIntTest {
                                                      messageHandler,
                                                      sleuthWrapper);
         topicManager.onRefresh(UPDATE_KEY, readConfig(CONFIG));
-        Thread.sleep(50); // for rebalance cluster, and avoid message will be consumed by other consumer
+        Thread.sleep(100); // for rebalance cluster, and avoid message will be consumed by other consumer
 
         doAnswer(answer -> {
             sleep(500);
@@ -132,9 +133,9 @@ public class MessageListenerIntTest {
         producer.send(new ProducerRecord<>(TOPIC, "test-id", TEST_MESSAGE));
         producer.flush();
 
-        verify(messageHandler, timeout(2000).atLeast(3))
+        verify(messageHandler, timeout(3000).atLeast(3))
               .onMessage(eq(TEST_MESSAGE), eq(TENANT_KEY), any());
-        verify(messageHandler, after(2000).times(3))
+        verify(messageHandler, after(3000).times(3))
               .onMessage(eq(TEST_MESSAGE), eq(TENANT_KEY), any());
         verifyNoMoreInteractions(messageHandler);
 
