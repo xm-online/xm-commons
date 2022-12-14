@@ -10,6 +10,10 @@ dependencies {
 
     compile project(":xm-commons-config")
     compile "org.springframework.boot:spring-boot-starter-mail"
+    compile project(":xm-commons-topic")
+    compile project(":xm-commons-messaging")
 
     testCompile 'junit:junit'
+    testCompile 'org.mockito:mockito-core'
+    testCompile 'org.springframework:spring-test'
 }

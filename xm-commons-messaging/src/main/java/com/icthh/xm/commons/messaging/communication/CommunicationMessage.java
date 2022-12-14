@@ -34,5 +34,13 @@ public class CommunicationMessage {
     private List<Receiver> receiver = new ArrayList<>();
     private Sender sender;
     private List<CommunicationRequestCharacteristic> characteristic;
+
+    public CommunicationMessage setTemplateModel(String templateModel) {
+        CommunicationRequestCharacteristic communicationRequestCharacteristic = new CommunicationRequestCharacteristic();
+        characteristic.add(communicationRequestCharacteristic);
+        communicationRequestCharacteristic.setName("templateModel");
+        communicationRequestCharacteristic.setValue(templateModel);
+        return this;
+    }
 }
 
