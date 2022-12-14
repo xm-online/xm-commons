@@ -6,7 +6,9 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.icthh.xm.commons.messaging.communication.CommunicationConstants.*;
+import static com.icthh.xm.commons.messaging.communication.CommunicationConstants.LANGUAGE;
+import static com.icthh.xm.commons.messaging.communication.CommunicationConstants.TEMPLATE_MODEL;
+import static com.icthh.xm.commons.messaging.communication.CommunicationConstants.TEMPLATE_NAME;
 
 /**
  * Communication message means a notification approach in the format of a message
