@@ -6,6 +6,8 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.icthh.xm.commons.messaging.communication.CommunicationConstants.*;
+
 /**
  * Communication message means a notification approach in the format of a message
  * which can be dispatched (sent) to the certain user
@@ -38,8 +40,24 @@ public class CommunicationMessage {
     public CommunicationMessage setTemplateModel(String templateModel) {
         CommunicationRequestCharacteristic communicationRequestCharacteristic = new CommunicationRequestCharacteristic();
         characteristic.add(communicationRequestCharacteristic);
-        communicationRequestCharacteristic.setName("templateModel");
+        communicationRequestCharacteristic.setName(TEMPLATE_MODEL);
         communicationRequestCharacteristic.setValue(templateModel);
+        return this;
+    }
+
+    public CommunicationMessage setLanguage(String language) {
+        CommunicationRequestCharacteristic communicationRequestCharacteristic = new CommunicationRequestCharacteristic();
+        characteristic.add(communicationRequestCharacteristic);
+        communicationRequestCharacteristic.setName(LANGUAGE);
+        communicationRequestCharacteristic.setValue(language);
+        return this;
+    }
+
+    public CommunicationMessage setTemplateName(String templateName) {
+        CommunicationRequestCharacteristic communicationRequestCharacteristic = new CommunicationRequestCharacteristic();
+        characteristic.add(communicationRequestCharacteristic);
+        communicationRequestCharacteristic.setName(TEMPLATE_NAME);
+        communicationRequestCharacteristic.setValue(templateName);
         return this;
     }
 }
