@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.mail.provider.communication;
+package com.icthh.xm.commons.communication;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.messaging.communication.CommunicationMessage;
@@ -15,12 +15,12 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CommunicationMailService {
+public class CommunicationService {
 
     private final KafkaTemplateService kafkaTemplateService;
     private final TenantContextHolder tenantContextHolder;
     private final ObjectMapper objectMapper;
-    @Value("${application.kafka-communication-queue:'%s_communication_queue'}")
+    @Value("${application.communication.kafka-communication-queue:'communication_%s_queue'}")
     private String topicName;
 
     public void sendEmailEvent(CommunicationMessage message) {

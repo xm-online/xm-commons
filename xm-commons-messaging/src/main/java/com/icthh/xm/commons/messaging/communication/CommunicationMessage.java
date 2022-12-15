@@ -37,30 +37,28 @@ public class CommunicationMessage {
     private String version;
     private List<Receiver> receiver = new ArrayList<>();
     private Sender sender;
-    private List<CommunicationRequestCharacteristic> characteristic;
+    private List<CommunicationRequestCharacteristic> characteristic = new ArrayList<>();
 
     public CommunicationMessage setTemplateModel(String templateModel) {
-        CommunicationRequestCharacteristic communicationRequestCharacteristic = new CommunicationRequestCharacteristic();
-        characteristic.add(communicationRequestCharacteristic);
-        communicationRequestCharacteristic.setName(TEMPLATE_MODEL);
-        communicationRequestCharacteristic.setValue(templateModel);
+        addCharacteristic(TEMPLATE_MODEL, templateModel);
         return this;
     }
 
     public CommunicationMessage setLanguage(String language) {
-        CommunicationRequestCharacteristic communicationRequestCharacteristic = new CommunicationRequestCharacteristic();
-        characteristic.add(communicationRequestCharacteristic);
-        communicationRequestCharacteristic.setName(LANGUAGE);
-        communicationRequestCharacteristic.setValue(language);
+        addCharacteristic(LANGUAGE, language);
         return this;
     }
 
     public CommunicationMessage setTemplateName(String templateName) {
-        CommunicationRequestCharacteristic communicationRequestCharacteristic = new CommunicationRequestCharacteristic();
-        characteristic.add(communicationRequestCharacteristic);
-        communicationRequestCharacteristic.setName(TEMPLATE_NAME);
-        communicationRequestCharacteristic.setValue(templateName);
+        addCharacteristic(TEMPLATE_NAME, templateName);
         return this;
+    }
+
+    public void addCharacteristic(String name, String value) {
+        CommunicationRequestCharacteristic communicationRequestCharacteristic = new CommunicationRequestCharacteristic();
+        communicationRequestCharacteristic.setName(name);
+        communicationRequestCharacteristic.setValue(value);
+        characteristic.add(communicationRequestCharacteristic);
     }
 }
 

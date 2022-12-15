@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.mail.provider.communication;
+package com.icthh.xm.commons.communication;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.messaging.communication.CommunicationMessage;
@@ -23,12 +23,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-public class CommunicationMailServiceUnitTest {
+public class CommunicationServiceUnitTest {
 
     private static final String COMMUNICATION_KAFKA_TOPIC_PATTERN = "%s_communication_queue";
     private static final String TENANT = "TEST";
 
-    private CommunicationMailService subject;
+    private CommunicationService subject;
     private TenantContextHolder tenantContextHolder;
     private KafkaTemplateService kafkaTemplateService;
     private ObjectMapper mapper = new ObjectMapper();
@@ -38,7 +38,7 @@ public class CommunicationMailServiceUnitTest {
         tenantContextHolder = mock(TenantContextHolder.class);
         kafkaTemplateService = mock(KafkaTemplateService.class);
         mockTenant(TENANT);
-        subject = new CommunicationMailService(kafkaTemplateService, tenantContextHolder, mapper);
+        subject = new CommunicationService(kafkaTemplateService, tenantContextHolder, mapper);
         ReflectionTestUtils.setField(subject, "topicName", COMMUNICATION_KAFKA_TOPIC_PATTERN);
     }
 

@@ -1,3 +1,4 @@
+include ':xm-commons-communication'
 include ':xm-commons-config'
 include ':xm-commons-domainevent'
 include ':xm-commons-domainevent-db'
