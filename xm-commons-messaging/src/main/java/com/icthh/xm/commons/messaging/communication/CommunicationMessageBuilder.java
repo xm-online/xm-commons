@@ -6,7 +6,9 @@ import lombok.SneakyThrows;
 
 import java.util.Map;
 
-import static com.icthh.xm.commons.messaging.communication.CommunicationConstants.*;
+import static com.icthh.xm.commons.messaging.communication.CommunicationConstants.LANGUAGE;
+import static com.icthh.xm.commons.messaging.communication.CommunicationConstants.TEMPLATE_MODEL;
+import static com.icthh.xm.commons.messaging.communication.CommunicationConstants.TEMPLATE_NAME;
 
 @RequiredArgsConstructor
 public class CommunicationMessageBuilder {
