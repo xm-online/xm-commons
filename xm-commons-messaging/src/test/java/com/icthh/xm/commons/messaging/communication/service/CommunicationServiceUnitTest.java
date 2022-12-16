@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.communication;
+package com.icthh.xm.commons.messaging.communication.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.messaging.communication.CommunicationMessage;
@@ -12,11 +12,8 @@ import org.junit.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Optional;
 
-import static com.icthh.xm.commons.messaging.communication.CommunicationConstants.TEMPLATE_MODEL;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -52,17 +49,6 @@ public class CommunicationServiceUnitTest {
 
         verify(kafkaTemplateService).send(eq(topicName), eq(convertedExpectedMessage));
         verifyNoMoreInteractions(kafkaTemplateService);
-    }
-
-    @Test
-    public void addTemplateModelToMessage() {
-        CommunicationMessage communicationMessage = createCommunicationMessage();
-        Map<String, Object> model = Map.of("key", "value");
-        String convertedModel = convertToString(model);
-        CommunicationMessage actual = subject.addTemplateModelToMessage(communicationMessage, model);
-
-        assertEquals(actual.getCharacteristic().get(0).getName(), TEMPLATE_MODEL);
-        assertEquals(actual.getCharacteristic().get(0).getValue(), convertedModel);
     }
 
     private void mockTenant(String tenant) {

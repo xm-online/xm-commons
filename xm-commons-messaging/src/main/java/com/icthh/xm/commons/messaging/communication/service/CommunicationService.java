@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.communication;
+package com.icthh.xm.commons.messaging.communication.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.messaging.communication.CommunicationMessage;
@@ -9,8 +9,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -26,11 +24,6 @@ public class CommunicationService {
     public void sendEmailEvent(CommunicationMessage message) {
         String serializedMessage = convertToString(message);
         sendMessage(serializedMessage);
-    }
-
-    public CommunicationMessage addTemplateModelToMessage(CommunicationMessage message, Map<String, Object> model) {
-        String serializedModel = convertToString(model);
-        return message.setTemplateModel(serializedModel);
     }
 
     private void sendMessage(String content) {

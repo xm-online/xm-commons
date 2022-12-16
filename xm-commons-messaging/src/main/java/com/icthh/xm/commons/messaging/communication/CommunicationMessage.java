@@ -39,26 +39,5 @@ public class CommunicationMessage {
     private Sender sender;
     private List<CommunicationRequestCharacteristic> characteristic = new ArrayList<>();
 
-    public CommunicationMessage setTemplateModel(String templateModel) {
-        addCharacteristic(TEMPLATE_MODEL, templateModel);
-        return this;
-    }
-
-    public CommunicationMessage setLanguage(String language) {
-        addCharacteristic(LANGUAGE, language);
-        return this;
-    }
-
-    public CommunicationMessage setTemplateName(String templateName) {
-        addCharacteristic(TEMPLATE_NAME, templateName);
-        return this;
-    }
-
-    public void addCharacteristic(String name, String value) {
-        CommunicationRequestCharacteristic communicationRequestCharacteristic = new CommunicationRequestCharacteristic();
-        communicationRequestCharacteristic.setName(name);
-        communicationRequestCharacteristic.setValue(value);
-        characteristic.add(communicationRequestCharacteristic);
-    }
 }
 
