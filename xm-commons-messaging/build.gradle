@@ -2,12 +2,17 @@ apply plugin: 'io.spring.dependency-management'
 dependencyManagement {
     imports {
         mavenBom("org.springframework.boot:spring-boot-dependencies:$versions.springBoot")
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:$versions.springCloud")
     }
 }
 
 dependencies {
+    compile project(":xm-commons-tenant")
+    compile project(":xm-commons-topic")
     compile 'com.fasterxml.jackson.core:jackson-databind'
     compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
 
     testCompile 'junit:junit'
+    testCompile 'org.mockito:mockito-core'
+    testCompile 'org.springframework:spring-test'
 }
