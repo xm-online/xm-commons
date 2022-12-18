@@ -18,7 +18,7 @@ public class CommunicationService {
     private final KafkaTemplateService kafkaTemplateService;
     private final TenantContextHolder tenantContextHolder;
     private final ObjectMapper objectMapper;
-    @Value("${application.communication.kafka-communication-queue:'communication_%s_queue'}")
+    @Value("${application.communication.kafka-communication-queue:communication_%s_queue}")
     private String topicName;
 
     public void sendEmailEvent(CommunicationMessage message) {
