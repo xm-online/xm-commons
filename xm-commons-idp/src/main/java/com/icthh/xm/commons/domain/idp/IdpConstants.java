@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.domainevent.idp;
+package com.icthh.xm.commons.domain.idp;
 
 import lombok.experimental.UtilityClass;
 
