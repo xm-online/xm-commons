@@ -128,8 +128,9 @@ public class DatabaseTxIdResolver {
     }
 
     private String getDbTransactionId() {
-        try (Statement stmt = dataSource.getConnection().createStatement()) {
-            ResultSet rs = stmt.executeQuery(this.dbTransactionIdCommand);
+        try (Connection connection = dataSource.getConnection();
+             Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(this.dbTransactionIdCommand)) {
             if (rs.next()) {
                 return rs.getString(1);
             } else {
