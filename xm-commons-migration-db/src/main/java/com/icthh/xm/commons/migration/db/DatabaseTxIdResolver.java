@@ -10,6 +10,7 @@ import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -128,8 +129,9 @@ public class DatabaseTxIdResolver {
     }
 
     private String getDbTransactionId() {
-        try (Statement stmt = dataSource.getConnection().createStatement()) {
-            ResultSet rs = stmt.executeQuery(this.dbTransactionIdCommand);
+        try (Connection connection = dataSource.getConnection();
+             Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(this.dbTransactionIdCommand)) {
             if (rs.next()) {
                 return rs.getString(1);
             } else {
