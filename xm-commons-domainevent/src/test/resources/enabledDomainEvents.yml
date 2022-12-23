@@ -5,4 +5,4 @@ sources:
         transport: outboxTransport
     WEB:
         enabled: false
-        transport: outboxTransport
+        transport: kafkaTransport
