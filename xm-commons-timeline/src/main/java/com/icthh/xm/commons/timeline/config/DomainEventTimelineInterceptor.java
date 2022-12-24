@@ -5,14 +5,12 @@ import com.icthh.xm.commons.domainevent.domain.HttpDomainEventPayload;
 import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventSource;
 import com.icthh.xm.commons.domainevent.service.EventPublisher;
 import com.icthh.xm.commons.logging.util.MdcUtils;
+import com.icthh.xm.commons.security.XmAuthenticationContext;
+import com.icthh.xm.commons.security.internal.SpringSecurityXmAuthenticationContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.util.ContentCachingResponseWrapper;
@@ -23,14 +21,11 @@ import java.net.http.HttpHeaders;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 
 @Slf4j
 @Component
@@ -38,51 +33,33 @@ import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 public class DomainEventTimelineInterceptor extends HandlerInterceptorAdapter {
 
     private static final String HEADER_TENANT = "x-tenant";
-    private static final String AUTH_TENANT_KEY = "tenant";
-    private static final String AUTH_USER_KEY = "user_key";
 
     private final EventPublisher eventPublisher;
+    private final SpringSecurityXmAuthenticationContextHolder springSecurityXmAuthenticationContextHolder;
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
 
         if (isIgnoredRequest(request, response)) {
             return;
         }
 
-        final OAuth2Authentication auth = getAuthentication();
-        if (auth == null) {
+        XmAuthenticationContext auth = springSecurityXmAuthenticationContextHolder.getContext();
+        if (auth == null || auth.isAnonymous()) {
             String tenant = request.getHeader(HEADER_TENANT);
             publishEvent(request, response, tenant, null, null);
         } else {
-            Map<String, String> details = getUserDetails(auth);
-            String tenant = details.getOrDefault(AUTH_TENANT_KEY, "");
-            String userKey = details.getOrDefault(AUTH_USER_KEY, "");
-            String userLogin = (String) auth.getPrincipal();
+            String userLogin = auth.getLogin().orElse("");
+            String userKey = auth.getUserKey().orElse("");
+            String tenant = auth.getTenantName().orElse("");
+
             publishEvent(request, response, tenant, userLogin, userKey);
         }
-    }
-
-    private OAuth2Authentication getAuthentication() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth instanceof OAuth2Authentication) {
-            return (OAuth2Authentication) SecurityContextHolder.getContext().getAuthentication();
-        }
-        return null;
     }
 
     // TODO
     private boolean isIgnoredRequest(HttpServletRequest request, HttpServletResponse response) {
         return false;
-    }
-
-    private Map<String, String> getUserDetails(OAuth2Authentication auth) {
-        Map<String, String> details = null;
-        if (auth.getDetails() != null) {
-            details = Map.class.cast(OAuth2AuthenticationDetails.class.cast(auth.getDetails()).getDecodedDetails());
-        }
-        details = firstNonNull(details, new HashMap<>());
-        return details;
     }
 
     private void publishEvent(HttpServletRequest request, HttpServletResponse response, String tenant, String userLogin, String userKey) {
