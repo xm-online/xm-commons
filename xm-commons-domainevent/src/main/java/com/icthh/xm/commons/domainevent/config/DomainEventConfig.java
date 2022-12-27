@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.timeline.config;
+package com.icthh.xm.commons.domainevent.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -12,11 +12,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @ConditionalOnProperty("application.timeline-domain-event-enabled")
 public class DomainEventConfig implements WebMvcConfigurer {
 
-    private final DomainEventTimelineInterceptor domainEventTimelineInterceptor;
+    private final WebApiSource webApiSource;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(domainEventTimelineInterceptor);
+        registry.addInterceptor(webApiSource);
     }
 
     @Override

@@ -14,7 +14,6 @@ apply plugin: 'io.spring.dependency-management'
 dependencyManagement {
     imports {
         mavenBom("org.springframework.boot:spring-boot-dependencies:$versions.springBoot")
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}")
     }
 }
 
@@ -25,7 +24,6 @@ dependencies {
 
     compile project(":xm-commons-logging")
     compile project(":xm-commons-security")
-    compile project(":xm-commons-domainevent")
     compileOnly 'javax.servlet:javax.servlet-api'
 
     compile 'org.slf4j:slf4j-api'
@@ -33,7 +31,6 @@ dependencies {
     compile 'com.jayway.jsonpath:json-path'
     compile 'org.springframework.kafka:spring-kafka'
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-json-org'
-    compile 'commons-io:commons-io:2.11.0'
 
     compile("org.springframework.boot:spring-boot-starter-web") {
         exclude module: 'spring-boot-starter-tomcat'

@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.timeline.config;
+package com.icthh.xm.commons.domainevent.config;
 
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.HttpDomainEventPayload;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DomainEventTimelineInterceptor extends HandlerInterceptorAdapter {
+public class WebApiSource extends HandlerInterceptorAdapter {
 
     private static final String HEADER_TENANT = "x-tenant";
 
