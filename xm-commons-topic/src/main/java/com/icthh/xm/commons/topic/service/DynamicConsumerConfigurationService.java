@@ -22,15 +22,15 @@ public class DynamicConsumerConfigurationService {
 
     public void startDynamicConsumers(String tenantKey) {
         Map<String, ConsumerHolder> tenantConsumerHolders = dynamicConsumersByTenant.computeIfAbsent(tenantKey, (key) -> new ConcurrentHashMap<>());
-        List<TopicConfig> topicConfigs = getDynamicConsumerTopicConfigsByTenant(tenantKey);
+        List<DynamicConsumer> dynamicConsumers = getDynamicConsumersByTenant(tenantKey);
 
-        topicConfigs.forEach(topicConfig -> topicManagerService.startNewConsumer(tenantKey, topicConfig, tenantConsumerHolders));
+        dynamicConsumers.forEach(it -> topicManagerService.startNewConsumer(tenantKey, it.getConfig(), tenantConsumerHolders, it.getMessageHandler()));
     }
 
     public void refreshDynamicConsumers(String tenantKey) {
-        List<TopicConfig> topicConfigs = getDynamicConsumerTopicConfigsByTenant(tenantKey);
+        List<DynamicConsumer> dynamicConsumers = getDynamicConsumersByTenant(tenantKey);
 
-        topicConfigs.forEach(it -> updateExistingConsumer(tenantKey, it));
+        dynamicConsumers.forEach(it -> updateExistingConsumer(tenantKey, it));
     }
 
     public void stopDynamicConsumers(String tenantKey) {
@@ -39,17 +39,20 @@ public class DynamicConsumerConfigurationService {
         dynamicConsumersByTenant.remove(tenantKey);
     }
 
-    private List<TopicConfig> getDynamicConsumerTopicConfigsByTenant(String tenantKey) {
+    private List<DynamicConsumer> getDynamicConsumersByTenant(String tenantKey) {
         return dynamicConsumerConfigurations.stream()
             .flatMap(it -> it.getDynamicConsumers(tenantKey).stream())
-            .map(DynamicConsumer::getConfig)
             .collect(Collectors.toList());
     }
 
-    private void updateExistingConsumer(String tenantKey, TopicConfig updatedTopicConfig) {
+    private void updateExistingConsumer(String tenantKey, DynamicConsumer updatedDynamicConsumer) {
         Map<String, ConsumerHolder> tenantConsumerHolders = dynamicConsumersByTenant.get(tenantKey);
         Optional.of(tenantConsumerHolders)
-            .map(it -> it.get(updatedTopicConfig.getKey()))
-            .ifPresent((consumerHolder) -> topicManagerService.updateConsumer(tenantKey, updatedTopicConfig, consumerHolder, tenantConsumerHolders));
+            .map(it -> it.get(updatedDynamicConsumer.getConfig().getKey()))
+            .ifPresent((consumerHolder) -> topicManagerService.updateConsumer(tenantKey,
+                                                                              updatedDynamicConsumer.getConfig(),
+                                                                              consumerHolder,
+                                                                              tenantConsumerHolders,
+                                                                              updatedDynamicConsumer.getMessageHandler()));
     }
 }

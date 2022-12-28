@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,7 +45,7 @@ public class TopicManagerService {
         }
 
         if (existingConfig == null) {
-            startNewConsumer(tenantKey, topicConfig, existingConsumers);
+            startNewConsumer(tenantKey, topicConfig, existingConsumers, messageHandler);
             return;
         }
 
@@ -53,7 +54,7 @@ public class TopicManagerService {
             return;
         }
 
-        updateConsumer(tenantKey, topicConfig, existingConfig, existingConsumers);
+        updateConsumer(tenantKey, topicConfig, existingConfig, existingConsumers, messageHandler);
     }
 
     public void stopAllTenantConsumers(String tenantKey,
@@ -79,10 +80,11 @@ public class TopicManagerService {
     }
 
     public void startNewConsumer(String tenantKey,
-                                  TopicConfig topicConfig,
-                                  Map<String, ConsumerHolder> existingConsumers) {
+                                 TopicConfig topicConfig,
+                                 Map<String, ConsumerHolder> existingConsumers,
+                                 MessageHandler messageHandler) {
         withLog(tenantKey, "startNewConsumer", () -> {
-            AbstractMessageListenerContainer container = buildListenerContainer(tenantKey, topicConfig);
+            AbstractMessageListenerContainer container = buildListenerContainer(tenantKey, topicConfig, messageHandler);
             container.start();
             existingConsumers.put(topicConfig.getKey(), new ConsumerHolder(topicConfig, container));
         }, "{}", topicConfig);
@@ -91,16 +93,17 @@ public class TopicManagerService {
     public void updateConsumer(String tenantKey,
                                 TopicConfig topicConfig,
                                 ConsumerHolder existingConfig,
-                                Map<String, ConsumerHolder> existingConsumers) {
+                                Map<String, ConsumerHolder> existingConsumers,
+                                MessageHandler messageHandler) {
         withLog(tenantKey, "restartConsumer", () -> {
             existingConfig.getContainer().stop();
-            AbstractMessageListenerContainer container = buildListenerContainer(tenantKey, topicConfig);
+            AbstractMessageListenerContainer container = buildListenerContainer(tenantKey, topicConfig, messageHandler);
             container.start();
             existingConsumers.put(topicConfig.getKey(), new ConsumerHolder(topicConfig, container));
         }, "{}", topicConfig);
     }
 
-    protected AbstractMessageListenerContainer buildListenerContainer(String tenantKey, TopicConfig topicConfig) {
+    protected AbstractMessageListenerContainer buildListenerContainer(String tenantKey, TopicConfig topicConfig, MessageHandler messageHandler) {
         return new MessageListenerContainerBuilder(kafkaProperties, kafkaTemplate)
             .build(tenantKey, topicConfig, messageHandler, sleuthWrapper);
     }

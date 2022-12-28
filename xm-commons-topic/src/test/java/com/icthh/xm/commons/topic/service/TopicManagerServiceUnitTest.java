@@ -36,7 +36,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 @RunWith(MockitoJUnitRunner.class)
 public class TopicManagerServiceUnitTest {
 
-    private static final String UPDATE_KEY = "/config/tenants/test/some-ms/topic-consumers.yml";
     private static final String TENANT_KEY = "test";
     private static final String CONFIG_1 = "topic-consumers-1.yml";
     private static final String CONFIG_2 = "topic-consumers-2.yml";
@@ -68,7 +67,7 @@ public class TopicManagerServiceUnitTest {
     @Before
     public void setUp() {
         topicManager = spy(new TopicManagerService(kafkaProperties, kafkaTemplate, messageHandler, sleuthWrapper));
-        doReturn(container).when(topicManager).buildListenerContainer(any(), any());
+        doReturn(container).when(topicManager).buildListenerContainer(any(), any(), any());
     }
 
     @Test
@@ -82,6 +81,8 @@ public class TopicManagerServiceUnitTest {
 
         assertEquals(1, existingConsumers.keySet().size());
         assertTrue(existingConsumers.containsKey("key1"));
+
+        verifyNoMoreInteractions(container);
     }
 
     @Test
@@ -90,17 +91,19 @@ public class TopicManagerServiceUnitTest {
         TopicConfig firstTopicConfig = getTopicConsumerSpec(readConfig(CONFIG_1)).getTopics().get(0);
         TopicConfig secondTopicConfig = getTopicConsumerSpec(readConfig(CONFIG_2)).getTopics().get(1);
         topicManager.processTopicConfig(TENANT_KEY, firstTopicConfig, existingConsumers);
+        topicManager.processTopicConfig(TENANT_KEY, secondTopicConfig, existingConsumers);
 
         reset(container);
 
-        topicManager.removeOldConsumers(TENANT_KEY, secondTopicConfig, existingConsumers);
+        topicManager.removeOldConsumers(TENANT_KEY, List.of(secondTopicConfig), existingConsumers);
 
         verify(container, times(0)).start();
         verify(container, times(1)).stop();
 
-        assertEquals(2, existingConsumers.keySet().size());
-        assertTrue(existingConsumers.containsKey("key1"));
+        assertEquals(1, existingConsumers.keySet().size());
         assertTrue(existingConsumers.containsKey("key2"));
+
+        verifyNoMoreInteractions(container);
     }
 
     @Test
@@ -112,7 +115,7 @@ public class TopicManagerServiceUnitTest {
 
         reset(container);
 
-        topicManager.processTopicConfig(UPDATE_KEY, thirdTopicConfig, existingConsumers);
+        topicManager.processTopicConfig(TENANT_KEY, thirdTopicConfig, existingConsumers);
 
         verify(container, times(1)).stop();
         verify(container, times(1)).start();
@@ -121,7 +124,9 @@ public class TopicManagerServiceUnitTest {
         assertTrue(existingConsumers.containsKey("key1"));
 
         ConsumerHolder consumerHolder = existingConsumers.get("key1");
-        assertEquals(new Integer(2), consumerHolder.getTopicConfig().getRetriesCount());
+        assertEquals(5, (int) consumerHolder.getTopicConfig().getRetriesCount());
+
+        verifyNoMoreInteractions(container);
     }
 
     @Test

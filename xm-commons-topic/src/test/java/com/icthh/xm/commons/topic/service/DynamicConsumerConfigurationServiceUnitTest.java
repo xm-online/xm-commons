@@ -1,11 +1,13 @@
 package com.icthh.xm.commons.topic.service;
 
+import com.icthh.xm.commons.topic.domain.DynamicConsumer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.eq;
@@ -32,7 +34,7 @@ public class DynamicConsumerConfigurationServiceUnitTest {
     @Test
     public void startDynamicConsumers() {
 
-        when(dynamicConsumerConfiguration.getDynamicConsumers(eq(TENANT_KEY))).thenReturn();
+        when(dynamicConsumerConfiguration.getDynamicConsumers(eq(TENANT_KEY))).thenReturn(createDynamicConsumers());
 
     }
 
@@ -44,6 +46,10 @@ public class DynamicConsumerConfigurationServiceUnitTest {
     @Test
     public void stopDynamicConsumers() {
 
+    }
+
+    private List<DynamicConsumer> createDynamicConsumers() {
+        return null;
     }
 
 }

@@ -48,19 +48,18 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.Message;
 import org.springframework.test.context.junit4.SpringRunner;
-
 import java.util.Map;
 
 @Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
-    classes = {KafkaAutoConfiguration.class})
+                classes = {KafkaAutoConfiguration.class})
 @EmbeddedKafka(topics = "kafka-queue", partitions = 1, controlledShutdown = true,
     brokerProperties = {
-        "log.dir=out/embedded-kafka",
-        "transaction.state.log.replication.factor=1",
-        "offsets.topic.replication.facto=1",
-        "transaction.state.log.min.isr=1"
+    "log.dir=out/embedded-kafka",
+    "transaction.state.log.replication.factor=1",
+    "offsets.topic.replication.facto=1",
+    "transaction.state.log.min.isr=1"
     })
 public class MessageListenerIntTest {
 
@@ -111,9 +110,9 @@ public class MessageListenerIntTest {
         initConsumers();
 
         DefaultKafkaProducerFactory<String, String> kafkaProducerFactory = new DefaultKafkaProducerFactory<>(
-            producerProps(kafkaEmbedded),
-            new StringSerializer(),
-            new StringSerializer());
+              producerProps(kafkaEmbedded),
+              new StringSerializer(),
+              new StringSerializer());
 
         Producer<String, String> producer = kafkaProducerFactory.createProducer();
         kafkaProperties.getProperties().put("max.poll.interval.ms", "1000");
@@ -137,9 +136,9 @@ public class MessageListenerIntTest {
         producer.flush();
 
         verify(messageHandler, timeout(2000).atLeast(3))
-            .onMessage(eq(TEST_MESSAGE), eq(TENANT_KEY), any());
+              .onMessage(eq(TEST_MESSAGE), eq(TENANT_KEY), any());
         verify(messageHandler, after(2000).times(3))
-            .onMessage(eq(TEST_MESSAGE), eq(TENANT_KEY), any());
+              .onMessage(eq(TEST_MESSAGE), eq(TENANT_KEY), any());
         verifyNoMoreInteractions(messageHandler);
 
         producer.close();
