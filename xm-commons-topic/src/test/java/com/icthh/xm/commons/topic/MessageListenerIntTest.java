@@ -107,6 +107,7 @@ public class MessageListenerIntTest {
     @SneakyThrows
     @Test
     public void testSuccessProcessMessageWhenPollTimeIsOver() {
+        log.info("TRYFIXTEST init consumers");
         initConsumers();
 
         DefaultKafkaProducerFactory<String, String> kafkaProducerFactory = new DefaultKafkaProducerFactory<>(
@@ -119,21 +120,26 @@ public class MessageListenerIntTest {
 
         TopicConfigurationService topicConfigurationService = createTopicConfigurationService(new KafkaTemplate<>(kafkaProducerFactory));
         topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(CONFIG));
+        log.info("TRYFIXTEST Thread.sleep(50);");
         Thread.sleep(50); // for rebalance cluster, and avoid message will be consumed by other consumer
 
         doAnswer(answer -> {
             sleep(500);
+            log.info("TRYFIXTEST slept 500 1");
             throw new BusinessException("test");
         }).doAnswer(answer -> {
             sleep(500);
+            log.info("TRYFIXTEST slept 500 2");
             throw new BusinessException("test");
         }).doAnswer(answer -> {
             sleep(500);
+            log.info("TRYFIXTEST slept 500 3");
             return null;
         }).when(messageHandler).onMessage(any(), any(), any());
 
         producer.send(new ProducerRecord<>(TOPIC, "test-id", TEST_MESSAGE));
         producer.flush();
+        log.info("TRYFIXTEST producer.flush();");
 
         verify(messageHandler, timeout(2000).atLeast(3))
               .onMessage(eq(TEST_MESSAGE), eq(TENANT_KEY), any());
