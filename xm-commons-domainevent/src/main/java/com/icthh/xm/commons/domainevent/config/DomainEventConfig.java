@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @RequiredArgsConstructor
-@ConditionalOnProperty("application.timeline-domain-event-enabled")
+@ConditionalOnProperty("application.domain-event.enabled")
 public class DomainEventConfig implements WebMvcConfigurer {
 
     private final WebApiSource webApiSource;
