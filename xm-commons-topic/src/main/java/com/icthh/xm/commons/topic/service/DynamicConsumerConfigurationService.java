@@ -1,14 +1,15 @@
 package com.icthh.xm.commons.topic.service;
 
+import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.topic.domain.ConsumerHolder;
 import com.icthh.xm.commons.topic.domain.DynamicConsumer;
-import com.icthh.xm.commons.topic.domain.TopicConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -19,12 +20,18 @@ public class DynamicConsumerConfigurationService {
     private final Map<String, Map<String, ConsumerHolder>> dynamicConsumersByTenant = new ConcurrentHashMap<>();
     private final List<DynamicConsumerConfiguration> dynamicConsumerConfigurations;
     private final TopicManagerService topicManagerService;
+    private final TenantListRepository tenantListRepository;
 
     public void startDynamicConsumers(String tenantKey) {
         Map<String, ConsumerHolder> tenantConsumerHolders = dynamicConsumersByTenant.computeIfAbsent(tenantKey, (key) -> new ConcurrentHashMap<>());
         List<DynamicConsumer> dynamicConsumers = getDynamicConsumersByTenant(tenantKey);
 
         dynamicConsumers.forEach(it -> topicManagerService.startNewConsumer(tenantKey, it.getConfig(), tenantConsumerHolders, it.getMessageHandler()));
+    }
+
+    public void refreshDynamicConsumersAll() {
+        Set<String> tenants = tenantListRepository.getTenants();
+        tenants.forEach(this::refreshDynamicConsumers);
     }
 
     public void refreshDynamicConsumers(String tenantKey) {

@@ -18,6 +18,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.springframework.kafka.test.utils.KafkaTestUtils.consumerProps;
 import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
 
+import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.logging.trace.SleuthWrapper;
 import com.icthh.xm.commons.topic.message.MessageHandler;
@@ -37,6 +38,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -78,6 +80,9 @@ public class MessageListenerIntTest {
 
     @Autowired
     private KafkaProperties kafkaProperties;
+
+    @Mock
+    private TenantListRepository tenantListRepository;
 
     private SleuthWrapper sleuthWrapper;
 
@@ -251,7 +256,7 @@ public class MessageListenerIntTest {
             messageHandler,
             sleuthWrapper);
         DynamicConsumerConfigurationService dynamicConsumerConfigurationService =
-            new DynamicConsumerConfigurationService(singletonList(dynamicConsumerConfiguration), topicManagerService);
+            new DynamicConsumerConfigurationService(singletonList(dynamicConsumerConfiguration), topicManagerService, tenantListRepository);
         return new TopicConfigurationService(APP_NAME, topicManagerService, dynamicConsumerConfigurationService);
     }
 }

@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.topic.service;
 
+import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.topic.domain.ConsumerHolder;
 import com.icthh.xm.commons.topic.domain.DynamicConsumer;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
@@ -12,8 +13,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
@@ -45,9 +48,12 @@ public class DynamicConsumerConfigurationServiceUnitTest {
     @Mock
     private AbstractMessageListenerContainer container;
 
+    @Mock
+    private TenantListRepository tenantListRepository;
+
     @Before
     public void setup() {
-        dynamicConsumerConfigurationService = new DynamicConsumerConfigurationService(singletonList(dynamicConsumerConfiguration), topicManagerService);
+        dynamicConsumerConfigurationService = new DynamicConsumerConfigurationService(singletonList(dynamicConsumerConfiguration), topicManagerService, tenantListRepository);
     }
 
     @Test
@@ -78,10 +84,22 @@ public class DynamicConsumerConfigurationServiceUnitTest {
         dynamicConsumerConfigurationService.refreshDynamicConsumers(TENANT_KEY);
 
         verify(topicManagerService, times(dynamicConsumers.size())).startNewConsumer(eq(TENANT_KEY), isAnyOfTopics(dynamicConsumers), isA(Map.class), eq(messageHandler));
-        verify(dynamicConsumerConfiguration, times(dynamicConsumers.size())).getDynamicConsumers(eq(TENANT_KEY));
+        verify(dynamicConsumerConfiguration, times(2)).getDynamicConsumers(eq(TENANT_KEY));
         verify(topicManagerService, times(dynamicConsumers.size())).updateConsumer(eq(TENANT_KEY), isAnyOfTopics(dynamicConsumers), isAnyOfHolders(dynamicConsumers), any(Map.class), eq(messageHandler));
 
         verifyNoMoreInteractions(dynamicConsumerConfiguration, topicManagerService);
+    }
+
+    @Test
+    public void refreshDynamicConsumersAll() {
+        Set<String> tenants = new HashSet<>();
+        tenants.add("TENANT1");
+        tenants.add("TENANT2");
+        when(tenantListRepository.getTenants()).thenReturn(tenants);
+
+        dynamicConsumerConfigurationService.refreshDynamicConsumersAll();
+
+        verify(dynamicConsumerConfiguration, times(2)).getDynamicConsumers(argThat(tenants::contains));
     }
 
     @Test
