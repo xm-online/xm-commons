@@ -165,21 +165,6 @@ public class WebApiSource extends HandlerInterceptorAdapter {
         return "";
     }
 
-    private String getOperation(String method) {
-        switch (method) {
-            case "GET":
-                return "viewed";
-            case "POST":
-                return "created";
-            case "PUT":
-                return "changed";
-            case "DELETE":
-                return "deleted";
-            default:
-                return "";
-        }
-    }
-
     private String maskContent(String content, String uri, boolean request, String httpMethod) {
         if (CollectionUtils.isEmpty(maskRules) || StringUtils.isBlank(content)) {
             return content;
