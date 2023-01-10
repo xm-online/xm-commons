@@ -1,7 +1,5 @@
 package com.icthh.xm.commons.domainevent.config;
 
-import com.icthh.xm.commons.domainevent.domain.ApiMaskConfig;
-import com.icthh.xm.commons.domainevent.domain.ApiMaskRule;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.HttpDomainEventPayload;
 import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventSource;
@@ -49,14 +47,17 @@ public class WebApiSource extends HandlerInterceptorAdapter {
 
     private final EventPublisher eventPublisher;
     private final XmAuthenticationContextHolder xmAuthenticationContextHolder;
+    private final MappingOperationConfiguration mappingOperationConfiguration;
 
     @Value("${spring.application.name}")
     private String appName;
     private List<ApiMaskRule> maskRules;
 
-    public WebApiSource(EventPublisher eventPublisher, XmAuthenticationContextHolder xmAuthenticationContextHolder, ApiMaskConfig apiIgnore) {
+    public WebApiSource(EventPublisher eventPublisher, XmAuthenticationContextHolder xmAuthenticationContextHolder,
+                        ApiMaskConfig apiIgnore, MappingOperationConfiguration mappingOperationConfiguration) {
         this.eventPublisher = eventPublisher;
         this.xmAuthenticationContextHolder = xmAuthenticationContextHolder;
+        this.mappingOperationConfiguration = mappingOperationConfiguration;
         this.maskRules = apiIgnore != null ? apiIgnore.getMaskRules() : null;
     }
 
@@ -99,7 +100,7 @@ public class WebApiSource extends HandlerInterceptorAdapter {
             .txId(MdcUtils.getRid())
             .aggregateId(getEntityField(responseBody, "id"))
             .aggregateType(getEntityField(responseBody, "typeKey"))
-            .operation(getOperation(request.getMethod()))
+            .operation(mappingOperationConfiguration.getOperationMapping(tenant, appName, request.getMethod(), request.getRequestURI()))
             .msName(appName)
             .source(DefaultDomainEventSource.HTTP.name())
             .userKey(userKey)

@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.domainevent.config;
 
-import com.icthh.xm.commons.domainevent.domain.ApiMaskConfig;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.DomainEventPayload;
 import com.icthh.xm.commons.domainevent.domain.HttpDomainEventPayload;
@@ -45,6 +44,9 @@ public class WebApiSourceUnitTest {
     private ApiMaskConfig apiMaskConfig;
 
     @Mock
+    private MappingOperationConfiguration mappingOperationConfiguration;
+
+    @Mock
     private EventPublisher eventPublisher;
     @Mock
     private XmAuthenticationContextHolder xmAuthenticationContextHolder;
@@ -59,7 +61,7 @@ public class WebApiSourceUnitTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        webApiSource = new WebApiSource(eventPublisher, xmAuthenticationContextHolder, apiMaskConfig);
+        webApiSource = new WebApiSource(eventPublisher, xmAuthenticationContextHolder, apiMaskConfig, mappingOperationConfiguration);
 
         when(request.getContentAsByteArray()).thenReturn(CONTENT.getBytes());
         when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList("Authorization", "Domain", "x-tenant")));
@@ -77,6 +79,7 @@ public class WebApiSourceUnitTest {
     public void sendSuccessMaskRequestResponse() {
         when(request.getRequestURI()).thenReturn("/api/attachments");
         when(request.getMethod()).thenReturn("PUT");
+        when(mappingOperationConfiguration.getOperationMapping(TENANT, null , "PUT", "/api/attachments")).thenReturn("changed");
 
         DomainEvent expectedEvent = createExpectedEvent("changed");
         HttpDomainEventPayload expectedPayload = (HttpDomainEventPayload) createExpectedPayload(MASKED_CONTENT);
@@ -93,6 +96,7 @@ public class WebApiSourceUnitTest {
     public void sendSuccessMaskResponse() throws Exception {
         when(request.getRequestURI()).thenReturn("/api/attachments/1");
         when(request.getMethod()).thenReturn("GET");
+        when(mappingOperationConfiguration.getOperationMapping(TENANT, null , "GET", "/api/attachments/1")).thenReturn("viewed");
 
         DomainEvent expectedEvent = createExpectedEvent("viewed");
         HttpDomainEventPayload expectedPayload = (HttpDomainEventPayload) createExpectedPayload(CONTENT);

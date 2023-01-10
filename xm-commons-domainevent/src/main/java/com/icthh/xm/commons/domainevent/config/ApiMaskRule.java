@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.domainevent.domain;
+package com.icthh.xm.commons.domainevent.config;
 
 import lombok.Getter;
 import lombok.Setter;
