@@ -1,5 +1,6 @@
 enabled: false
 sources:
     DB:
+        type: db
         enabled: true
         transport: outboxTransport

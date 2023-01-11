@@ -6,5 +6,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PublisherConfig {
-    private Object filter;
+    private Filter filter;
 }

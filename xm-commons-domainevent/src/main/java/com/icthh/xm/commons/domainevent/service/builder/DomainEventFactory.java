@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class DomainEventFactory {
@@ -74,10 +75,12 @@ public class DomainEventFactory {
     }
 
     public DomainEvent build(DefaultDomainEventOperation operation,
+                             UUID id,
                              String aggregateId,
                              String aggregateType,
                              DomainEventPayload payload) {
         return builder()
+            .id(id)
             .aggregateId(aggregateId)
             .aggregateType(aggregateType)
             .operation(operation == null ? null : operation.toString())

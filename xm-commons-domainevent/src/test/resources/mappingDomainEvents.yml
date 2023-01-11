@@ -1,9 +1,11 @@
 enabled: true
 sources:
     db:
+        type: db
         enabled: false
         transport: OutboxTransport
     web:
+        type: web
         enabled: true
         transport: SyncKafkaTransport
         headers: [ cookie, authorization ]
