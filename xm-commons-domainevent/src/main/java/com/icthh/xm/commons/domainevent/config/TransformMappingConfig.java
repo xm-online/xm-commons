@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.domainevent.domain;
+package com.icthh.xm.commons.domainevent.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class MsMappingConfig {
+public class TransformMappingConfig {
 
     private OperationMapping operationMapping;
 

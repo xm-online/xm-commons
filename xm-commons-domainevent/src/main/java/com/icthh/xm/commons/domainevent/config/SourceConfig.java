@@ -10,4 +10,5 @@ import lombok.extern.slf4j.Slf4j;
 public class SourceConfig {
     private boolean enabled;
     private String transport;
+    private TransformMappingConfig transform;
 }

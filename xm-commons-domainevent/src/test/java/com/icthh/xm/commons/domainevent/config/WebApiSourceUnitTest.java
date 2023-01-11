@@ -44,7 +44,7 @@ public class WebApiSourceUnitTest {
     private ApiMaskConfig apiMaskConfig;
 
     @Mock
-    private MappingOperationConfiguration mappingOperationConfiguration;
+    private XmDomainEventConfiguration xmDomainEventConfiguration;
 
     @Mock
     private EventPublisher eventPublisher;
@@ -61,7 +61,7 @@ public class WebApiSourceUnitTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        webApiSource = new WebApiSource(eventPublisher, xmAuthenticationContextHolder, apiMaskConfig, mappingOperationConfiguration);
+        webApiSource = new WebApiSource(eventPublisher, xmAuthenticationContextHolder, apiMaskConfig, xmDomainEventConfiguration);
 
         when(request.getContentAsByteArray()).thenReturn(CONTENT.getBytes());
         when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList("Authorization", "Domain", "x-tenant")));
@@ -79,7 +79,7 @@ public class WebApiSourceUnitTest {
     public void sendSuccessMaskRequestResponse() {
         when(request.getRequestURI()).thenReturn("/api/attachments");
         when(request.getMethod()).thenReturn("PUT");
-        when(mappingOperationConfiguration.getOperationMapping(TENANT, null , "PUT", "/api/attachments")).thenReturn("changed");
+        when(xmDomainEventConfiguration.getOperationMapping(TENANT, "PUT", "/api/attachments")).thenReturn("changed");
 
         DomainEvent expectedEvent = createExpectedEvent("changed");
         HttpDomainEventPayload expectedPayload = (HttpDomainEventPayload) createExpectedPayload(MASKED_CONTENT);
@@ -96,7 +96,7 @@ public class WebApiSourceUnitTest {
     public void sendSuccessMaskResponse() throws Exception {
         when(request.getRequestURI()).thenReturn("/api/attachments/1");
         when(request.getMethod()).thenReturn("GET");
-        when(mappingOperationConfiguration.getOperationMapping(TENANT, null , "GET", "/api/attachments/1")).thenReturn("viewed");
+        when(xmDomainEventConfiguration.getOperationMapping(TENANT, "GET", "/api/attachments/1")).thenReturn("viewed");
 
         DomainEvent expectedEvent = createExpectedEvent("viewed");
         HttpDomainEventPayload expectedPayload = (HttpDomainEventPayload) createExpectedPayload(CONTENT);
@@ -145,7 +145,7 @@ public class WebApiSourceUnitTest {
             .aggregateType("TEST_TYPE_KEY")
             .operation(operation)
             .msName(null)
-            .source(DefaultDomainEventSource.HTTP.name())
+            .source(DefaultDomainEventSource.WEB.getCode())
             .userKey(null)
             .clientId(null)
             .tenant(TENANT)

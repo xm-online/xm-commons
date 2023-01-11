@@ -1,17 +1,21 @@
 package com.icthh.xm.commons.domainevent.config;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.HttpDomainEventPayload;
 import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventSource;
 import com.icthh.xm.commons.domainevent.service.EventPublisher;
+import com.icthh.xm.commons.domainevent.utils.JsonUtil;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
+import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
@@ -34,8 +38,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import static java.util.Arrays.asList;
-
 @Slf4j
 @Component
 public class WebApiSource extends HandlerInterceptorAdapter {
@@ -47,17 +49,19 @@ public class WebApiSource extends HandlerInterceptorAdapter {
 
     private final EventPublisher eventPublisher;
     private final XmAuthenticationContextHolder xmAuthenticationContextHolder;
-    private final MappingOperationConfiguration mappingOperationConfiguration;
+    private final XmDomainEventConfiguration xmDomainEventConfiguration;
+    private final JsonFactory jfactory;
 
     @Value("${spring.application.name}")
     private String appName;
     private List<ApiMaskRule> maskRules;
 
     public WebApiSource(EventPublisher eventPublisher, XmAuthenticationContextHolder xmAuthenticationContextHolder,
-                        ApiMaskConfig apiIgnore, MappingOperationConfiguration mappingOperationConfiguration) {
+                        ApiMaskConfig apiIgnore, XmDomainEventConfiguration xmDomainEventConfiguration) {
         this.eventPublisher = eventPublisher;
         this.xmAuthenticationContextHolder = xmAuthenticationContextHolder;
-        this.mappingOperationConfiguration = mappingOperationConfiguration;
+        this.xmDomainEventConfiguration = xmDomainEventConfiguration;
+        this.jfactory = new JsonFactory();
         this.maskRules = apiIgnore != null ? apiIgnore.getMaskRules() : null;
     }
 
@@ -88,21 +92,22 @@ public class WebApiSource extends HandlerInterceptorAdapter {
 
     private void publishEvent(HttpServletRequest request, HttpServletResponse response, String tenant, String clientId, String userKey) {
         DomainEvent domainEvent = createEvent(request, response, tenant, clientId, userKey);
-        eventPublisher.publish(DefaultDomainEventSource.HTTP.name(), domainEvent);
+        eventPublisher.publish(DefaultDomainEventSource.WEB.getCode(), domainEvent);
     }
 
     protected DomainEvent createEvent(HttpServletRequest request, HttpServletResponse response, String tenant, String clientId, String userKey) {
         String requestBody = getRequestContent(request);
         String responseBody = getResponseContent(response);
 
+        Pair<String, String> idTypeKey = JsonUtil.extractIdAndTypeKey(jfactory, responseBody);
         return DomainEvent.builder()
             .id(UUID.randomUUID())
             .txId(MdcUtils.getRid())
-            .aggregateId(getEntityField(responseBody, "id"))
-            .aggregateType(getEntityField(responseBody, "typeKey"))
-            .operation(mappingOperationConfiguration.getOperationMapping(tenant, appName, request.getMethod(), request.getRequestURI()))
+            .aggregateId(idTypeKey.getKey())
+            .aggregateType(idTypeKey.getValue())
+            .operation(xmDomainEventConfiguration.getOperationMapping(tenant, request.getMethod(), request.getRequestURI()))
             .msName(appName)
-            .source(DefaultDomainEventSource.HTTP.name())
+            .source(DefaultDomainEventSource.WEB.getCode())
             .userKey(userKey)
             .clientId(clientId)
             .tenant(tenant)
@@ -151,21 +156,7 @@ public class WebApiSource extends HandlerInterceptorAdapter {
         return HttpHeaders.of(headers, (s1, s2) -> true);
     }
 
-    private String getEntityField(String entity, String field) {
-        List<String> prefixes = asList("$.", "$.xmEntity.", "$.data.");
-
-        for (String prefix : prefixes) {
-            try {
-                return JsonPath.read(entity, prefix + field);
-            } catch (Exception ex) {
-                log.info("JsonPath exception", ex);
-            }
-        }
-
-        return "";
-    }
-
-    private String maskContent(String content, String uri, boolean request, String httpMethod) {
+    private String maskContent(final String content, String uri, boolean request, String httpMethod) {
         if (CollectionUtils.isEmpty(maskRules) || StringUtils.isBlank(content)) {
             return content;
         }
@@ -174,23 +165,31 @@ public class WebApiSource extends HandlerInterceptorAdapter {
             .filter(rule -> ((request && rule.isMaskRequest()) || (!request && rule.isMaskResponse()))
                 && matcher.match(rule.getEndpointToMask(), uri)
                 && rule.getHttpMethod().stream().anyMatch(method -> StringUtils.equalsIgnoreCase(method, httpMethod)))
+            .filter(it -> CollectionUtils.isNotEmpty(it.getPathToMask()))
             .map(rule -> applyMask(content, rule))
             .findAny()
             .orElse(content);
     }
 
-    private String applyMask(String content, ApiMaskRule rule) {
-        String maskedContent = content;
+    private String applyMask(final String content, ApiMaskRule rule) {
+        DocumentContext documentContext = JsonPath.parse(content);
+        boolean isChanged = false;
         for (String path : rule.getPathToMask()) {
             try {
-                maskedContent = JsonPath.parse(maskedContent).set(path, rule.getMask()).jsonString();
+                documentContext.set(path, rule.getMask());
+                isChanged = true;
             } catch (PathNotFoundException e) {
-                log.debug("Path {} not found, when masking content data", path);
+                log.warn("Path {} not found, when masking content data", path);
             } catch (Exception e) {
-                log.warn("Failed to mask content data", e);
+                log.error("Failed to mask content data", e);
             }
         }
-        return maskedContent;
+
+        if (!isChanged) {
+            return content;
+        }
+
+        return documentContext.jsonString();
     }
 
     private static String getRequestContent(HttpServletRequest request) {
