@@ -17,12 +17,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -72,20 +73,16 @@ public class DynamicConsumerConfigurationServiceUnitTest {
     @Test
     public void refreshDynamicConsumers() {
         List<DynamicConsumer> dynamicConsumers = createDynamicConsumers();
+        List<TopicConfig> topicConfigs = dynamicConsumers.stream()
+                .map(DynamicConsumer::getConfig)
+                .collect(Collectors.toList());
         when(dynamicConsumerConfiguration.getDynamicConsumers(eq(TENANT_KEY))).thenReturn(dynamicConsumers);
-        doAnswer(invocation -> {
-            TopicConfig topicConfig = invocation.getArgument(1);
-            Map<String, ConsumerHolder> tenantConsumerHolders = invocation.getArgument(2);
-            tenantConsumerHolders.put(topicConfig.getKey(), new ConsumerHolder(topicConfig, container));
-            return null;
-        }).when(topicManagerService).startNewConsumer(eq(TENANT_KEY), isAnyOfTopics(dynamicConsumers), isA(Map.class), eq(messageHandler));
-        dynamicConsumerConfigurationService.startDynamicConsumers(TENANT_KEY);
 
         dynamicConsumerConfigurationService.refreshDynamicConsumers(TENANT_KEY);
 
-        verify(topicManagerService, times(dynamicConsumers.size())).startNewConsumer(eq(TENANT_KEY), isAnyOfTopics(dynamicConsumers), isA(Map.class), eq(messageHandler));
-        verify(dynamicConsumerConfiguration, times(2)).getDynamicConsumers(eq(TENANT_KEY));
-        verify(topicManagerService, times(dynamicConsumers.size())).updateConsumer(eq(TENANT_KEY), isAnyOfTopics(dynamicConsumers), isAnyOfHolders(dynamicConsumers), any(Map.class), eq(messageHandler));
+        verify(dynamicConsumerConfiguration).getDynamicConsumers(eq(TENANT_KEY));
+        verify(topicManagerService, times(dynamicConsumers.size())).processTopicConfig(eq(TENANT_KEY), isAnyOfTopics(dynamicConsumers), isA(Map.class), eq(messageHandler));
+        verify(topicManagerService).removeOldConsumers(eq(TENANT_KEY), refEq(topicConfigs), isA(Map.class));
 
         verifyNoMoreInteractions(dynamicConsumerConfiguration, topicManagerService);
     }
@@ -154,11 +151,6 @@ public class DynamicConsumerConfigurationServiceUnitTest {
     private TopicConfig isAnyOfTopics(List<DynamicConsumer> dynamicConsumers) {
         return argThat((topicConfig) -> dynamicConsumers.stream()
             .anyMatch(it -> it.getConfig().equals(topicConfig)));
-    }
-
-    private ConsumerHolder isAnyOfHolders(List<DynamicConsumer> dynamicConsumers) {
-        return argThat((consumerHolder) -> dynamicConsumers.stream()
-            .anyMatch(it -> it.getConfig().equals(consumerHolder.getTopicConfig())));
     }
 
 }

@@ -3,12 +3,12 @@ package com.icthh.xm.commons.topic.service;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.topic.domain.ConsumerHolder;
 import com.icthh.xm.commons.topic.domain.DynamicConsumer;
+import com.icthh.xm.commons.topic.domain.TopicConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -23,7 +23,7 @@ public class DynamicConsumerConfigurationService {
     private final TenantListRepository tenantListRepository;
 
     public void startDynamicConsumers(String tenantKey) {
-        Map<String, ConsumerHolder> tenantConsumerHolders = dynamicConsumersByTenant.computeIfAbsent(tenantKey, (key) -> new ConcurrentHashMap<>());
+        Map<String, ConsumerHolder> tenantConsumerHolders = getConsumerHoldersByTenant(tenantKey);
         List<DynamicConsumer> dynamicConsumers = getDynamicConsumersByTenant(tenantKey);
 
         dynamicConsumers.forEach(it -> topicManagerService.startNewConsumer(tenantKey, it.getConfig(), tenantConsumerHolders, it.getMessageHandler()));
@@ -36,12 +36,18 @@ public class DynamicConsumerConfigurationService {
 
     public void refreshDynamicConsumers(String tenantKey) {
         List<DynamicConsumer> dynamicConsumers = getDynamicConsumersByTenant(tenantKey);
+        Map<String, ConsumerHolder> tenantConsumerHolders = getConsumerHoldersByTenant(tenantKey);
 
-        dynamicConsumers.forEach(it -> updateExistingConsumer(tenantKey, it));
+        dynamicConsumers.forEach(it -> refreshConsumer(tenantKey, it, tenantConsumerHolders));
+
+        List<TopicConfig> newTopicConfigs = dynamicConsumers.stream()
+            .map(DynamicConsumer::getConfig)
+            .collect(Collectors.toList());
+        topicManagerService.removeOldConsumers(tenantKey, newTopicConfigs, tenantConsumerHolders);
     }
 
     public void stopDynamicConsumers(String tenantKey) {
-        Map<String, ConsumerHolder> tenantConsumerHolders = dynamicConsumersByTenant.get(tenantKey);
+        Map<String, ConsumerHolder> tenantConsumerHolders = getConsumerHoldersByTenant(tenantKey);
         tenantConsumerHolders.forEach((k, v) -> topicManagerService.stopAllTenantConsumers(tenantKey, tenantConsumerHolders));
         dynamicConsumersByTenant.remove(tenantKey);
     }
@@ -52,14 +58,12 @@ public class DynamicConsumerConfigurationService {
             .collect(Collectors.toList());
     }
 
-    private void updateExistingConsumer(String tenantKey, DynamicConsumer updatedDynamicConsumer) {
-        Map<String, ConsumerHolder> tenantConsumerHolders = dynamicConsumersByTenant.get(tenantKey);
-        Optional.of(tenantConsumerHolders)
-            .map(it -> it.get(updatedDynamicConsumer.getConfig().getKey()))
-            .ifPresent((consumerHolder) -> topicManagerService.updateConsumer(tenantKey,
-                                                                              updatedDynamicConsumer.getConfig(),
-                                                                              consumerHolder,
-                                                                              tenantConsumerHolders,
-                                                                              updatedDynamicConsumer.getMessageHandler()));
+    private void refreshConsumer(String tenantKey, DynamicConsumer updatedDynamicConsumer, Map<String, ConsumerHolder> tenantConsumerHolders) {
+        topicManagerService.processTopicConfig(tenantKey, updatedDynamicConsumer.getConfig(), tenantConsumerHolders, updatedDynamicConsumer.getMessageHandler());
     }
+
+    private Map<String, ConsumerHolder> getConsumerHoldersByTenant(String tenantKey) {
+        return dynamicConsumersByTenant.computeIfAbsent(tenantKey, (key) -> new ConcurrentHashMap<>());
+    }
+
 }

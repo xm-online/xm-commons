@@ -50,9 +50,6 @@ public class TopicManagerServiceUnitTest {
     private KafkaTemplate<String, String> kafkaTemplate;
 
     @Mock
-    private KafkaConsumer kafkaConsumer;
-
-    @Mock
     private AbstractMessageListenerContainer container;
 
     @Mock
@@ -61,12 +58,10 @@ public class TopicManagerServiceUnitTest {
     @Mock
     private SleuthWrapper sleuthWrapper;
 
-    @Mock
-    private List<DynamicConsumerConfiguration> dynamicConsumerConfigurations;
 
     @Before
     public void setUp() {
-        topicManager = spy(new TopicManagerService(kafkaProperties, kafkaTemplate, messageHandler, sleuthWrapper));
+        topicManager = spy(new TopicManagerService(kafkaProperties, kafkaTemplate, sleuthWrapper));
         doReturn(container).when(topicManager).buildListenerContainer(any(), any(), any());
     }
 
@@ -74,7 +69,7 @@ public class TopicManagerServiceUnitTest {
     public void testStartingOfNewConsumers() {
         HashMap<String, ConsumerHolder> existingConsumers = new HashMap<>();
         TopicConfig topicConfig = getTopicConsumerSpec(readConfig(CONFIG_1)).getTopics().get(0);
-        topicManager.processTopicConfig(TENANT_KEY, topicConfig, existingConsumers);
+        topicManager.processTopicConfig(TENANT_KEY, topicConfig, existingConsumers, messageHandler);
 
         verify(container, times(1)).start();
         verify(container, times(0)).stop();
@@ -90,8 +85,8 @@ public class TopicManagerServiceUnitTest {
         HashMap<String, ConsumerHolder> existingConsumers = new HashMap<>();
         TopicConfig firstTopicConfig = getTopicConsumerSpec(readConfig(CONFIG_1)).getTopics().get(0);
         TopicConfig secondTopicConfig = getTopicConsumerSpec(readConfig(CONFIG_2)).getTopics().get(1);
-        topicManager.processTopicConfig(TENANT_KEY, firstTopicConfig, existingConsumers);
-        topicManager.processTopicConfig(TENANT_KEY, secondTopicConfig, existingConsumers);
+        topicManager.processTopicConfig(TENANT_KEY, firstTopicConfig, existingConsumers, messageHandler);
+        topicManager.processTopicConfig(TENANT_KEY, secondTopicConfig, existingConsumers, messageHandler);
 
         reset(container);
 
@@ -111,11 +106,11 @@ public class TopicManagerServiceUnitTest {
         HashMap<String, ConsumerHolder> existingConsumers = new HashMap<>();
         TopicConfig firstTopicConfig = getTopicConsumerSpec(readConfig(CONFIG_1)).getTopics().get(0);
         TopicConfig thirdTopicConfig = getTopicConsumerSpec(readConfig(CONFIG_3)).getTopics().get(0);
-        topicManager.processTopicConfig(TENANT_KEY, firstTopicConfig, existingConsumers);
+        topicManager.processTopicConfig(TENANT_KEY, firstTopicConfig, existingConsumers, messageHandler);
 
         reset(container);
 
-        topicManager.processTopicConfig(TENANT_KEY, thirdTopicConfig, existingConsumers);
+        topicManager.processTopicConfig(TENANT_KEY, thirdTopicConfig, existingConsumers, messageHandler);
 
         verify(container, times(1)).stop();
         verify(container, times(1)).start();
@@ -133,11 +128,11 @@ public class TopicManagerServiceUnitTest {
     public void testConfigurationTheSame() {
         HashMap<String, ConsumerHolder> existingConsumers = new HashMap<>();
         TopicConfig topicConfig = getTopicConsumerSpec(readConfig(CONFIG_1)).getTopics().get(0);
-        topicManager.processTopicConfig(TENANT_KEY, topicConfig, existingConsumers);
+        topicManager.processTopicConfig(TENANT_KEY, topicConfig, existingConsumers, messageHandler);
 
         reset(container);
 
-        topicManager.processTopicConfig(TENANT_KEY, topicConfig, existingConsumers);
+        topicManager.processTopicConfig(TENANT_KEY, topicConfig, existingConsumers, messageHandler);
 
         verifyNoMoreInteractions(container);
     }

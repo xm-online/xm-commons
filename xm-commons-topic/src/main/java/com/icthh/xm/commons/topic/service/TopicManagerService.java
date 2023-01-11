@@ -3,7 +3,6 @@ package com.icthh.xm.commons.topic.service;
 import com.icthh.xm.commons.logging.trace.SleuthWrapper;
 import com.icthh.xm.commons.topic.config.MessageListenerContainerBuilder;
 import com.icthh.xm.commons.topic.domain.ConsumerHolder;
-import com.icthh.xm.commons.topic.domain.DynamicConsumer;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,12 +26,12 @@ public class TopicManagerService {
 
     private final KafkaProperties kafkaProperties;
     private final KafkaTemplate<String, String> kafkaTemplate;
-    private final MessageHandler messageHandler;
     private final SleuthWrapper sleuthWrapper;
 
     public void processTopicConfig(String tenantKey,
                                    TopicConfig topicConfig,
-                                   Map<String, ConsumerHolder> existingConsumers) {
+                                   Map<String, ConsumerHolder> existingConsumers,
+                                   MessageHandler messageHandler) {
         String topicConfigKey = topicConfig.getKey();
         ConsumerHolder existingConfig = existingConsumers.get(topicConfigKey);
 

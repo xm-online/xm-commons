@@ -3,7 +3,6 @@ package com.icthh.xm.commons.topic;
 import static java.lang.Thread.sleep;
 import static java.nio.charset.Charset.defaultCharset;
 import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
 import static org.apache.kafka.clients.producer.ProducerConfig.RETRIES_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_CONFIG;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,6 +49,9 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.Message;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -88,13 +90,14 @@ public class MessageListenerIntTest {
 
     private MessageHandler messageHandler;
 
-    private DynamicConsumerConfiguration dynamicConsumerConfiguration;
+    private List<DynamicConsumerConfiguration> dynamicConsumerConfigurationList;
+
 
     @Before
     public void before() {
         messageHandler = mock(MessageHandler.class);
         sleuthWrapper = mock(SleuthWrapper.class);
-        dynamicConsumerConfiguration = mock(DynamicConsumerConfiguration.class);
+        dynamicConsumerConfigurationList = new ArrayList<>();
         mockSleuth();
     }
 
@@ -253,10 +256,12 @@ public class MessageListenerIntTest {
     private TopicConfigurationService createTopicConfigurationService(KafkaTemplate kafkaTemplate) {
         TopicManagerService topicManagerService = new TopicManagerService(kafkaProperties,
             kafkaTemplate,
-            messageHandler,
             sleuthWrapper);
         DynamicConsumerConfigurationService dynamicConsumerConfigurationService =
-            new DynamicConsumerConfigurationService(singletonList(dynamicConsumerConfiguration), topicManagerService, tenantListRepository);
-        return new TopicConfigurationService(APP_NAME, topicManagerService, dynamicConsumerConfigurationService);
+            new DynamicConsumerConfigurationService(dynamicConsumerConfigurationList, topicManagerService, tenantListRepository);
+        TopicConfigurationService topicConfigurationService = new TopicConfigurationService(APP_NAME, dynamicConsumerConfigurationService, messageHandler);
+        dynamicConsumerConfigurationList.add(topicConfigurationService);
+
+        return topicConfigurationService;
     }
 }

@@ -2,9 +2,10 @@ package com.icthh.xm.commons.topic.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.icthh.xm.commons.topic.domain.ConsumerHolder;
+import com.icthh.xm.commons.topic.domain.DynamicConsumer;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.domain.TopicConsumersSpec;
+import com.icthh.xm.commons.topic.message.MessageHandler;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -14,16 +15,17 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Map;
 
-import static java.util.Collections.emptyMap;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TopicConfigurationServiceUnitTest {
@@ -36,14 +38,13 @@ public class TopicConfigurationServiceUnitTest {
     private TopicConfigurationService topicConfigurationService;
 
     @Mock
-    private TopicManagerService topicManagerService;
-
-    @Mock
     private DynamicConsumerConfigurationService dynamicConsumerConfigurationService;
+    @Mock
+    private MessageHandler messageHandler;
 
     @Before
     public void setUp() {
-        topicConfigurationService = spy(new TopicConfigurationService(APP_NAME, topicManagerService, dynamicConsumerConfigurationService));
+        topicConfigurationService = spy(new TopicConfigurationService(APP_NAME, dynamicConsumerConfigurationService, messageHandler));
     }
 
     @Test
@@ -53,8 +54,12 @@ public class TopicConfigurationServiceUnitTest {
 
         topicConfigurationService.onRefresh(UPDATE_KEY, content);
 
-        verify(topicManagerService, times(3)).processTopicConfig(eq(TENANT_KEY), isExpectedTopicConfig(), eq(emptyMap()));
-        verify(topicManagerService).removeOldConsumers(eq(TENANT_KEY), eq(topicConsumerSpec.getTopics()), eq(emptyMap()));
+        Map<String, List<DynamicConsumer>> topicConsumers = topicConfigurationService.getTenantTopicConsumers();
+        List<DynamicConsumer> dynamicConsumers = topicConsumers.get(TENANT_KEY);
+        dynamicConsumers.forEach(dynamicConsumer -> assertTrue(topicConsumerSpec.getTopics().stream().anyMatch(topicConfig -> topicConfig.getKey().equals(dynamicConsumer.getConfig().getKey()))));
+
+        verify(dynamicConsumerConfigurationService).refreshDynamicConsumers(eq(TENANT_KEY));
+        verifyNoMoreInteractions(dynamicConsumerConfigurationService);
     }
 
     @Test
@@ -62,17 +67,24 @@ public class TopicConfigurationServiceUnitTest {
         topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(CONFIG_1));
         topicConfigurationService.onRefresh(UPDATE_KEY, null);
 
-        Map<String, Map<String, ConsumerHolder>> topicConsumers = topicConfigurationService.getTenantTopicConsumers();
+        Map<String, List<DynamicConsumer>> topicConsumers = topicConfigurationService.getTenantTopicConsumers();
         assertTrue(topicConsumers.isEmpty());
 
-        verify(topicManagerService).stopAllTenantConsumers(eq(TENANT_KEY), eq(emptyMap()));
+        verify(dynamicConsumerConfigurationService, times(2)).refreshDynamicConsumers(eq(TENANT_KEY));
+        verifyNoMoreInteractions(dynamicConsumerConfigurationService);
     }
 
     @Test
     public void testOnRefreshWhenSpecNull() {
+        Map<String, List<DynamicConsumer>> topicConsumers = topicConfigurationService.getTenantTopicConsumers();
+        int sizeBeforeRefresh = topicConsumers.size();
+
         topicConfigurationService.onRefresh(UPDATE_KEY, "--- \n");
 
-        verifyZeroInteractions(topicManagerService);
+        assertEquals(sizeBeforeRefresh, topicConsumers.size());
+
+        verify(dynamicConsumerConfigurationService).refreshDynamicConsumers(eq(TENANT_KEY));
+        verifyNoMoreInteractions(dynamicConsumerConfigurationService);
     }
 
     @SneakyThrows
@@ -85,10 +97,4 @@ public class TopicConfigurationServiceUnitTest {
         return new ObjectMapper(new YAMLFactory()).readValue(content, TopicConsumersSpec.class);
     }
 
-    private TopicConfig isExpectedTopicConfig() {
-        return argThat((TopicConfig config) -> config.getKey().equals("key1")
-            || config.getKey().equals("key2")
-            || config.getKey().equals("key3"));
-    }
 }
-
