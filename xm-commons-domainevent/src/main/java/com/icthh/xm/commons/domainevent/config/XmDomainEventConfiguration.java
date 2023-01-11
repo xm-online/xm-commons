@@ -194,7 +194,7 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
         return getResourceName(url) + " " + defaultValue;
     }
 
-    private static String getResourceName(String path) {
+    private String getResourceName(String path) {
         String name = StringUtils.removeStart(path, "/api/");
         if (StringUtils.startsWith(name, "_search")) {
             name = StringUtils.substringAfter(name, "/");
