@@ -15,7 +15,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,7 +38,6 @@ public class TopicConfigurationService implements RefreshableConfiguration, Dyna
 
     private final DynamicConsumerConfigurationService dynamicConsumerConfigurationService;
 
-    @Getter
     private Map<String, List<DynamicConsumer>> tenantTopicConsumers = new ConcurrentHashMap<>();
 
     public TopicConfigurationService(@Value("${spring.application.name}") String appName,
@@ -59,19 +59,16 @@ public class TopicConfigurationService implements RefreshableConfiguration, Dyna
     }
 
     @Override
-    public void onInit(String configKey, String configValue) {
-        if (isListeningConfiguration(configKey)) {
-            refreshConfig(configKey, configValue);
-        }
-    }
-
-    @Override
     public List<DynamicConsumer> getDynamicConsumers(String tenantKey) {
         if (tenantTopicConsumers.containsKey(tenantKey)) {
             return tenantTopicConsumers.get(tenantKey);
         }
 
-        return new ArrayList<>();
+        return List.of();
+    }
+
+    public Map<String, List<DynamicConsumer>> getTenantTopicConsumers() {
+        return Collections.unmodifiableMap(tenantTopicConsumers);
     }
 
     private void refreshConfig(String updatedKey, String config) {

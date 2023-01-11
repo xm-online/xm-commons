@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -27,12 +28,13 @@ public class TopicManagerService {
     private final KafkaProperties kafkaProperties;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final SleuthWrapper sleuthWrapper;
+    private final Map<String, Map<String, ConsumerHolder>> topicConsumerHolders = new ConcurrentHashMap<>();
 
     public void processTopicConfig(String tenantKey,
                                    TopicConfig topicConfig,
-                                   Map<String, ConsumerHolder> existingConsumers,
                                    MessageHandler messageHandler) {
         String topicConfigKey = topicConfig.getKey();
+        Map<String, ConsumerHolder> existingConsumers = getConsumerHoldersByTenant(tenantKey);
         ConsumerHolder existingConfig = existingConsumers.get(topicConfigKey);
 
         if (topicConfig.getMaxPollInterval() != null
@@ -43,7 +45,7 @@ public class TopicManagerService {
         }
 
         if (existingConfig == null) {
-            startNewConsumer(tenantKey, topicConfig, existingConsumers, messageHandler);
+            startNewConsumer(tenantKey, topicConfig, messageHandler);
             return;
         }
 
@@ -52,21 +54,21 @@ public class TopicManagerService {
             return;
         }
 
-        updateConsumer(tenantKey, topicConfig, existingConfig, existingConsumers, messageHandler);
+        updateConsumer(tenantKey, topicConfig, existingConfig, messageHandler);
     }
 
-    public void stopAllTenantConsumers(String tenantKey,
-                                       Map<String, ConsumerHolder> existingConsumers) {
+    public void stopAllTenantConsumers(String tenantKey) {
+        Map<String, ConsumerHolder> existingConsumers = getConsumerHoldersByTenant(tenantKey);
         Collection<ConsumerHolder> holders = existingConsumers.values();
         withLog(tenantKey, "stopAllTenantConsumers", () -> {
             holders.forEach(consumerHolder -> stopConsumer(tenantKey, consumerHolder));
         }, "[{}]", holders);
+        topicConsumerHolders.remove(tenantKey);
     }
 
     public void removeOldConsumers(String tenantKey,
-                                   List<TopicConfig> newTopicConfigs,
-                                   Map<String, ConsumerHolder> existingConsumers) {
-
+                                   List<TopicConfig> newTopicConfigs) {
+        Map<String, ConsumerHolder> existingConsumers = getConsumerHoldersByTenant(tenantKey);
         Set<Map.Entry<String, ConsumerHolder>> toRemove = existingConsumers
             .entrySet()
             .stream()
@@ -79,11 +81,11 @@ public class TopicManagerService {
 
     public void startNewConsumer(String tenantKey,
                                  TopicConfig topicConfig,
-                                 Map<String, ConsumerHolder> existingConsumers,
                                  MessageHandler messageHandler) {
         withLog(tenantKey, "startNewConsumer", () -> {
             AbstractMessageListenerContainer container = buildListenerContainer(tenantKey, topicConfig, messageHandler);
             container.start();
+            Map<String, ConsumerHolder> existingConsumers = getConsumerHoldersByTenant(tenantKey);
             existingConsumers.put(topicConfig.getKey(), new ConsumerHolder(topicConfig, container));
         }, "{}", topicConfig);
     }
@@ -91,12 +93,12 @@ public class TopicManagerService {
     public void updateConsumer(String tenantKey,
                                 TopicConfig topicConfig,
                                 ConsumerHolder existingConfig,
-                                Map<String, ConsumerHolder> existingConsumers,
                                 MessageHandler messageHandler) {
         withLog(tenantKey, "restartConsumer", () -> {
             existingConfig.getContainer().stop();
             AbstractMessageListenerContainer container = buildListenerContainer(tenantKey, topicConfig, messageHandler);
             container.start();
+            Map<String, ConsumerHolder> existingConsumers = getConsumerHoldersByTenant(tenantKey);
             existingConsumers.put(topicConfig.getKey(), new ConsumerHolder(topicConfig, container));
         }, "{}", topicConfig);
     }
@@ -104,6 +106,10 @@ public class TopicManagerService {
     protected AbstractMessageListenerContainer buildListenerContainer(String tenantKey, TopicConfig topicConfig, MessageHandler messageHandler) {
         return new MessageListenerContainerBuilder(kafkaProperties, kafkaTemplate)
             .build(tenantKey, topicConfig, messageHandler, sleuthWrapper);
+    }
+
+    private Map<String, ConsumerHolder> getConsumerHoldersByTenant(String tenantKey) {
+        return topicConsumerHolders.computeIfAbsent(tenantKey, (key) -> new ConcurrentHashMap<>());
     }
 
     private void withLog(String tenant, String command, Runnable action, String logTemplate, Object... params) {
