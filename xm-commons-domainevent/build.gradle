@@ -13,6 +13,7 @@ dependencies {
     implementation project(':xm-commons-lep')
 
     implementation "org.springframework.boot:spring-boot-starter-web:${versions.springBoot}"
+    implementation "org.hibernate:hibernate-core"
 
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
     testImplementation 'junit:junit'

@@ -5,6 +5,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class PublisherConfig {
-    private Filter filter;
+public class Entity {
+
+    private String key;
+    private Query query;
+
 }
