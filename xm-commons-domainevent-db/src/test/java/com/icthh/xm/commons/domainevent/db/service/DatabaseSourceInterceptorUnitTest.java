@@ -2,8 +2,8 @@ package com.icthh.xm.commons.domainevent.db.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.icthh.xm.commons.domainevent.config.DbSourceConfig;
 import com.icthh.xm.commons.domainevent.config.Filter;
-import com.icthh.xm.commons.domainevent.config.SourceConfig;
 import com.icthh.xm.commons.domainevent.config.XmDomainEventConfiguration;
 import com.icthh.xm.commons.domainevent.db.domain.Entity;
 import com.icthh.xm.commons.domainevent.db.domain.EntityWithTableAnnotation;
@@ -114,8 +114,8 @@ public class DatabaseSourceInterceptorUnitTest {
     @Test
     public void onFlushDirty_notProcessConfig_withEnableFalse() {
 
-        SourceConfig sourceConfig = buildSourceConfig(false, null);
-        doReturn(sourceConfig).when(xmDomainEventConfiguration).getSourceConfig(DB.name());
+        DbSourceConfig sourceConfig = buildDbSourceConfig(false, null);
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(DB.getCode());
 
         databaseSourceInterceptor.onFlushDirty(null, null, null, null, null, null);
 
@@ -129,8 +129,8 @@ public class DatabaseSourceInterceptorUnitTest {
     @Test
     public void onFlushDirty_shouldConfigTrueAndFilterNull() {
 
-        SourceConfig sourceConfig = buildSourceConfig(true, null);
-        doReturn(sourceConfig).when(xmDomainEventConfiguration).getSourceConfig(DB.name());
+        DbSourceConfig sourceConfig = buildDbSourceConfig(true, null);
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(DB.getCode());
         Entity entity = buildEntity(TYPE_KEY, NAME, STATE, KEY, DESCRIPTION, true);
 
         databaseSourceInterceptor.onFlushDirty(entity, ID, new Object[]{}, new Object[]{}, new String[]{}, null);
@@ -147,9 +147,9 @@ public class DatabaseSourceInterceptorUnitTest {
     public void onFlushDirty_processEntityWithLepDatabaseFilterReturnTrue() {
 
         String config = readConfigFile("/dbSourceConfig.yml");
-        SourceConfig sourceConfig = objectMapper.readValue(config, SourceConfig.class);
+        DbSourceConfig sourceConfig = objectMapper.readValue(config, DbSourceConfig.class);
 
-        doReturn(sourceConfig).when(xmDomainEventConfiguration).getSourceConfig(DB.name());
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(DB.getCode());
         doReturn(true).when(databaseFilter).lepFiltering(any(), any(), any());
         doReturn(null).when(databaseDslFilter).lepFiltering(any(), any(), any());
 
@@ -179,9 +179,9 @@ public class DatabaseSourceInterceptorUnitTest {
     public void onFlushDirty_processEntityWithLepDatabaseDslFilterReturnTrue() {
 
         String config = readConfigFile("/dbSourceConfig.yml");
-        SourceConfig sourceConfig = objectMapper.readValue(config, SourceConfig.class);
+        DbSourceConfig sourceConfig = objectMapper.readValue(config, DbSourceConfig.class);
 
-        doReturn(sourceConfig).when(xmDomainEventConfiguration).getSourceConfig(DB.name());
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(DB.getCode());
         doReturn(null).when(databaseFilter).lepFiltering(any(), any(), any());
         doReturn(true).when(databaseDslFilter).lepFiltering(any(), any(), any());
 
@@ -211,9 +211,9 @@ public class DatabaseSourceInterceptorUnitTest {
     public void onFlushDirty_processEntityWithoutTableAnnotation() {
 
         String config = readConfigFile("/dbSourceConfigEmptyEntityName.yml");
-        SourceConfig sourceConfig = objectMapper.readValue(config, SourceConfig.class);
+        DbSourceConfig sourceConfig = objectMapper.readValue(config, DbSourceConfig.class);
 
-        doReturn(sourceConfig).when(xmDomainEventConfiguration).getSourceConfig(DB.name());
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(DB.getCode());
         doReturn(null).when(databaseFilter).lepFiltering(any(), any(), any());
         doReturn(null).when(databaseDslFilter).lepFiltering(any(), any(), any());
         doReturn(new MetamodelMock()).when(entityManager).getMetamodel();
@@ -244,9 +244,9 @@ public class DatabaseSourceInterceptorUnitTest {
     public void onFlushDirty_processEntityWithTableAnnotation() {
 
         String config = readConfigFile("/dbSourceConfig.yml");
-        SourceConfig sourceConfig = objectMapper.readValue(config, SourceConfig.class);
+        DbSourceConfig sourceConfig = objectMapper.readValue(config, DbSourceConfig.class);
 
-        doReturn(sourceConfig).when(xmDomainEventConfiguration).getSourceConfig(DB.name());
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(DB.getCode());
         doReturn(null).when(databaseFilter).lepFiltering(any(), any(), any());
         doReturn(null).when(databaseDslFilter).lepFiltering(any(), any(), any());
 
@@ -275,9 +275,9 @@ public class DatabaseSourceInterceptorUnitTest {
     @SneakyThrows
     public void onSave() {
         String config = readConfigFile("/dbSourceConfig.yml");
-        SourceConfig sourceConfig = objectMapper.readValue(config, SourceConfig.class);
+        DbSourceConfig sourceConfig = objectMapper.readValue(config, DbSourceConfig.class);
 
-        doReturn(sourceConfig).when(xmDomainEventConfiguration).getSourceConfig(DB.name());
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(DB.getCode());
         doReturn(null).when(databaseFilter).lepFiltering(any(), any(), any());
         doReturn(null).when(databaseDslFilter).lepFiltering(any(), any(), any());
 
@@ -304,9 +304,9 @@ public class DatabaseSourceInterceptorUnitTest {
     @SneakyThrows
     public void onDelete() {
         String config = readConfigFile("/dbSourceConfig.yml");
-        SourceConfig sourceConfig = objectMapper.readValue(config, SourceConfig.class);
+        DbSourceConfig sourceConfig = objectMapper.readValue(config, DbSourceConfig.class);
 
-        doReturn(sourceConfig).when(xmDomainEventConfiguration).getSourceConfig(DB.name());
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(DB.getCode());
         doReturn(null).when(databaseFilter).lepFiltering(any(), any(), any());
         doReturn(null).when(databaseDslFilter).lepFiltering(any(), any(), any());
 
@@ -330,8 +330,8 @@ public class DatabaseSourceInterceptorUnitTest {
 
     }
 
-    private SourceConfig buildSourceConfig(boolean enable, Filter filter) {
-        SourceConfig sourceConfig = new SourceConfig();
+    private DbSourceConfig buildDbSourceConfig(boolean enable, Filter filter) {
+        DbSourceConfig sourceConfig = new DbSourceConfig();
         sourceConfig.setEnabled(enable);
         sourceConfig.setFilter(filter);
 
@@ -355,8 +355,7 @@ public class DatabaseSourceInterceptorUnitTest {
         return entity;
     }
 
-    private DomainEvent buildDomainEvent(
-        UUID uuid,
+    private DomainEvent buildDomainEvent(UUID uuid,
                                          String id,
                                          String type,
                                          DefaultDomainEventOperation operation,

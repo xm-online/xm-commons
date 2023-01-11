@@ -1,9 +1,11 @@
 enabled: true
 sources:
     db:
+        type: db
         enabled: true
         transport: OutboxTransport
     web:
+        type: web
         enabled: true
         transport: SyncKafkaTransport
         transform:

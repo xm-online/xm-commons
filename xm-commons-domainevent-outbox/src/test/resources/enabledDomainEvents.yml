@@ -1,8 +1,10 @@
 enabled: true
 sources:
     DB:
+        type: db
         enabled: true
         transport: outboxTransport
     WEB:
+        type: web
         enabled: false
         transport: outboxTransport

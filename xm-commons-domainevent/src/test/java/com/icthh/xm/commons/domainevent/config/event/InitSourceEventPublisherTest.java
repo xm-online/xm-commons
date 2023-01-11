@@ -2,8 +2,7 @@ package com.icthh.xm.commons.domainevent.config.event;
 
 
 import com.icthh.xm.commons.domainevent.config.SourceConfig;
-import com.icthh.xm.commons.domainevent.config.event.InitSourceEvent;
-import com.icthh.xm.commons.domainevent.config.event.InitSourceEventPublisher;
+import com.icthh.xm.commons.domainevent.config.WebSourceConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -72,7 +71,7 @@ public class InitSourceEventPublisherTest {
     }
 
     private SourceConfig buildSourceConfig(boolean enabled, String transport) {
-        SourceConfig sourceConfig = new SourceConfig();
+        WebSourceConfig sourceConfig = new WebSourceConfig();
         sourceConfig.setEnabled(enabled);
         sourceConfig.setTransport(transport);
         return sourceConfig;

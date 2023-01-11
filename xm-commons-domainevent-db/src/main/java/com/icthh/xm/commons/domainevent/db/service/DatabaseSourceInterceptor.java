@@ -3,7 +3,7 @@ package com.icthh.xm.commons.domainevent.db.service;
 import com.icthh.xm.commons.domainevent.config.Column;
 import com.icthh.xm.commons.domainevent.config.EntityFilter;
 import com.icthh.xm.commons.domainevent.config.Query;
-import com.icthh.xm.commons.domainevent.config.SourceConfig;
+import com.icthh.xm.commons.domainevent.config.DbSourceConfig;
 import com.icthh.xm.commons.domainevent.config.XmDomainEventConfiguration;
 import com.icthh.xm.commons.domainevent.db.domain.JpaEntityContext;
 import com.icthh.xm.commons.domainevent.db.domain.State;
@@ -81,8 +81,8 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
 
     private void publishEvent(Object entity, Serializable id, Object[] currentState, Object[] previousState,
                               String[] propertyNames, DefaultDomainEventOperation operation) {
-        SourceConfig sourceConfig = xmDomainEventConfiguration.getSourceConfig(DB.name());
-        if (sourceConfig.isEnabled() && sourceConfig.getFilter() != null) {
+        DbSourceConfig sourceConfig = xmDomainEventConfiguration.getDbSourceConfig(DB.getCode());
+        if (sourceConfig != null && sourceConfig.isEnabled() && sourceConfig.getFilter() != null) {
             String tableName = findTableName(entity);
             log.trace("publishEvent: tableName: {}, id: {}, operation: {}", tableName, id, operation);
 
@@ -163,7 +163,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
     /**
      *
      */
-    private boolean isIntercepted(String tableName, SourceConfig sourceConfig, JpaEntityContext context) {
+    private boolean isIntercepted(String tableName, DbSourceConfig sourceConfig, JpaEntityContext context) {
         String key = sourceConfig.getFilter().getKey();
         Boolean needFiltering = databaseFilter.lepFiltering(key, tableName, context);
 
