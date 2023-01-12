@@ -19,7 +19,7 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@LepService(group = "event.publisher")
+@LepService(group = "event.db.mapper")
 public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
 
     public static final String TYPE_KEY = "typeKey";
@@ -27,8 +27,8 @@ public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
     private final DomainEventFactory domainEventFactory;
 
     @Override
-    @LogicExtensionPoint(value = "TypeKeyMapper", resolver = JpaEntityResolver.class)
-    public DomainEvent maps(Object entity, JpaEntityContext jpaEntityContext) {
+    @LogicExtensionPoint(value = "TypeKey", resolver = JpaEntityResolver.class)
+    public DomainEvent map(JpaEntityContext jpaEntityContext) {
 
         DomainEventPayload dbDomainEventPayload = buildDomainEventPayload(
             jpaEntityContext.getCurrentState(),

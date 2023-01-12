@@ -5,5 +5,5 @@ import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 
 public interface JpaEntityMapper {
 
-    DomainEvent maps(Object entity, JpaEntityContext jpaEntityContext);
+    DomainEvent map(JpaEntityContext jpaEntityContext);
 }
