@@ -17,9 +17,14 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.kafka.test.utils.KafkaTestUtils.consumerProps;
 import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
 
+import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.logging.trace.SleuthWrapper;
 import com.icthh.xm.commons.topic.message.MessageHandler;
+import com.icthh.xm.commons.topic.service.DynamicConsumerConfiguration;
+import com.icthh.xm.commons.topic.service.DynamicConsumerConfigurationService;
+import com.icthh.xm.commons.topic.service.TopicConfigurationService;
+import com.icthh.xm.commons.topic.service.TopicManagerService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -32,6 +37,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -44,6 +50,9 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -75,14 +84,21 @@ public class MessageListenerIntTest {
     @Autowired
     private KafkaProperties kafkaProperties;
 
+    @Mock
+    private TenantListRepository tenantListRepository;
+
     private SleuthWrapper sleuthWrapper;
 
     private MessageHandler messageHandler;
+
+    private List<DynamicConsumerConfiguration> dynamicConsumerConfigurationList;
+
 
     @Before
     public void before() {
         messageHandler = mock(MessageHandler.class);
         sleuthWrapper = mock(SleuthWrapper.class);
+        dynamicConsumerConfigurationList = new ArrayList<>();
         mockSleuth();
     }
 
@@ -100,6 +116,7 @@ public class MessageListenerIntTest {
     @SneakyThrows
     @Test
     public void testSuccessProcessMessageWhenPollTimeIsOver() {
+        log.info("TRYFIXTEST init consumers");
         initConsumers();
 
         DefaultKafkaProducerFactory<String, String> kafkaProducerFactory = new DefaultKafkaProducerFactory<>(
@@ -110,27 +127,28 @@ public class MessageListenerIntTest {
         Producer<String, String> producer = kafkaProducerFactory.createProducer();
         kafkaProperties.getProperties().put("max.poll.interval.ms", "1000");
 
-        TopicManager topicManager = new TopicManager(APP_NAME,
-                                                     kafkaProperties,
-                                                     new KafkaTemplate<>(kafkaProducerFactory),
-                                                     messageHandler,
-                                                     sleuthWrapper);
-        topicManager.onRefresh(UPDATE_KEY, readConfig(CONFIG));
+        TopicConfigurationService topicConfigurationService = createTopicConfigurationService(new KafkaTemplate<>(kafkaProducerFactory));
+        topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(CONFIG));
+        log.info("TRYFIXTEST Thread.sleep(50);");
         Thread.sleep(50); // for rebalance cluster, and avoid message will be consumed by other consumer
 
         doAnswer(answer -> {
             sleep(500);
+            log.info("TRYFIXTEST slept 500 1");
             throw new BusinessException("test");
         }).doAnswer(answer -> {
             sleep(500);
+            log.info("TRYFIXTEST slept 500 2");
             throw new BusinessException("test");
         }).doAnswer(answer -> {
             sleep(500);
+            log.info("TRYFIXTEST slept 500 3");
             return null;
         }).when(messageHandler).onMessage(any(), any(), any());
 
         producer.send(new ProducerRecord<>(TOPIC, "test-id", TEST_MESSAGE));
         producer.flush();
+        log.info("TRYFIXTEST producer.flush();");
 
         verify(messageHandler, timeout(2000).atLeast(3))
               .onMessage(eq(TEST_MESSAGE), eq(TENANT_KEY), any());
@@ -140,7 +158,7 @@ public class MessageListenerIntTest {
 
         producer.close();
 
-        topicManager.onRefresh(UPDATE_KEY, "");
+        topicConfigurationService.onRefresh(UPDATE_KEY, "");
     }
 
     @SneakyThrows
@@ -153,12 +171,8 @@ public class MessageListenerIntTest {
     public void testConsumerReadUncommited() {
         initConsumers();
 
-        TopicManager topicManager = new TopicManager(APP_NAME,
-            kafkaProperties,
-            null,
-            messageHandler,
-            sleuthWrapper);
-        topicManager.onRefresh(UPDATE_KEY, readConfig(TX_CONFIG));
+        TopicConfigurationService topicConfigurationService = createTopicConfigurationService(null);
+        topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(TX_CONFIG));
 
         Producer<String, String> producer = createTxProducer();
         producer.beginTransaction();
@@ -178,7 +192,7 @@ public class MessageListenerIntTest {
 
         producer.close();
 
-        topicManager.onRefresh(UPDATE_KEY, "");
+        topicConfigurationService.onRefresh(UPDATE_KEY, "");
     }
 
     @Test
@@ -186,12 +200,8 @@ public class MessageListenerIntTest {
     public void testConsumerReadCommitted() {
         initConsumers();
 
-        TopicManager topicManager = new TopicManager(APP_NAME,
-            kafkaProperties,
-            null,
-            messageHandler,
-            sleuthWrapper);
-        topicManager.onRefresh(UPDATE_KEY, readConfig(TX_RC_CONFIG));
+        TopicConfigurationService topicConfigurationService = createTopicConfigurationService(null);
+        topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(TX_RC_CONFIG));
 
         Producer<String, String> producer = createTxProducer();
         producer.beginTransaction();
@@ -214,7 +224,7 @@ public class MessageListenerIntTest {
 
         producer.close();
 
-        topicManager.onRefresh(UPDATE_KEY, "");
+        topicConfigurationService.onRefresh(UPDATE_KEY, "");
     }
 
     private void initConsumers() {
@@ -240,5 +250,17 @@ public class MessageListenerIntTest {
             new StringSerializer());
 
         return kafkaProducerFactory.createProducer();
+    }
+
+    private TopicConfigurationService createTopicConfigurationService(KafkaTemplate kafkaTemplate) {
+        TopicManagerService topicManagerService = new TopicManagerService(kafkaProperties,
+            kafkaTemplate,
+            sleuthWrapper);
+        DynamicConsumerConfigurationService dynamicConsumerConfigurationService =
+            new DynamicConsumerConfigurationService(dynamicConsumerConfigurationList, topicManagerService, tenantListRepository);
+        TopicConfigurationService topicConfigurationService = new TopicConfigurationService(APP_NAME, dynamicConsumerConfigurationService, messageHandler);
+        dynamicConsumerConfigurationList.add(topicConfigurationService);
+
+        return topicConfigurationService;
     }
 }
