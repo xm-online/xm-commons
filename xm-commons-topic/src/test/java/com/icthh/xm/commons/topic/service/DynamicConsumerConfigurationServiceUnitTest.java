@@ -1,7 +1,6 @@
 package com.icthh.xm.commons.topic.service;
 
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
-import com.icthh.xm.commons.topic.domain.ConsumerHolder;
 import com.icthh.xm.commons.topic.domain.DynamicConsumer;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
@@ -15,16 +14,13 @@ import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.refEq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -65,7 +61,7 @@ public class DynamicConsumerConfigurationServiceUnitTest {
         dynamicConsumerConfigurationService.startDynamicConsumers(TENANT_KEY);
 
         verify(dynamicConsumerConfiguration).getDynamicConsumers(eq(TENANT_KEY));
-        verify(topicManagerService, times(dynamicConsumers.size())).startNewConsumer(eq(TENANT_KEY), isAnyOfTopics(dynamicConsumers), isA(Map.class), eq(messageHandler));
+        verify(topicManagerService, times(dynamicConsumers.size())).startNewConsumer(eq(TENANT_KEY), isAnyOfTopics(dynamicConsumers), eq(messageHandler));
 
         verifyNoMoreInteractions(dynamicConsumerConfiguration, topicManagerService);
     }
@@ -81,8 +77,8 @@ public class DynamicConsumerConfigurationServiceUnitTest {
         dynamicConsumerConfigurationService.refreshDynamicConsumers(TENANT_KEY);
 
         verify(dynamicConsumerConfiguration).getDynamicConsumers(eq(TENANT_KEY));
-        verify(topicManagerService, times(dynamicConsumers.size())).processTopicConfig(eq(TENANT_KEY), isAnyOfTopics(dynamicConsumers), isA(Map.class), eq(messageHandler));
-        verify(topicManagerService).removeOldConsumers(eq(TENANT_KEY), refEq(topicConfigs), isA(Map.class));
+        verify(topicManagerService, times(dynamicConsumers.size())).processTopicConfig(eq(TENANT_KEY), isAnyOfTopics(dynamicConsumers), eq(messageHandler));
+        verify(topicManagerService).removeOldConsumers(eq(TENANT_KEY), refEq(topicConfigs));
 
         verifyNoMoreInteractions(dynamicConsumerConfiguration, topicManagerService);
     }
@@ -103,19 +99,13 @@ public class DynamicConsumerConfigurationServiceUnitTest {
     public void stopDynamicConsumers() {
         List<DynamicConsumer> dynamicConsumers = createDynamicConsumers();
         when(dynamicConsumerConfiguration.getDynamicConsumers(eq(TENANT_KEY))).thenReturn(dynamicConsumers);
-        doAnswer(invocation -> {
-            TopicConfig topicConfig = invocation.getArgument(1);
-            Map<String, ConsumerHolder> tenantConsumerHolders = invocation.getArgument(2);
-            tenantConsumerHolders.put(topicConfig.getKey(), new ConsumerHolder(topicConfig, container));
-            return null;
-        }).when(topicManagerService).startNewConsumer(eq(TENANT_KEY), isAnyOfTopics(dynamicConsumers), isA(Map.class), eq(messageHandler));
         dynamicConsumerConfigurationService.startDynamicConsumers(TENANT_KEY);
 
         dynamicConsumerConfigurationService.stopDynamicConsumers(TENANT_KEY);
 
-        verify(topicManagerService, times(dynamicConsumers.size())).startNewConsumer(eq(TENANT_KEY), isAnyOfTopics(dynamicConsumers), isA(Map.class), eq(messageHandler));
+        verify(topicManagerService, times(dynamicConsumers.size())).startNewConsumer(eq(TENANT_KEY), isAnyOfTopics(dynamicConsumers), eq(messageHandler));
         verify(dynamicConsumerConfiguration).getDynamicConsumers(eq(TENANT_KEY));
-        verify(topicManagerService, times(dynamicConsumers.size())).stopAllTenantConsumers(eq(TENANT_KEY), isA(Map.class));
+        verify(topicManagerService).stopAllTenantConsumers(eq(TENANT_KEY));
 
         verifyNoMoreInteractions(dynamicConsumerConfiguration, topicManagerService);
     }

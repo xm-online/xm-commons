@@ -94,13 +94,13 @@ public class TopicConfigurationService implements RefreshableConfiguration, Dyna
     }
 
     private Optional<TopicConsumersSpec> readSpec(String updatedKey, String config) {
-        TopicConsumersSpec spec = null;
         try {
-            spec = ymlMapper.readValue(config, TopicConsumersSpec.class);
+            return Optional.of(ymlMapper.readValue(config, TopicConsumersSpec.class));
         } catch (Exception e) {
             log.error("Error read topic specification from path: {}", updatedKey, e);
         }
-        return Optional.ofNullable(spec);
+
+        return Optional.empty();
     }
 
     private DynamicConsumer createDynamicConsumer(TopicConfig topicConfig) {

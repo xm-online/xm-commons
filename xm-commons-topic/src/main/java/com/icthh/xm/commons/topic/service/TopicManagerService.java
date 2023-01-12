@@ -14,6 +14,7 @@ import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -101,6 +102,10 @@ public class TopicManagerService {
             Map<String, ConsumerHolder> existingConsumers = getConsumerHoldersByTenant(tenantKey);
             existingConsumers.put(topicConfig.getKey(), new ConsumerHolder(topicConfig, container));
         }, "{}", topicConfig);
+    }
+
+    public Map<String, ConsumerHolder> getConsumerHoldersByTenantImmutable(String tenantKey) {
+        return Collections.unmodifiableMap(getConsumerHoldersByTenant(tenantKey));
     }
 
     protected AbstractMessageListenerContainer buildListenerContainer(String tenantKey, TopicConfig topicConfig, MessageHandler messageHandler) {

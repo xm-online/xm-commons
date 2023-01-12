@@ -9,7 +9,6 @@ import com.icthh.xm.commons.topic.domain.TopicConsumersSpec;
 import com.icthh.xm.commons.topic.message.MessageHandler;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,8 +19,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -67,14 +66,18 @@ public class TopicManagerServiceUnitTest {
 
     @Test
     public void testStartingOfNewConsumers() {
-        HashMap<String, ConsumerHolder> existingConsumers = new HashMap<>();
+        Map<String, ConsumerHolder> existingConsumers = topicManager.getConsumerHoldersByTenantImmutable(TENANT_KEY);
+        int existingConsumersSizeBefore = existingConsumers.keySet().size();
+
         TopicConfig topicConfig = getTopicConsumerSpec(readConfig(CONFIG_1)).getTopics().get(0);
-        topicManager.processTopicConfig(TENANT_KEY, topicConfig, existingConsumers, messageHandler);
+        topicManager.processTopicConfig(TENANT_KEY, topicConfig, messageHandler);
 
         verify(container, times(1)).start();
         verify(container, times(0)).stop();
 
-        assertEquals(1, existingConsumers.keySet().size());
+        existingConsumers = topicManager.getConsumerHoldersByTenantImmutable(TENANT_KEY);
+
+        assertEquals(existingConsumersSizeBefore + 1, existingConsumers.keySet().size());
         assertTrue(existingConsumers.containsKey("key1"));
 
         verifyNoMoreInteractions(container);
@@ -82,20 +85,24 @@ public class TopicManagerServiceUnitTest {
 
     @Test
     public void testStoppingOfOldConsumer() {
-        HashMap<String, ConsumerHolder> existingConsumers = new HashMap<>();
+        Map<String, ConsumerHolder> existingConsumers = topicManager.getConsumerHoldersByTenantImmutable(TENANT_KEY);
+        int existingConsumersSizeBefore = existingConsumers.keySet().size();
+
         TopicConfig firstTopicConfig = getTopicConsumerSpec(readConfig(CONFIG_1)).getTopics().get(0);
         TopicConfig secondTopicConfig = getTopicConsumerSpec(readConfig(CONFIG_2)).getTopics().get(1);
-        topicManager.processTopicConfig(TENANT_KEY, firstTopicConfig, existingConsumers, messageHandler);
-        topicManager.processTopicConfig(TENANT_KEY, secondTopicConfig, existingConsumers, messageHandler);
+        topicManager.processTopicConfig(TENANT_KEY, firstTopicConfig, messageHandler);
+        topicManager.processTopicConfig(TENANT_KEY, secondTopicConfig, messageHandler);
 
         reset(container);
 
-        topicManager.removeOldConsumers(TENANT_KEY, List.of(secondTopicConfig), existingConsumers);
+        topicManager.removeOldConsumers(TENANT_KEY, List.of(secondTopicConfig));
 
         verify(container, times(0)).start();
         verify(container, times(1)).stop();
 
-        assertEquals(1, existingConsumers.keySet().size());
+        existingConsumers = topicManager.getConsumerHoldersByTenantImmutable(TENANT_KEY);
+
+        assertEquals(existingConsumersSizeBefore + 2 - 1, existingConsumers.keySet().size());
         assertTrue(existingConsumers.containsKey("key2"));
 
         verifyNoMoreInteractions(container);
@@ -103,19 +110,23 @@ public class TopicManagerServiceUnitTest {
 
     @Test
     public void testUpdatingOfConsumer() {
-        HashMap<String, ConsumerHolder> existingConsumers = new HashMap<>();
+        Map<String, ConsumerHolder> existingConsumers = topicManager.getConsumerHoldersByTenantImmutable(TENANT_KEY);
+        int existingConsumersSizeBefore = existingConsumers.keySet().size();
+
         TopicConfig firstTopicConfig = getTopicConsumerSpec(readConfig(CONFIG_1)).getTopics().get(0);
         TopicConfig thirdTopicConfig = getTopicConsumerSpec(readConfig(CONFIG_3)).getTopics().get(0);
-        topicManager.processTopicConfig(TENANT_KEY, firstTopicConfig, existingConsumers, messageHandler);
+        topicManager.processTopicConfig(TENANT_KEY, firstTopicConfig, messageHandler);
 
         reset(container);
 
-        topicManager.processTopicConfig(TENANT_KEY, thirdTopicConfig, existingConsumers, messageHandler);
+        topicManager.processTopicConfig(TENANT_KEY, thirdTopicConfig, messageHandler);
 
         verify(container, times(1)).stop();
         verify(container, times(1)).start();
 
-        assertEquals(1, existingConsumers.keySet().size());
+        existingConsumers = topicManager.getConsumerHoldersByTenantImmutable(TENANT_KEY);
+
+        assertEquals(existingConsumersSizeBefore + 1, existingConsumers.keySet().size());
         assertTrue(existingConsumers.containsKey("key1"));
 
         ConsumerHolder consumerHolder = existingConsumers.get("key1");
@@ -126,13 +137,12 @@ public class TopicManagerServiceUnitTest {
 
     @Test
     public void testConfigurationTheSame() {
-        HashMap<String, ConsumerHolder> existingConsumers = new HashMap<>();
         TopicConfig topicConfig = getTopicConsumerSpec(readConfig(CONFIG_1)).getTopics().get(0);
-        topicManager.processTopicConfig(TENANT_KEY, topicConfig, existingConsumers, messageHandler);
+        topicManager.processTopicConfig(TENANT_KEY, topicConfig, messageHandler);
 
         reset(container);
 
-        topicManager.processTopicConfig(TENANT_KEY, topicConfig, existingConsumers, messageHandler);
+        topicManager.processTopicConfig(TENANT_KEY, topicConfig, messageHandler);
 
         verifyNoMoreInteractions(container);
     }
