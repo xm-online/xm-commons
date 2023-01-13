@@ -36,11 +36,7 @@ public class DatabaseSource extends EmptyInterceptor {
 
         SourceConfig sourceConfig = xmDomainEventConfiguration.getSourceConfig(DB.name()); // DB name?
 
-        if (sourceConfig.isEnabled() &&
-            nonNull(tableName) &&
-            sourceConfig.getFilter() != null && // is correct logic?
-            sourceConfig.getFilter().getDsl().containsKey(tableName)
-        ) {
+        if (isProcess(tableName, sourceConfig)) {
             JpaEntityContext context = JpaEntityContext.builder()
                 .entity(entity)
                 .id(id)
@@ -75,13 +71,61 @@ public class DatabaseSource extends EmptyInterceptor {
         return null;
     }
 
-    @Override
-    public void onDelete(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
-        super.onDelete(entity, id, state, propertyNames, types);
+    private static boolean isProcess(String tableName, SourceConfig sourceConfig) {
+        return sourceConfig.isEnabled() &&
+            nonNull(tableName) &&
+            sourceConfig.getFilter() != null && // is correct logic?
+            sourceConfig.getFilter().getDsl().containsKey(tableName);
     }
 
     @Override
     public boolean onSave(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
+        String tableName = findTableName(entity);
+        log.trace("onSave: tableName: {}, id: {}", tableName, id);
+
+        SourceConfig sourceConfig = xmDomainEventConfiguration.getSourceConfig(DB.name());
+
+        if (isProcess(tableName, sourceConfig)) {
+            JpaEntityContext context = JpaEntityContext.builder()
+                .entity(entity)
+                .id(id)
+                .currentState(state)
+                .previousState(null)
+                .propertyNames(propertyNames)
+                .types(types)
+                .domainEventOperation(DefaultDomainEventOperation.UPDATE)
+                .build();
+            DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
+            eventPublisher.publish(DB.name(), dbDomainEvent);
+
+        }
+
         return super.onSave(entity, id, state, propertyNames, types);
     }
+
+    @Override
+    public void onDelete(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
+        String tableName = findTableName(entity);
+        log.trace("onDelete: tableName: {}, id: {}", tableName, id);
+
+        SourceConfig sourceConfig = xmDomainEventConfiguration.getSourceConfig(DB.name());
+
+        if (isProcess(tableName, sourceConfig)) {
+            JpaEntityContext context = JpaEntityContext.builder()
+                .entity(entity)
+                .id(id)
+                .currentState(null)
+                .previousState(state)
+                .propertyNames(propertyNames)
+                .types(types)
+                .domainEventOperation(DefaultDomainEventOperation.UPDATE)
+                .build();
+            DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
+            eventPublisher.publish(DB.name(), dbDomainEvent);
+
+        }
+
+        super.onDelete(entity, id, state, propertyNames, types);
+    }
+
 }

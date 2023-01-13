@@ -1,9 +1,9 @@
 package com.icthh.xm.commons.domainevent.service.db.impl;
 
-import com.icthh.xm.commons.domainevent.domain.JpaEntityContext;
 import com.icthh.xm.commons.domainevent.domain.DbDomainEventPayload;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.DomainEventPayload;
+import com.icthh.xm.commons.domainevent.domain.JpaEntityContext;
 import com.icthh.xm.commons.domainevent.service.builder.DomainEventFactory;
 import com.icthh.xm.commons.domainevent.service.db.JpaEntityMapper;
 import com.icthh.xm.commons.domainevent.service.db.JpaEntityResolver;
@@ -11,13 +11,11 @@ import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
 @LepService(group = "event.db.mapper")
 public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
