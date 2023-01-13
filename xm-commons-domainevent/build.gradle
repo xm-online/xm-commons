@@ -21,6 +21,7 @@ dependencies {
 
     implementation project(':xm-commons-config')
     implementation project(':xm-commons-lep')
+    implementation project(':xm-commons-topic')
 
     implementation "org.springframework.boot:spring-boot-starter-web:${versions.springBoot}"
 
