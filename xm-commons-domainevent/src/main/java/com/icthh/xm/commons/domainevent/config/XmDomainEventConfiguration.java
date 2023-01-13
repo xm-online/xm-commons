@@ -14,8 +14,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -168,26 +168,26 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
     private String getOperation(String url, TransformMappingConfig transformMappingConfig,
                                 Function<TransformMappingConfig.OperationMapping, TransformMappingConfig.MethodMapping> operationMappingFunction,
                                 String defaultValue) {
-
-        List<TransformMappingConfig.Mapping> mappings = Optional.ofNullable(transformMappingConfig)
+        return Optional.ofNullable(transformMappingConfig)
             .map(TransformMappingConfig::getOperationMapping)
             .map(operationMappingFunction)
             .map(TransformMappingConfig.MethodMapping::getMappings)
-            .orElse(List.of());
-
-        return mappings.stream()
+            .stream()
+            .flatMap(Collection::stream)
             .filter(it -> matcher.match(it.getUrlPattern(), url))
             .findFirst()
-            .map(it -> {
-                String operationText = it.getName();
-                Map<String, String> variables = matcher.extractUriTemplateVariables(it.getUrlPattern(), url);
-                for (Map.Entry<String, String> e : variables.entrySet()) {
-                    operationText = operationText.replace("{" + e.getKey() + "}", e.getValue());
-                }
-
-                return operationText;
-            })
+            .map(it -> fillTemplate(url, it))
             .orElse(getDefaultOperation(url, defaultValue));
+    }
+
+    private String fillTemplate(final String url, final TransformMappingConfig.Mapping it) {
+        String operationText = it.getName();
+        Map<String, String> variables = matcher.extractUriTemplateVariables(it.getUrlPattern(), url);
+        for (Map.Entry<String, String> e : variables.entrySet()) {
+            operationText = operationText.replace("{" + e.getKey() + "}", e.getValue());
+        }
+
+        return operationText;
     }
 
     private String getDefaultOperation(String url, String defaultValue) {
