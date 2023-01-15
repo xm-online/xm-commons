@@ -4,5 +4,6 @@ public enum DefaultDomainEventOperation {
     CREATE,
     READ,
     UPDATE,
-    DELETE
+    DELETE,
+    RELOAD
 }
