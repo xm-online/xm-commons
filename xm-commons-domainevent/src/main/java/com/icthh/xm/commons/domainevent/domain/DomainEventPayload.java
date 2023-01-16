@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.util.Map;
 
 @Data
@@ -15,7 +14,7 @@ import java.util.Map;
     @JsonSubTypes.Type(value = DbDomainEventPayload.class, name = "DbDomainEventPayload"),
     @JsonSubTypes.Type(value = HttpDomainEventPayload.class, name = "HttpDomainEventPayload")
 })
-public class DomainEventPayload implements Serializable {
+public class DomainEventPayload {
     private Map<String, Object> data;
 
     public DomainEventPayload(Map<String, Object> data) {
