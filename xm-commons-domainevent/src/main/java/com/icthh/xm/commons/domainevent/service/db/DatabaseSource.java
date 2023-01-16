@@ -93,7 +93,7 @@ public class DatabaseSource extends EmptyInterceptor {
                 .previousState(null)
                 .propertyNames(propertyNames)
                 .types(types)
-                .domainEventOperation(DefaultDomainEventOperation.UPDATE)
+                .domainEventOperation(DefaultDomainEventOperation.CREATE)
                 .build();
             DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
             eventPublisher.publish(DB.name(), dbDomainEvent);
@@ -118,7 +118,7 @@ public class DatabaseSource extends EmptyInterceptor {
                 .previousState(state)
                 .propertyNames(propertyNames)
                 .types(types)
-                .domainEventOperation(DefaultDomainEventOperation.UPDATE)
+                .domainEventOperation(DefaultDomainEventOperation.DELETE)
                 .build();
             DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
             eventPublisher.publish(DB.name(), dbDomainEvent);
