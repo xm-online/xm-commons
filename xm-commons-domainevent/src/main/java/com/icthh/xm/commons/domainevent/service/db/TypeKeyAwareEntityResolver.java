@@ -5,12 +5,13 @@ import com.icthh.xm.commons.lep.AppendLepKeyResolver;
 import com.icthh.xm.lep.api.LepManagerService;
 import com.icthh.xm.lep.api.LepMethod;
 import com.icthh.xm.lep.api.commons.SeparatorSegmentedLepKey;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import static com.icthh.xm.commons.domainevent.service.db.impl.TypeKeyAwareJpaEntityMapper.TYPE_KEY;
 
 @Component
-public class JpaEntityResolver extends AppendLepKeyResolver {
+public class TypeKeyAwareEntityResolver extends AppendLepKeyResolver {
 
     @Override
     protected String[] getAppendSegments(SeparatorSegmentedLepKey baseKey, LepMethod method, LepManagerService managerService) {
@@ -31,6 +32,6 @@ public class JpaEntityResolver extends AppendLepKeyResolver {
                 return state[i].toString();
             }
         }
-        return "";
+        return StringUtils.EMPTY;
     }
 }

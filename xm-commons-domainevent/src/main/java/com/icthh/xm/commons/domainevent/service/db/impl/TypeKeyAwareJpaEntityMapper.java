@@ -6,11 +6,12 @@ import com.icthh.xm.commons.domainevent.domain.DomainEventPayload;
 import com.icthh.xm.commons.domainevent.domain.JpaEntityContext;
 import com.icthh.xm.commons.domainevent.service.builder.DomainEventFactory;
 import com.icthh.xm.commons.domainevent.service.db.JpaEntityMapper;
-import com.icthh.xm.commons.domainevent.service.db.JpaEntityResolver;
+import com.icthh.xm.commons.domainevent.service.db.TypeKeyAwareEntityResolver;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -25,7 +26,7 @@ public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
     private final DomainEventFactory domainEventFactory;
 
     @Override
-    @LogicExtensionPoint(value = "TypeKey", resolver = JpaEntityResolver.class)
+    @LogicExtensionPoint(value = "TypeKey", resolver = TypeKeyAwareEntityResolver.class)
     public DomainEvent map(JpaEntityContext jpaEntityContext) {
 
         DomainEventPayload dbDomainEventPayload = buildDomainEventPayload(
@@ -52,7 +53,7 @@ public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
                 return state[i].toString();
             }
         }
-        return "";
+        return StringUtils.EMPTY;
     }
 
     DomainEventPayload buildDomainEventPayload(Object[] currentState, Object[] previousState, String[] propertyNames) {
