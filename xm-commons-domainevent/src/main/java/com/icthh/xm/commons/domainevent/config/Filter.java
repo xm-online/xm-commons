@@ -12,5 +12,5 @@ import java.util.Map;
 public class Filter {
 
     private String key;
-    private Map<String, List<Entity>> dsl = new HashMap<>();
+    private Map<String, List<EntityFilter>> dsl = new HashMap<>();
 }
