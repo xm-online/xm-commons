@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.domainevent.service.db;
+package com.icthh.xm.commons.domainevent.db.service;
 
 import com.icthh.xm.commons.lep.AppendLepKeyResolver;
 import com.icthh.xm.lep.api.LepManagerService;

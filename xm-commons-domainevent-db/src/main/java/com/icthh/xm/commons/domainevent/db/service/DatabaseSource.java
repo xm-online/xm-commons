@@ -1,17 +1,15 @@
-package com.icthh.xm.commons.domainevent.service.db;
+package com.icthh.xm.commons.domainevent.db.service;
 
 import com.icthh.xm.commons.domainevent.config.Column;
 import com.icthh.xm.commons.domainevent.config.EntityFilter;
 import com.icthh.xm.commons.domainevent.config.Query;
 import com.icthh.xm.commons.domainevent.config.SourceConfig;
 import com.icthh.xm.commons.domainevent.config.XmDomainEventConfiguration;
+import com.icthh.xm.commons.domainevent.db.domain.JpaEntityContext;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
-import com.icthh.xm.commons.domainevent.domain.JpaEntityContext;
-import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation;
 import com.icthh.xm.commons.domainevent.service.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
 import org.springframework.stereotype.Service;
@@ -21,9 +19,14 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
+import static com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation.CREATE;
+import static com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation.DELETE;
+import static com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation.UPDATE;
 import static com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventSource.DB;
+import static java.lang.Boolean.TRUE;
+import static java.util.Objects.isNull;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 @Slf4j
 @Service
@@ -40,7 +43,6 @@ public class DatabaseSource extends EmptyInterceptor {
 
     private final DatabaseDslFilter databaseDslFilter;
 
-
     @Override
     public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState, String[] propertyNames, Type[] types) {
         String tableName = findTableName(entity);
@@ -55,10 +57,10 @@ public class DatabaseSource extends EmptyInterceptor {
             .previousState(previousState)
             .propertyNames(propertyNames)
             .types(types)
-            .domainEventOperation(DefaultDomainEventOperation.UPDATE)
+            .domainEventOperation(UPDATE)
             .build();
 
-        if (isProcess(tableName, sourceConfig, context)) {
+        if (isIntercepted(tableName, sourceConfig, context)) {
             DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
             eventPublisher.publish(DB.name(), dbDomainEvent);
         }
@@ -80,10 +82,10 @@ public class DatabaseSource extends EmptyInterceptor {
             .previousState(null)
             .propertyNames(propertyNames)
             .types(types)
-            .domainEventOperation(DefaultDomainEventOperation.CREATE)
+            .domainEventOperation(CREATE)
             .build();
 
-        if (isProcess(tableName, sourceConfig, context)) {
+        if (isIntercepted(tableName, sourceConfig, context)) {
             DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
             eventPublisher.publish(DB.name(), dbDomainEvent);
         }
@@ -105,10 +107,10 @@ public class DatabaseSource extends EmptyInterceptor {
             .previousState(state)
             .propertyNames(propertyNames)
             .types(types)
-            .domainEventOperation(DefaultDomainEventOperation.DELETE)
+            .domainEventOperation(DELETE)
             .build();
 
-        if (isProcess(tableName, sourceConfig, context)) {
+        if (isIntercepted(tableName, sourceConfig, context)) {
             DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
             eventPublisher.publish(DB.name(), dbDomainEvent);
         }
@@ -116,7 +118,6 @@ public class DatabaseSource extends EmptyInterceptor {
         super.onDelete(entity, id, state, propertyNames, types);
     }
 
-    //TODO entitySimpleName ??
     private String findTableName(Object entity) {
         Table tableAnnotation = entity.getClass().getAnnotation(Table.class);
 
@@ -132,8 +133,8 @@ public class DatabaseSource extends EmptyInterceptor {
         return null;
     }
 
-    private boolean isProcess(String tableName, SourceConfig sourceConfig, JpaEntityContext context) {
-        if (!sourceConfig.isEnabled() && Objects.isNull(sourceConfig.getFilter())) {
+    private boolean isIntercepted(String tableName, SourceConfig sourceConfig, JpaEntityContext context) {
+        if (!sourceConfig.isEnabled() && isNull(sourceConfig.getFilter())) {
             return false;
         }
 
@@ -148,7 +149,7 @@ public class DatabaseSource extends EmptyInterceptor {
                 List<EntityFilter> filters = dsl.get(tableName);
 
                 if (lepInvoked(filters, tableName, context)) {
-                    return entityFilterLepExecute(filters, tableName, context);
+                    return entityFilterLepExecuted(filters, tableName, context);
                 }
                 return anyMatchQuery(filters, context);
             }
@@ -163,9 +164,9 @@ public class DatabaseSource extends EmptyInterceptor {
             .anyMatch(filter -> databaseDslFilter.lepFiltering(filter.getKey(), tableName, context) != null);
     }
 
-    private boolean entityFilterLepExecute(List<EntityFilter> filters, String tableName, JpaEntityContext context) {
+    private boolean entityFilterLepExecuted(List<EntityFilter> filters, String tableName, JpaEntityContext context) {
         return filters.stream()
-            .anyMatch(filter -> Boolean.TRUE.equals(databaseDslFilter.lepFiltering(filter.getKey(), tableName, context)));
+            .anyMatch(filter -> TRUE.equals(databaseDslFilter.lepFiltering(filter.getKey(), tableName, context)));
     }
 
     private boolean anyMatchQuery(List<EntityFilter> filters, JpaEntityContext context) {
@@ -174,7 +175,7 @@ public class DatabaseSource extends EmptyInterceptor {
     }
 
     private boolean processQuery(Query query, JpaEntityContext context) {
-        if (Objects.isNull(query)) {
+        if (isNull(query)) {
             return false;
         }
 
@@ -186,7 +187,7 @@ public class DatabaseSource extends EmptyInterceptor {
             if (propertyNames.contains(queryColumn)) {
 
                 String propertyValue = findPropertyValue(context, queryColumn);
-                if (StringUtils.isNotEmpty(propertyValue)) {
+                if (isNotEmpty(propertyValue)) {
                     Column column = columnEntry.getValue();
                     return column.match(propertyValue);
                 }

@@ -1,6 +1,6 @@
-package com.icthh.xm.commons.domainevent.service.db;
+package com.icthh.xm.commons.domainevent.db.service;
 
-import com.icthh.xm.commons.domainevent.domain.JpaEntityContext;
+import com.icthh.xm.commons.domainevent.db.domain.JpaEntityContext;
 import com.icthh.xm.commons.lep.AppendLepKeyResolver;
 import com.icthh.xm.lep.api.LepManagerService;
 import com.icthh.xm.lep.api.LepMethod;
@@ -8,7 +8,7 @@ import com.icthh.xm.lep.api.commons.SeparatorSegmentedLepKey;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import static com.icthh.xm.commons.domainevent.service.db.impl.TypeKeyAwareJpaEntityMapper.TYPE_KEY;
+import static com.icthh.xm.commons.domainevent.db.service.impl.TypeKeyAwareJpaEntityMapper.TYPE_KEY;
 
 @Component
 public class TypeKeyAwareEntityResolver extends AppendLepKeyResolver {

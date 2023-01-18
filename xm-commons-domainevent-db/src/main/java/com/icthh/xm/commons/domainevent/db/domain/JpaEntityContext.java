@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.domainevent.domain;
+package com.icthh.xm.commons.domainevent.db.domain;
 
 import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation;
 import lombok.AllArgsConstructor;
