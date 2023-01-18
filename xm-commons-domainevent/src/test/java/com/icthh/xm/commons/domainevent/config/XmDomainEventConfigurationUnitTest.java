@@ -1,7 +1,5 @@
 package com.icthh.xm.commons.domainevent.config;
 
-import com.icthh.xm.commons.domainevent.config.SourceConfig;
-import com.icthh.xm.commons.domainevent.config.XmDomainEventConfiguration;
 import com.icthh.xm.commons.domainevent.config.event.InitSourceEventPublisher;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.junit.Before;
@@ -26,7 +24,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class XmDomainEventConfigurationTest {
+public class XmDomainEventConfigurationUnitTest {
 
     public static final String APP_NAME = "testEntity";
     public static final String TENANT = "TEST";
@@ -125,6 +123,25 @@ public class XmDomainEventConfigurationTest {
 
         SourceConfig nonExistentConfig = xmDomainEventConfiguration.getSourceConfig("nonExistentConfig");
         assertNull(nonExistentConfig);
+    }
+
+    @Test
+    public void shouldGetOperationMappingConfig() {
+        String enabledConfig = readConfigFile("/mappingDomainEvents.yml");
+        xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
+
+        String url = APP_NAME + "/api/xm-entities/123/states/FINISH";
+        String operationMapping = xmDomainEventConfiguration.getOperationMapping(TENANT, "PUT", url);
+        assertNotNull(operationMapping);
+        assertEquals("statechange id: 123 to: FINISH", operationMapping);
+    }
+
+    @Test
+    public void shouldGetOperationWithDefaultValue() {
+        String url = "/api/xm-entities/123/states/FINISH";
+        String operationMapping = xmDomainEventConfiguration.getOperationMapping(TENANT, "DELETE", url);
+        assertNotNull(operationMapping);
+        assertEquals("xm-entities deleted", operationMapping);
     }
 
     private String readConfigFile(String path) {

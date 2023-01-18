@@ -146,4 +146,6 @@ public interface XmAuthenticationContext {
     Set<String> getAuthoritiesSet();
 
     Map<String, Object> getDecodedDetails();
+
+    Optional<String> getTenantName();
 }

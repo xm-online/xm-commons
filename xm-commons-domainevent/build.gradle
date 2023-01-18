@@ -21,13 +21,17 @@ dependencies {
 
     implementation project(':xm-commons-config')
     implementation project(':xm-commons-lep')
+    implementation project(':xm-commons-topic')
 
     implementation "org.springframework.boot:spring-boot-starter-web:${versions.springBoot}"
+
+    compile 'com.jayway.jsonpath:json-path'
 
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
     testCompile 'junit:junit'
     testCompile 'org.assertj:assertj-core'
     testCompile 'org.mockito:mockito-core'
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
 }
 
 compileJava.dependsOn(processResources)

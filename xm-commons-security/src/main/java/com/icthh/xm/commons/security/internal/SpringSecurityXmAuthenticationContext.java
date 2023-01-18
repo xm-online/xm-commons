@@ -249,6 +249,11 @@ class SpringSecurityXmAuthenticationContext implements XmAuthenticationContext {
         return  getDetails().map(this::toDecodedDetails).orElseGet(HashMap::new);
     }
 
+    @Override
+    public Optional<String> getTenantName() {
+        return getDetailsValue(XmAuthenticationConstants.AUTH_TENANT_KEY);
+    }
+
     @SuppressWarnings("unchecked")
     private Map<String, Object> toDecodedDetails(Object details) {
         if (details instanceof OAuth2AuthenticationDetails) {
