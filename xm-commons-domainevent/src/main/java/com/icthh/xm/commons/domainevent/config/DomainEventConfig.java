@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.domainevent.config;
 
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;

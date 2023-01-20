@@ -103,6 +103,7 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
         EventPublisherConfig eventPublisherConfig = readConfig(updatedKey, config);
         if (eventPublisherConfig != null && eventPublisherConfig.isEnabled()) {
             configByTenant.put(tenantKey, eventPublisherConfig);
+
             Map<String, SourceConfig> sources = eventPublisherConfig.getSources();
             initTransportSourceMap(tenantKey, sources);
             initSourceEventPublisher.publish(tenantKey, sources.values());

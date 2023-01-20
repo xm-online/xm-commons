@@ -37,7 +37,7 @@ public class JsonUtilUnitTest {
 
     @Test
     public void shouldReturnIdAndTypeKey_fromUpperLevel() {
-        String json = "{\"id\":\"123\",\"typeKey\":\"TEST_TYPE_KEY\",\"xmEntity\":{\"id\":\"456\",\"typeKey\":\"XM_ENTITY_TYPE_KEY\"},\"data\":{\"id\":\"789\",\"typeKey\":\"DATA_TYPE_KEY\"}}";
+        String json = "{\"xmEntity\":{\"id\":\"456\",\"typeKey\":\"XM_ENTITY_TYPE_KEY\"},\"data\":{\"id\":\"789\",\"typeKey\":\"DATA_TYPE_KEY\"},\"id\":\"123\",\"typeKey\":\"TEST_TYPE_KEY\"}";
         Pair<String, String> stringStringPair = JsonUtil.extractIdAndTypeKey(jsonFactory, json);
 
         assertResult(stringStringPair);
