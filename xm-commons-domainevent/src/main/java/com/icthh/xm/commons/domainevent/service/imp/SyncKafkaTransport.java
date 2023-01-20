@@ -9,6 +9,9 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
@@ -19,14 +22,31 @@ public class SyncKafkaTransport implements Transport {
 
     private final KafkaTemplateService kafkaTemplateService;
     private final ObjectMapper objectMapper;
+    private final KafkaTransactionSynchronizationAdapterService kafkaTransactionSynchronizationAdapterService;
 
     @Override
-    @SneakyThrows
     public void send(DomainEvent event) {
-        String topic = prepareTopicName(event);
-        String data = objectMapper.writeValueAsString(event);
-        kafkaTemplateService.send(topic, data);
-        log.info("Send event to kafka topic = {}", topic);
+        Consumer<DomainEvent> domainEventConsumer = sendMessageConsumer();
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            kafkaTransactionSynchronizationAdapterService.send(event, domainEventConsumer);
+            return;
+        }
+
+        domainEventConsumer.accept(event);
+    }
+
+    private Consumer<DomainEvent> sendMessageConsumer() {
+        return (domainEvent) -> {
+            String topic = prepareTopicName(domainEvent);
+            String data = toJson(domainEvent);
+            kafkaTemplateService.send(topic, data);
+            log.info("Send event to kafka topic = {}", topic);
+        };
+    }
+
+    @SneakyThrows
+    private String toJson(DomainEvent domainEvent) {
+        return objectMapper.writeValueAsString(domainEvent);
     }
 
     private String prepareTopicName(DomainEvent event) {
