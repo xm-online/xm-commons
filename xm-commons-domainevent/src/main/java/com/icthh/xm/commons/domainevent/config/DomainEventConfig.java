@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @RequiredArgsConstructor
-@ConditionalOnProperty("application.domain-event.enabled")
+@ConditionalOnProperty(value = "application.domain-event.enabled", havingValue = "true")
 public class DomainEventConfig implements WebMvcConfigurer {
 
     private final WebApiSource webApiSource;
