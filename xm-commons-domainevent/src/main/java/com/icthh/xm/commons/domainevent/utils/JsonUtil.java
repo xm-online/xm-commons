@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.JsonToken;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 
@@ -16,12 +15,15 @@ public class JsonUtil {
 
     private static final String ID_FIELD_NAME = "id";
     private static final String TYPE_KEY_FIELD_NAME = "typeKey";
+    private static final String NAME_FIELD_NAME = "name";
 
-    private static final int ID = 0;
-    private static final int TYPE_KEY = 1;
+    private static final int FIELD_COUNT = 3;
+    public static final int ID = 0;
+    public static final int TYPE_KEY = 1;
+    public static final int NAME = 2;
 
-    public static Pair<String, String> extractIdAndTypeKey(JsonFactory jsonFactory, String json) {
-        String[] values = new String[2];
+    public static String[] extractIdAndTypeKey(JsonFactory jsonFactory, String json) {
+        String[] values = new String[FIELD_COUNT];
         try (JsonParser jParser = jsonFactory.createParser(json)) {
             while (jParser.nextToken() != JsonToken.END_OBJECT) {
                 String fieldName = jParser.getCurrentName();
@@ -42,6 +44,12 @@ public class JsonUtil {
                     continue;
                 }
 
+                if (NAME_FIELD_NAME.equals(fieldName)) {
+                    jParser.nextToken();
+                    values[NAME] = jParser.getText();
+                    continue;
+                }
+
                 if ("xmEntity".equals(fieldName)) {
                     extractFromInnerLevel(jParser, values);
                 }
@@ -53,7 +61,7 @@ public class JsonUtil {
         } catch (IOException e) {
             log.trace(e.getMessage(), e);
         }
-        return Pair.of(values[ID], values[TYPE_KEY]);
+        return values;
     }
 
     @SneakyThrows
@@ -71,6 +79,12 @@ public class JsonUtil {
             if (result[TYPE_KEY] == null && TYPE_KEY_FIELD_NAME.equals(innerFieldName)) {
                 jParser.nextToken();
                 result[TYPE_KEY] = jParser.getText();
+                continue;
+            }
+
+            if (result[NAME] == null && NAME_FIELD_NAME.equals(innerFieldName)) {
+                jParser.nextToken();
+                result[NAME] = jParser.getText();
             }
         }
     }

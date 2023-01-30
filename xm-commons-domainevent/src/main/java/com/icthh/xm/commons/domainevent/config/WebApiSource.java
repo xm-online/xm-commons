@@ -15,7 +15,6 @@ import com.jayway.jsonpath.PathNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
@@ -50,7 +49,7 @@ public class WebApiSource implements AsyncHandlerInterceptor {
     private final EventPublisher eventPublisher;
     private final XmAuthenticationContextHolder xmAuthenticationContextHolder;
     private final XmDomainEventConfiguration xmDomainEventConfiguration;
-    private final JsonFactory jfactory;
+    private final JsonFactory jFactory;
 
     @Value("${spring.application.name}")
     private String appName;
@@ -61,7 +60,7 @@ public class WebApiSource implements AsyncHandlerInterceptor {
         this.eventPublisher = eventPublisher;
         this.xmAuthenticationContextHolder = xmAuthenticationContextHolder;
         this.xmDomainEventConfiguration = xmDomainEventConfiguration;
-        this.jfactory = new JsonFactory();
+        this.jFactory = new JsonFactory();
         this.maskRules = apiIgnore != null ? apiIgnore.getMaskRules() : null;
     }
 
@@ -99,12 +98,13 @@ public class WebApiSource implements AsyncHandlerInterceptor {
         String requestBody = getRequestContent(request);
         String responseBody = getResponseContent(response);
 
-        Pair<String, String> idTypeKey = JsonUtil.extractIdAndTypeKey(jfactory, responseBody);
+        String[] values = JsonUtil.extractIdAndTypeKey(jFactory, responseBody);
         return DomainEvent.builder()
             .id(UUID.randomUUID())
             .txId(MdcUtils.getRid())
-            .aggregateId(idTypeKey.getKey())
-            .aggregateType(idTypeKey.getValue())
+            .aggregateId(values[JsonUtil.ID])
+            .aggregateName(values[JsonUtil.NAME])
+            .aggregateType(values[JsonUtil.TYPE_KEY])
             .operation(xmDomainEventConfiguration.getOperationMapping(tenant, request.getMethod(), request.getRequestURI()))
             .msName(appName)
             .source(DefaultDomainEventSource.WEB.getCode())

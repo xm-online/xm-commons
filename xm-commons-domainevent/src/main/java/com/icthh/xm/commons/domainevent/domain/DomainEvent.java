@@ -34,6 +34,8 @@ public class DomainEvent implements Serializable {
 
     private String aggregateType;
 
+    private String aggregateName;
+
     private String operation;
 
     private String msName;

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
+@Component("DomainEventApiMaskConfig")
 @ConfigurationProperties(prefix = "application.domain-event")
 @Getter
 @Setter

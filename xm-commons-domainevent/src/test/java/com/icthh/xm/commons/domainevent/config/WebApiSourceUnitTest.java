@@ -142,6 +142,7 @@ public class WebApiSourceUnitTest {
             .id(UUID.randomUUID())
             .txId(MdcUtils.getRid())
             .aggregateId("123")
+            .aggregateName("TEST_NAME")
             .aggregateType("TEST_TYPE_KEY")
             .operation(operation)
             .msName(null)
