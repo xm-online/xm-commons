@@ -1,0 +1,21 @@
+application:
+    domain-event:
+        enabled: true
+        mask-rules:
+            -   endpointToMask: /api/attachments
+                httpMethod:
+                    - POST
+                    - PUT
+                pathToMask:
+                    - $.content.value
+                    - $.content.text
+                mask: mask
+                maskRequest: true
+                maskResponse: true
+            -   endpointToMask: /api/attachments/**
+                httpMethod:
+                    - GET
+                pathToMask:
+                    - $.content.value
+                mask: mask
+                maskResponse: true

@@ -6,6 +6,7 @@ package com.icthh.xm.commons.security;
 public final class XmAuthenticationConstants {
 
     public static final String AUTH_DETAILS_USER_KEY = "user_key";
+    public static final String AUTH_TENANT_KEY = "tenant";
     public static final String AUTH_ADDITIONAL_DETAILS = "additionalDetails";
 
     /**
