@@ -8,6 +8,7 @@ import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventSource;
 import com.icthh.xm.commons.domainevent.service.Transport;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -16,6 +17,7 @@ import org.springframework.util.AntPathMatcher;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,6 +42,8 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
     private final Map<String, Map<String, Transport>> transportBySource = new HashMap<>();
     //<tenant, TransformMappingConfig>>
     private final ConcurrentHashMap<String, TransformMappingConfig> operationMappingByTenant = new ConcurrentHashMap<>();
+    //<tenant, List<FilterConfig> filter>>
+    private final ConcurrentHashMap<String, List<FilterConfig>> filterListByTenant = new ConcurrentHashMap<>();
 
 
     public XmDomainEventConfiguration(@Value("${spring.application.name}") String appName,
@@ -118,6 +122,11 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
                 return;
             }
             operationMappingByTenant.put(tenantKey, transform);
+
+            List<FilterConfig> filter = sourceConfig.getFilter();
+            if (CollectionUtils.isNotEmpty(filter)){
+                filterListByTenant.put(tenantKey, filter);
+            }
         }
     }
 
@@ -143,6 +152,10 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
             log.error("Error reading event publisher config from path: {}", updatedKey, e);
         }
         return publisherConfig;
+    }
+
+    public List<FilterConfig> getFilterListByTenant(String tenantKey) {
+        return filterListByTenant.getOrDefault(tenantKey, List.of());
     }
 
     public String getOperationMapping(String tenantKey, String method, String url) {

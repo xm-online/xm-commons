@@ -5,6 +5,7 @@ import com.icthh.xm.commons.domainevent.domain.DomainEventPayload;
 import com.icthh.xm.commons.domainevent.domain.HttpDomainEventPayload;
 import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventSource;
 import com.icthh.xm.commons.domainevent.service.EventPublisher;
+import com.icthh.xm.commons.domainevent.service.WebFilterEngine;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import org.junit.Before;
@@ -54,6 +55,8 @@ public class WebApiSourceUnitTest {
     private ContentCachingRequestWrapper request;
     @Mock
     private ContentCachingResponseWrapper response;
+    @Mock
+    private WebFilterEngine webFilterEngine;
 
     private WebApiSource webApiSource;
 
@@ -61,7 +64,7 @@ public class WebApiSourceUnitTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        webApiSource = new WebApiSource(eventPublisher, xmAuthenticationContextHolder, apiMaskConfig, xmDomainEventConfiguration);
+        webApiSource = new WebApiSource(eventPublisher, xmAuthenticationContextHolder, apiMaskConfig, xmDomainEventConfiguration, webFilterEngine);
 
         when(request.getContentAsByteArray()).thenReturn(CONTENT.getBytes());
         when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList("Authorization", "Domain", "x-tenant")));

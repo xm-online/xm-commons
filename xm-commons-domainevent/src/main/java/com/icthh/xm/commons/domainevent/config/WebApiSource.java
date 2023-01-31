@@ -5,6 +5,7 @@ import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.HttpDomainEventPayload;
 import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventSource;
 import com.icthh.xm.commons.domainevent.service.EventPublisher;
+import com.icthh.xm.commons.domainevent.service.WebFilterEngine;
 import com.icthh.xm.commons.domainevent.utils.JsonUtil;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
@@ -53,24 +54,22 @@ public class WebApiSource extends HandlerInterceptorAdapter {
 
     @Value("${spring.application.name}")
     private String appName;
-    private List<ApiMaskRule> maskRules;
+    private final List<ApiMaskRule> maskRules;
+
+    private final WebFilterEngine webFilterEngine;
 
     public WebApiSource(EventPublisher eventPublisher, XmAuthenticationContextHolder xmAuthenticationContextHolder,
-                        ApiMaskConfig apiIgnore, XmDomainEventConfiguration xmDomainEventConfiguration) {
+                        ApiMaskConfig apiIgnore, XmDomainEventConfiguration xmDomainEventConfiguration, WebFilterEngine webFilterEngine) {
         this.eventPublisher = eventPublisher;
         this.xmAuthenticationContextHolder = xmAuthenticationContextHolder;
         this.xmDomainEventConfiguration = xmDomainEventConfiguration;
         this.jFactory = new JsonFactory();
         this.maskRules = apiIgnore != null ? apiIgnore.getMaskRules() : null;
+        this.webFilterEngine = webFilterEngine;
     }
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
-
-        if (isIgnoredRequest(request, response)) {
-            return;
-        }
-
         XmAuthenticationContext auth = xmAuthenticationContextHolder.getContext();
         if (auth == null || auth.isAnonymous()) {
             String tenant = request.getHeader(HEADER_TENANT);
@@ -84,13 +83,13 @@ public class WebApiSource extends HandlerInterceptorAdapter {
         }
     }
 
-    // TODO
-    private boolean isIgnoredRequest(HttpServletRequest request, HttpServletResponse response) {
-        return false;
-    }
-
     private void publishEvent(HttpServletRequest request, HttpServletResponse response, String tenant, String clientId, String userKey) {
-        DomainEvent domainEvent = createEvent(request, response, tenant, clientId, userKey);
+
+        DomainEvent domainEvent = webFilterEngine.isIgnoreRequest(request, response, tenant, () -> createEvent(request, response, tenant, clientId, userKey));
+        if (domainEvent == null) {
+            return;
+        }
+
         eventPublisher.publish(DefaultDomainEventSource.WEB.getCode(), domainEvent);
     }
 

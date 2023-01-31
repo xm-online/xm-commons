@@ -1,11 +1,17 @@
 enabled: true
 sources:
     db:
-        enabled: true
+        enabled: false
         transport: OutboxTransport
     web:
         enabled: true
         transport: SyncKafkaTransport
+        filter:
+            -   key: keyName
+                responseCode: [200, 201, 202]
+                urlPattern: '*/api/my/full/custom/path'
+                httpOperation: [POST, GET, DELETE, PUT]
+                aggregateType: [CUSTOMER, ZXCZXCCX]
         transform:
             operationMapping:
                 GET:
