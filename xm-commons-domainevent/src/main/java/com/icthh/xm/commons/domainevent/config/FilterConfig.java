@@ -11,4 +11,5 @@ public class FilterConfig {
     private String urlPattern;
     private List<String> httpOperation;
     private List<String> aggregateType;
+    private String filterType = "include";
 }

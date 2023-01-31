@@ -1,9 +1,9 @@
-package com.icthh.xm.commons.domainevent.service;
+package com.icthh.xm.commons.domainevent.service.filter;
 
 import com.icthh.xm.commons.domainevent.config.XmDomainEventConfiguration;
 import com.icthh.xm.commons.domainevent.config.event.InitSourceEventPublisher;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
-import com.icthh.xm.commons.domainevent.service.filter.WebLepFilter;
+import com.icthh.xm.commons.domainevent.service.filter.lep.WebLepFilter;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Supplier;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
@@ -96,6 +96,19 @@ public class WebFilterEngineUnitTest {
     }
 
     @Test
+    public void shouldNull_configAndAggregateTypeIn() {
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getRequestURI()).thenReturn("app-name/api/my/full/custom/path");
+
+        DomainEvent domainEvent = createDomainEvent();
+        domainEvent.setAggregateType("CUSTOMER");
+        BiFunction<String[], String, DomainEvent> supplier = createSupplier(domainEvent);
+
+        DomainEvent result = webFilterEngine.isIgnoreRequest(request, response, TENANT, supplier);
+        assertNull(result);
+    }
+
+    @Test
     public void shouldNull_configAndLepReturnFalse() {
         when(request.getMethod()).thenReturn("POST");
         when(request.getRequestURI()).thenReturn("app-name/api/my/full/custom/path");
@@ -117,9 +130,45 @@ public class WebFilterEngineUnitTest {
         String enabledConfig = readConfigFile("/mappingDomainEvents.yml");
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
 
-        Supplier<DomainEvent> supplier = createSupplier(createDomainEvent());
+        DomainEvent domainEvent = createDomainEvent();
+        BiFunction<String[], String, DomainEvent> supplier = createSupplier(domainEvent);
         DomainEvent result = webFilterEngine.isIgnoreRequest(request, response, TENANT, supplier);
-        assertEquals(result, supplier.get());
+        assertEquals(result, domainEvent);
+    }
+
+    @Test
+    public void shouldNull_configFilterTypeExclude() {
+        when(request.getMethod()).thenReturn("DELETE");
+        when(request.getRequestURI()).thenReturn("app-name/api/my/delete/123");
+
+        DomainEvent result = webFilterEngine.isIgnoreRequest(request, response, TENANT, createSupplier(createDomainEvent()));
+        assertNull(result);
+    }
+
+    @Test
+    public void shouldNull_configFilterTypeExcludeAndMuchByUrlAndOperationType() {
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getRequestURI()).thenReturn("app-name/api/my/function/DICT_CITY");
+
+        String enabledConfig = readConfigFile("/mappingDomainEvents.yml");
+        xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
+
+        DomainEvent result = webFilterEngine.isIgnoreRequest(request, response, TENANT, createSupplier(createDomainEvent()));
+        assertNull(result);
+    }
+
+    @Test
+    public void shouldNull_configFilterTypeIncludeAndMuchByUrlAndOperationType() {
+        when(request.getMethod()).thenReturn("POST");
+        when(request.getRequestURI()).thenReturn("app-name/api/my/function/CITY");
+        when(webLepFilter.lepFiltering(eq("withInclude"), any(DomainEvent.class))).thenReturn(true);
+
+        String enabledConfig = readConfigFile("/mappingDomainEvents.yml");
+        xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
+
+        DomainEvent domainEvent = createDomainEvent();
+        DomainEvent result = webFilterEngine.isIgnoreRequest(request, response, TENANT, createSupplier(domainEvent));
+        assertEquals(result, domainEvent);
     }
 
     private DomainEvent createDomainEvent() {
@@ -129,8 +178,8 @@ public class WebFilterEngineUnitTest {
             .build();
     }
 
-    private Supplier<DomainEvent> createSupplier(DomainEvent event) {
-        return () -> event;
+    private BiFunction<String[], String, DomainEvent> createSupplier(DomainEvent event) {
+        return (String[] aggregateDetails, String responseBody) -> event;
     }
 
     private String readConfigFile(String path) {

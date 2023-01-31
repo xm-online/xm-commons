@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.domainevent.service.filter;
+package com.icthh.xm.commons.domainevent.service.filter.lep;
 
 import com.icthh.xm.commons.domainevent.config.TestLepTestConfig;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;

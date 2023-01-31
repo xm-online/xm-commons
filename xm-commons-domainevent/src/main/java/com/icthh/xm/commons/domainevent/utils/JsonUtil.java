@@ -18,6 +18,7 @@ public class JsonUtil {
     private static final String NAME_FIELD_NAME = "name";
 
     private static final int FIELD_COUNT = 3;
+
     public static final int ID = 0;
     public static final int TYPE_KEY = 1;
     public static final int NAME = 2;
@@ -86,6 +87,20 @@ public class JsonUtil {
                 jParser.nextToken();
                 result[NAME] = jParser.getText();
             }
+        }
+    }
+
+    public static final class AggregateMapper {
+        public static String getTypeKey(String[] values) {
+            return values[TYPE_KEY];
+        }
+
+        public static String getId(String[] values) {
+            return values[ID];
+        }
+
+        public static String getName(String[] values) {
+            return values[NAME];
         }
     }
 }
