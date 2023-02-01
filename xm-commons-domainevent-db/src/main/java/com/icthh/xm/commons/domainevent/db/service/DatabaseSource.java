@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -34,6 +35,8 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 @Service
 @RequiredArgsConstructor
 public class DatabaseSource extends EmptyInterceptor {
+
+    private final Map<Class<?>, String> tableNameCache = new HashMap<>();
 
     private final XmDomainEventConfiguration xmDomainEventConfiguration;
 
@@ -130,18 +133,29 @@ public class DatabaseSource extends EmptyInterceptor {
     }
 
     private String findTableName(Object entity) {
+        if (tableNameCache.containsKey(entity.getClass())) {
+            return tableNameCache.get(entity.getClass());
+        }
+
         Table tableAnnotation = entity.getClass().getAnnotation(Table.class);
 
-        if (tableAnnotation == null) {
+        String tableName;
+        if (tableAnnotation != null) {
+            tableName = tableAnnotation.name();
+        } else {
             log.warn(String.format("EntityFilter: %s hasn't @Table annotation", entity.getClass().getSimpleName()));
-            return translateTableNameFromClassName(entity);
+            tableName = convertCamelToSnakeLowerCaseName(entity);
         }
-        return tableAnnotation.name();
+        tableNameCache.put(entity.getClass(), tableName);
+
+        return tableName;
     }
 
-    private String translateTableNameFromClassName(Object entity) {
+    private String convertCamelToSnakeLowerCaseName(Object entity) {
         //TODO: implement translation from Hibernate translation mechanism
-        return null;
+        String regex = "([a-z])([A-Z]+)";
+        String replacement = "$1_$2";
+        return entity.getClass().getSimpleName().replaceAll(regex, replacement).toLowerCase();
     }
 
     private boolean isIntercepted(String tableName, SourceConfig sourceConfig, JpaEntityContext context) {
