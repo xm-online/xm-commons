@@ -3,7 +3,7 @@ package com.icthh.xm.commons.domainevent.config;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventSource;
 import com.icthh.xm.commons.domainevent.service.EventPublisher;
-import com.icthh.xm.commons.domainevent.service.filter.WebApiDomainEventFactory;
+import com.icthh.xm.commons.domainevent.service.filter.DomainEventProviderFactory;
 import com.icthh.xm.commons.domainevent.service.filter.WebFilterEngine;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import org.junit.Before;
@@ -11,7 +11,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -31,12 +30,6 @@ import static org.mockito.Mockito.when;
 @EnableConfigurationProperties
 public class WebApiSourceUnitTest {
 
-    @Autowired
-    private ApiMaskConfig apiMaskConfig;
-
-    @Mock
-    private XmDomainEventConfiguration xmDomainEventConfiguration;
-
     @Mock
     private EventPublisher eventPublisher;
 
@@ -47,7 +40,7 @@ public class WebApiSourceUnitTest {
     private WebFilterEngine webFilterEngine;
 
     @Mock
-    private WebApiDomainEventFactory webApiDomainEventFactory;
+    private DomainEventProviderFactory domainEventProviderFactory;
 
     @Mock
     private ContentCachingRequestWrapper request;
@@ -57,21 +50,26 @@ public class WebApiSourceUnitTest {
 
     private WebApiSource webApiSource;
 
+    private DomainEvent domainEvent;
+
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        webApiSource = new WebApiSource(eventPublisher, xmAuthenticationContextHolder, apiMaskConfig, xmDomainEventConfiguration, webFilterEngine);
+        domainEvent = DomainEvent.builder()
+            .id(UUID.randomUUID())
+            .build();
+
+        when(domainEventProviderFactory.newDomainEventProvider())
+            .thenReturn((request, response, tenant, clientId, userKey, aggregateDetails, responseBody) -> domainEvent);
+
+        webApiSource = new WebApiSource(eventPublisher, xmAuthenticationContextHolder, webFilterEngine, domainEventProviderFactory);
     }
 
 
     @Test
     public void shouldPublishEvent_isIgnoreRequestReturnEvent() {
-        DomainEvent domainEvent = DomainEvent.builder()
-            .id(UUID.randomUUID())
-            .build();
-        when(webApiDomainEventFactory.createEvent(eq(request), eq(response), any(), any(), any(), any(), any())).thenReturn(domainEvent);
         when(webFilterEngine.isIgnoreRequest(eq(request), eq(response), any(), any())).thenReturn(domainEvent);
 
         webApiSource.afterCompletion(request, response, null, null);
@@ -81,7 +79,6 @@ public class WebApiSourceUnitTest {
 
     @Test
     public void shouldPublishEvent_isIgnoreRequestReturnNull() {
-        when(webApiDomainEventFactory.createEvent(eq(request), eq(response), any(), any(), any(), any(), any())).thenReturn(null);
         when(webFilterEngine.isIgnoreRequest(eq(request), eq(response), any(), any())).thenReturn(null);
 
         webApiSource.afterCompletion(request, response, null, null);

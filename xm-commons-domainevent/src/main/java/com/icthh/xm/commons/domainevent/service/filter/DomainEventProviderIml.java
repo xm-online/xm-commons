@@ -6,6 +6,7 @@ import com.icthh.xm.commons.domainevent.config.XmDomainEventConfiguration;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.HttpDomainEventPayload;
 import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventSource;
+import com.icthh.xm.commons.domainevent.utils.HttpContentUtils;
 import com.icthh.xm.commons.domainevent.utils.JsonUtil;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.jayway.jsonpath.DocumentContext;
@@ -16,13 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.AntPathMatcher;
-import org.springframework.web.util.ContentCachingRequestWrapper;
-import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
 import java.net.http.HttpHeaders;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +33,7 @@ import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
-public class WebApiDomainEventFactory {
+public class DomainEventProviderIml implements DomainEventProvider {
 
     private static final Set<String> EXCLUDE_HEADERS = Set.of("cookie", "authorization");
 
@@ -46,9 +43,10 @@ public class WebApiDomainEventFactory {
     private final XmDomainEventConfiguration xmDomainEventConfiguration;
     private final List<ApiMaskRule> maskRules;
 
+    @Override
     public DomainEvent createEvent(HttpServletRequest request, HttpServletResponse response, String tenant,
                                       String clientId, String userKey, String[] aggregateDetails, String responseBody) {
-        String requestBody = getRequestContent(request);
+        String requestBody = HttpContentUtils.getRequestContent(request);
 
         return DomainEvent.builder()
             .id(UUID.randomUUID())
@@ -141,31 +139,5 @@ public class WebApiDomainEventFactory {
         }
 
         return documentContext.jsonString();
-    }
-
-    private String getRequestContent(HttpServletRequest request) {
-        if (request instanceof ContentCachingRequestWrapper) {
-            return new String(((ContentCachingRequestWrapper) request).getContentAsByteArray());
-        }
-        if (request instanceof HttpServletRequestWrapper
-            && ((HttpServletRequestWrapper) request).getRequest() instanceof ContentCachingRequestWrapper) {
-            return new String(((ContentCachingRequestWrapper) ((HttpServletRequestWrapper) request)
-                .getRequest()).getContentAsByteArray());
-        }
-        log.warn("Empty request content because of unsupported request class {}", request.getClass());
-        return "";
-    }
-
-    public static String getResponseContent(HttpServletResponse response) {
-        if (response instanceof ContentCachingResponseWrapper) {
-            return new String(((ContentCachingResponseWrapper) response).getContentAsByteArray());
-        }
-        if (response instanceof HttpServletResponseWrapper
-            && ((HttpServletResponseWrapper) response).getResponse() instanceof ContentCachingResponseWrapper) {
-            return new String(((ContentCachingResponseWrapper) ((HttpServletResponseWrapper) response)
-                .getResponse()).getContentAsByteArray());
-        }
-        log.warn("Empty response content because of unsupported response class {}", response.getClass());
-        return "";
     }
 }

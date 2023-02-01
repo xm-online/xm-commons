@@ -5,6 +5,7 @@ import com.icthh.xm.commons.domainevent.config.FilterConfig;
 import com.icthh.xm.commons.domainevent.config.XmDomainEventConfiguration;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.service.filter.lep.WebLepFilter;
+import com.icthh.xm.commons.domainevent.utils.HttpContentUtils;
 import com.icthh.xm.commons.domainevent.utils.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -61,7 +62,7 @@ public class WebFilterEngine {
             }
         }
 
-        String responseBody = WebApiDomainEventFactory.getResponseContent(response);
+        String responseBody = HttpContentUtils.getResponseContent(response);
         String[] values = JsonUtil.extractIdAndTypeKey(jFactory, responseBody);
         String aggregationType = JsonUtil.AggregateMapper.getTypeKey(values);
 

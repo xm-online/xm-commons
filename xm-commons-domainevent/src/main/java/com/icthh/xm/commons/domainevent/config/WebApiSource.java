@@ -3,18 +3,17 @@ package com.icthh.xm.commons.domainevent.config;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventSource;
 import com.icthh.xm.commons.domainevent.service.EventPublisher;
-import com.icthh.xm.commons.domainevent.service.filter.WebApiDomainEventFactory;
+import com.icthh.xm.commons.domainevent.service.filter.DomainEventProvider;
+import com.icthh.xm.commons.domainevent.service.filter.DomainEventProviderFactory;
 import com.icthh.xm.commons.domainevent.service.filter.WebFilterEngine;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
 
 @Slf4j
 @Component
@@ -22,22 +21,17 @@ public class WebApiSource extends HandlerInterceptorAdapter {
 
     private static final String HEADER_TENANT = "x-tenant";
 
-    @Value("${spring.application.name}")
-    private String appName;
-
     private final EventPublisher eventPublisher;
     private final XmAuthenticationContextHolder xmAuthenticationContextHolder;
-    private final WebApiDomainEventFactory webApiDomainEventFactory;
+    private final DomainEventProvider domainEventProvider;
     private final WebFilterEngine webFilterEngine;
 
     public WebApiSource(EventPublisher eventPublisher, XmAuthenticationContextHolder xmAuthenticationContextHolder,
-                        ApiMaskConfig apiIgnore, XmDomainEventConfiguration xmDomainEventConfiguration, WebFilterEngine webFilterEngine) {
+                        WebFilterEngine webFilterEngine, DomainEventProviderFactory domainEventProviderFactory) {
         this.eventPublisher = eventPublisher;
         this.xmAuthenticationContextHolder = xmAuthenticationContextHolder;
-
-        List<ApiMaskRule> maskRules = apiIgnore != null ? apiIgnore.getMaskRules() : null;
         this.webFilterEngine = webFilterEngine;
-        this.webApiDomainEventFactory = new WebApiDomainEventFactory(appName, xmDomainEventConfiguration, maskRules);
+        this.domainEventProvider = domainEventProviderFactory.newDomainEventProvider();
     }
 
     @Override
@@ -59,7 +53,7 @@ public class WebApiSource extends HandlerInterceptorAdapter {
 
         DomainEvent domainEvent = webFilterEngine.isIgnoreRequest(request, response, tenant,
             (String[] aggregateDetails, String responseBody) ->
-                webApiDomainEventFactory.createEvent(request, response, tenant, clientId, userKey, aggregateDetails, responseBody));
+                domainEventProvider.createEvent(request, response, tenant, clientId, userKey, aggregateDetails, responseBody));
 
         if (domainEvent == null) {
             return;

@@ -2,6 +2,7 @@ package com.icthh.xm.commons.domainevent.service.filter.lep;
 
 import com.icthh.xm.commons.domainevent.config.TestLepTestConfig;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
+import com.icthh.xm.commons.domainevent.service.filter.DomainEventProviderFactory;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
@@ -57,6 +58,9 @@ public class WebLepFilterIntTest {
 
     @MockBean
     private KafkaTemplateService kafkaTemplateService;
+
+    @MockBean
+    private DomainEventProviderFactory domainEventProviderFactory;
 
     @Before
     public void init() {

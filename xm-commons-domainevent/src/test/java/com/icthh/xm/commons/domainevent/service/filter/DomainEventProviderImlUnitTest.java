@@ -8,6 +8,7 @@ import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.DomainEventPayload;
 import com.icthh.xm.commons.domainevent.domain.HttpDomainEventPayload;
 import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventSource;
+import com.icthh.xm.commons.domainevent.utils.HttpContentUtils;
 import com.icthh.xm.commons.domainevent.utils.JsonUtil;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import org.junit.Before;
@@ -37,7 +38,7 @@ import static org.mockito.Mockito.when;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ApiMaskConfig.class)
 @EnableConfigurationProperties
-public class WebApiDomainEventFactoryUnitTest {
+public class DomainEventProviderImlUnitTest {
 
     private static final String CONTENT = "{\"id\":\"123\",\"typeKey\":\"TEST_TYPE_KEY\",\"content\":{\"value\":\"someValue\",\"text\":\"someText\"}}";
     private static final String MASKED_CONTENT = "{\"id\":\"123\",\"typeKey\":\"TEST_TYPE_KEY\",\"content\":{\"value\":\"mask\",\"text\":\"mask\"}}";
@@ -55,7 +56,7 @@ public class WebApiDomainEventFactoryUnitTest {
     @Mock
     private XmDomainEventConfiguration xmDomainEventConfiguration;
 
-    private WebApiDomainEventFactory webApiDomainEventFactory;
+    private DomainEventProviderIml domainEventProviderIml;
 
     private JsonFactory jFactory;
 
@@ -65,7 +66,7 @@ public class WebApiDomainEventFactoryUnitTest {
         MockitoAnnotations.initMocks(this);
 
         List<ApiMaskRule> maskRules = apiIgnore != null ? apiIgnore.getMaskRules() : null;
-        webApiDomainEventFactory = new WebApiDomainEventFactory(null, xmDomainEventConfiguration, maskRules);
+        domainEventProviderIml = new DomainEventProviderIml(null, xmDomainEventConfiguration, maskRules);
         jFactory = new JsonFactory();
 
         when(request.getContentAsByteArray()).thenReturn(CONTENT.getBytes());
@@ -89,10 +90,10 @@ public class WebApiDomainEventFactoryUnitTest {
         DomainEvent expectedEvent = createExpectedEvent("changed");
         HttpDomainEventPayload expectedPayload = (HttpDomainEventPayload) createExpectedPayload(MASKED_CONTENT);
 
-        String responseBody = WebApiDomainEventFactory.getResponseContent(response);
+        String responseBody = HttpContentUtils.getResponseContent(response);
         String[] values = JsonUtil.extractIdAndTypeKey(jFactory, responseBody);
 
-        DomainEvent event = webApiDomainEventFactory.createEvent(request, response, TENANT, null, null, values, responseBody);
+        DomainEvent event = domainEventProviderIml.createEvent(request, response, TENANT, null, null, values, responseBody);
 
         assertDomainEvent(expectedEvent, event);
 
@@ -109,10 +110,10 @@ public class WebApiDomainEventFactoryUnitTest {
         DomainEvent expectedEvent = createExpectedEvent("viewed");
         HttpDomainEventPayload expectedPayload = (HttpDomainEventPayload) createExpectedPayload(CONTENT);
 
-        String responseBody = WebApiDomainEventFactory.getResponseContent(response);
+        String responseBody = HttpContentUtils.getResponseContent(response);
         String[] values = JsonUtil.extractIdAndTypeKey(jFactory, responseBody);
 
-        DomainEvent event = webApiDomainEventFactory.createEvent(request, response, TENANT, null, null, values, responseBody);
+        DomainEvent event = domainEventProviderIml.createEvent(request, response, TENANT, null, null, values, responseBody);
 
         assertDomainEvent(expectedEvent, event);
 
