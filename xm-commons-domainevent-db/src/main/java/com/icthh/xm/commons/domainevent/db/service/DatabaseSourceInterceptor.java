@@ -11,10 +11,16 @@ import com.icthh.xm.commons.domainevent.service.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.EmptyInterceptor;
+import org.hibernate.metamodel.spi.MetamodelImplementor;
+import org.hibernate.persister.entity.AbstractEntityPersister;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.Type;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.persistence.Table;
+import javax.persistence.metamodel.Metamodel;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -34,9 +40,11 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DatabaseSource extends EmptyInterceptor {
+public class DatabaseSourceInterceptor extends EmptyInterceptor {
 
-    private final Map<Class<?>, String> tableNameCache = new HashMap<>();
+    private static final Map<Class<?>, String> TABLE_NAME_CACHE = new HashMap<>();
+
+    private final EntityManager entityManager;
 
     private final XmDomainEventConfiguration xmDomainEventConfiguration;
 
@@ -133,8 +141,8 @@ public class DatabaseSource extends EmptyInterceptor {
     }
 
     private String findTableName(Object entity) {
-        if (tableNameCache.containsKey(entity.getClass())) {
-            return tableNameCache.get(entity.getClass());
+        if (TABLE_NAME_CACHE.containsKey(entity.getClass())) {
+            return TABLE_NAME_CACHE.get(entity.getClass());
         }
 
         Table tableAnnotation = entity.getClass().getAnnotation(Table.class);
@@ -143,19 +151,26 @@ public class DatabaseSource extends EmptyInterceptor {
         if (tableAnnotation != null) {
             tableName = tableAnnotation.name();
         } else {
-            log.warn(String.format("EntityFilter: %s hasn't @Table annotation", entity.getClass().getSimpleName()));
-            tableName = convertCamelToSnakeLowerCaseName(entity);
+            log.warn(String.format("Entity: %s hasn't @Table annotation", entity.getClass().getSimpleName()));
+            tableName = findTableNameByHibernateNamingStrategy(entity);
         }
-        tableNameCache.put(entity.getClass(), tableName);
+        TABLE_NAME_CACHE.put(entity.getClass(), tableName);
 
         return tableName;
     }
 
-    private String convertCamelToSnakeLowerCaseName(Object entity) {
-        //TODO: implement translation from Hibernate translation mechanism
-        String regex = "([a-z])([A-Z]+)";
-        String replacement = "$1_$2";
-        return entity.getClass().getSimpleName().replaceAll(regex, replacement).toLowerCase();
+    private String findTableNameByHibernateNamingStrategy(Object entity) {
+        Metamodel metamodel = entityManager.getMetamodel();
+
+        String tableName = "";
+        if(metamodel instanceof MetamodelImplementor metamodelImplementor) {
+            EntityPersister entityPersister = metamodelImplementor.locateEntityPersister(entity.getClass());
+            if (entityPersister instanceof AbstractEntityPersister abstractEntityPersister) {
+                tableName = abstractEntityPersister.getTableName();
+            }
+        }
+        log.info(String.format("Table name by hibernate name strategy: %s", tableName));
+        return tableName;
     }
 
     private boolean isIntercepted(String tableName, SourceConfig sourceConfig, JpaEntityContext context) {

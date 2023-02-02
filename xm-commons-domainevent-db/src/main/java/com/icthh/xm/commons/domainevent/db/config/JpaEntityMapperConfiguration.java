@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.domainevent.db.configuration;
+package com.icthh.xm.commons.domainevent.db.config;
 
 import com.icthh.xm.commons.domainevent.service.builder.DomainEventFactory;
 import com.icthh.xm.commons.domainevent.db.service.impl.TypeKeyAwareJpaEntityMapper;
