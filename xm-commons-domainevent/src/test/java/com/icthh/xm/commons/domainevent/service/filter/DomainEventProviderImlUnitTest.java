@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
@@ -86,6 +87,7 @@ public class DomainEventProviderImlUnitTest {
         when(request.getRequestURI()).thenReturn("/api/attachments");
         when(request.getMethod()).thenReturn("PUT");
         when(xmDomainEventConfiguration.getOperationMapping(TENANT, "PUT", "/api/attachments")).thenReturn("changed");
+        when(xmDomainEventConfiguration.getTenantHeaders(TENANT)).thenReturn(Set.of("cookie", "authorization"));
 
         DomainEvent expectedEvent = createExpectedEvent("changed");
         HttpDomainEventPayload expectedPayload = (HttpDomainEventPayload) createExpectedPayload(MASKED_CONTENT);
@@ -106,6 +108,7 @@ public class DomainEventProviderImlUnitTest {
         when(request.getRequestURI()).thenReturn("/api/attachments/1");
         when(request.getMethod()).thenReturn("GET");
         when(xmDomainEventConfiguration.getOperationMapping(TENANT, "GET", "/api/attachments/1")).thenReturn("viewed");
+        when(xmDomainEventConfiguration.getTenantHeaders(TENANT)).thenReturn(Set.of("cookie", "authorization"));
 
         DomainEvent expectedEvent = createExpectedEvent("viewed");
         HttpDomainEventPayload expectedPayload = (HttpDomainEventPayload) createExpectedPayload(CONTENT);

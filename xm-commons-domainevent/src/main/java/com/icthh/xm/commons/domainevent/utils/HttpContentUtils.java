@@ -9,6 +9,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
+import java.net.http.HttpHeaders;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @UtilityClass
@@ -38,5 +47,30 @@ public class HttpContentUtils {
         }
         log.warn("Empty request content because of unsupported request class {}", request.getClass());
         return "";
+    }
+
+    public static HttpHeaders getRequestHeaders(HttpServletRequest request, Set<String> headerNames) {
+        Map<String, List<String>> headers = new LinkedHashMap<>();
+        Enumeration<String> names = request.getHeaderNames();
+        while (names.hasMoreElements()) {
+            String name = names.nextElement();
+            if (!headerNames.contains(name.toLowerCase())) {
+                headers.put(name.toLowerCase(), Collections.list(request.getHeaders(name)));
+            }
+        }
+        return HttpHeaders.of(headers, (s1, s2) -> true);
+    }
+
+    public static HttpHeaders getResponseHeaders(HttpServletResponse httpServletResponse, Set<String> headerNames) {
+        Map<String, List<String>> headers = new LinkedHashMap<>();
+        for (String header : httpServletResponse.getHeaderNames()) {
+            if (!headerNames.contains(header.toLowerCase())) {
+                Collection<String> value = httpServletResponse.getHeaders(header);
+                headers.put(header.toLowerCase(), new ArrayList<>(value));
+            }
+        }
+        headers.remove("set-cookie");
+
+        return HttpHeaders.of(headers, (s1, s2) -> true);
     }
 }

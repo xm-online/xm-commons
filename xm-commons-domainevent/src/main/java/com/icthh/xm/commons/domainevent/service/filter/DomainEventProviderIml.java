@@ -20,22 +20,13 @@ import org.springframework.util.AntPathMatcher;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.net.http.HttpHeaders;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
 public class DomainEventProviderIml implements DomainEventProvider {
-
-    private static final Set<String> EXCLUDE_HEADERS = Set.of("cookie", "authorization");
 
     private final AntPathMatcher matcher = new AntPathMatcher();
 
@@ -60,13 +51,14 @@ public class DomainEventProviderIml implements DomainEventProvider {
             .userKey(userKey)
             .clientId(clientId)
             .tenant(tenant)
-            .payload(createPayload(request, response, requestBody, responseBody))
+            .payload(createPayload(tenant, request, response, requestBody, responseBody))
             .build();
     }
 
-    private HttpDomainEventPayload createPayload(HttpServletRequest request, HttpServletResponse response,
+    private HttpDomainEventPayload createPayload(String tenant, HttpServletRequest request, HttpServletResponse response,
                                                  String requestBody, String responseBody) {
 
+        Set<String> tenantHeaders = xmDomainEventConfiguration.getTenantHeaders(tenant);
         HttpDomainEventPayload payload = new HttpDomainEventPayload();
         payload.setMethod(request.getMethod());
         payload.setUrl(request.getRequestURI());
@@ -75,34 +67,11 @@ public class DomainEventProviderIml implements DomainEventProvider {
         payload.setRequestBody(maskContent(requestBody, request.getRequestURI(), true, request.getMethod()));
         payload.setResponseBody(maskContent(responseBody, request.getRequestURI(), false, request.getMethod()));
         payload.setResponseLength((long) responseBody.length());
-        payload.setRequestHeaders(getRequestHeaders(request));
-        payload.setResponseHeaders(getResponseHeaders(response));
+        payload.setRequestHeaders(HttpContentUtils.getRequestHeaders(request, tenantHeaders));
+        payload.setResponseHeaders(HttpContentUtils.getResponseHeaders(response, tenantHeaders));
         payload.setResponseCode(response.getStatus());
         payload.setExecTime(MdcUtils.getExecTimeMs());
         return payload;
-    }
-
-    private HttpHeaders getRequestHeaders(HttpServletRequest request) {
-        Map<String, List<String>> headers = new LinkedHashMap<>();
-        Enumeration<String> names = request.getHeaderNames();
-        while (names.hasMoreElements()) {
-            String name = names.nextElement();
-            if (!EXCLUDE_HEADERS.contains(name.toLowerCase())) {
-                headers.put(name.toLowerCase(), Collections.list(request.getHeaders(name)));
-            }
-        }
-        return HttpHeaders.of(headers, (s1, s2) -> true);
-    }
-
-    private HttpHeaders getResponseHeaders(HttpServletResponse httpServletResponse) {
-        Map<String, List<String>> headers = new LinkedHashMap<>();
-        for (String header : httpServletResponse.getHeaderNames()) {
-            Collection<String> value = httpServletResponse.getHeaders(header);
-            headers.put(header.toLowerCase(), new ArrayList<>(value));
-        }
-        headers.remove("set-cookie");
-
-        return HttpHeaders.of(headers, (s1, s2) -> true);
     }
 
     private String maskContent(final String content, String uri, boolean request, String httpMethod) {

@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -12,6 +13,7 @@ import java.util.List;
 public class SourceConfig {
     private boolean enabled;
     private String transport;
-    private TransformMappingConfig transform;
+    private List<TransformMappingConfig> transform;
     private List<FilterConfig> filter;
+    private Set<String> headers = Set.of("cookie", "authorization");
 }

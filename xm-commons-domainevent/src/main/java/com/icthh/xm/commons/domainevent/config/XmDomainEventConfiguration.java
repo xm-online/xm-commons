@@ -15,14 +15,15 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 @Slf4j
 @Component
@@ -41,9 +42,11 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
     //<tenant, <source, transport>>
     private final Map<String, Map<String, Transport>> transportBySource = new HashMap<>();
     //<tenant, TransformMappingConfig>>
-    private final ConcurrentHashMap<String, TransformMappingConfig> operationMappingByTenant = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, List<TransformMappingConfig>> operationMappingByTenant = new ConcurrentHashMap<>();
     //<tenant, List<FilterConfig> filter>>
     private final ConcurrentHashMap<String, List<FilterConfig>> filterListByTenant = new ConcurrentHashMap<>();
+    //<tenant, Set<String>>
+    private final ConcurrentHashMap<String, Set<String>> headersSetByTenant = new ConcurrentHashMap<>();
 
 
     public XmDomainEventConfiguration(@Value("${spring.application.name}") String appName,
@@ -117,15 +120,19 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
                 return;
             }
 
-            TransformMappingConfig transform = sourceConfig.getTransform();
-            if (transform == null) {
-                return;
+            List<TransformMappingConfig> transformMappingConfigs = sourceConfig.getTransform();
+            if (CollectionUtils.isNotEmpty(transformMappingConfigs)) {
+                operationMappingByTenant.put(tenantKey, transformMappingConfigs);
             }
-            operationMappingByTenant.put(tenantKey, transform);
 
             List<FilterConfig> filter = sourceConfig.getFilter();
-            if (CollectionUtils.isNotEmpty(filter)){
+            if (CollectionUtils.isNotEmpty(filter)) {
                 filterListByTenant.put(tenantKey, filter);
+            }
+
+            Set<String> sourceConfigHeaders = sourceConfig.getHeaders();
+            if (CollectionUtils.isNotEmpty(sourceConfigHeaders)) {
+                headersSetByTenant.put(tenantKey, sourceConfigHeaders);
             }
         }
     }
@@ -158,43 +165,45 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
         return filterListByTenant.getOrDefault(tenantKey, List.of());
     }
 
-    public String getOperationMapping(String tenantKey, String method, String url) {
-        TransformMappingConfig transformMappingConfig = operationMappingByTenant.get(tenantKey);
-        return getOperation(method, transformMappingConfig, url);
+    public Set<String> getTenantHeaders(String tenantKey) {
+        return headersSetByTenant.getOrDefault(tenantKey, Set.of());
     }
 
-    private String getOperation(String method, TransformMappingConfig transformMappingConfig, String url) {
+    public String getOperationMapping(String tenantKey, String method, String url) {
+        List<TransformMappingConfig> transformMappingConfigs = operationMappingByTenant.getOrDefault(tenantKey, List.of());
+        return getOperationByUrl(method, transformMappingConfigs.stream(), url);
+    }
+
+    private String getOperationByUrl(String method, Stream<TransformMappingConfig> transformMappingConfigs, String url) {
         switch (method) {
             case "GET":
-                return getOperation(url, transformMappingConfig, TransformMappingConfig.OperationMapping::getGetMethod, "viewed");
+                return getOperationName(url, transformMappingConfigs.filter(createOperationPredicate("GET")), "viewed");
             case "POST":
-                return getOperation(url, transformMappingConfig, TransformMappingConfig.OperationMapping::getPosMethod, "created");
+                return getOperationName(url, transformMappingConfigs.filter(createOperationPredicate("POST")), "created");
             case "PUT":
-                return getOperation(url, transformMappingConfig, TransformMappingConfig.OperationMapping::getPutMethod, "changed");
+                return getOperationName(url, transformMappingConfigs.filter(createOperationPredicate("PUT")), "changed");
             case "DELETE":
-                return getOperation(url, transformMappingConfig, TransformMappingConfig.OperationMapping::getDeleteMethod, "deleted");
+                return getOperationName(url, transformMappingConfigs.filter(createOperationPredicate("DELETE")), "deleted");
             default:
                 return "";
         }
     }
 
-    private String getOperation(String url, TransformMappingConfig transformMappingConfig,
-                                Function<TransformMappingConfig.OperationMapping, TransformMappingConfig.MethodMapping> operationMappingFunction,
-                                String defaultValue) {
-        return Optional.ofNullable(transformMappingConfig)
-            .map(TransformMappingConfig::getOperationMapping)
-            .map(operationMappingFunction)
-            .map(TransformMappingConfig.MethodMapping::getMappings)
-            .stream()
-            .flatMap(Collection::stream)
+    private Predicate<TransformMappingConfig> createOperationPredicate(String operationName) {
+        return transformMappingConfig -> transformMappingConfig.getHttpOperation().contains(operationName);
+    }
+
+    private String getOperationName(String url, Stream<TransformMappingConfig> transformMappingConfigs,
+                                    String defaultValue) {
+        return transformMappingConfigs
             .filter(it -> matcher.match(it.getUrlPattern(), url))
             .findFirst()
             .map(it -> fillTemplate(url, it))
             .orElse(getDefaultOperation(url, defaultValue));
     }
 
-    private String fillTemplate(final String url, final TransformMappingConfig.Mapping it) {
-        String operationText = it.getName();
+    private String fillTemplate(final String url, final TransformMappingConfig it) {
+        String operationText = it.getOperationName();
         Map<String, String> variables = matcher.extractUriTemplateVariables(it.getUrlPattern(), url);
         for (Map.Entry<String, String> e : variables.entrySet()) {
             operationText = operationText.replace("{" + e.getKey() + "}", e.getValue());
