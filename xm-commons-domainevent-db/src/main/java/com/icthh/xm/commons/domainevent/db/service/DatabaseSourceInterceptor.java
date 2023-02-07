@@ -141,20 +141,23 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
     }
 
     private String findTableName(Object entity) {
-        if (TABLE_NAME_CACHE.containsKey(entity.getClass())) {
-            return TABLE_NAME_CACHE.get(entity.getClass());
+        Class<?> entityClass = entity.getClass();
+
+        if (TABLE_NAME_CACHE.containsKey(entityClass)) {
+            return TABLE_NAME_CACHE.get(entityClass);
         }
 
-        Table tableAnnotation = entity.getClass().getAnnotation(Table.class);
+        Table tableAnnotation = entityClass.getAnnotation(Table.class);
 
         String tableName;
         if (tableAnnotation != null) {
             tableName = tableAnnotation.name();
         } else {
-            log.warn(String.format("Entity: %s hasn't @Table annotation", entity.getClass().getSimpleName()));
+            log.warn("Entity: {} hasn't @Table annotation", entityClass.getSimpleName());
             tableName = findTableNameByHibernateNamingStrategy(entity);
         }
-        TABLE_NAME_CACHE.put(entity.getClass(), tableName);
+        TABLE_NAME_CACHE.put(entityClass, tableName);
+        log.info("For domain class {} found corresponded table name {}", entityClass.getSimpleName(), tableName);
 
         return tableName;
     }
@@ -169,7 +172,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
                 tableName = abstractEntityPersister.getTableName();
             }
         }
-        log.info(String.format("Table name by hibernate name strategy: %s", tableName));
+        log.info("Table name by hibernate name strategy: {}", tableName);
         return tableName;
     }
 
@@ -182,8 +185,8 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
         Boolean needFiltering = databaseFilter.lepFiltering(key, tableName, context);
 
         if (needFiltering == null) {
-            // no lep executed, going to calculate DSL
             Map<String, List<EntityFilter>> dsl = sourceConfig.getFilter().getDsl();
+            log.trace("No lep executed, going to process DSL: {}", dsl);
 
             if (dsl.containsKey(tableName)) {
                 List<EntityFilter> filters = dsl.get(tableName);
@@ -219,11 +222,13 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
     }
 
     private boolean processQuery(Query query, JpaEntityContext context) {
+        log.trace("Query: {}", query);
         if (isNull(query)) {
             return false;
         }
 
         List<String> propertyNames = Arrays.asList(context.getPropertyNames());
+        log.trace("Property names: {}", propertyNames);
 
         for (Map.Entry<String, Column> columnEntry : query.getColumns().entrySet()) {
 
