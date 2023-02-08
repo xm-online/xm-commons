@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -18,5 +19,15 @@ public class JpaEntityContext {
     private Serializable id;
     private Map<String, State> propertyNameToStates;
     private DefaultDomainEventOperation domainEventOperation;
+
+    public String findPropertyStateValue(String property) {
+
+        if (propertyNameToStates.containsKey(property)) {
+            State state = propertyNameToStates.get(property);
+            return state.current() != null ? state.current().toString() : state.previous().toString();
+        }
+
+        return StringUtils.EMPTY;
+    }
 
 }

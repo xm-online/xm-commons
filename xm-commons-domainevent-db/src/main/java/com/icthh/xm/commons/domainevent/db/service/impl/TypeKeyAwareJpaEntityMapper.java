@@ -1,18 +1,17 @@
 package com.icthh.xm.commons.domainevent.db.service.impl;
 
+import com.icthh.xm.commons.domainevent.db.domain.JpaEntityContext;
 import com.icthh.xm.commons.domainevent.db.domain.State;
+import com.icthh.xm.commons.domainevent.db.service.JpaEntityMapper;
+import com.icthh.xm.commons.domainevent.db.service.TypeKeyAwareEntityResolver;
 import com.icthh.xm.commons.domainevent.domain.DbDomainEventPayload;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.DomainEventPayload;
-import com.icthh.xm.commons.domainevent.db.domain.JpaEntityContext;
 import com.icthh.xm.commons.domainevent.service.builder.DomainEventFactory;
-import com.icthh.xm.commons.domainevent.db.service.JpaEntityMapper;
-import com.icthh.xm.commons.domainevent.db.service.TypeKeyAwareEntityResolver;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -35,20 +34,9 @@ public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
         return domainEventFactory.build(
             jpaEntityContext.getDomainEventOperation(),
             jpaEntityContext.getId().toString(), // what is composite id?
-            aggregateType(jpaEntityContext),
+            jpaEntityContext.findPropertyStateValue(TYPE_KEY),
             dbDomainEventPayload
         );
-    }
-
-    private String aggregateType(JpaEntityContext jpaEntityContext) {
-        Map<String, State> propertyNameToStates = jpaEntityContext.getPropertyNameToStates();
-
-        if (propertyNameToStates.containsKey(TYPE_KEY)) {
-            State state = propertyNameToStates.get(TYPE_KEY);
-            return state.current() != null ? state.current().toString() : state.previous().toString();
-        }
-
-        return StringUtils.EMPTY;
     }
 
     DomainEventPayload buildDomainEventPayload(JpaEntityContext jpaEntityContext) {
@@ -69,4 +57,5 @@ public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
 
         return domainEventPayload;
     }
+
 }

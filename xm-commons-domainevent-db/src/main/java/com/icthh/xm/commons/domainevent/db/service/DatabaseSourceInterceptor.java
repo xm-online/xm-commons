@@ -235,22 +235,17 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
         if (isNull(query)) {
             return false;
         }
-
-        Map<String, State> propertyNameToStates = context.getPropertyNameToStates();
-        log.trace("Property name to states: {}", propertyNameToStates);
-
+        log.trace("JpaEntityContext: {}", context);
         for (Map.Entry<String, Column> columnEntry : query.getColumns().entrySet()) {
-
             String queryColumn = columnEntry.getKey();
-            if (propertyNameToStates.containsKey(queryColumn)) {
 
-                State state = propertyNameToStates.get(queryColumn);
-                String propertyValue = state.current() != null ? state.current().toString() : state.previous().toString();
-                if (isNotEmpty(propertyValue)) {
-                    Column column = columnEntry.getValue();
-                    return column.match(propertyValue);
-                }
+            String propertyStateValue = context.findPropertyStateValue(queryColumn);
+
+            if (isNotEmpty(propertyStateValue)) {
+                Column column = columnEntry.getValue();
+                return column.match(propertyStateValue);
             }
+
         }
         return false;
     }
