@@ -6,7 +6,7 @@ import com.icthh.xm.commons.lep.spring.LepService;
 import org.springframework.stereotype.Component;
 
 @Component
-@LepService(group = "event.db.filter")
+@LepService(group = "domainevent.db.filter")
 public class DatabaseFilter {
 
     @LogicExtensionPoint(value = "DatabaseFilter", resolver = FilterKeyResolver.class)

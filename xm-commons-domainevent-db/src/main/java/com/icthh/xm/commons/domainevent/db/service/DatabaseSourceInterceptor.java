@@ -7,6 +7,7 @@ import com.icthh.xm.commons.domainevent.config.SourceConfig;
 import com.icthh.xm.commons.domainevent.config.XmDomainEventConfiguration;
 import com.icthh.xm.commons.domainevent.db.domain.JpaEntityContext;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
+import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation;
 import com.icthh.xm.commons.domainevent.service.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,15 +19,14 @@ import org.hibernate.type.Type;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.Table;
 import javax.persistence.metamodel.Metamodel;
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation.CREATE;
 import static com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation.DELETE;
@@ -42,7 +42,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 @RequiredArgsConstructor
 public class DatabaseSourceInterceptor extends EmptyInterceptor {
 
-    private static final Map<Class<?>, String> TABLE_NAME_CACHE = new HashMap<>();
+    private static final Map<Class<?>, String> TABLE_NAME_CACHE = new ConcurrentHashMap<>();
 
     private final EntityManager entityManager;
 
@@ -65,15 +65,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
             String tableName = findTableName(entity);
             log.trace("onFlushDirty: tableName: {}, id: {}", tableName, id);
 
-            JpaEntityContext context = JpaEntityContext.builder()
-                .entity(entity)
-                .id(id)
-                .currentState(currentState)
-                .previousState(previousState)
-                .propertyNames(propertyNames)
-                .types(types)
-                .domainEventOperation(UPDATE)
-                .build();
+            JpaEntityContext context = buildJpaEntityContext(entity, id, currentState, previousState, propertyNames, types, UPDATE);
 
             if (isIntercepted(tableName, sourceConfig, context)) {
                 DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
@@ -93,15 +85,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
             String tableName = findTableName(entity);
             log.trace("onSave: tableName: {}, id: {}", tableName, id);
 
-            JpaEntityContext context = JpaEntityContext.builder()
-                .entity(entity)
-                .id(id)
-                .currentState(state)
-                .previousState(null)
-                .propertyNames(propertyNames)
-                .types(types)
-                .domainEventOperation(CREATE)
-                .build();
+            JpaEntityContext context = buildJpaEntityContext(entity, id, state, null, propertyNames, types, CREATE);
 
             if (isIntercepted(tableName, sourceConfig, context)) {
                 DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
@@ -121,15 +105,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
             String tableName = findTableName(entity);
             log.trace("onDelete: tableName: {}, id: {}", tableName, id);
 
-            JpaEntityContext context = JpaEntityContext.builder()
-                .entity(entity)
-                .id(id)
-                .currentState(null)
-                .previousState(state)
-                .propertyNames(propertyNames)
-                .types(types)
-                .domainEventOperation(DELETE)
-                .build();
+            JpaEntityContext context = buildJpaEntityContext(entity, id, null, state, propertyNames, types, DELETE);
 
             if (isIntercepted(tableName, sourceConfig, context)) {
                 DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
@@ -166,7 +142,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
         Metamodel metamodel = entityManager.getMetamodel();
 
         String tableName = "";
-        if(metamodel instanceof MetamodelImplementor metamodelImplementor) {
+        if (metamodel instanceof MetamodelImplementor metamodelImplementor) {
             EntityPersister entityPersister = metamodelImplementor.locateEntityPersister(entity.getClass());
             if (entityPersister instanceof AbstractEntityPersister abstractEntityPersister) {
                 tableName = abstractEntityPersister.getTableName();
@@ -176,6 +152,27 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
         return tableName;
     }
 
+    private static JpaEntityContext buildJpaEntityContext(Object entity,
+                                                          Serializable id,
+                                                          Object[] currentState,
+                                                          Object[] previousState,
+                                                          String[] propertyNames,
+                                                          Type[] types,
+                                                          DefaultDomainEventOperation domainEventOperation) {
+        return JpaEntityContext.builder()
+            .entity(entity)
+            .id(id)
+            .currentState(currentState)
+            .previousState(previousState)
+            .propertyNames(propertyNames)
+            .types(types)
+            .domainEventOperation(domainEventOperation)
+            .build();
+    }
+
+    /**
+     *
+     */
     private boolean isIntercepted(String tableName, SourceConfig sourceConfig, JpaEntityContext context) {
         if (isNull(sourceConfig.getFilter())) {
             return false;
