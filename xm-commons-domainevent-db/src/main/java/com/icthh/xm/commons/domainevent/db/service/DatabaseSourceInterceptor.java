@@ -6,6 +6,7 @@ import com.icthh.xm.commons.domainevent.config.Query;
 import com.icthh.xm.commons.domainevent.config.SourceConfig;
 import com.icthh.xm.commons.domainevent.config.XmDomainEventConfiguration;
 import com.icthh.xm.commons.domainevent.db.domain.JpaEntityContext;
+import com.icthh.xm.commons.domainevent.db.domain.State;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation;
 import com.icthh.xm.commons.domainevent.service.EventPublisher;
@@ -22,7 +23,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Table;
 import javax.persistence.metamodel.Metamodel;
 import java.io.Serializable;
-import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -65,7 +66,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
             String tableName = findTableName(entity);
             log.trace("onFlushDirty: tableName: {}, id: {}", tableName, id);
 
-            JpaEntityContext context = buildJpaEntityContext(entity, id, currentState, previousState, propertyNames, types, UPDATE);
+            JpaEntityContext context = buildJpaEntityContext(entity, id, currentState, previousState, propertyNames, UPDATE);
 
             if (isIntercepted(tableName, sourceConfig, context)) {
                 DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
@@ -85,7 +86,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
             String tableName = findTableName(entity);
             log.trace("onSave: tableName: {}, id: {}", tableName, id);
 
-            JpaEntityContext context = buildJpaEntityContext(entity, id, state, null, propertyNames, types, CREATE);
+            JpaEntityContext context = buildJpaEntityContext(entity, id, state, null, propertyNames, CREATE);
 
             if (isIntercepted(tableName, sourceConfig, context)) {
                 DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
@@ -105,7 +106,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
             String tableName = findTableName(entity);
             log.trace("onDelete: tableName: {}, id: {}", tableName, id);
 
-            JpaEntityContext context = buildJpaEntityContext(entity, id, null, state, propertyNames, types, DELETE);
+            JpaEntityContext context = buildJpaEntityContext(entity, id, null, state, propertyNames, DELETE);
 
             if (isIntercepted(tableName, sourceConfig, context)) {
                 DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
@@ -152,22 +153,33 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
         return tableName;
     }
 
-    private static JpaEntityContext buildJpaEntityContext(Object entity,
-                                                          Serializable id,
-                                                          Object[] currentState,
-                                                          Object[] previousState,
-                                                          String[] propertyNames,
-                                                          Type[] types,
-                                                          DefaultDomainEventOperation domainEventOperation) {
+    private JpaEntityContext buildJpaEntityContext(Object entity,
+                                                   Serializable id,
+                                                   Object[] currentState,
+                                                   Object[] previousState,
+                                                   String[] propertyNames,
+                                                   DefaultDomainEventOperation domainEventOperation) {
         return JpaEntityContext.builder()
             .entity(entity)
             .id(id)
-            .currentState(currentState)
-            .previousState(previousState)
-            .propertyNames(propertyNames)
-            .types(types)
+            .propertyNameToStates(mapPropertyValueToState(propertyNames, previousState, currentState))
             .domainEventOperation(domainEventOperation)
             .build();
+    }
+
+    private Map<String, State> mapPropertyValueToState(String[] propertyNames, Object[] previousState, Object[] currentState) {
+        Map<String, State> propertyNameToStates = new LinkedHashMap<>();
+
+        for (int i = 0; i < propertyNames.length; i++) {
+            Object previousStateValue = previousState != null ? mapNullAsString(previousState[i]) : null;
+            Object currentStateValue = currentState != null ? mapNullAsString(currentState[i]) : null;
+            propertyNameToStates.put(propertyNames[i], new State(previousStateValue, currentStateValue));
+        }
+        return propertyNameToStates;
+    }
+
+    private Object mapNullAsString(Object value) {
+        return value != null ? value : "null"; // if we need to check NULL propertyValue
     }
 
     /**
@@ -224,15 +236,16 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
             return false;
         }
 
-        List<String> propertyNames = Arrays.asList(context.getPropertyNames());
-        log.trace("Property names: {}", propertyNames);
+        Map<String, State> propertyNameToStates = context.getPropertyNameToStates();
+        log.trace("Property name to states: {}", propertyNameToStates);
 
         for (Map.Entry<String, Column> columnEntry : query.getColumns().entrySet()) {
 
             String queryColumn = columnEntry.getKey();
-            if (propertyNames.contains(queryColumn)) {
+            if (propertyNameToStates.containsKey(queryColumn)) {
 
-                String propertyValue = findPropertyValue(context, queryColumn);
+                State state = propertyNameToStates.get(queryColumn);
+                String propertyValue = state.current() != null ? state.current().toString() : state.previous().toString();
                 if (isNotEmpty(propertyValue)) {
                     Column column = columnEntry.getValue();
                     return column.match(propertyValue);
@@ -240,19 +253,6 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
             }
         }
         return false;
-    }
-
-    private String findPropertyValue(JpaEntityContext jpaEntityContext, String columnName) {
-
-        String[] propertyNames = jpaEntityContext.getPropertyNames();
-        Object[] state = jpaEntityContext.getCurrentState() != null ? jpaEntityContext.getCurrentState() : jpaEntityContext.getPreviousState();
-
-        for (int i = 0; i < propertyNames.length; i++) {
-            if (propertyNames[i].equals(columnName)) {
-                return state[i] != null ? state[i].toString() : "null"; // if we need to check NULL value?
-            }
-        }
-        return null;
     }
 
 }

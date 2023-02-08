@@ -5,9 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.type.Type;
 
 import java.io.Serializable;
+import java.util.Map;
 
 @Data
 @EqualsAndHashCode
@@ -16,11 +16,7 @@ import java.io.Serializable;
 public class JpaEntityContext {
     private Object entity;
     private Serializable id;
-    private Object[] currentState;
-    private Object[] previousState;
-    private String[] propertyNames;
-    private Type[] types;
+    private Map<String, State> propertyNameToStates;
     private DefaultDomainEventOperation domainEventOperation;
 
 }
-

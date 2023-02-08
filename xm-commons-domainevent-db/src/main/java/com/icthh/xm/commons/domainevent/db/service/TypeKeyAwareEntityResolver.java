@@ -1,12 +1,15 @@
 package com.icthh.xm.commons.domainevent.db.service;
 
 import com.icthh.xm.commons.domainevent.db.domain.JpaEntityContext;
+import com.icthh.xm.commons.domainevent.db.domain.State;
 import com.icthh.xm.commons.lep.AppendLepKeyResolver;
 import com.icthh.xm.lep.api.LepManagerService;
 import com.icthh.xm.lep.api.LepMethod;
 import com.icthh.xm.lep.api.commons.SeparatorSegmentedLepKey;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 import static com.icthh.xm.commons.domainevent.db.service.impl.TypeKeyAwareJpaEntityMapper.TYPE_KEY;
 
@@ -23,15 +26,14 @@ public class TypeKeyAwareEntityResolver extends AppendLepKeyResolver {
     }
 
     private String getTypeKey(JpaEntityContext jpaEntityContext) {
+        Map<String, State> propertyNameToStates = jpaEntityContext.getPropertyNameToStates();
 
-        String[] propertyNames = jpaEntityContext.getPropertyNames();
-        Object[] state = jpaEntityContext.getCurrentState() != null ? jpaEntityContext.getCurrentState() : jpaEntityContext.getPreviousState();
-
-        for (int i = 0; i < propertyNames.length; i++) {
-            if (propertyNames[i].equals(TYPE_KEY)) {
-                return state[i].toString();
-            }
+        if (propertyNameToStates.containsKey(TYPE_KEY)) {
+            State state = propertyNameToStates.get(TYPE_KEY);
+            return state.current() != null ? state.current().toString() : state.previous().toString();
         }
+
         return StringUtils.EMPTY;
     }
+
 }

@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.domainevent.db.service.impl;
 
+import com.icthh.xm.commons.domainevent.db.domain.State;
 import com.icthh.xm.commons.domainevent.domain.DbDomainEventPayload;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.DomainEventPayload;
@@ -29,11 +30,7 @@ public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
     @LogicExtensionPoint(value = "TypeKey", resolver = TypeKeyAwareEntityResolver.class)
     public DomainEvent map(JpaEntityContext jpaEntityContext) {
 
-        DomainEventPayload dbDomainEventPayload = buildDomainEventPayload(
-            jpaEntityContext.getCurrentState(),
-            jpaEntityContext.getPreviousState(),
-            jpaEntityContext.getPropertyNames()
-        );
+        DomainEventPayload dbDomainEventPayload = buildDomainEventPayload(jpaEntityContext);
 
         return domainEventFactory.build(
             jpaEntityContext.getDomainEventOperation(),
@@ -44,27 +41,26 @@ public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
     }
 
     private String aggregateType(JpaEntityContext jpaEntityContext) {
+        Map<String, State> propertyNameToStates = jpaEntityContext.getPropertyNameToStates();
 
-        String[] propertyNames = jpaEntityContext.getPropertyNames();
-        Object[] state = jpaEntityContext.getCurrentState() != null ? jpaEntityContext.getCurrentState() : jpaEntityContext.getPreviousState();
-
-        for (int i = 0; i < propertyNames.length; i++) {
-            if (propertyNames[i].equals(TYPE_KEY)) {
-                return state[i].toString();
-            }
+        if (propertyNameToStates.containsKey(TYPE_KEY)) {
+            State state = propertyNameToStates.get(TYPE_KEY);
+            return state.current() != null ? state.current().toString() : state.previous().toString();
         }
+
         return StringUtils.EMPTY;
     }
 
-    DomainEventPayload buildDomainEventPayload(Object[] currentState, Object[] previousState, String[] propertyNames) {
+    DomainEventPayload buildDomainEventPayload(JpaEntityContext jpaEntityContext) {
         Map<String, Object> before = new LinkedHashMap<>();
         Map<String, Object> after = new LinkedHashMap<>();
 
-        for (int i = 0; i < propertyNames.length; i++) {
-            String propertyName = propertyNames[i];
+        for (Map.Entry<String, State> propertyNameToState : jpaEntityContext.getPropertyNameToStates().entrySet()) {
+            String propertyName = propertyNameToState.getKey();
+            State propertyState = propertyNameToState.getValue();
 
-            before.put(propertyName, previousState[i]);
-            after.put(propertyName, currentState[i]);
+            before.put(propertyName, propertyState.previous());
+            after.put(propertyName, propertyState.current());
         }
 
         DbDomainEventPayload domainEventPayload = new DbDomainEventPayload();
