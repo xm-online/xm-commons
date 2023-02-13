@@ -2,8 +2,8 @@ package com.icthh.xm.commons.domainevent.config;
 
 import com.icthh.xm.commons.domainevent.service.filter.lep.WebLepFilter;
 import com.icthh.xm.commons.domainevent.service.filter.lep.WebLepFilterIntTest;
-import com.icthh.xm.commons.domainevent.service.imp.KafkaTransactionSynchronizationAdapter;
-import com.icthh.xm.commons.domainevent.service.imp.KafkaTransactionSynchronizationAdapterService;
+import com.icthh.xm.commons.domainevent.service.impl.KafkaTransactionSynchronizationAdapter;
+import com.icthh.xm.commons.domainevent.service.impl.KafkaTransactionSynchronizationAdapterService;
 import com.icthh.xm.commons.lep.TenantScriptStorage;
 import com.icthh.xm.commons.lep.spring.EnableLepServices;
 import com.icthh.xm.commons.lep.spring.SpringLepProcessingApplicationListener;

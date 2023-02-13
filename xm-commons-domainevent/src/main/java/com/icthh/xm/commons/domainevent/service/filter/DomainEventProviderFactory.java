@@ -22,6 +22,6 @@ public class DomainEventProviderFactory {
 
     public DomainEventProvider newDomainEventProvider() {
         List<ApiMaskRule> maskRules = apiIgnore != null ? apiIgnore.getMaskRules() : null;
-        return new DomainEventProviderIml(appName, xmDomainEventConfiguration, maskRules);
+        return new DomainEventProviderImpl(appName, xmDomainEventConfiguration, maskRules);
     }
 }

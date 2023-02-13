@@ -26,7 +26,7 @@ import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
-public class DomainEventProviderIml implements DomainEventProvider {
+public class DomainEventProviderImpl implements DomainEventProvider {
 
     private final AntPathMatcher matcher = new AntPathMatcher();
 

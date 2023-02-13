@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ApiMaskConfig.class)
 @EnableConfigurationProperties
-public class DomainEventProviderImlUnitTest {
+public class DomainEventProviderImplUnitTest {
 
     private static final String CONTENT = "{\"id\":\"123\",\"typeKey\":\"TEST_TYPE_KEY\",\"content\":{\"value\":\"someValue\",\"text\":\"someText\"}}";
     private static final String MASKED_CONTENT = "{\"id\":\"123\",\"typeKey\":\"TEST_TYPE_KEY\",\"content\":{\"value\":\"mask\",\"text\":\"mask\"}}";
@@ -57,7 +57,7 @@ public class DomainEventProviderImlUnitTest {
     @Mock
     private XmDomainEventConfiguration xmDomainEventConfiguration;
 
-    private DomainEventProviderIml domainEventProviderIml;
+    private DomainEventProviderImpl domainEventProviderImpl;
 
     private JsonFactory jFactory;
 
@@ -67,7 +67,7 @@ public class DomainEventProviderImlUnitTest {
         MockitoAnnotations.initMocks(this);
 
         List<ApiMaskRule> maskRules = apiIgnore != null ? apiIgnore.getMaskRules() : null;
-        domainEventProviderIml = new DomainEventProviderIml(null, xmDomainEventConfiguration, maskRules);
+        domainEventProviderImpl = new DomainEventProviderImpl(null, xmDomainEventConfiguration, maskRules);
         jFactory = new JsonFactory();
 
         when(request.getContentAsByteArray()).thenReturn(CONTENT.getBytes());
@@ -95,7 +95,7 @@ public class DomainEventProviderImlUnitTest {
         String responseBody = HttpContentUtils.getResponseContent(response);
         String[] values = JsonUtil.extractIdAndTypeKey(jFactory, responseBody);
 
-        DomainEvent event = domainEventProviderIml.createEvent(request, response, TENANT, null, null, values, responseBody);
+        DomainEvent event = domainEventProviderImpl.createEvent(request, response, TENANT, null, null, values, responseBody);
 
         assertDomainEvent(expectedEvent, event);
 
@@ -116,7 +116,7 @@ public class DomainEventProviderImlUnitTest {
         String responseBody = HttpContentUtils.getResponseContent(response);
         String[] values = JsonUtil.extractIdAndTypeKey(jFactory, responseBody);
 
-        DomainEvent event = domainEventProviderIml.createEvent(request, response, TENANT, null, null, values, responseBody);
+        DomainEvent event = domainEventProviderImpl.createEvent(request, response, TENANT, null, null, values, responseBody);
 
         assertDomainEvent(expectedEvent, event);
 
