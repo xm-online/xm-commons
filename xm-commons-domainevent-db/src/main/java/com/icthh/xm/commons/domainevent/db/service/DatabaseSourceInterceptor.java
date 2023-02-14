@@ -239,13 +239,13 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
         for (Map.Entry<String, Column> columnEntry : query.getColumns().entrySet()) {
             String queryColumn = columnEntry.getKey();
 
-            String propertyStateValue = context.findPropertyStateValue(queryColumn);
-
-            if (isNotEmpty(propertyStateValue)) {
-                Column column = columnEntry.getValue();
-                return column.match(propertyStateValue);
+            if (context.getPropertyNameToStates().containsKey(queryColumn)) {
+                String propertyStateValue = context.findPropertyStateValue(queryColumn);
+                if (isNotEmpty(propertyStateValue)) {
+                    Column column = columnEntry.getValue();
+                    return column.match(propertyStateValue);
+                }
             }
-
         }
         return false;
     }

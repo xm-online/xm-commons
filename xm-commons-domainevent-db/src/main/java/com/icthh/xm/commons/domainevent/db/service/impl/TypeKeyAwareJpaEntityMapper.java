@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,6 +34,7 @@ public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
 
         return domainEventFactory.build(
             jpaEntityContext.getDomainEventOperation(),
+            UUID.randomUUID(),
             jpaEntityContext.getId().toString(), // what is composite id?
             jpaEntityContext.findPropertyStateValue(TYPE_KEY),
             dbDomainEventPayload
