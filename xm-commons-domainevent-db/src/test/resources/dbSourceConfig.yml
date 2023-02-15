@@ -1,0 +1,22 @@
+enabled: true
+transport: OutboxTransport
+filter:
+    key: MY_FILTER_LEP
+    dsl:
+        xm_entity:
+            -   key: LEP_PREFIX
+                query:
+                    columns:
+                        typeKey:
+                            in:
+                                - LEAD
+                                - TASK
+                        name:
+                            equals: TEST_NAME
+                        stateKey:
+                            notIn:
+                                - NEW
+                        key:
+                            notEquals: abctest
+                        description:
+                            match: \d+[A-Z]
