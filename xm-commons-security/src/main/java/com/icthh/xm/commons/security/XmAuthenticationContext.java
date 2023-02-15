@@ -149,4 +149,6 @@ public interface XmAuthenticationContext {
     String getAdditionalDetailsValue(String key, String defaultValue);
 
     Map<String, Object> getDecodedDetails();
+
+    Optional<String> getTenantName();
 }

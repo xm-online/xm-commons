@@ -10,4 +10,5 @@ public class SourceConfig {
     private boolean enabled;
     private String transport;
     private Filter filter;
+    private TransformMappingConfig transform;
 }

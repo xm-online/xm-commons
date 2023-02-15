@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
@@ -19,7 +20,7 @@ import java.util.UUID;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class DomainEvent {
+public class DomainEvent implements Serializable {
 
     @EqualsAndHashCode.Include
     private UUID id;
@@ -32,6 +33,8 @@ public class DomainEvent {
     private String aggregateId;
 
     private String aggregateType;
+
+    private String aggregateName;
 
     private String operation;
 
