@@ -1,24 +1,47 @@
 enabled: true
 sources:
     db:
-        enabled: true
+        enabled: false
         transport: OutboxTransport
     web:
         enabled: true
         transport: SyncKafkaTransport
+        headers: [ cookie, authorization ]
+        filter:
+            -   key: withExclude
+                responseCode:
+                urlPattern:
+                httpOperation: [ DELETE ]
+                aggregateType:
+                filterType: exclude
+            -   key: withExcludeFunction
+                responseCode:
+                urlPattern: '*/api/my/function/DICT_*'
+                httpOperation: [ GET, POST ]
+                aggregateType:
+                filterType: exclude
+            -   key: withInclude
+                responseCode:
+                urlPattern: '*/api/my/function/*'
+                httpOperation: [ GET, POST ]
+                aggregateType:
+                filterType: include
+            -   key: keyName
+                responseCode: [ 200, 201, 202 ]
+                urlPattern: '*/api/my/full/custom/path'
+                httpOperation: [ POST, GET, DELETE, PUT ]
+                aggregateType: [ CUSTOMER, TEST_TYPE_KEY ]
+                filterType:
         transform:
-            operationMapping:
-                GET:
-                    mappings:
-                        -   urlPattern: '*/api/my/full/custom/path'
-                            name: 'Custom entity read operation'
-                POST:
-                    mappings:
-                        -   urlPattern: '*/api/functions/{function}'
-                            name: 'execute function: {function}'
-                        -   urlPattern: '*/api/xm-entities/{id}/functions/{function}'
-                            name: 'execute function: {function}'
-                PUT:
-                    mappings:
-                        -   urlPattern: '*/api/xm-entities/{id}/states/{state}'
-                            name: 'statechange id: {id} to: {state}'
+            -   operationName: 'Custom entity read operation'
+                urlPattern: '*/api/my/full/custom/path'
+                httpOperation: [ GET ]
+            -   operationName: 'execute function: {function}'
+                urlPattern: '*/api/functions/{function}'
+                httpOperation: [ POST ]
+            -   operationName: 'execute function: {function}'
+                urlPattern: '*/api/xm-entities/{id}/functions/{function}'
+                httpOperation: [ POST ]
+            -   operationName: 'statechange id: {id} to: {state}'
+                urlPattern: '*/api/xm-entities/{id}/states/{state}'
+                httpOperation: [ PUT, POST ]

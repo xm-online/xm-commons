@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.domainevent.service.imp;
+package com.icthh.xm.commons.domainevent.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;

@@ -1,4 +1,6 @@
 application:
+    timeline-ignored-http-methods: [DELETE]
+    tenant-ignored-path-list: [/v2/api-docs, /api/profile-info, /swagger-resources/configuration/ui, /management/health]
     domain-event:
         enabled: true
         mask-rules:
