@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.domainevent.service.imp;
+package com.icthh.xm.commons.domainevent.service.impl;
 
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import lombok.extern.slf4j.Slf4j;
