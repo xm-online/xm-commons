@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.domainevent.db.service;
+package com.icthh.xm.commons.domainevent.db.service.mapper;
 
 import com.icthh.xm.commons.domainevent.db.domain.JpaEntityContext;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
