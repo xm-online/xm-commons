@@ -59,63 +59,40 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
     private final DatabaseDslFilter databaseDslFilter;
 
     @Override
-    public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState, String[] propertyNames, Type[] types) {
-        SourceConfig sourceConfig = xmDomainEventConfiguration.getSourceConfig(DB.name());
-
-        if (sourceConfig.isEnabled()) {
-
-            String tableName = findTableName(entity);
-            log.trace("onFlushDirty: tableName: {}, id: {}", tableName, id);
-
-            JpaEntityContext context = buildJpaEntityContext(entity, id, currentState, previousState, propertyNames, UPDATE);
-
-            if (isIntercepted(tableName, sourceConfig, context)) {
-                DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
-                eventPublisher.publish(DB.name(), dbDomainEvent);
-            }
-        }
+    public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState,
+                                String[] propertyNames, Type[] types) {
+        publishEvent(entity, id, currentState, previousState, propertyNames, UPDATE);
 
         return super.onFlushDirty(entity, id, currentState, previousState, propertyNames, types);
     }
 
     @Override
     public boolean onSave(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
-        SourceConfig sourceConfig = xmDomainEventConfiguration.getSourceConfig(DB.name());
-
-        if (sourceConfig.isEnabled()) {
-
-            String tableName = findTableName(entity);
-            log.trace("onSave: tableName: {}, id: {}", tableName, id);
-
-            JpaEntityContext context = buildJpaEntityContext(entity, id, state, null, propertyNames, CREATE);
-
-            if (isIntercepted(tableName, sourceConfig, context)) {
-                DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
-                eventPublisher.publish(DB.name(), dbDomainEvent);
-            }
-        }
+        publishEvent(entity, id, state, null, propertyNames, CREATE);
 
         return super.onSave(entity, id, state, propertyNames, types);
     }
 
     @Override
     public void onDelete(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
+        publishEvent(entity, id, null, state, propertyNames, DELETE);
+        super.onDelete(entity, id, state, propertyNames, types);
+    }
+
+    private void publishEvent(Object entity, Serializable id, Object[] currentState, Object[] previousState,
+                              String[] propertyNames, DefaultDomainEventOperation operation) {
         SourceConfig sourceConfig = xmDomainEventConfiguration.getSourceConfig(DB.name());
-
-        if (sourceConfig.isEnabled()) {
-
+        if (sourceConfig.isEnabled() && sourceConfig.getFilter() != null) {
             String tableName = findTableName(entity);
-            log.trace("onDelete: tableName: {}, id: {}", tableName, id);
+            log.trace("publishEvent: tableName: {}, id: {}, operation: {}", tableName, id, operation);
 
-            JpaEntityContext context = buildJpaEntityContext(entity, id, null, state, propertyNames, DELETE);
+            JpaEntityContext context = buildJpaEntityContext(entity, id, currentState, previousState, propertyNames, operation);
 
             if (isIntercepted(tableName, sourceConfig, context)) {
                 DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
                 eventPublisher.publish(DB.name(), dbDomainEvent);
             }
         }
-
-        super.onDelete(entity, id, state, propertyNames, types);
     }
 
     private String findTableName(Object entity) {
@@ -187,10 +164,6 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
      *
      */
     private boolean isIntercepted(String tableName, SourceConfig sourceConfig, JpaEntityContext context) {
-        if (isNull(sourceConfig.getFilter())) {
-            return false;
-        }
-
         String key = sourceConfig.getFilter().getKey();
         Boolean needFiltering = databaseFilter.lepFiltering(key, tableName, context);
 
