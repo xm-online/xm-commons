@@ -59,8 +59,22 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
         this.applicationContext = applicationContext;
     }
 
-    public SourceConfig getSourceConfig(String source) {
-        return getEventPublisherConfig().getSources().get(source);
+    public DbSourceConfig getDbSourceConfig(String source) {
+        DbSourceConfig dbSourceConfig = null;
+        SourceConfig sourceConfig = getEventPublisherConfig().getSources().get(source);
+        if (sourceConfig instanceof DbSourceConfig) {
+            dbSourceConfig = (DbSourceConfig) sourceConfig;
+        }
+        return dbSourceConfig;
+    }
+
+    public WebSourceConfig getWebSourceConfig(String source) {
+        WebSourceConfig webSourceConfig = null;
+        SourceConfig sourceConfig = getEventPublisherConfig().getSources().get(source);
+        if (sourceConfig instanceof WebSourceConfig) {
+            webSourceConfig = (WebSourceConfig) sourceConfig;
+        }
+        return webSourceConfig;
     }
 
     public PublisherConfig getPublisherConfig(String source) {
@@ -115,7 +129,7 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
             initTransportSourceMap(tenantKey, sources);
             initSourceEventPublisher.publish(tenantKey, sources.values());
 
-            SourceConfig sourceConfig = sources.get(DefaultDomainEventSource.WEB.getCode());
+            WebSourceConfig sourceConfig = getWebSourceConfig(DefaultDomainEventSource.WEB.getCode());
             if (sourceConfig == null || !sourceConfig.isEnabled()) {
                 return;
             }

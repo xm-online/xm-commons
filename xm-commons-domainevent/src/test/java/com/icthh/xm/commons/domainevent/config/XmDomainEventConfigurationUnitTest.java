@@ -70,7 +70,7 @@ public class XmDomainEventConfigurationUnitTest {
     public void shouldInitEnabledConfig() {
         String enabledConfig = readConfigFile("/enabledDomainEvents.yml");
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
-        SourceConfig db = xmDomainEventConfiguration.getSourceConfig("DB");
+        DbSourceConfig db = xmDomainEventConfiguration.getDbSourceConfig("DB");
         assertNotNull(db);
         verify(initSourceEventPublisher, times(1)).publish(eq(TENANT), any());
     }
@@ -81,7 +81,7 @@ public class XmDomainEventConfigurationUnitTest {
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, disabledConfig);
         Exception exception = null;
         try {
-            xmDomainEventConfiguration.getSourceConfig("DB");
+            xmDomainEventConfiguration.getDbSourceConfig("DB");
         } catch (Exception e) {
             exception = e;
         }
@@ -94,13 +94,13 @@ public class XmDomainEventConfigurationUnitTest {
         String enabledConfig = readConfigFile("/enabledDomainEvents.yml");
         String configSource = "DB";
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
-        SourceConfig db = xmDomainEventConfiguration.getSourceConfig(configSource);
+        DbSourceConfig db = xmDomainEventConfiguration.getDbSourceConfig(configSource);
         assertNotNull(db);
         String disabledConfig = readConfigFile("/disabledDomainEvents.yml");
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, disabledConfig);
         Exception exception = null;
         try {
-            xmDomainEventConfiguration.getSourceConfig(configSource);
+            xmDomainEventConfiguration.getDbSourceConfig(configSource);
         } catch (Exception e) {
             exception = e;
         }
@@ -111,17 +111,17 @@ public class XmDomainEventConfigurationUnitTest {
     public void shouldInitConfig() {
         String enabledConfig = readConfigFile("/enabledDomainEvents.yml");
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
-        SourceConfig dbSourceConfig = xmDomainEventConfiguration.getSourceConfig("DB");
+        DbSourceConfig dbSourceConfig = xmDomainEventConfiguration.getDbSourceConfig("DB");
         assertNotNull(dbSourceConfig);
         assertEquals("outboxTransport", dbSourceConfig.getTransport());
         assertTrue(dbSourceConfig.isEnabled());
 
-        SourceConfig webSourceConfig = xmDomainEventConfiguration.getSourceConfig("WEB");
+        WebSourceConfig webSourceConfig = xmDomainEventConfiguration.getWebSourceConfig("WEB");
         assertNotNull(webSourceConfig);
         assertEquals("outboxTransport", webSourceConfig.getTransport());
         assertFalse(webSourceConfig.isEnabled());
 
-        SourceConfig nonExistentConfig = xmDomainEventConfiguration.getSourceConfig("nonExistentConfig");
+        SourceConfig nonExistentConfig = xmDomainEventConfiguration.getDbSourceConfig("nonExistentConfig");
         assertNull(nonExistentConfig);
     }
 

@@ -1,10 +1,8 @@
 package com.icthh.xm.commons.domainevent.service;
 
-import com.icthh.xm.commons.domainevent.config.SourceConfig;
+import com.icthh.xm.commons.domainevent.config.DbSourceConfig;
 import com.icthh.xm.commons.domainevent.config.XmDomainEventConfiguration;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
-import com.icthh.xm.commons.domainevent.service.EventPublisher;
-import com.icthh.xm.commons.domainevent.service.Transport;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -32,9 +30,9 @@ public class EventPublisherTest {
     @Before
     public void init() {
         MockitoAnnotations.initMocks(this);
-        SourceConfig sourceConfig = new SourceConfig();
+        DbSourceConfig sourceConfig = new DbSourceConfig();
         sourceConfig.setEnabled(true);
-            sourceConfig.setTransport("outboxTransport");
+        sourceConfig.setTransport("outboxTransport");
         when(xmDomainEventConfiguration.getTransport(eq(DB_SOURCE))).thenReturn(testTransport);
         this.eventPublisher = new EventPublisher(xmDomainEventConfiguration);
     }
