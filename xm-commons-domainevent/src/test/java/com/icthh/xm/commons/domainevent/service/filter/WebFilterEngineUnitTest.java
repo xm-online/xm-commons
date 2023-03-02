@@ -59,7 +59,9 @@ public class WebFilterEngineUnitTest {
 
     @Before
     public void init() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
+
+        when(tenantContextHolder.getTenantKey()).thenReturn(TENANT);
 
         when(request.getContentAsByteArray()).thenReturn(CONTENT.getBytes());
         when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList("Authorization", "Domain", "x-tenant")));
