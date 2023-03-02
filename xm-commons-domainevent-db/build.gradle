@@ -20,6 +20,7 @@ dependencies {
 
     implementation project(':xm-commons-migration-db')
     implementation project(':xm-commons-domainevent')
+    implementation project(':xm-commons-lep')
 
     implementation "org.springframework.boot:spring-boot-starter-data-jpa:${versions.springBoot}"
 
