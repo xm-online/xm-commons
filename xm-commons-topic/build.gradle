@@ -23,7 +23,7 @@ dependencies {
     testImplementation "org.springframework.kafka:spring-kafka-test"
     testImplementation "org.springframework.boot:spring-boot-test"
     testImplementation 'junit:junit'
-    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.mockito:mockito-core:3.6.28'
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
 }
 
