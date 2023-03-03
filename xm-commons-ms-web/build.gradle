@@ -1,21 +1,21 @@
 apply plugin: 'io.spring.dependency-management'
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.boot:spring-boot-dependencies:$versions.springBoot")
+        mavenBom("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}")
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
     }
 }
 
 dependencies {
 
-    compile project(":xm-commons-logging-web")
-    compile project(":xm-commons-tenant")
-    compile project(":xm-commons-config")
+    api project(":xm-commons-logging-web")
+    api project(":xm-commons-tenant")
+    api project(":xm-commons-config")
 
     compileOnly "io.github.jhipster:jhipster-framework:${versions.jhipster}"
-    compile("org.springframework.boot:spring-boot-starter-web") {
+    implementation("org.springframework.boot:spring-boot-starter-web") {
         exclude module: 'spring-boot-starter-tomcat'
     }
     compileOnly "javax.servlet:javax.servlet-api"
-    compile "com.ecwid.consul:consul-api"
+    api "com.ecwid.consul:consul-api"
 }

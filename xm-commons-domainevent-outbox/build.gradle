@@ -29,9 +29,9 @@ dependencies {
     annotationProcessor "org.mapstruct:mapstruct-processor:${versions.mapstruct}"
 
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
-    testCompile 'junit:junit'
-    testCompile 'org.assertj:assertj-core'
-    testCompile 'org.mockito:mockito-core'
+    testImplementation 'junit:junit'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.mockito:mockito-core'
 }
 
 compileJava.dependsOn(processResources)

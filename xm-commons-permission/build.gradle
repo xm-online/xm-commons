@@ -1,40 +1,40 @@
 apply plugin: 'io.spring.dependency-management'
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.boot:spring-boot-dependencies:$versions.springBoot")
+        mavenBom("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}")
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
     }
 }
 
 dependencies {
-    compile project(":xm-commons-config")
-    compile project(":xm-commons-tenant")
-    compile project(":xm-commons-exceptions")
-    compile project(":xm-commons-messaging")
+    api project(":xm-commons-config")
+    api project(":xm-commons-tenant")
+    api project(":xm-commons-exceptions")
+    api project(":xm-commons-messaging")
 
     compileOnly 'javax.servlet:javax.servlet-api'
     compileOnly "io.github.jhipster:jhipster-framework:${versions.jhipster}"
 
-    compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
-    compile "org.reflections:reflections:${versions.reflections}"
+    api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+    api "org.reflections:reflections:${versions.reflections}"
 
-    compile 'org.springframework.security:spring-security-core'
-    compile 'org.springframework:spring-context'
-    compile 'org.springframework.kafka:spring-kafka'
+    api 'org.springframework.security:spring-security-core'
+    api 'org.springframework:spring-context'
+    api 'org.springframework.kafka:spring-kafka'
 
-    compile 'org.slf4j:slf4j-api'
-    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
-    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-    compile 'com.fasterxml.jackson.core:jackson-databind'
-    compile "org.aspectj:aspectjweaver"
+    api 'org.slf4j:slf4j-api'
+    api 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    api 'com.fasterxml.jackson.core:jackson-databind'
+    api "org.aspectj:aspectjweaver"
 
-    compile "org.hibernate:hibernate-core:${versions.hibernate}"
-    compile "org.springframework.data:spring-data-commons:${versions.springData}"
+    api "org.hibernate:hibernate-core"
+    api "org.springframework.data:spring-data-commons"
 
-    testCompile 'javax.servlet:javax.servlet-api'
-    testCompile 'junit:junit'
-    testCompile 'org.mockito:mockito-core'
-    testCompile 'org.assertj:assertj-core'
-    testCompile 'org.springframework:spring-test'
-    testCompile 'org.springframework.kafka:spring-kafka-test'
+    testImplementation 'javax.servlet:javax.servlet-api'
+    testImplementation 'junit:junit'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.springframework:spring-test'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
 }

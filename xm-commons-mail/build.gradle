@@ -8,8 +8,8 @@ dependencyManagement {
 
 dependencies {
 
-    compile project(":xm-commons-config")
-    compile "org.springframework.boot:spring-boot-starter-mail"
+    api project(":xm-commons-config")
+    api "org.springframework.boot:spring-boot-starter-mail"
 
-    testCompile 'junit:junit'
+    testImplementation 'junit:junit'
 }

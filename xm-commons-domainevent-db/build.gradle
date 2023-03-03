@@ -25,9 +25,9 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-data-jpa:${versions.springBoot}"
 
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
-    testCompile 'junit:junit'
-    testCompile 'org.assertj:assertj-core'
-    testCompile 'org.mockito:mockito-core:3.5.15'
+    testImplementation 'junit:junit'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.mockito:mockito-core:3.5.15'
 }
 
 compileJava.dependsOn(processResources)

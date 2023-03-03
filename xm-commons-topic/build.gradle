@@ -7,23 +7,23 @@ dependencyManagement {
 }
 
 dependencies {
-    compile project(':xm-commons-tenant')
-    compile project(":xm-commons-config")
-    compile project(":xm-commons-lep")
-    compile project(":xm-commons-logging-trace")
+    api project(':xm-commons-tenant')
+    api project(":xm-commons-config")
+    api project(":xm-commons-lep")
+    api project(":xm-commons-logging-trace")
 
     implementation('org.springframework.cloud:spring-cloud-stream-binder-kafka')
 
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
 
-    compile 'org.springframework.kafka:spring-kafka'
+    api 'org.springframework.kafka:spring-kafka'
 
-    testCompile 'org.assertj:assertj-core'
-    testCompile "org.springframework.cloud:spring-cloud-stream-test-support"
-    testCompile "org.springframework.kafka:spring-kafka-test"
-    testCompile "org.springframework.boot:spring-boot-test"
-    testCompile 'junit:junit'
-    testCompile 'org.mockito:mockito-core'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation "org.springframework.cloud:spring-cloud-stream-test-support"
+    testImplementation "org.springframework.kafka:spring-kafka-test"
+    testImplementation "org.springframework.boot:spring-boot-test"
+    testImplementation 'junit:junit'
+    testImplementation 'org.mockito:mockito-core'
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
 }
 

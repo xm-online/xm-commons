@@ -1,17 +1,19 @@
 ext.versions = [
-    gradle                     : '5.6.4',
-    grgit                      : '2.0.0',
-    sonarqube                  : '2.8',
-    checkstyle                 : '7.6.1',
-    spotbug                   : '3.1.12',
-    pmd                        : '5.5.4',
+    gradle                     : '7.4.2',
+    grgit                      : '2.0.0', //TODO choose correct version
+    sonarqube                  : '4.29',
+    checkstyle                 : '10.3.1',
+    spotbug                    : '5.0.9',
+    spotbugToolVersion         : '4.7.1',
+    pmd                        : '6.47.0',
 
-    equalsverifier             : '3.1.10',
-    commonsLang3               : '3.8.1',
-    commonsCodec               : '1.11',
-    commonsIo                  : '2.6',
+    equalsverifier             : '3.10',
+    commonsLang3               : '3.12.0',
+    commonsCodec               : '1.15',
+    commonsIo                  : '2.11.0',
     commonsCollections         : '3.2.2',
-    commonsText                : '1.6',
+    commonsText                : '1.9',
+    guava                      : '29.0-jre',
 
     springBoot                 : '2.1.10.RELEASE',
     springCloud                : 'Greenwich.SR3',
@@ -24,7 +26,7 @@ ext.versions = [
     jsr305                     : '3.0.2',
 
     jhipster                   : '3.0.7',
-    lombok                     : '1.18.10',
+    lombok                     : '1.18.24',
     logstashLogbackEncoder     : '6.2',
 
     propdepsPlugin             : '0.0.7',
@@ -32,6 +34,7 @@ ext.versions = [
     swaggerCodegen             : '2.4.9',
     springfoxSwagger           : '2.9.2',
     reflections                : '0.9.11',
+    javaxEl                    : '3.0.0',
 
     systemRules                : '1.16.0',
 
