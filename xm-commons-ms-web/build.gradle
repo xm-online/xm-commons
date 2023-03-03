@@ -16,6 +16,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web") {
         exclude module: 'spring-boot-starter-tomcat'
     }
+    implementation "org.springframework.cloud:spring-cloud-commons"
     compileOnly "javax.servlet:javax.servlet-api"
     api "com.ecwid.consul:consul-api"
 }
