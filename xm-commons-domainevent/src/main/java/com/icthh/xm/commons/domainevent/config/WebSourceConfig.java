@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -15,6 +16,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WebSourceConfig extends SourceConfig {
 
-    private List<String> headers;
-    private TransformMappingConfig transform;
+    private List<TransformMappingConfig> transform;
+    private List<FilterConfig> filter;
+    private Set<String> headers = Set.of("cookie", "authorization");
 }
