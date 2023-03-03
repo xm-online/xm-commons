@@ -13,7 +13,7 @@ ext.versions = [
     commonsIo                  : '2.11.0',
     commonsCollections         : '3.2.2',
     commonsText                : '1.9',
-    guava                      : '29.0-jre',
+    guava                      : '31.0.1-jre',
 
     springBoot                 : '2.1.10.RELEASE',
     springCloud                : 'Greenwich.SR3',
