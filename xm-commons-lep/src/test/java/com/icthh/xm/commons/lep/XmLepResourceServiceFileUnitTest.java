@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.lep;
 
+import org.apache.commons.lang3.StringUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -27,7 +28,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -100,8 +101,10 @@ public class XmLepResourceServiceFileUnitTest {
         assertFalse(resource.isComposite());
         assertNotNull(resource.getValue(InputStream.class));
 
-        String scriptText = IOUtils.toString(resource.getValue(InputStream.class), Charset.forName("UTF-8"));
-        assertEquals("return 'Hello from Script$$before.groovy'\n", scriptText);
+        String scriptText = IOUtils.toString(resource.getValue(InputStream.class), StandardCharsets.UTF_8);
+        scriptText = StringUtils.normalizeSpace(scriptText);
+        String expected = StringUtils.normalizeSpace("return 'Hello from Script$$before.groovy'\n");
+        assertEquals(expected, scriptText);
     }
 
 }

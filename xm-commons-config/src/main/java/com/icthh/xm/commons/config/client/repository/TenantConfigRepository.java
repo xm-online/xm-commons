@@ -8,6 +8,7 @@ import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,6 @@ import java.util.stream.Collectors;
 
 /**
  * Repository to manage tenant related files inside ms-config.
- *
  * Service prevents changing files not outside /config/tenants/{tenantName} directory (inclusive).
  */
 @Slf4j
@@ -223,7 +223,8 @@ public class TenantConfigRepository {
             contextPath = new URL(path).getPath();
         }
 
-        if (!matcher.match(TENANT_PATH_PATTERN, contextPath)) {
+        String unixPath = FilenameUtils.separatorsToUnix(contextPath);
+        if (!matcher.match(TENANT_PATH_PATTERN, unixPath)) {
             throw new IllegalArgumentException("Execution is not allowed for path: " + contextPath);
         }
     }
@@ -242,8 +243,9 @@ public class TenantConfigRepository {
     }
 
     private NamedByteArrayResource toNamedResource(String tenantName, Configuration configuration) {
+        String filePath = FilenameUtils.separatorsToUnix(configuration.getPath());
         return new NamedByteArrayResource(configuration.getContent().getBytes(),
-                                          resolveTenantName(configuration.getPath(), tenantName));
+                                          resolveTenantName(filePath, tenantName));
     }
 
 }
