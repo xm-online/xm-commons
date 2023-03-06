@@ -18,6 +18,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -28,11 +29,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,20 +50,19 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.junit4.SpringRunner;
+
 import static org.springframework.kafka.test.utils.KafkaTestUtils.consumerProps;
 import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
+import org.testcontainers.redpanda.RedpandaContainer;
+
 
 @Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
                 classes = {KafkaAutoConfiguration.class})
-@EmbeddedKafka(topics = "kafka-queue", partitions = 1, controlledShutdown = true,
-    brokerProperties = {
-    "log.dir=out/embedded-kafka",
-    "transaction.state.log.replication.factor=1",
-    "offsets.topic.replication.facto=1",
-    "transaction.state.log.min.isr=1"
-    })
 public class MessageListenerIntTest {
 
     private static final String TOPIC = "kafka-test-queue";
@@ -77,9 +74,13 @@ public class MessageListenerIntTest {
     private static final String TX_CONFIG = "topic-consumers-without-isolation.yml";
     private static final String TX_RC_CONFIG = "topic-consumers-with-isolation-read_committed.yml";
     private static final String TEST_MESSAGE = "test message";
+    //private EmbeddedKafkaBroker kafkaEmbedded;
 
-    @Autowired
-    private EmbeddedKafkaBroker kafkaEmbedded;
+    /**
+     * read https://redpanda.com/platform
+     */
+    @ClassRule
+    public static RedpandaContainer kafka = new RedpandaContainer("docker.redpanda.com/vectorized/redpanda:v23.1.1");
 
     @Autowired
     private KafkaProperties kafkaProperties;
@@ -93,6 +94,10 @@ public class MessageListenerIntTest {
 
     private List<DynamicConsumerConfiguration> dynamicConsumerConfigurationList;
 
+    @DynamicPropertySource
+    public static void setup(DynamicPropertyRegistry registry) {
+        registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
+    }
 
     @Before
     public void before() {
@@ -120,7 +125,7 @@ public class MessageListenerIntTest {
         initConsumers();
 
         DefaultKafkaProducerFactory<String, String> kafkaProducerFactory = new DefaultKafkaProducerFactory<>(
-              producerProps(kafkaEmbedded),
+              producerProps(kafka.getBootstrapServers()),
               new StringSerializer(),
               new StringSerializer());
 
@@ -227,9 +232,10 @@ public class MessageListenerIntTest {
         topicConfigurationService.onRefresh(UPDATE_KEY, "");
     }
 
+
     private void initConsumers() {
         DefaultKafkaConsumerFactory<String, String> kafkaConsumerFactory =
-            new DefaultKafkaConsumerFactory<>(consumerProps(GROUP, "false", kafkaEmbedded),
+            new DefaultKafkaConsumerFactory<>(consumerProps(kafka.getBootstrapServers(), GROUP, "false"),
                 new StringDeserializer(),
                 new StringDeserializer());
         Consumer<String, String> consumer = kafkaConsumerFactory.createConsumer();
@@ -239,8 +245,9 @@ public class MessageListenerIntTest {
     }
 
 
+
     private Producer<String, String> createTxProducer() {
-        Map<String, Object> producerProps = producerProps(kafkaEmbedded);
+        Map<String, Object> producerProps = producerProps(kafka.getBootstrapServers());
         producerProps.put(TRANSACTIONAL_ID_CONFIG, "txId" + System.currentTimeMillis());
         producerProps.put(RETRIES_CONFIG, 1);
         producerProps.put("", 1);

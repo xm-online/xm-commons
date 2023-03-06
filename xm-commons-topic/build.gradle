@@ -18,9 +18,12 @@ dependencies {
 
     testImplementation 'org.assertj:assertj-core'
     testImplementation "org.springframework.kafka:spring-kafka-test"
-    testImplementation "org.springframework.boot:spring-boot-test"
+    //testImplementation 'org.springframework:spring-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'junit:junit'
     testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.testcontainers:testcontainers:1.17.6'
+    testImplementation 'org.testcontainers:redpanda:1.17.6'
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
 }
 
