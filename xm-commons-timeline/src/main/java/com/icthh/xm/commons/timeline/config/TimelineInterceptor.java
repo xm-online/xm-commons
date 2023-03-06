@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.timeline.config;
 
 import static java.util.Arrays.asList;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 
@@ -107,10 +108,14 @@ public class TimelineInterceptor extends HandlerInterceptorAdapter {
             }
         }
 
+        if (isEmpty(ignoredTypeKeys)) {
+            return false;
+        }
+
         String responseBody = getResponseContent(response);
         String typeKey = getEntityField(responseBody, TYPE_KEY);
 
-        return isNotEmpty(ignoredTypeKeys) && ignoredTypeKeys.contains(typeKey);
+        return ignoredTypeKeys.contains(typeKey);
     }
 
     private String getResponseContent(HttpServletResponse response) {
