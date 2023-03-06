@@ -1,19 +1,6 @@
 package com.icthh.xm.commons.timeline.config;
 
-import static java.util.Arrays.asList;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
-
 import com.icthh.xm.commons.timeline.TimelineEventProducer;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
-
-import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -23,7 +10,19 @@ import org.springframework.security.oauth2.provider.authentication.OAuth2Authent
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-import org.springframework.web.util.ContentCachingResponseWrapper;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.icthh.xm.commons.timeline.util.JsonUtils.findField;
+import static com.icthh.xm.commons.timeline.util.HttpUtils.getResponseContent;
+import static java.util.Arrays.asList;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 
 @Slf4j
 @Component
@@ -33,6 +32,7 @@ public class TimelineInterceptor extends HandlerInterceptorAdapter {
     private static final String AUTH_TENANT_KEY = "tenant";
     private static final String AUTH_USER_KEY = "user_key";
     private static final String TYPE_KEY = "typeKey";
+    private static final List<String> PREFIXES = asList("$.", "$.xmEntity.");
 
     private final AntPathMatcher matcher = new AntPathMatcher();
 
@@ -46,7 +46,7 @@ public class TimelineInterceptor extends HandlerInterceptorAdapter {
         @Value("${application.tenant-ignored-path-list:true}") List<String> ignoredPatterns,
         @Value("${application.timeline-ignored-http-methods:#{T(java.util.Collections).emptyList()}}") List<String> ignoredHttpMethods,
         @Value("${application.timeline-ignored-type-keys:#{T(java.util.Collections).emptyList()}}") List<String> ignoredTypeKeys
-        ) {
+    ) {
         this.eventProducer = eventProducer;
         this.ignoredPatterns = ignoredPatterns;
         this.ignoredHttpMethods = ignoredHttpMethods;
@@ -113,36 +113,9 @@ public class TimelineInterceptor extends HandlerInterceptorAdapter {
         }
 
         String responseBody = getResponseContent(response);
-        String typeKey = getEntityField(responseBody, TYPE_KEY);
+        String typeKey = findField(responseBody, TYPE_KEY, PREFIXES);
 
         return ignoredTypeKeys.contains(typeKey);
-    }
-
-    private String getResponseContent(HttpServletResponse response) {
-        if (response instanceof ContentCachingResponseWrapper) {
-            return new String(((ContentCachingResponseWrapper) response).getContentAsByteArray());
-        }
-        if (response instanceof HttpServletResponseWrapper
-            && ((HttpServletResponseWrapper) response).getResponse() instanceof ContentCachingResponseWrapper) {
-            return new String(((ContentCachingResponseWrapper) ((HttpServletResponseWrapper) response)
-                .getResponse()).getContentAsByteArray());
-        }
-        log.warn("Empty response content because of unsupported response class {}", response.getClass());
-        return "";
-    }
-
-    public String getEntityField(String entity, String field) {
-        List<String> prefixes = asList("$.", "$.xmEntity.");
-
-        for (String prefix: prefixes) {
-            try {
-                return JsonPath.read(entity, prefix + field);
-            } catch (Exception ex) {
-                log.trace("JsonPath exception", ex);
-            }
-        }
-
-        return "";
     }
 
     private void produceTimeline(
