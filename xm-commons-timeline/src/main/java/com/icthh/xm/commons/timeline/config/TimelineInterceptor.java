@@ -1,10 +1,9 @@
 package com.icthh.xm.commons.timeline.config;
 
-import static java.util.Arrays.asList;
 import com.icthh.xm.commons.security.internal.XmAuthentication;
 import com.icthh.xm.commons.timeline.TimelineEventProducer;
-import lombok.extern.slf4j.Slf4j;
 import com.jayway.jsonpath.JsonPath;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,6 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Arrays.asList;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 
@@ -106,10 +107,14 @@ public class TimelineInterceptor extends HandlerInterceptorAdapter {
             }
         }
 
+        if (isEmpty(ignoredTypeKeys)) {
+            return false;
+        }
+
         String responseBody = getResponseContent(response);
         String typeKey = getEntityField(responseBody, TYPE_KEY);
 
-        return isNotEmpty(ignoredTypeKeys) && ignoredTypeKeys.contains(typeKey);
+        return ignoredTypeKeys.contains(typeKey);
     }
 
     private String getResponseContent(HttpServletResponse response) {
