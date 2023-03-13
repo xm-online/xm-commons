@@ -12,6 +12,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(value = "application.domain-event.enabled", havingValue = "true")
 public class DomainEventProviderFactory {
 
     @Value("${spring.application.name}")
