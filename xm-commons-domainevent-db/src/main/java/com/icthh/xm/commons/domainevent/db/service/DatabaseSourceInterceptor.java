@@ -93,7 +93,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
 
             if (isIntercepted(tableName, sourceConfig, context)) {
                 DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
-                eventPublisher.publish(DB.name(), dbDomainEvent);
+                eventPublisher.publish(DB.getCode(), dbDomainEvent);
             }
         }
     }
