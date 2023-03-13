@@ -68,9 +68,9 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
         return dbSourceConfig;
     }
 
-    public WebSourceConfig getWebSourceConfig(String source) {
+    public WebSourceConfig getWebSourceConfig(String tenantKey, String source) {
         WebSourceConfig webSourceConfig = null;
-        SourceConfig sourceConfig = getEventPublisherConfig().getSources().get(source);
+        SourceConfig sourceConfig = getEventPublisherConfig(tenantKey).getSources().get(source);
         if (sourceConfig instanceof WebSourceConfig) {
             webSourceConfig = (WebSourceConfig) sourceConfig;
         }
@@ -93,6 +93,12 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
 
     private EventPublisherConfig getEventPublisherConfig() {
         String tenantKey = tenantContextHolder.getTenantKey();
+        EventPublisherConfig config = configByTenant.get(tenantKey);
+        Objects.requireNonNull(config, String.format("EventPublisherConfig does not exists for tenant: %s", tenantKey));
+        return config;
+    }
+
+    private EventPublisherConfig getEventPublisherConfig(String tenantKey) {
         EventPublisherConfig config = configByTenant.get(tenantKey);
         Objects.requireNonNull(config, String.format("EventPublisherConfig does not exists for tenant: %s", tenantKey));
         return config;
@@ -129,7 +135,7 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
             initTransportSourceMap(tenantKey, sources);
             initSourceEventPublisher.publish(tenantKey, sources.values());
 
-            WebSourceConfig sourceConfig = getWebSourceConfig(DefaultDomainEventSource.WEB.getCode());
+            WebSourceConfig sourceConfig = getWebSourceConfig(tenantKey ,DefaultDomainEventSource.WEB.getCode());
             if (sourceConfig == null || !sourceConfig.isEnabled()) {
                 return;
             }
