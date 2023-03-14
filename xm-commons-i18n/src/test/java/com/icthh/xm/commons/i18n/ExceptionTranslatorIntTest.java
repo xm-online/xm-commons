@@ -1,13 +1,5 @@
 package com.icthh.xm.commons.i18n;
 
-import static com.icthh.xm.commons.i18n.ExceptionTranslatorTestController.DEFAULT_MESSAGE;
-import static com.icthh.xm.commons.i18n.ExceptionTranslatorTestController.MY_CUSTOM_MESSAGE;
-import static com.icthh.xm.commons.i18n.I18nConstants.LANGUAGE;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.exceptions.ErrorConstants;
 import com.icthh.xm.commons.i18n.config.MessageSourceConfig;
@@ -20,8 +12,6 @@ import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
-import java.nio.charset.Charset;
-import java.util.Optional;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +26,17 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.nio.charset.Charset;
+import java.util.Optional;
+
+import static com.icthh.xm.commons.i18n.ExceptionTranslatorTestController.DEFAULT_MESSAGE;
+import static com.icthh.xm.commons.i18n.ExceptionTranslatorTestController.MY_CUSTOM_MESSAGE;
+import static com.icthh.xm.commons.i18n.I18nConstants.LANGUAGE;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Test class for the ExceptionTranslator controller advice.
@@ -171,6 +172,16 @@ public class ExceptionTranslatorIntTest {
             .andExpect(jsonPath("$.fieldErrors.[0].field").value("testClassValidation"))
             .andExpect(jsonPath("$.fieldErrors.[0].message").value("NotCool"))
             .andExpect(jsonPath("$.fieldErrors.[0].description").isEmpty());
+    }
+
+    @Test
+    public void testMessageNotReadable() throws Exception {
+        mockMvc.perform(post("/test/message-not-readable")
+                .content("{\"testEnum\": \"INCORRECT_A\"}")
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_MESSAGE_NOT_READABLE))
+            .andExpect(jsonPath("$.error_description").value("Message not readable"));
     }
 
     @Test
