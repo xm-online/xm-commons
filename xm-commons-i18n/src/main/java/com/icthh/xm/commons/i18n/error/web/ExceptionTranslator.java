@@ -17,6 +17,7 @@ import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -29,6 +30,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.client.HttpServerErrorException;
+
+import static com.icthh.xm.commons.exceptions.ErrorConstants.ERR_MESSAGE_NOT_READABLE;
 
 /**
  * Controller advice to translate the server side exceptions to client-friendly json structures.
@@ -115,6 +118,16 @@ public class ExceptionTranslator {
                                             .getMessage(ErrorConstants.ERR_INTERNAL_SERVER_ERROR));
         }
         return builder.body(fieldErrorVM);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorVM processMessageNotReadableException(HttpMessageNotReadableException exception) {
+        log.debug("Message not readable", exception);
+        return new ErrorVM(ErrorConstants.ERR_MESSAGE_NOT_READABLE,
+            localizationErrorMessageService
+                .getMessage(ErrorConstants.ERR_MESSAGE_NOT_READABLE));
     }
 
     @ExceptionHandler(BusinessNotFoundException.class)
