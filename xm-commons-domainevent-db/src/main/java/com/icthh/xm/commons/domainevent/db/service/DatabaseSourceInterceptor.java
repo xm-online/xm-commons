@@ -11,6 +11,7 @@ import com.icthh.xm.commons.domainevent.db.service.mapper.JpaEntityMapper;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation;
 import com.icthh.xm.commons.domainevent.service.EventPublisher;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.EmptyInterceptor;
@@ -58,6 +59,8 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
 
     private final DatabaseDslFilter databaseDslFilter;
 
+    private final TenantContextHolder tenantContextHolder;
+
     @Override
     public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState,
                                 String[] propertyNames, Type[] types) {
@@ -81,7 +84,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
 
     private void publishEvent(Object entity, Serializable id, Object[] currentState, Object[] previousState,
                               String[] propertyNames, DefaultDomainEventOperation operation) {
-        DbSourceConfig sourceConfig = xmDomainEventConfiguration.getDbSourceConfig(DB.getCode());
+        DbSourceConfig sourceConfig = xmDomainEventConfiguration.getDbSourceConfig(tenantContextHolder.getTenantKey(), DB.getCode());
         if (sourceConfig != null && sourceConfig.isEnabled() && sourceConfig.getFilter() != null) {
             String tableName = findTableName(entity);
             log.trace("publishEvent: tableName: {}, id: {}, operation: {}", tableName, id, operation);
