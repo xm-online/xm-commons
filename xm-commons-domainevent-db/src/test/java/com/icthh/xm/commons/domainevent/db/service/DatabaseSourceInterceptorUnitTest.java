@@ -176,7 +176,7 @@ public class DatabaseSourceInterceptorUnitTest {
             Map.of(TYPE_KEY_FIELD, TYPE_KEY, NAME_FIELD, NAME_NEW, STATE_KEY_FIELD, STATE_NEW, KEY_FIELD, KEY, DESCRIPTION_FIELD, DESCRIPTION_NEW)
         );
 
-        verify(eventPublisher).publish(DB.name(), expectedDbDomainEvent);
+        verify(eventPublisher).publish(DB.getCode(), expectedDbDomainEvent);
 
     }
 
@@ -208,7 +208,7 @@ public class DatabaseSourceInterceptorUnitTest {
             Map.of(TYPE_KEY_FIELD, TYPE_KEY, NAME_FIELD, NAME_NEW, STATE_KEY_FIELD, STATE_NEW, KEY_FIELD, KEY, DESCRIPTION_FIELD, DESCRIPTION_NEW)
         );
 
-        verify(eventPublisher).publish(DB.name(), expectedDbDomainEvent);
+        verify(eventPublisher).publish(DB.getCode(), expectedDbDomainEvent);
 
     }
 
@@ -241,7 +241,7 @@ public class DatabaseSourceInterceptorUnitTest {
             Map.of(TYPE_KEY_FIELD, TYPE_KEY, NAME_FIELD, NAME_NEW, STATE_KEY_FIELD, STATE_NEW, KEY_FIELD, KEY, DESCRIPTION_FIELD, DESCRIPTION_NEW)
         );
 
-        verify(eventPublisher).publish(DB.name(), expectedDbDomainEvent);
+        verify(eventPublisher).publish(DB.getCode(), expectedDbDomainEvent);
 
     }
 
@@ -273,7 +273,7 @@ public class DatabaseSourceInterceptorUnitTest {
             Map.of(TYPE_KEY_FIELD, TYPE_KEY, NAME_FIELD, NAME_NEW, STATE_KEY_FIELD, STATE_NEW, KEY_FIELD, KEY, DESCRIPTION_FIELD, DESCRIPTION_NEW)
         );
 
-        verify(eventPublisher).publish(DB.name(), expectedDbDomainEvent);
+        verify(eventPublisher).publish(DB.getCode(), expectedDbDomainEvent);
 
     }
 
@@ -303,7 +303,7 @@ public class DatabaseSourceInterceptorUnitTest {
             Map.of(TYPE_KEY_FIELD, TYPE_KEY, NAME_FIELD, NAME_NEW, STATE_KEY_FIELD, STATE_NEW, KEY_FIELD, KEY, DESCRIPTION_FIELD, DESCRIPTION_NEW)
         );
 
-        verify(eventPublisher).publish(DB.name(), expectedDbDomainEvent);
+        verify(eventPublisher).publish(DB.getCode(), expectedDbDomainEvent);
     }
 
     @Test
@@ -332,7 +332,7 @@ public class DatabaseSourceInterceptorUnitTest {
             null
         );
 
-        verify(eventPublisher).publish(DB.name(), expectedDbDomainEvent);
+        verify(eventPublisher).publish(DB.getCode(), expectedDbDomainEvent);
 
     }
 
