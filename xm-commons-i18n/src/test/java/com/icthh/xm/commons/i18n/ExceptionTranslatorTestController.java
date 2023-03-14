@@ -6,7 +6,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.exceptions.BusinessNotFoundException;
 import org.springframework.dao.ConcurrencyFailureException;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.mock.http.MockHttpInputMessage;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,6 +58,10 @@ public class ExceptionTranslatorTestController {
         throw new AccessDeniedException("test access denied!");
     }
 
+    @PostMapping("/test/message-not-readable")
+    public void messageNotReadable(@RequestBody TestEnum testEnum) {
+    }
+
     @GetMapping("/test/response-status")
     public void exceptionWithReponseStatus() {
         throw new TestResponseStatusException();
@@ -94,6 +101,10 @@ public class ExceptionTranslatorTestController {
     @SuppressWarnings("serial")
     public static class TestResponseStatusException extends RuntimeException {
 
+    }
+
+    public enum TestEnum {
+        CORRECT_A, CORRECT_B
     }
 
     public static class TestFieldValidation {
