@@ -3,6 +3,7 @@ package com.icthh.xm.commons.domainevent.service;
 import com.icthh.xm.commons.domainevent.config.DbSourceConfig;
 import com.icthh.xm.commons.domainevent.config.XmDomainEventConfiguration;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -19,6 +20,7 @@ import static org.mockito.Mockito.when;
 public class EventPublisherTest {
 
     private static final String DB_SOURCE = "DB";
+    private static final String TENANT_KEY = "TEST";
 
     private EventPublisher eventPublisher;
 
@@ -26,6 +28,8 @@ public class EventPublisherTest {
     private XmDomainEventConfiguration xmDomainEventConfiguration;
     @Mock
     private Transport testTransport;
+    @Mock
+    private TenantContextHolder tenantContextHolder;
 
     @Before
     public void init() {
@@ -33,8 +37,9 @@ public class EventPublisherTest {
         DbSourceConfig sourceConfig = new DbSourceConfig();
         sourceConfig.setEnabled(true);
         sourceConfig.setTransport("outboxTransport");
-        when(xmDomainEventConfiguration.getTransport(eq(DB_SOURCE))).thenReturn(testTransport);
-        this.eventPublisher = new EventPublisher(xmDomainEventConfiguration);
+        when(tenantContextHolder.getTenantKey()).thenReturn(TENANT_KEY);
+        when(xmDomainEventConfiguration.getTransport(eq(TENANT_KEY), eq(DB_SOURCE))).thenReturn(testTransport);
+        this.eventPublisher = new EventPublisher(xmDomainEventConfiguration, tenantContextHolder);
     }
 
     @Test
