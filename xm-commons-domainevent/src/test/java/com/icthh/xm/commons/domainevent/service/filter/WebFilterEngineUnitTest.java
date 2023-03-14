@@ -40,9 +40,6 @@ public class WebFilterEngineUnitTest {
     private XmDomainEventConfiguration xmDomainEventConfiguration;
 
     @Mock
-    private TenantContextHolder tenantContextHolder;
-
-    @Mock
     private InitSourceEventPublisher initSourceEventPublisher;
 
     @Mock
@@ -60,8 +57,6 @@ public class WebFilterEngineUnitTest {
     public void init() {
         MockitoAnnotations.initMocks(this);
 
-        when(tenantContextHolder.getTenantKey()).thenReturn(TENANT);
-
         when(request.getContentAsByteArray()).thenReturn(CONTENT.getBytes());
         when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList("Authorization", "Domain", "x-tenant")));
         when(request.getHeaders("Domain")).thenReturn(Collections.enumeration(Collections.singletonList("test")));
@@ -74,7 +69,6 @@ public class WebFilterEngineUnitTest {
         when(response.getHeader("Domain")).thenReturn("test");
 
         xmDomainEventConfiguration = new XmDomainEventConfiguration("app-name",
-            tenantContextHolder,
             initSourceEventPublisher,
             applicationContext);
 
