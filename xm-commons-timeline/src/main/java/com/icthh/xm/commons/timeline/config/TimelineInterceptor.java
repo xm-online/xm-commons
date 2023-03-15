@@ -1,14 +1,6 @@
 package com.icthh.xm.commons.timeline.config;
 
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
-
 import com.icthh.xm.commons.timeline.TimelineEventProducer;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -19,6 +11,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.icthh.xm.commons.timeline.util.JsonUtils.findField;
+import static com.icthh.xm.commons.timeline.util.HttpUtils.getResponseContent;
+import static java.util.Arrays.asList;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+
 @Slf4j
 @Component
 public class TimelineInterceptor extends HandlerInterceptorAdapter {
@@ -26,27 +31,32 @@ public class TimelineInterceptor extends HandlerInterceptorAdapter {
     private static final String HEADER_TENANT = "x-tenant";
     private static final String AUTH_TENANT_KEY = "tenant";
     private static final String AUTH_USER_KEY = "user_key";
+    private static final String TYPE_KEY = "typeKey";
+    private static final List<String> PREFIXES = asList("$.", "$.xmEntity.");
 
     private final AntPathMatcher matcher = new AntPathMatcher();
 
     private final TimelineEventProducer eventProducer;
     private final List<String> ignoredPatterns;
     private final List<String> ignoredHttpMethods;
+    private final List<String> ignoredTypeKeys;
 
     public TimelineInterceptor(
         TimelineEventProducer eventProducer,
         @Value("${application.tenant-ignored-path-list:true}") List<String> ignoredPatterns,
-        @Value("${application.timeline-ignored-http-methods:#{T(java.util.Collections).emptyList()}}") List<String> ignoredHttpMethods
+        @Value("${application.timeline-ignored-http-methods:#{T(java.util.Collections).emptyList()}}") List<String> ignoredHttpMethods,
+        @Value("${application.timeline-ignored-type-keys:#{T(java.util.Collections).emptyList()}}") List<String> ignoredTypeKeys
     ) {
         this.eventProducer = eventProducer;
         this.ignoredPatterns = ignoredPatterns;
         this.ignoredHttpMethods = ignoredHttpMethods;
+        this.ignoredTypeKeys = ignoredTypeKeys;
     }
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
 
-        if (isIgnoredRequest(request)) {
+        if (isIgnoredRequest(request, response)) {
             return;
         }
 
@@ -82,7 +92,7 @@ public class TimelineInterceptor extends HandlerInterceptorAdapter {
         return null;
     }
 
-    private boolean isIgnoredRequest(HttpServletRequest request) {
+    private boolean isIgnoredRequest(HttpServletRequest request, HttpServletResponse response) {
         String path = request.getServletPath();
         String httpMethod = request.getMethod();
 
@@ -97,7 +107,15 @@ public class TimelineInterceptor extends HandlerInterceptorAdapter {
                 }
             }
         }
-        return false;
+
+        if (isEmpty(ignoredTypeKeys)) {
+            return false;
+        }
+
+        String responseBody = getResponseContent(response);
+        String typeKey = findField(responseBody, TYPE_KEY, PREFIXES);
+
+        return ignoredTypeKeys.contains(typeKey);
     }
 
     private void produceTimeline(
