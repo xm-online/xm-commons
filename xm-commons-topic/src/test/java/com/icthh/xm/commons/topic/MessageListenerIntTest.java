@@ -258,7 +258,8 @@ public class MessageListenerIntTest {
             kafkaTemplate,
             sleuthWrapper);
         DynamicConsumerConfigurationService dynamicConsumerConfigurationService =
-            new DynamicConsumerConfigurationService(dynamicConsumerConfigurationList, topicManagerService, tenantListRepository);
+            new DynamicConsumerConfigurationService(topicManagerService, tenantListRepository);
+        dynamicConsumerConfigurationService.setDynamicConsumerConfigurations(dynamicConsumerConfigurationList);
         TopicConfigurationService topicConfigurationService = new TopicConfigurationService(APP_NAME, messageHandler);
         topicConfigurationService.setDynamicConsumerConfigurationService(dynamicConsumerConfigurationService);
         dynamicConsumerConfigurationList.add(topicConfigurationService);

@@ -50,7 +50,8 @@ public class DynamicConsumerConfigurationServiceUnitTest {
 
     @Before
     public void setup() {
-        dynamicConsumerConfigurationService = new DynamicConsumerConfigurationService(singletonList(dynamicConsumerConfiguration), topicManagerService, tenantListRepository);
+        dynamicConsumerConfigurationService = new DynamicConsumerConfigurationService(topicManagerService, tenantListRepository);
+        dynamicConsumerConfigurationService.setDynamicConsumerConfigurations(singletonList(dynamicConsumerConfiguration));
     }
 
     @Test
