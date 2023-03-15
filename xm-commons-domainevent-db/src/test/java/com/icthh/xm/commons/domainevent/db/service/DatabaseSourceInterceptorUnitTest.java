@@ -17,6 +17,7 @@ import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation
 import com.icthh.xm.commons.domainevent.service.EventPublisher;
 import com.icthh.xm.commons.domainevent.service.builder.DomainEventBuilder;
 import com.icthh.xm.commons.domainevent.service.builder.DomainEventFactory;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Before;
@@ -66,6 +67,7 @@ public class DatabaseSourceInterceptorUnitTest {
     private final static String KEY = "SOME_KEY";
     private final static String DESCRIPTION = "DESCRIPTION";
     private final static String DESCRIPTION_NEW = "DESCRIPTION_NEW";
+    private final static String TENANT_KEY = "RESTINTEST";
 
     @Mock
     private EntityManager entityManager;
@@ -79,6 +81,8 @@ public class DatabaseSourceInterceptorUnitTest {
     private DatabaseFilter databaseFilter;
     @Mock
     private DatabaseDslFilter databaseDslFilter;
+    @Mock
+    private TenantContextHolder tenantContextHolder;
 
     private JpaEntityMapper jpaEntityMapper;
 
@@ -102,8 +106,10 @@ public class DatabaseSourceInterceptorUnitTest {
         when(domainEventBuilder.getPrefilledBuilder()).thenReturn(DomainEvent.builder());
         jpaEntityMapper = spy(new TypeKeyAwareJpaEntityMapper(domainEventFactory));
 
-        databaseSourceInterceptor = new DatabaseSourceInterceptor(
-            entityManager, xmDomainEventConfiguration, eventPublisher, jpaEntityMapper, databaseFilter, databaseDslFilter);
+        when(tenantContextHolder.getTenantKey()).thenReturn(TENANT_KEY);
+
+        databaseSourceInterceptor = new DatabaseSourceInterceptor(entityManager, xmDomainEventConfiguration, eventPublisher,
+            jpaEntityMapper, databaseFilter, databaseDslFilter, tenantContextHolder);
     }
 
     @After
@@ -115,7 +121,7 @@ public class DatabaseSourceInterceptorUnitTest {
     public void onFlushDirty_notProcessConfig_withEnableFalse() {
 
         DbSourceConfig sourceConfig = buildDbSourceConfig(false, null);
-        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(DB.getCode());
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(TENANT_KEY, DB.getCode());
 
         databaseSourceInterceptor.onFlushDirty(null, null, null, null, null, null);
 
@@ -130,7 +136,7 @@ public class DatabaseSourceInterceptorUnitTest {
     public void onFlushDirty_shouldConfigTrueAndFilterNull() {
 
         DbSourceConfig sourceConfig = buildDbSourceConfig(true, null);
-        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(DB.getCode());
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(TENANT_KEY, DB.getCode());
         Entity entity = buildEntity(TYPE_KEY, NAME, STATE, KEY, DESCRIPTION, true);
 
         databaseSourceInterceptor.onFlushDirty(entity, ID, new Object[]{}, new Object[]{}, new String[]{}, null);
@@ -149,7 +155,7 @@ public class DatabaseSourceInterceptorUnitTest {
         String config = readConfigFile("/dbSourceConfig.yml");
         DbSourceConfig sourceConfig = objectMapper.readValue(config, DbSourceConfig.class);
 
-        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(DB.getCode());
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(TENANT_KEY, DB.getCode());
         doReturn(true).when(databaseFilter).lepFiltering(any(), any(), any());
         doReturn(null).when(databaseDslFilter).lepFiltering(any(), any(), any());
 
@@ -170,7 +176,7 @@ public class DatabaseSourceInterceptorUnitTest {
             Map.of(TYPE_KEY_FIELD, TYPE_KEY, NAME_FIELD, NAME_NEW, STATE_KEY_FIELD, STATE_NEW, KEY_FIELD, KEY, DESCRIPTION_FIELD, DESCRIPTION_NEW)
         );
 
-        verify(eventPublisher).publish(DB.name(), expectedDbDomainEvent);
+        verify(eventPublisher).publish(DB.getCode(), expectedDbDomainEvent);
 
     }
 
@@ -181,7 +187,7 @@ public class DatabaseSourceInterceptorUnitTest {
         String config = readConfigFile("/dbSourceConfig.yml");
         DbSourceConfig sourceConfig = objectMapper.readValue(config, DbSourceConfig.class);
 
-        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(DB.getCode());
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(TENANT_KEY, DB.getCode());
         doReturn(null).when(databaseFilter).lepFiltering(any(), any(), any());
         doReturn(true).when(databaseDslFilter).lepFiltering(any(), any(), any());
 
@@ -202,7 +208,7 @@ public class DatabaseSourceInterceptorUnitTest {
             Map.of(TYPE_KEY_FIELD, TYPE_KEY, NAME_FIELD, NAME_NEW, STATE_KEY_FIELD, STATE_NEW, KEY_FIELD, KEY, DESCRIPTION_FIELD, DESCRIPTION_NEW)
         );
 
-        verify(eventPublisher).publish(DB.name(), expectedDbDomainEvent);
+        verify(eventPublisher).publish(DB.getCode(), expectedDbDomainEvent);
 
     }
 
@@ -213,7 +219,7 @@ public class DatabaseSourceInterceptorUnitTest {
         String config = readConfigFile("/dbSourceConfigEmptyEntityName.yml");
         DbSourceConfig sourceConfig = objectMapper.readValue(config, DbSourceConfig.class);
 
-        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(DB.getCode());
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(TENANT_KEY, DB.getCode());
         doReturn(null).when(databaseFilter).lepFiltering(any(), any(), any());
         doReturn(null).when(databaseDslFilter).lepFiltering(any(), any(), any());
         doReturn(new MetamodelMock()).when(entityManager).getMetamodel();
@@ -235,7 +241,7 @@ public class DatabaseSourceInterceptorUnitTest {
             Map.of(TYPE_KEY_FIELD, TYPE_KEY, NAME_FIELD, NAME_NEW, STATE_KEY_FIELD, STATE_NEW, KEY_FIELD, KEY, DESCRIPTION_FIELD, DESCRIPTION_NEW)
         );
 
-        verify(eventPublisher).publish(DB.name(), expectedDbDomainEvent);
+        verify(eventPublisher).publish(DB.getCode(), expectedDbDomainEvent);
 
     }
 
@@ -246,7 +252,7 @@ public class DatabaseSourceInterceptorUnitTest {
         String config = readConfigFile("/dbSourceConfig.yml");
         DbSourceConfig sourceConfig = objectMapper.readValue(config, DbSourceConfig.class);
 
-        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(DB.getCode());
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(TENANT_KEY, DB.getCode());
         doReturn(null).when(databaseFilter).lepFiltering(any(), any(), any());
         doReturn(null).when(databaseDslFilter).lepFiltering(any(), any(), any());
 
@@ -267,7 +273,7 @@ public class DatabaseSourceInterceptorUnitTest {
             Map.of(TYPE_KEY_FIELD, TYPE_KEY, NAME_FIELD, NAME_NEW, STATE_KEY_FIELD, STATE_NEW, KEY_FIELD, KEY, DESCRIPTION_FIELD, DESCRIPTION_NEW)
         );
 
-        verify(eventPublisher).publish(DB.name(), expectedDbDomainEvent);
+        verify(eventPublisher).publish(DB.getCode(), expectedDbDomainEvent);
 
     }
 
@@ -277,7 +283,7 @@ public class DatabaseSourceInterceptorUnitTest {
         String config = readConfigFile("/dbSourceConfig.yml");
         DbSourceConfig sourceConfig = objectMapper.readValue(config, DbSourceConfig.class);
 
-        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(DB.getCode());
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(TENANT_KEY, DB.getCode());
         doReturn(null).when(databaseFilter).lepFiltering(any(), any(), any());
         doReturn(null).when(databaseDslFilter).lepFiltering(any(), any(), any());
 
@@ -297,7 +303,7 @@ public class DatabaseSourceInterceptorUnitTest {
             Map.of(TYPE_KEY_FIELD, TYPE_KEY, NAME_FIELD, NAME_NEW, STATE_KEY_FIELD, STATE_NEW, KEY_FIELD, KEY, DESCRIPTION_FIELD, DESCRIPTION_NEW)
         );
 
-        verify(eventPublisher).publish(DB.name(), expectedDbDomainEvent);
+        verify(eventPublisher).publish(DB.getCode(), expectedDbDomainEvent);
     }
 
     @Test
@@ -306,7 +312,7 @@ public class DatabaseSourceInterceptorUnitTest {
         String config = readConfigFile("/dbSourceConfig.yml");
         DbSourceConfig sourceConfig = objectMapper.readValue(config, DbSourceConfig.class);
 
-        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(DB.getCode());
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(TENANT_KEY, DB.getCode());
         doReturn(null).when(databaseFilter).lepFiltering(any(), any(), any());
         doReturn(null).when(databaseDslFilter).lepFiltering(any(), any(), any());
 
@@ -326,7 +332,7 @@ public class DatabaseSourceInterceptorUnitTest {
             null
         );
 
-        verify(eventPublisher).publish(DB.name(), expectedDbDomainEvent);
+        verify(eventPublisher).publish(DB.getCode(), expectedDbDomainEvent);
 
     }
 
