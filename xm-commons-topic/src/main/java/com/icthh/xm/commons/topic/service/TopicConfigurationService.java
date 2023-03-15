@@ -10,6 +10,7 @@ import com.icthh.xm.commons.topic.message.MessageHandler;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -36,16 +37,20 @@ public class TopicConfigurationService implements RefreshableConfiguration, Dyna
 
     private final MessageHandler messageHandler;
 
-    private final DynamicConsumerConfigurationService dynamicConsumerConfigurationService;
+    private DynamicConsumerConfigurationService dynamicConsumerConfigurationService;
 
     private Map<String, List<DynamicConsumer>> tenantTopicConsumers = new ConcurrentHashMap<>();
 
     public TopicConfigurationService(@Value("${spring.application.name}") String appName,
-                                     @Lazy DynamicConsumerConfigurationService dynamicConsumerConfigurationService,
                                      MessageHandler messageHandler) {
         this.configPath = "/config/tenants/{tenant}/" + appName + "/topic-consumers.yml";
-        this.dynamicConsumerConfigurationService = dynamicConsumerConfigurationService;
         this.messageHandler = messageHandler;
+    }
+
+    @Lazy
+    @Autowired
+    public void setDynamicConsumerConfigurationService(DynamicConsumerConfigurationService dynamicConsumerConfigurationService) {
+        this.dynamicConsumerConfigurationService = dynamicConsumerConfigurationService;
     }
 
     @Override

@@ -259,7 +259,8 @@ public class MessageListenerIntTest {
             sleuthWrapper);
         DynamicConsumerConfigurationService dynamicConsumerConfigurationService =
             new DynamicConsumerConfigurationService(dynamicConsumerConfigurationList, topicManagerService, tenantListRepository);
-        TopicConfigurationService topicConfigurationService = new TopicConfigurationService(APP_NAME, dynamicConsumerConfigurationService, messageHandler);
+        TopicConfigurationService topicConfigurationService = new TopicConfigurationService(APP_NAME, messageHandler);
+        topicConfigurationService.setDynamicConsumerConfigurationService(dynamicConsumerConfigurationService);
         dynamicConsumerConfigurationList.add(topicConfigurationService);
 
         return topicConfigurationService;

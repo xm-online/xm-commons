@@ -44,7 +44,9 @@ public class TopicConfigurationServiceUnitTest {
 
     @Before
     public void setUp() {
-        topicConfigurationService = spy(new TopicConfigurationService(APP_NAME, dynamicConsumerConfigurationService, messageHandler));
+        TopicConfigurationService service = new TopicConfigurationService(APP_NAME, messageHandler);
+        service.setDynamicConsumerConfigurationService(dynamicConsumerConfigurationService);
+        topicConfigurationService = spy(service);
     }
 
     @Test
