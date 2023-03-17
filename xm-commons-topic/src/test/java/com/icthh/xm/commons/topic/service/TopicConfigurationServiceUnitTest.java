@@ -3,9 +3,9 @@ package com.icthh.xm.commons.topic.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.topic.domain.DynamicConsumer;
-import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.domain.TopicConsumersSpec;
 import com.icthh.xm.commons.topic.message.MessageHandler;
+import com.icthh.xm.commons.topic.service.dto.RefreshDynamicConsumersEvent;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.nio.charset.Charset;
 import java.util.List;
@@ -20,12 +21,9 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TopicConfigurationServiceUnitTest {
@@ -38,13 +36,13 @@ public class TopicConfigurationServiceUnitTest {
     private TopicConfigurationService topicConfigurationService;
 
     @Mock
-    private DynamicConsumerConfigurationService dynamicConsumerConfigurationService;
-    @Mock
     private MessageHandler messageHandler;
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @Before
     public void setUp() {
-        topicConfigurationService = spy(new TopicConfigurationService(APP_NAME, dynamicConsumerConfigurationService, messageHandler));
+        topicConfigurationService = spy(new TopicConfigurationService(APP_NAME, applicationEventPublisher, messageHandler));
     }
 
     @Test
@@ -58,8 +56,7 @@ public class TopicConfigurationServiceUnitTest {
         List<DynamicConsumer> dynamicConsumers = topicConsumers.get(TENANT_KEY);
         dynamicConsumers.forEach(dynamicConsumer -> assertTrue(topicConsumerSpec.getTopics().stream().anyMatch(topicConfig -> topicConfig.getKey().equals(dynamicConsumer.getConfig().getKey()))));
 
-        verify(dynamicConsumerConfigurationService).refreshDynamicConsumers(eq(TENANT_KEY));
-        verifyNoMoreInteractions(dynamicConsumerConfigurationService);
+        verify(applicationEventPublisher, times(1)).publishEvent(new RefreshDynamicConsumersEvent(topicConfigurationService, TENANT_KEY));
     }
 
     @Test
@@ -70,8 +67,7 @@ public class TopicConfigurationServiceUnitTest {
         Map<String, List<DynamicConsumer>> topicConsumers = topicConfigurationService.getTenantTopicConsumers();
         assertTrue(topicConsumers.isEmpty());
 
-        verify(dynamicConsumerConfigurationService, times(2)).refreshDynamicConsumers(eq(TENANT_KEY));
-        verifyNoMoreInteractions(dynamicConsumerConfigurationService);
+        verify(applicationEventPublisher, times(2)).publishEvent(new RefreshDynamicConsumersEvent(topicConfigurationService, TENANT_KEY));
     }
 
     @Test
@@ -83,8 +79,7 @@ public class TopicConfigurationServiceUnitTest {
 
         assertEquals(sizeBeforeRefresh, topicConsumers.size());
 
-        verify(dynamicConsumerConfigurationService).refreshDynamicConsumers(eq(TENANT_KEY));
-        verifyNoMoreInteractions(dynamicConsumerConfigurationService);
+        verify(applicationEventPublisher, times(1)).publishEvent(new RefreshDynamicConsumersEvent(topicConfigurationService, TENANT_KEY));
     }
 
     @SneakyThrows

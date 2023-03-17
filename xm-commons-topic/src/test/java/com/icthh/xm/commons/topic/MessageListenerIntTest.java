@@ -1,30 +1,14 @@
 package com.icthh.xm.commons.topic;
 
-import static java.lang.Thread.sleep;
-import static java.nio.charset.Charset.defaultCharset;
-import static java.util.Collections.singleton;
-import static org.apache.kafka.clients.producer.ProducerConfig.RETRIES_CONFIG;
-import static org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_CONFIG;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.after;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.springframework.kafka.test.utils.KafkaTestUtils.consumerProps;
-import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
-
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.logging.trace.SleuthWrapper;
+import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
-import com.icthh.xm.commons.topic.service.DynamicConsumerConfiguration;
 import com.icthh.xm.commons.topic.service.DynamicConsumerConfigurationService;
 import com.icthh.xm.commons.topic.service.TopicConfigurationService;
 import com.icthh.xm.commons.topic.service.TopicManagerService;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -37,27 +21,47 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.Message;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static java.lang.Thread.sleep;
+import static java.nio.charset.Charset.defaultCharset;
+import static java.util.Collections.singleton;
+import static org.apache.kafka.clients.producer.ProducerConfig.RETRIES_CONFIG;
+import static org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_CONFIG;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.after;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.springframework.kafka.test.utils.KafkaTestUtils.consumerProps;
+import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
 
 @Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
-                classes = {KafkaAutoConfiguration.class})
+    classes = {KafkaAutoConfiguration.class})
 @EmbeddedKafka(topics = "kafka-queue", partitions = 1, controlledShutdown = true,
     brokerProperties = {
     "log.dir=out/embedded-kafka",
@@ -65,6 +69,7 @@ import java.util.Map;
     "offsets.topic.replication.facto=1",
     "transaction.state.log.min.isr=1"
     })
+@ContextConfiguration(classes = MessageListenerIntTest.TestBeanConfiguration.class)
 public class MessageListenerIntTest {
 
     private static final String TOPIC = "kafka-test-queue";
@@ -83,21 +88,17 @@ public class MessageListenerIntTest {
     @Autowired
     private KafkaProperties kafkaProperties;
 
-    @Mock
-    private TenantListRepository tenantListRepository;
-
+    @Autowired
     private SleuthWrapper sleuthWrapper;
 
+    @Autowired
     private MessageHandler messageHandler;
 
-    private List<DynamicConsumerConfiguration> dynamicConsumerConfigurationList;
-
+    @Autowired
+    private TopicConfigurationService topicConfigurationService;
 
     @Before
     public void before() {
-        messageHandler = mock(MessageHandler.class);
-        sleuthWrapper = mock(SleuthWrapper.class);
-        dynamicConsumerConfigurationList = new ArrayList<>();
         mockSleuth();
     }
 
@@ -119,14 +120,13 @@ public class MessageListenerIntTest {
         initConsumers();
 
         DefaultKafkaProducerFactory<String, String> kafkaProducerFactory = new DefaultKafkaProducerFactory<>(
-              producerProps(kafkaEmbedded),
-              new StringSerializer(),
-              new StringSerializer());
+            producerProps(kafkaEmbedded),
+            new StringSerializer(),
+            new StringSerializer());
 
         Producer<String, String> producer = kafkaProducerFactory.createProducer();
         kafkaProperties.getProperties().put("max.poll.interval.ms", "1000");
 
-        TopicConfigurationService topicConfigurationService = createTopicConfigurationService(new KafkaTemplate<>(kafkaProducerFactory));
         topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(CONFIG));
         log.info("TRYFIXTEST Thread.sleep(50);");
         Thread.sleep(50); // for rebalance cluster, and avoid message will be consumed by other consumer
@@ -150,9 +150,9 @@ public class MessageListenerIntTest {
         log.info("TRYFIXTEST producer.flush();");
 
         verify(messageHandler, timeout(2000).atLeast(3))
-              .onMessage(eq(TEST_MESSAGE), eq(TENANT_KEY), any());
+            .onMessage(eq(TEST_MESSAGE), eq(TENANT_KEY), any());
         verify(messageHandler, after(2000).times(3))
-              .onMessage(eq(TEST_MESSAGE), eq(TENANT_KEY), any());
+            .onMessage(eq(TEST_MESSAGE), eq(TENANT_KEY), any());
         verifyNoMoreInteractions(messageHandler);
 
         producer.close();
@@ -170,7 +170,6 @@ public class MessageListenerIntTest {
     public void testConsumerReadUncommited() {
         initConsumers();
 
-        TopicConfigurationService topicConfigurationService = createTopicConfigurationService(null);
         topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(TX_CONFIG));
 
         Producer<String, String> producer = createTxProducer();
@@ -200,7 +199,6 @@ public class MessageListenerIntTest {
     public void testConsumerReadCommitted() {
         initConsumers();
 
-        TopicConfigurationService topicConfigurationService = createTopicConfigurationService(null);
         topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(TX_RC_CONFIG));
 
         Producer<String, String> producer = createTxProducer();
@@ -239,7 +237,6 @@ public class MessageListenerIntTest {
         consumer.close();
     }
 
-
     private Producer<String, String> createTxProducer() {
         Map<String, Object> producerProps = producerProps(kafkaEmbedded);
         producerProps.put(TRANSACTIONAL_ID_CONFIG, "txId" + System.currentTimeMillis());
@@ -253,15 +250,42 @@ public class MessageListenerIntTest {
         return kafkaProducerFactory.createProducer();
     }
 
-    private TopicConfigurationService createTopicConfigurationService(KafkaTemplate kafkaTemplate) {
-        TopicManagerService topicManagerService = new TopicManagerService(kafkaProperties,
-            kafkaTemplate,
-            sleuthWrapper);
-        DynamicConsumerConfigurationService dynamicConsumerConfigurationService =
-            new DynamicConsumerConfigurationService(dynamicConsumerConfigurationList, topicManagerService, tenantListRepository);
-        TopicConfigurationService topicConfigurationService = new TopicConfigurationService(APP_NAME, dynamicConsumerConfigurationService, messageHandler);
-        dynamicConsumerConfigurationList.add(topicConfigurationService);
+    @TestConfiguration
+    @RequiredArgsConstructor
+    static class TestBeanConfiguration {
 
-        return topicConfigurationService;
+        private final ApplicationEventPublisher applicationEventPublisher;
+        private final KafkaTemplate<String, String> kafkaTemplate;
+        private final KafkaProperties kafkaProperties;
+
+        @Bean
+        public TopicConfigurationService topicConfigurationService() {
+            return new TopicConfigurationService(APP_NAME, applicationEventPublisher, messageHandler());
+        }
+
+        @Bean
+        public DynamicConsumerConfigurationService dynamicConsumerConfigurationService() {
+            return new DynamicConsumerConfigurationService(List.of(topicConfigurationService()), topicManagerService(), mock(TenantListRepository.class));
+        }
+
+        @Bean
+        public TopicManagerService topicManagerService() {
+            return new TopicManagerService(kafkaProperties, kafkaTemplate, sleuthWrapper());
+        }
+
+        @Bean
+        public SleuthWrapper sleuthWrapper() {
+            return mock(SleuthWrapper.class);
+        }
+
+        @Bean
+        public MessageHandler messageHandler() {
+            return spy(new MessageHandler() { // don't use lamda!
+                @Override
+                public void onMessage(String message, String tenant, TopicConfig topicConfig) {
+                    log.info("Handle message = {}", message);
+                }
+            });
+        }
     }
 }
