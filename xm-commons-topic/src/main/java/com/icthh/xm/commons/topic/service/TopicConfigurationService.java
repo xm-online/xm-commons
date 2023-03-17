@@ -7,19 +7,19 @@ import com.icthh.xm.commons.topic.domain.DynamicConsumer;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.domain.TopicConsumersSpec;
 import com.icthh.xm.commons.topic.message.MessageHandler;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
-
+import com.icthh.xm.commons.topic.service.dto.RefreshDynamicConsumersEvent;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 
 @Slf4j
 @Component
@@ -34,15 +34,15 @@ public class TopicConfigurationService implements RefreshableConfiguration, Dyna
 
     private final MessageHandler messageHandler;
 
-    private final DynamicConsumerConfigurationService dynamicConsumerConfigurationService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     private Map<String, List<DynamicConsumer>> tenantTopicConsumers = new ConcurrentHashMap<>();
 
     public TopicConfigurationService(@Value("${spring.application.name}") String appName,
-                                     @Lazy DynamicConsumerConfigurationService dynamicConsumerConfigurationService,
-                                     MessageHandler messageHandler) {
+        ApplicationEventPublisher applicationEventPublisher,
+        MessageHandler messageHandler) {
         this.configPath = "/config/tenants/{tenant}/" + appName + "/topic-consumers.yml";
-        this.dynamicConsumerConfigurationService = dynamicConsumerConfigurationService;
+        this.applicationEventPublisher = applicationEventPublisher;
         this.messageHandler = messageHandler;
     }
 
@@ -78,13 +78,13 @@ public class TopicConfigurationService implements RefreshableConfiguration, Dyna
             readSpec(updatedKey, config).ifPresentOrElse(spec -> {
                 List<TopicConfig> forUpdate = spec.getTopics();
                 List<DynamicConsumer> dynamicConsumers = forUpdate.stream()
-                        .map(this::createDynamicConsumer)
-                        .collect(Collectors.toList());
+                    .map(this::createDynamicConsumer)
+                    .collect(Collectors.toList());
                 tenantTopicConsumers.put(tenantKey, dynamicConsumers);
             }, () -> log.warn("Skip processing of configuration: [{}]. Specification is null", updatedKey));
         }
 
-        dynamicConsumerConfigurationService.refreshDynamicConsumers(tenantKey);
+        applicationEventPublisher.publishEvent(new RefreshDynamicConsumersEvent(this, tenantKey));
     }
 
     private String extractTenant(final String updatedKey) {
