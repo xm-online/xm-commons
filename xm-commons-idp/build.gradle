@@ -7,13 +7,13 @@ dependencyManagement {
 }
 
 dependencies {
-    compile project(':xm-commons-config')
-    compile project(':xm-commons-tenant')
+    api project(':xm-commons-config')
+    api project(':xm-commons-tenant')
 
-    compile 'org.slf4j:slf4j-api'
-    compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
-    compile 'org.springframework:spring-context'
-    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
-    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-    compile 'com.fasterxml.jackson.core:jackson-databind'
+    api 'org.slf4j:slf4j-api'
+    api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+    api 'org.springframework:spring-context'
+    api 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    api 'com.fasterxml.jackson.core:jackson-databind'
 }

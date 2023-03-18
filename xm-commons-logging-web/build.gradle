@@ -6,12 +6,12 @@ dependencyManagement {
 }
 
 dependencies {
-    compile project(":xm-commons-logging")
+    api project(":xm-commons-logging")
 
-    compile("org.springframework.boot:spring-boot-starter-web") {
+    api("org.springframework.boot:spring-boot-starter-web") {
         exclude module: 'spring-boot-starter-tomcat'
     }
 
-    testCompile "junit:junit"
-    testCompile "org.mockito:mockito-core"
+    testImplementation "junit:junit"
+    testImplementation "org.mockito:mockito-core"
 }

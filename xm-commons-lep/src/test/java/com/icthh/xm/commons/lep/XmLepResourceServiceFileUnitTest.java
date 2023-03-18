@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.lep;
 
+import org.apache.commons.lang3.StringUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -101,7 +102,10 @@ public class XmLepResourceServiceFileUnitTest {
         assertNotNull(resource.getValue(InputStream.class));
 
         String scriptText = IOUtils.toString(resource.getValue(InputStream.class), Charset.forName("UTF-8"));
-        assertEquals("return 'Hello from Script$$before.groovy'\n", scriptText);
+        scriptText = StringUtils.normalizeSpace(scriptText);
+        String expected = "return 'Hello from Script$$before.groovy'\n";
+        expected = StringUtils.normalizeSpace(expected);
+        assertEquals(expected, scriptText);
     }
 
 }

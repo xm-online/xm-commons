@@ -7,12 +7,12 @@ dependencyManagement {
 }
 
 dependencies {
-    compile project(":xm-commons-tenant")
-    compile project(":xm-commons-topic")
-    compile 'com.fasterxml.jackson.core:jackson-databind'
-    compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+    api project(":xm-commons-tenant")
+    api project(":xm-commons-topic")
+    api 'com.fasterxml.jackson.core:jackson-databind'
+    api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
 
-    testCompile 'junit:junit'
-    testCompile 'org.mockito:mockito-core'
-    testCompile 'org.springframework:spring-test'
+    testImplementation 'junit:junit'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.springframework:spring-test'
 }

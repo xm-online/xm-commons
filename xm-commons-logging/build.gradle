@@ -7,22 +7,22 @@ dependencyManagement {
 
 dependencies {
 
-    compile "org.springframework:spring-context"
+    api "org.springframework:spring-context"
 
-    compile "org.slf4j:slf4j-api"
-    compile "ch.qos.logback:logback-classic"
-    compile "org.aspectj:aspectjweaver"
+    api "org.slf4j:slf4j-api"
+    api "ch.qos.logback:logback-classic"
+    api "org.aspectj:aspectjweaver"
 
-    compile 'org.springframework.boot:spring-boot-autoconfigure'
-    compile "commons-collections:commons-collections:${versions.commonsCollections}"
-    compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
-    compile "commons-codec:commons-codec:${versions.commonsCodec}"
-    compile ("net.logstash.logback:logstash-logback-encoder:${versions.logstashLogbackEncoder}") {
+    api 'org.springframework.boot:spring-boot-autoconfigure'
+    api "commons-collections:commons-collections:${versions.commonsCollections}"
+    api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+    api "commons-codec:commons-codec:${versions.commonsCodec}"
+    api ("net.logstash.logback:logstash-logback-encoder:${versions.logstashLogbackEncoder}") {
         exclude(group: 'ch.qos.logback')
     }
 
-    testCompile "junit:junit"
-    testCompile "org.mockito:mockito-core"
-    testCompile 'org.springframework:spring-test'
+    testImplementation "junit:junit"
+    testImplementation "org.mockito:mockito-core"
+    testImplementation 'org.springframework:spring-test'
 
 }
