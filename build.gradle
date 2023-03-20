@@ -3,6 +3,8 @@ buildscript {
     apply from: rootProject.file('gradle/lib-versions.gradle')
 
     repositories {
+        gradlePluginPortal()
+        google()
         mavenCentral()
     }
 
