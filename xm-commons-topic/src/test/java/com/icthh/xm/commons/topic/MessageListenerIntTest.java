@@ -5,6 +5,7 @@ import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.logging.trace.SleuthWrapper;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
+import com.icthh.xm.commons.topic.service.DynamicConsumerConfigurationRegistry;
 import com.icthh.xm.commons.topic.service.DynamicConsumerConfigurationService;
 import com.icthh.xm.commons.topic.service.TopicConfigurationService;
 import com.icthh.xm.commons.topic.service.TopicManagerService;
@@ -53,8 +54,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.springframework.kafka.test.utils.KafkaTestUtils.consumerProps;
 import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
 
@@ -208,13 +209,15 @@ public class MessageListenerIntTest {
         producer.flush();
 
         Thread.sleep(1000);
-        verifyZeroInteractions(messageHandler);
+        verifyNoInteractions(messageHandler);
+        //verifyZeroInteractions(messageHandler);
 
         producer.send(new ProducerRecord<>("kafka-tx-queue", "value2"));
         producer.flush();
 
         Thread.sleep(1000);
-        verifyZeroInteractions(messageHandler);
+        verifyNoInteractions(messageHandler);
+        //verifyZeroInteractions(messageHandler);
 
         producer.commitTransaction();
 
@@ -264,8 +267,12 @@ public class MessageListenerIntTest {
         }
 
         @Bean
+        public DynamicConsumerConfigurationRegistry dynamicConsumerConfigurationRegistry() {
+            return new DynamicConsumerConfigurationRegistry(List.of(topicConfigurationService()));
+        }
+        @Bean
         public DynamicConsumerConfigurationService dynamicConsumerConfigurationService() {
-            return new DynamicConsumerConfigurationService(List.of(topicConfigurationService()), topicManagerService(), mock(TenantListRepository.class));
+            return new DynamicConsumerConfigurationService(dynamicConsumerConfigurationRegistry(), topicManagerService(), mock(TenantListRepository.class));
         }
 
         @Bean

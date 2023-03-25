@@ -39,6 +39,8 @@ public class DynamicConsumerConfigurationServiceUnitTest {
     @Mock
     private TopicManagerService topicManagerService;
 
+    private DynamicConsumerConfigurationRegistry dynamicConsumerConfigurationRegistry;
+
     @Mock
     private MessageHandler messageHandler;
 
@@ -50,7 +52,8 @@ public class DynamicConsumerConfigurationServiceUnitTest {
 
     @Before
     public void setup() {
-        dynamicConsumerConfigurationService = new DynamicConsumerConfigurationService(singletonList(dynamicConsumerConfiguration), topicManagerService, tenantListRepository);
+        dynamicConsumerConfigurationRegistry = new DynamicConsumerConfigurationRegistry(singletonList(dynamicConsumerConfiguration));
+        dynamicConsumerConfigurationService = new DynamicConsumerConfigurationService(dynamicConsumerConfigurationRegistry, topicManagerService, tenantListRepository);
     }
 
     @Test

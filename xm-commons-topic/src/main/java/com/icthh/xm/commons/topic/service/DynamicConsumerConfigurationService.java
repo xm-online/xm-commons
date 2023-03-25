@@ -4,9 +4,10 @@ import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.topic.domain.DynamicConsumer;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.service.dto.RefreshDynamicConsumersEvent;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,15 +16,22 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class DynamicConsumerConfigurationService implements ApplicationListener<RefreshDynamicConsumersEvent> {
 
-    private final List<DynamicConsumerConfiguration> dynamicConsumerConfigurations;
+    private final DynamicConsumerConfigurationRegistry dynamicConsumerConfigurationRegistry;
     private final TopicManagerService topicManagerService;
     private final TenantListRepository tenantListRepository;
 
+    public DynamicConsumerConfigurationService(@Lazy DynamicConsumerConfigurationRegistry dynamicConsumerConfigurationRegistry,
+                                               @Autowired TopicManagerService topicManagerService,
+                                               @Autowired TenantListRepository tenantListRepository) {
+        this.dynamicConsumerConfigurationRegistry = dynamicConsumerConfigurationRegistry;
+        this.topicManagerService = topicManagerService;
+        this.tenantListRepository = tenantListRepository;
+    }
+
     public void startDynamicConsumers(String tenantKey) {
-        List<DynamicConsumer> dynamicConsumers = getDynamicConsumersByTenant(tenantKey);
+        List<DynamicConsumer> dynamicConsumers = dynamicConsumerConfigurationRegistry.getDynamicConsumersByTenant(tenantKey);
         dynamicConsumers.forEach(it -> topicManagerService.startNewConsumer(tenantKey, it.getConfig(), it.getMessageHandler()));
     }
 
@@ -33,7 +41,7 @@ public class DynamicConsumerConfigurationService implements ApplicationListener<
     }
 
     public void refreshDynamicConsumers(String tenantKey) {
-        List<DynamicConsumer> dynamicConsumers = getDynamicConsumersByTenant(tenantKey);
+        List<DynamicConsumer> dynamicConsumers = dynamicConsumerConfigurationRegistry.getDynamicConsumersByTenant(tenantKey);
 
         dynamicConsumers.forEach(it -> refreshConsumer(tenantKey, it));
 
@@ -45,12 +53,6 @@ public class DynamicConsumerConfigurationService implements ApplicationListener<
 
     public void stopDynamicConsumers(String tenantKey) {
         topicManagerService.stopAllTenantConsumers(tenantKey);
-    }
-
-    private List<DynamicConsumer> getDynamicConsumersByTenant(String tenantKey) {
-        return dynamicConsumerConfigurations.stream()
-            .flatMap(it -> it.getDynamicConsumers(tenantKey).stream())
-            .collect(Collectors.toList());
     }
 
     private void refreshConsumer(String tenantKey, DynamicConsumer updatedDynamicConsumer) {
