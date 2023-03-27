@@ -112,7 +112,7 @@ public class TimelineInterceptor extends HandlerInterceptorAdapter {
         }
 
         String responseBody = getResponseContent(response);
-        String typeKey = findField(responseBody, TYPE_KEY, PREFIXES);
+        Object typeKey = findField(responseBody, TYPE_KEY, PREFIXES);
 
         return ignoredTypeKeys.contains(typeKey);
     }
