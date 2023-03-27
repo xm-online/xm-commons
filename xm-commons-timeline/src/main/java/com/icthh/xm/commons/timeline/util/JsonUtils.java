@@ -11,7 +11,7 @@ import java.util.List;
 @UtilityClass
 public class JsonUtils {
 
-    public static String findField(String entity, String field, List<String> prefixes) {
+    public static Object findField(String entity, String field, List<String> prefixes) {
         if (CollectionUtils.isEmpty(prefixes)) {
             return "";
         }
