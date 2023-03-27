@@ -1,7 +1,5 @@
 package com.icthh.xm.commons.timeline;
 
-import static java.util.Arrays.asList;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.timeline.domain.ApiMaskConfig;
@@ -16,9 +14,9 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
-import org.springframework.web.util.ContentCachingRequestWrapper;
-import org.springframework.web.util.ContentCachingResponseWrapper;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -27,14 +25,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
+
+import static com.icthh.xm.commons.timeline.util.JsonUtils.findField;
+import static com.icthh.xm.commons.timeline.util.HttpUtils.getRequestContent;
+import static com.icthh.xm.commons.timeline.util.HttpUtils.getResponseContent;
+import static java.util.Arrays.asList;
 
 @Slf4j
 @Component
 public class TimelineEventProducer {
+
+    private static final List<String> PREFIXES = asList("$.", "$.xmEntity.", "$.data.");
 
     private final KafkaTemplate<Integer, String> template;
     private final ObjectMapper mapper = new ObjectMapper();
@@ -88,9 +89,9 @@ public class TimelineEventProducer {
             data.put("responseHeaders", getResponseHeaders(response));
             data.put("httpStatusCode", response.getStatus());
             data.put("channelType", "HTTP");
-            data.put("entityId", getEntityField(responseBody, "id"));
-            data.put("entityKey", getEntityField(responseBody, "key"));
-            data.put("entityTypeKey", getEntityField(responseBody, "typeKey"));
+            data.put("entityId", findField(responseBody, "id", PREFIXES));
+            data.put("entityKey", findField(responseBody, "key", PREFIXES));
+            data.put("entityTypeKey", findField(responseBody, "typeKey", PREFIXES));
             data.put("execTime", MdcUtils.getExecTimeMs());
 
             return mapper.writeValueAsString(data);
@@ -117,32 +118,6 @@ public class TimelineEventProducer {
             log.error("Error send timeline event", e);
             throw e;
         }
-    }
-
-    private static String getRequestContent(HttpServletRequest request) {
-        if (request instanceof ContentCachingRequestWrapper) {
-            return new String(((ContentCachingRequestWrapper) request).getContentAsByteArray());
-        }
-        if (request instanceof HttpServletRequestWrapper
-            && ((HttpServletRequestWrapper) request).getRequest() instanceof ContentCachingRequestWrapper) {
-            return new String(((ContentCachingRequestWrapper) ((HttpServletRequestWrapper) request)
-                .getRequest()).getContentAsByteArray());
-        }
-        log.warn("Empty request content because of unsupported request class {}", request.getClass());
-        return "";
-    }
-
-    private static String getResponseContent(HttpServletResponse response) {
-        if (response instanceof ContentCachingResponseWrapper) {
-            return new String(((ContentCachingResponseWrapper) response).getContentAsByteArray());
-        }
-        if (response instanceof HttpServletResponseWrapper
-            && ((HttpServletResponseWrapper) response).getResponse() instanceof ContentCachingResponseWrapper) {
-            return new String(((ContentCachingResponseWrapper) ((HttpServletResponseWrapper) response)
-                .getResponse()).getContentAsByteArray());
-        }
-        log.warn("Empty response content because of unsupported response class {}", response.getClass());
-        return "";
     }
 
     private static Map<String, Object> getRequestHeaders(HttpServletRequest request) {
@@ -184,20 +159,6 @@ public class TimelineEventProducer {
         }
         headers.remove("set-cookie");
         return headers;
-    }
-
-    private static Object getEntityField(String entity, String field) {
-        List<String> prefixes = asList("$.", "$.xmEntity.", "$.data.");
-
-        for (String prefix: prefixes) {
-            try {
-                return JsonPath.read(entity, prefix + field);
-            } catch (Exception ex) {
-                log.trace("JsonPath exception", ex);
-            }
-        }
-
-        return "";
     }
 
     private static String getOperation(String method) {

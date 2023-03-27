@@ -7,6 +7,7 @@ public final class ErrorConstants {
     public static final String ERR_UNAUTHORIZED = "unauthorized";
     public static final String ERR_VALIDATION = "error.validation";
     public static final String ERR_METHOD_NOT_SUPPORTED = "error.methodNotSupported";
+    public static final String ERR_MESSAGE_NOT_READABLE = "error.messageNotReadable";
     public static final String ERR_INTERNAL_SERVER_ERROR = "error.internalServerError";
     public static final String ERR_BUSINESS = "error.business";
     public static final String ERR_BUSINESS_IDEXISTS = "error.business.idexists";
