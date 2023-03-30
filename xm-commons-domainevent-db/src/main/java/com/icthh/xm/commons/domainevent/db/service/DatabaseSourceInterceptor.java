@@ -90,6 +90,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
 
             if (isIntercepted(tableName, sourceConfig, context)) {
                 DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
+                log.trace("DomainEvent before publish: {}", dbDomainEvent);
                 eventPublisher.publish(DB.name(), dbDomainEvent);
             }
         }
@@ -149,15 +150,11 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
         Map<String, State> propertyNameToStates = new LinkedHashMap<>();
 
         for (int i = 0; i < propertyNames.length; i++) {
-            Object previousStateValue = previousState != null ? mapNullAsString(previousState[i]) : null;
-            Object currentStateValue = currentState != null ? mapNullAsString(currentState[i]) : null;
+            Object previousStateValue = previousState != null ? previousState[i] : null;
+            Object currentStateValue = currentState != null ? currentState[i] : null;
             propertyNameToStates.put(propertyNames[i], new State(previousStateValue, currentStateValue));
         }
         return propertyNameToStates;
-    }
-
-    private Object mapNullAsString(Object value) {
-        return value != null ? value : "null"; // if we need to check NULL propertyValue
     }
 
     /**
