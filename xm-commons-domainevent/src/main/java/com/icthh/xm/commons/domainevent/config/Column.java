@@ -3,6 +3,7 @@ package com.icthh.xm.commons.domainevent.config;
 import groovy.transform.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.List;
 import java.util.Objects;
@@ -11,6 +12,7 @@ import java.util.regex.Pattern;
 @Getter
 @Setter
 @EqualsAndHashCode
+@ToString
 public class Column {
 
     private List<String> in;
@@ -20,6 +22,10 @@ public class Column {
     private String match;
 
     public boolean match(String value) {
+
+        if (value == null) {
+            value = "null";
+        }
 
         if (Objects.nonNull(in)) {
             return in.contains(value);
