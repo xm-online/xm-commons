@@ -3,7 +3,8 @@ package com.icthh.xm.commons.topic.service;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.topic.domain.DynamicConsumer;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,11 +12,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class DynamicConsumerConfigurationService {
     private final List<DynamicConsumerConfiguration> dynamicConsumerConfigurations;
     private final TopicManagerService topicManagerService;
     private final TenantListRepository tenantListRepository;
+
+    public DynamicConsumerConfigurationService(@Lazy List<DynamicConsumerConfiguration> dynamicConsumerConfigurations,
+                                               @Autowired TopicManagerService topicManagerService,
+                                               @Autowired TenantListRepository tenantListRepository) {
+        this.dynamicConsumerConfigurations = dynamicConsumerConfigurations;
+        this.topicManagerService = topicManagerService;
+        this.tenantListRepository = tenantListRepository;
+    }
 
     public void startDynamicConsumers(String tenantKey) {
         List<DynamicConsumer> dynamicConsumers = getDynamicConsumersByTenant(tenantKey);
