@@ -1,0 +1,9 @@
+package TEST.testApp.lep.commons
+
+class AnotherLepService {
+
+    AnotherLepService(def lepContext) {
+
+    }
+
+}

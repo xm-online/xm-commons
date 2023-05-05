@@ -1,0 +1,6 @@
+package TEST.testApp.lep.service
+
+import TEST.testApp.lep.commons.TestLepServiceDependsOfAnotherLepService
+
+def testService = lepContext.lepServices.getInstance(TestLepServiceDependsOfAnotherLepService.class)
+return testService.anotherLepService.getClass().getName()

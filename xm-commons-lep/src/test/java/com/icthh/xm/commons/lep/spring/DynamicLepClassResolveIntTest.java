@@ -247,6 +247,29 @@ public class DynamicLepClassResolveIntTest {
         assertEquals("New_argument", result);
     }
 
+    @Test
+    @SneakyThrows
+    public void testLepWithAnotherLepDependencies() {
+        TenantContextUtils.setTenant(tenantContextHolder, "TEST");
+        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
+        // this sleep is needed because groovy has debounce time to lep update
+        Thread.sleep(100);
+
+        String testClassDeclarationPath1 = "/config/tenants/TEST/testApp/lep/commons/AnotherLepService$$tenant.groovy";
+        String testClassBody1 = loadFile("lep/AnotherLepService");
+        refreshLep(testClassDeclarationPath1, testClassBody1);
+        String testClassDeclarationPath = "/config/tenants/TEST/testApp/lep/commons/TestLepServiceDependsOfAnotherLepService$$tenant.groovy";
+        String testClassBody = loadFile("lep/TestLepServiceDependsOfAnotherLepService");
+        refreshLep(testClassDeclarationPath, testClassBody);
+
+        refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
+            loadFile("lep/TestLepWithAnotherLepMethod")
+        );
+
+        String result = testLepService.testLepMethod();
+        assertEquals("TEST.testApp.lep.commons.AnotherLepService", result);
+    }
+
     @SneakyThrows
     public static String loadFile(String path) {
         try (InputStream cfgInputStream = new ClassPathResource(path).getInputStream()) {
