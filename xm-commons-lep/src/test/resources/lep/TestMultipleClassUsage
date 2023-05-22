@@ -1,0 +1,6 @@
+import ${package}.TestAlphaClass${suffix}
+import ${package}.TestOmegaClass${suffix}
+
+String alpha = new TestAlphaClass${suffix}().getNameOfClass()
+String omega = new TestOmegaClass${suffix}().getNameOfClass()
+return alpha + omega

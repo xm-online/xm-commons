@@ -119,6 +119,32 @@ public class DynamicLepClassResolveIntTest {
 
     @Test
     @SneakyThrows
+    public void testInnerClassesResolving() {
+        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
+        // this sleep is needed because groovy has debounce time to lep update
+        Thread.sleep(100);
+
+        String suffix = "InnerClassesTest";
+        String packageName = "TEST.testApp.lep.commons.folder";
+        String path = "TEST/testApp/lep/commons/folder";
+
+        refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
+            loadFile("lep/TestMultipleClassUsage")
+                .replace("${package}", packageName)
+                .replace("${suffix}", suffix)
+        );
+        String testClassDeclarationPath = "/config/tenants/" + path + "/TestMultipleClassDeclaration" + suffix + "$$tenant.groovy";
+        String testClassBody = loadFile("lep/TestMultipleClassDeclaration")
+            .replace("${package}", packageName)
+            .replace("${suffix}", suffix);
+        refreshLep(testClassDeclarationPath, testClassBody);
+
+        String result = testLepService.testLepMethod();
+        assertEquals("AlphaOmega", result);
+    }
+
+    @Test
+    @SneakyThrows
     public void testEnumInterfaceAnnotationResolving() {
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
         // this sleep is needed because groovy has debounce time to lep update

@@ -1,0 +1,23 @@
+package ${package}
+
+import static java.nio.charset.StandardCharsets.UTF_8 // for test resolving static import of variable
+
+
+abstract class TestMultipleClassDeclaration${suffix} {
+
+    abstract String getNameOfClass()
+}
+
+class TestAlphaClass${suffix} extends TestMultipleClassDeclaration${suffix} {
+
+    String getNameOfClass() {
+        return 'Alpha'
+    }
+}
+
+class TestOmegaClass${suffix} extends TestMultipleClassDeclaration${suffix} {
+
+    String getNameOfClass() {
+        return 'Omega'
+    }
+}
