@@ -11,13 +11,16 @@ import com.icthh.xm.lep.api.ContextScopes;
 import com.icthh.xm.lep.api.LepManager;
 import com.icthh.xm.lep.api.LepProcessingEvent;
 import com.icthh.xm.lep.api.ScopedContext;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.annotation.Order;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -34,6 +37,7 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
     private final XmLepScriptConfigServerResourceLoader resourceLoader;
     private final TenantContextHolder tenantContextHolder;
     private final LepManager lepManager;
+    private final Integer timeout;
 
     private final Map<String, Map<Class<?>, Object>> serviceInstances = new ConcurrentHashMap<>();
     private final Map<String, Map<Class<?>, Lock>> serviceLocks = new ConcurrentHashMap<>();
@@ -42,13 +46,17 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
 
     public LepServiceFactoryImpl(XmLepScriptConfigServerResourceLoader resourceLoader,
                                  TenantContextHolder tenantContextHolder,
-                                 LepManager lepManager) {
+                                 LepManager lepManager,
+                                 @Value("${application.lep.service-factory-timeout:60}")
+                                 Integer timeout) {
         this.resourceLoader = resourceLoader;
         this.tenantContextHolder = tenantContextHolder;
         this.lepManager = lepManager;
+        this.timeout = timeout;
     }
 
     @Override
+    @SneakyThrows
     public <T> T getInstance(Class<T> lepServiceClass) {
         String simpleClassName = lepServiceClass.getSimpleName();
 
@@ -61,7 +69,9 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
 
         Map<Class<?>, Lock> tenantServiceFactoryLocks = serviceLocks.computeIfAbsent(tenantKey, key -> new ConcurrentHashMap<>());
         Lock lock = tenantServiceFactoryLocks.computeIfAbsent(lepServiceClass, key -> new ReentrantLock());
-        lock.lock();
+        if (!lock.tryLock(timeout, TimeUnit.SECONDS)) {
+            throw new IllegalStateException(String.format("Timeout waiting service factory for service %s.", lepServiceClass.getCanonicalName()));
+        }
 
         instance = tenantInstances.get(lepServiceClass);
         if (instance != null) {
