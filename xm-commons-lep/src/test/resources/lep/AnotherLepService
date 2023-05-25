@@ -1,9 +1,11 @@
 package TEST.testApp.lep.commons
 
-class AnotherLepService {
+class #className# {
 
-    AnotherLepService(def lepContext) {
-
+    #className#(def lepContext) {
+        if (#count# < 18) {
+           lepContext.lepServices.getInstance(#dependsOn#.class)
+        }
     }
 
 }

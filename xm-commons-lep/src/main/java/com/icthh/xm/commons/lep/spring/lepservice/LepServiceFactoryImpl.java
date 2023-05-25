@@ -11,7 +11,6 @@ import com.icthh.xm.lep.api.ContextScopes;
 import com.icthh.xm.lep.api.LepManager;
 import com.icthh.xm.lep.api.LepProcessingEvent;
 import com.icthh.xm.lep.api.ScopedContext;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.annotation.Order;
@@ -19,6 +18,8 @@ import org.springframework.core.annotation.Order;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.springframework.core.Ordered.LOWEST_PRECEDENCE;
 
@@ -35,6 +36,7 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
     private final LepManager lepManager;
 
     private final Map<String, Map<Class<?>, Object>> serviceInstances = new ConcurrentHashMap<>();
+    private final Map<String, Map<Class<?>, Lock>> serviceLocks = new ConcurrentHashMap<>();
 
     private LepServiceFactoryImpl self;
 
@@ -52,9 +54,28 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
 
         String tenantKey = tenantContextHolder.getTenantKey();
         Map<Class<?>, Object> tenantInstances = serviceInstances.computeIfAbsent(tenantKey, key -> new ConcurrentHashMap<>());
-        return (T) tenantInstances.computeIfAbsent(lepServiceClass, key -> {
-            return self.createServiceByLepFactory(simpleClassName, lepServiceClass);
-        });
+        var instance = tenantInstances.get(lepServiceClass);
+        if (instance != null) {
+            return (T) instance;
+        }
+
+        Map<Class<?>, Lock> tenantServiceFactoryLocks = serviceLocks.computeIfAbsent(tenantKey, key -> new ConcurrentHashMap<>());
+        Lock lock = tenantServiceFactoryLocks.computeIfAbsent(lepServiceClass, key -> new ReentrantLock());
+        lock.lock();
+
+        instance = tenantInstances.get(lepServiceClass);
+        if (instance != null) {
+            return (T) instance;
+        }
+
+        try {
+            var newInstance = self.createServiceByLepFactory(simpleClassName, lepServiceClass);
+            tenantInstances.put(lepServiceClass, newInstance);
+            return newInstance;
+        } finally {
+            lock.unlock();
+            tenantServiceFactoryLocks.remove(lepServiceClass);
+        }
     }
 
     @LogicExtensionPoint(value = "ServiceFactory", resolver = LepServiceFactoryResolver.class)

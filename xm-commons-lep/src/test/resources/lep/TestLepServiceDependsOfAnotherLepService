@@ -2,10 +2,10 @@ package TEST.testApp.lep.commons
 
 class TestLepServiceDependsOfAnotherLepService {
 
-    final AnotherLepService anotherLepService
+    final AnotherLepService1 anotherLepService1
 
     TestLepServiceDependsOfAnotherLepService(def lepContext) {
-       this.anotherLepService = lepContext.lepServices.getInstance(AnotherLepService.class)
+       this.anotherLepService1 = lepContext.lepServices.getInstance(AnotherLepService1.class)
     }
 
 }

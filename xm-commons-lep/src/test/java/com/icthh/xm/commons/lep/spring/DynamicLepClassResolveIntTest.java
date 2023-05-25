@@ -255,9 +255,19 @@ public class DynamicLepClassResolveIntTest {
         // this sleep is needed because groovy has debounce time to lep update
         Thread.sleep(100);
 
-        String testClassDeclarationPath1 = "/config/tenants/TEST/testApp/lep/commons/AnotherLepService$$tenant.groovy";
-        String testClassBody1 = loadFile("lep/AnotherLepService");
+        // 18 - because default count of buckets in hashmap is 16, and on 18 two object will be in one bucket
+        // and in this case if we use recursive computeIfAbsent, that we get recursive update exception
+        for (int i = 0; i < 18; i++) {
+            loadService(i);
+        }
+
+        String testClassDeclarationPath1 = "/config/tenants/TEST/testApp/lep/commons/AnotherLepService18$$tenant.groovy";
+        String testClassBody1 = loadFile("lep/AnotherLepService")
+            .replace("#className#", "AnotherLepService18")
+            .replace("#count#", "18")
+            .replace("#dependsOn#", "AnotherLepService1");
         refreshLep(testClassDeclarationPath1, testClassBody1);
+
         String testClassDeclarationPath = "/config/tenants/TEST/testApp/lep/commons/TestLepServiceDependsOfAnotherLepService$$tenant.groovy";
         String testClassBody = loadFile("lep/TestLepServiceDependsOfAnotherLepService");
         refreshLep(testClassDeclarationPath, testClassBody);
@@ -267,7 +277,16 @@ public class DynamicLepClassResolveIntTest {
         );
 
         String result = testLepService.testLepMethod();
-        assertEquals("TEST.testApp.lep.commons.AnotherLepService", result);
+        assertEquals("TEST.testApp.lep.commons.AnotherLepService1", result);
+    }
+
+    private void loadService(int i) {
+        String testClassDeclarationPath1 = "/config/tenants/TEST/testApp/lep/commons/AnotherLepService" + i + "$$tenant.groovy";
+        String testClassBody1 = loadFile("lep/AnotherLepService")
+            .replace("#className#", "AnotherLepService" + i)
+            .replace("#count#", String.valueOf(i))
+            .replace("#dependsOn#", "AnotherLepService" + (i + 1));
+        refreshLep(testClassDeclarationPath1, testClassBody1);
     }
 
     @SneakyThrows

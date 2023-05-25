@@ -3,4 +3,4 @@ package TEST.testApp.lep.service
 import TEST.testApp.lep.commons.TestLepServiceDependsOfAnotherLepService
 
 def testService = lepContext.lepServices.getInstance(TestLepServiceDependsOfAnotherLepService.class)
-return testService.anotherLepService.getClass().getName()
+return testService.anotherLepService1.getClass().getName()
