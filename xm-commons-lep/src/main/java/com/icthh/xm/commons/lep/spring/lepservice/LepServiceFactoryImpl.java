@@ -12,6 +12,8 @@ import com.icthh.xm.lep.api.LepManager;
 import com.icthh.xm.lep.api.LepProcessingEvent;
 import com.icthh.xm.lep.api.ScopedContext;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
@@ -29,6 +31,7 @@ import static org.springframework.core.Ordered.LOWEST_PRECEDENCE;
 @LepService(group = "service.factory")
 @Order(LOWEST_PRECEDENCE)
 @IgnoreLogginAspect
+@Slf4j
 public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConfiguration,
         ApplicationListener<ApplicationLepProcessingEvent> {
 
@@ -69,9 +72,12 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
 
         Map<Class<?>, Lock> tenantServiceFactoryLocks = serviceLocks.computeIfAbsent(tenantKey, key -> new ConcurrentHashMap<>());
         Lock lock = tenantServiceFactoryLocks.computeIfAbsent(lepServiceClass, key -> new ReentrantLock());
+        log.trace("Try to acquired lock for service {}", lepServiceClass.getCanonicalName());
+        StopWatch stopWatch = StopWatch.createStarted();
         if (!lock.tryLock(timeout, TimeUnit.SECONDS)) {
             throw new IllegalStateException(String.format("Timeout waiting service factory for service %s.", lepServiceClass.getCanonicalName()));
         }
+        log.trace("Successfully acquired lock for service {} in {}ns", lepServiceClass.getSimpleName(), stopWatch.getNanoTime());
 
         instance = tenantInstances.get(lepServiceClass);
         if (instance != null) {
@@ -84,6 +90,7 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
             return newInstance;
         } finally {
             lock.unlock();
+            log.trace("Lock for service {} successfully released in {}ns", lepServiceClass.getSimpleName(), stopWatch.getNanoTime());
             tenantServiceFactoryLocks.remove(lepServiceClass);
         }
     }
