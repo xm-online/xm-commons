@@ -148,8 +148,3 @@ Desktop.ini
 ######################
 .eslintcache
 
-######################
-# <Missing libs>
-######################
-!/libs/propdeps-plugin-0.0.8-20170209.055811-2.jar
-
