@@ -2,15 +2,9 @@ buildscript {
     repositories {
         mavenCentral()
         gradlePluginPortal()
-        maven { url "https://repo.spring.io/plugins-release" }
-    }
-
-    dependencies {
-        classpath "org.springframework.build.gradle:propdeps-plugin:${versions.propdepsPlugin}"
     }
 }
 
-apply plugin: 'propdeps'
 apply plugin: 'io.spring.dependency-management'
 
 dependencyManagement {
@@ -20,9 +14,6 @@ dependencyManagement {
 }
 
 dependencies {
-    optional("org.springframework.boot:spring-boot-configuration-processor") {
-        exclude group: 'com.vaadin.external.google', module: 'android-json'
-    }
 
     compile project(":xm-commons-logging")
     compile project(":xm-commons-security")
