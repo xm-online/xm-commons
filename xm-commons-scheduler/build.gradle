@@ -4,12 +4,8 @@ buildscript {
         gradlePluginPortal()
     }
 
-    dependencies {
-        classpath fileTree(dir: '..\\libs', includes: ['*.jar'])
-    }
 }
 
-apply plugin: 'propdeps'
 apply plugin: 'io.spring.dependency-management'
 
 dependencyManagement {
