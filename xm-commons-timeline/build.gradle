@@ -3,13 +3,8 @@ buildscript {
         mavenCentral()
         gradlePluginPortal()
     }
-
-    dependencies {
-        classpath fileTree(dir: '..\\libs', includes: ['*.jar'])
-    }
 }
 
-apply plugin: 'propdeps'
 apply plugin: 'io.spring.dependency-management'
 
 dependencyManagement {
@@ -19,9 +14,6 @@ dependencyManagement {
 }
 
 dependencies {
-    optional("org.springframework.boot:spring-boot-configuration-processor") {
-        exclude group: 'com.vaadin.external.google', module: 'android-json'
-    }
 
     compile project(":xm-commons-logging")
     compile project(":xm-commons-security")
