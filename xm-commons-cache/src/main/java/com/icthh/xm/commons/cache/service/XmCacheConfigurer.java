@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.cache;
+package com.icthh.xm.commons.cache.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

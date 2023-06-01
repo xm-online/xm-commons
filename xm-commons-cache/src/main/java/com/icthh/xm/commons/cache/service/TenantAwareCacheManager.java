@@ -1,5 +1,6 @@
-package com.icthh.xm.commons.cache;
+package com.icthh.xm.commons.cache.service;
 
+import com.icthh.xm.commons.cache.TenantCacheManager;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -44,15 +45,17 @@ public class TenantAwareCacheManager implements TenantCacheManager {
             return List.of();
         }
 
-        currentTenant = currentTenant.toUpperCase();
-
         return getCacheNames(currentTenant);
     }
 
     @Override
     public void evictCaches() {
         String currentTenant = tenantContextHolder.getTenantKey();
-        getCacheNames(currentTenant).forEach(cacheName -> delegate.getCache(TenantCacheManager.buildKey(currentTenant, cacheName)).clear());
+        getCacheNames(currentTenant)
+            .forEach(cacheName -> delegate
+                .getCache(TenantCacheManager.buildKey(currentTenant, cacheName))
+                .clear()
+            );
     }
 
     private static boolean isTenantInvalid(final String tenant) {
@@ -60,7 +63,7 @@ public class TenantAwareCacheManager implements TenantCacheManager {
     }
 
     private Collection<String> getCacheNames(final String tenant) {
-        final String tenantWithDelimiter = tenant + TENANT_CACHE_DELIMITER;
+        final String tenantWithDelimiter = TenantCacheManager.buildPrefix(tenant);
         return delegate.getCacheNames().stream()
             .filter(cacheName -> cacheName.startsWith(tenantWithDelimiter))
             .map(cacheName -> cacheName.substring(tenantWithDelimiter.length()))

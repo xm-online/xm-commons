@@ -7,12 +7,16 @@ import java.util.Collection;
 
 public interface TenantCacheManager extends CacheManager {
 
-    static final String TENANT_CACHE_DELIMITER = "@";
+    String TENANT_CACHE_DELIMITER = "@";
 
     void evictCaches();
 
     static String buildKey(final String tenant, final String cacheName) {
         return tenant + TENANT_CACHE_DELIMITER + cacheName;
+    }
+
+    static String buildPrefix(final String tenant) {
+        return tenant + TENANT_CACHE_DELIMITER;
     }
 
 }

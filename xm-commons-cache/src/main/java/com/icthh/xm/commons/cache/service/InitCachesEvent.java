@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.cache;
+package com.icthh.xm.commons.cache.service;
 
 import com.icthh.xm.commons.cache.config.XmCacheConfig;
 import groovy.transform.Immutable;
