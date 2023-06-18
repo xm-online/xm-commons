@@ -1,0 +1,15 @@
+package ${package}
+
+import static java.nio.charset.StandardCharsets.UTF_8 // for test resolving static import of variable
+
+class TestClassDeclaration${suffix} {
+
+    String stringField = '1'
+
+    InnerStaticClass classField = new InnerStaticClass()
+
+    static class InnerStaticClass {
+            String hello = new String("${value}".getBytes(), UTF_8)
+    }
+
+}
