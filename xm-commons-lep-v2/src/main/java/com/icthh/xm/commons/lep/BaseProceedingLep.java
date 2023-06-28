@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.lep;
 
 
+import com.icthh.xm.commons.lep.api.LepBaseKey;
 import com.icthh.xm.lep.api.LepMethod;
 import com.icthh.xm.lep.api.MethodSignature;
 
@@ -18,11 +19,6 @@ public abstract class BaseProceedingLep implements ProceedingLep {
     }
 
     @Override
-    public Object getTarget() {
-        return lepMethod.getTarget();
-    }
-
-    @Override
     public MethodSignature getMethodSignature() {
         return lepMethod.getMethodSignature();
     }
@@ -32,4 +28,8 @@ public abstract class BaseProceedingLep implements ProceedingLep {
         return lepMethod.getMethodArgValues();
     }
 
+    @Override
+    public LepBaseKey getLepBaseKey() {
+        return lepMethod.getLepBaseKey();
+    }
 }

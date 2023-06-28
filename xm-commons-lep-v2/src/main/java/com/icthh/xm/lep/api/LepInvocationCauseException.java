@@ -3,7 +3,7 @@ package com.icthh.xm.lep.api;
 /**
  * The {@link LepInvocationCauseException} class.
  */
-public class LepInvocationCauseException extends Exception {
+public class LepInvocationCauseException extends RuntimeException {
 
     /**
      * Serial UID.

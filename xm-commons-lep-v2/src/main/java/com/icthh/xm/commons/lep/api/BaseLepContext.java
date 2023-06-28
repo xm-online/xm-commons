@@ -1,5 +1,6 @@
-package com.icthh.xm.commons.lep;
+package com.icthh.xm.commons.lep.api;
 
+import com.icthh.xm.commons.lep.BaseProceedingLep;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.tenant.TenantContext;
 
@@ -16,4 +17,7 @@ public abstract class BaseLepContext {
     public Object methodResult;
 
     //public LepServiceFactory lepServices;
+
+    // TODO implement ScopedContext
+
 }

@@ -1,7 +1,11 @@
 package com.icthh.xm.lep.api;
 
+import com.icthh.xm.commons.lep.api.LepBaseKey;
+
 public interface LepMethod {
 
+    // This method brakes encapsulation. Pls remove usage of this method from LEP scripts.
+    @Deprecated(forRemoval = true)
     Object getTarget();
 
     MethodSignature getMethodSignature();
@@ -16,5 +20,7 @@ public interface LepMethod {
         }
         return type.cast(getMethodArgValues()[parameterIndex]);
     }
+
+    LepBaseKey getLepBaseKey();
 
 }
