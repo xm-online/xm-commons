@@ -6,7 +6,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
-import java.util.Optional;
 
 import static org.apache.commons.lang3.StringUtils.isNoneBlank;
 
@@ -38,7 +37,7 @@ public class XmAuthentication extends AbstractAuthenticationToken {
 
     @Override
     public String getPrincipal() {
-        return isNoneBlank(details.getUserKey()) ? details.getUserKey() : details.getClientId();
+        return isNoneBlank(details.getUserName()) ? details.getUserName() : details.getClientId();
     }
 
     public boolean isClientOnly() {
