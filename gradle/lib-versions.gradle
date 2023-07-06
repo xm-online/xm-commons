@@ -28,8 +28,6 @@ ext.versions = [
     lombok                     : '1.18.24',
     logstashLogbackEncoder     : '7.2',
 
-    propdepsPlugin             : '0.0.7',
-
     swaggerCodegen             : '2.4.27',
     springfoxSwagger           : '3.0.0',
     reflections                : '0.10.2',
