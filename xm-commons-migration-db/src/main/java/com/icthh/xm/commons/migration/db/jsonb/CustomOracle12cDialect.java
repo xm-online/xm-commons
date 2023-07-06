@@ -4,9 +4,8 @@ import org.hibernate.dialect.Oracle12cDialect;
 import org.hibernate.dialect.function.SQLFunctionTemplate;
 import org.hibernate.type.StringType;
 
-public class CustomOracle12cDialect extends Oracle12cDialect {
+public class CustomOracle12cDialect extends Oracle12cDialect implements CustomDialect{
 
-    public static final String JSON_QUERY = "json_query";
     public static final String JSON_QUERY_TEMPLATE = "json_value(?1, ?2)";
 
     public CustomOracle12cDialect() {
