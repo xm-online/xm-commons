@@ -1,7 +1,7 @@
 import java.util.regex.Pattern
 
 
-version = "2.2.41oracleDialect"//detectSemVersion()
+version = "2.2.41oracleDialectCastJsonb"//detectSemVersion()
 logger.lifecycle("Project  version: $version")
 
 String detectSemVersion() {
