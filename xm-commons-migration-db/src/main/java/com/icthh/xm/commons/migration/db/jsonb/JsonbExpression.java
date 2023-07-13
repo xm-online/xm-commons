@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.migration.db.jsonb;
 
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -12,6 +13,7 @@ import static com.icthh.xm.commons.migration.db.jsonb.CustomPostgreSQL95Dialect.
 
 
 @Component
+@ConditionalOnExpression("'${spring.datasource.url}'.startsWith('jdbc:postgresql:')")
 public class JsonbExpression implements CustomExpression {
 
     @Override

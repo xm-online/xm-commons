@@ -2,6 +2,7 @@ package com.icthh.xm.commons.migration.db.jsonb;
 
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import org.apache.commons.lang3.NotImplementedException;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -11,6 +12,7 @@ import javax.persistence.criteria.Root;
 import static com.icthh.xm.commons.migration.db.jsonb.CustomDialect.JSON_QUERY;
 
 @Component
+@ConditionalOnExpression("'${spring.datasource.url}'.startsWith('jdbc:oracle:')")
 public class OracleExpression implements CustomExpression {
 
     @Override
