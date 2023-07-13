@@ -23,7 +23,7 @@ public class JsonbExpression implements CustomExpression {
 
     @Override
     public <T> Expression<T> jsonQuery(CriteriaBuilder cb, Root<?> root, String column, String jsonPath, Class<T> type) {
-        return cb.function(JSON_QUERY, type, root.get(column), cb.literal(jsonPath));
+        return cb.function(JSON_QUERY, type, root.get(column), new HibernateInlineExpression(cb, jsonPath));
     }
 
     @Override
