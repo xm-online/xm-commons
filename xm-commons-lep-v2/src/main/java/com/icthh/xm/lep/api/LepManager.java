@@ -4,7 +4,10 @@ import java.util.function.Consumer;
 
 /**
  * @deprecated
- * Just remove it.
+ * Use LepManagementService
+ * try (var context = lepManagementService.beginThreadContext()) {
+ *     // run lep`s
+ * }
  * Lep engine will get TenantContext from TenantContextHolder and XmAuthenticationContext from XmAuthenticationContextHolder
  * User PrivilegedTenantContext to set current tenant and SecurityContextHolder to set current auth context.
  * To create new Thread pls use LepThreadHelper

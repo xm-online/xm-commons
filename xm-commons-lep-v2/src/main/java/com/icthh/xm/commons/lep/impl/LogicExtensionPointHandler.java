@@ -2,9 +2,9 @@ package com.icthh.xm.commons.lep.impl;
 
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.TargetProceedingLep;
-import com.icthh.xm.commons.lep.api.LepEngineSession;
+import com.icthh.xm.commons.lep.api.LepManagementService;
+import com.icthh.xm.commons.lep.api.LepExecutor;
 import com.icthh.xm.commons.lep.api.LepEngine;
-import com.icthh.xm.commons.lep.api.LepEngineService;
 import com.icthh.xm.commons.lep.api.LepKey;
 import com.icthh.xm.commons.lep.spring.LepService;
 import com.icthh.xm.lep.api.LepInvocationCauseException;
@@ -32,9 +32,9 @@ public class LogicExtensionPointHandler {
 
     private final Map<MethodEqualsByReferenceWrapper, MethodSignature> methodsCache = new ConcurrentHashMap<>();
     private final Map<Class<? extends LepKeyResolver>, LepKeyResolver> resolvers;
-    private final LepEngineService lepEngineService;
+    private final LepManagementService lepEngineService;
 
-    public LogicExtensionPointHandler(List<LepKeyResolver> resolverList, LepEngineService lepEngineService) {
+    public LogicExtensionPointHandler(List<LepKeyResolver> resolverList, LepManagementService lepEngineService) {
         Map<Class<? extends LepKeyResolver>, LepKeyResolver> resolvers = new HashMap<>();
         resolverList.forEach(it -> resolvers.put(it.getClass(), it));
         this.resolvers = unmodifiableMap(resolvers);
@@ -55,12 +55,11 @@ public class LogicExtensionPointHandler {
             LepMethod lepMethod = new LepMethodImpl(target, methodSignature, args, baseLepKey);
             LepKey lepKey = resolveLepKey(lep, baseLepKey, lepMethod);
 
-            try(LepEngineSession lepEngine = this.lepEngineService.openLepEngineSession(lepKey)) {
-                return lepEngine
-                    .ifLepPresent(engine -> invokeLepMethod(engine, target, lepMethod, lepKey))
-                    .ifLepNotExists(() -> invokeOriginalMethod(target, lepMethod))
-                    .getMethodResult();
-            }
+            LepExecutor lepEngine = this.lepEngineService.getLepExecutor(lepKey);
+            return lepEngine
+                .ifLepPresent(engine -> invokeLepMethod(engine, target, lepMethod, lepKey))
+                .ifLepNotExists(() -> invokeOriginalMethod(target, lepMethod))
+                .getMethodResult();
 
         } catch (LepInvocationCauseException e) {
             log.debug("Error process lep", e);
@@ -79,6 +78,11 @@ public class LogicExtensionPointHandler {
         return result;
     }
 
+    @SneakyThrows
+    private Object invokeOriginalMethod(Object target, LepMethod lepMethod){
+        return lepMethod.getMethodSignature().getMethod().invoke(target, lepMethod.getMethodArgValues());
+    }
+
     private LepKey resolveLepKey(LogicExtensionPoint lep, LepKey baseLepKey, LepMethod lepMethod) {
         LepKeyResolver keyResolver = getResolver(lep);
         return new DefaultLepKey(
@@ -86,11 +90,6 @@ public class LogicExtensionPointHandler {
             baseLepKey.getBaseKey(),
             keyResolver.segments(lepMethod)
         );
-    }
-
-    @SneakyThrows
-    private Object invokeOriginalMethod(Object target, LepMethod lepMethod){
-        return lepMethod.getMethodSignature().getMethod().invoke(target, lepMethod.getMethodArgValues());
     }
 
     private LepKeyResolver getResolver(LogicExtensionPoint lep) {

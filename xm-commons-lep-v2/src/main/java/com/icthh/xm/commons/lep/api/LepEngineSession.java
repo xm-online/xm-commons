@@ -4,9 +4,7 @@ import java.io.Closeable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+@FunctionalInterface
 public interface LepEngineSession extends Closeable {
-    LepEngineSession ifLepPresent(Function<LepEngine, Object> executeLepMethod);
-    LepEngineSession ifLepNotExists(Supplier<Object> executeOriginalMethod);
-    Object getMethodResult();
-    boolean isSessionActive();
+
 }

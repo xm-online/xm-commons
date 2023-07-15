@@ -20,6 +20,7 @@ public abstract class BaseLepContext implements Cloneable {
     // TODO implement ScopedContext
 
     public void init() {
+
     }
 
     public final void baseInit() {

@@ -1,5 +1,6 @@
 package com.icthh.xm.lep.core;
 
+import com.icthh.xm.commons.lep.impl.internal.MigrationFromCoreContextsHolderLepManagementServiceReference;
 import com.icthh.xm.lep.api.ContextScopes;
 import com.icthh.xm.lep.api.ContextsHolder;
 import com.icthh.xm.lep.api.ScopedContext;
@@ -21,7 +22,8 @@ public class CoreContextsHolder implements ContextsHolder {
     private static volatile Map<String, ThreadLocal<ScopedContext>> contexts = new HashMap<>();
 
     static {
-        contexts.put(ContextScopes.THREAD, new ThreadLocal<>());
+        // TODO put thread local proxy that init and end context
+        contexts.put(ContextScopes.THREAD, new MigrationBridgeThreadLocalContext<>());
         contexts.put(ContextScopes.EXECUTION, new ThreadLocal<>());
     }
 
@@ -58,6 +60,22 @@ public class CoreContextsHolder implements ContextsHolder {
 
     public void endThreadContext() {
         endContext(ContextScopes.THREAD);
+    }
+
+    public static class MigrationBridgeThreadLocalContext<T> extends ThreadLocal<T> {
+        private final MigrationFromCoreContextsHolderLepManagementServiceReference serviceReference = new MigrationFromCoreContextsHolderLepManagementServiceReference();
+
+        @Override
+        public void set(T value) {
+            super.set(value);
+            serviceReference.getLepManagementServiceInstance().beginThreadContext();
+        }
+
+        @Override
+        public void remove() {
+            super.remove();
+            serviceReference.getLepManagementServiceInstance().endThreadContext();
+        }
     }
 
 }
