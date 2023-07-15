@@ -7,9 +7,6 @@ import com.icthh.xm.lep.api.MethodSignature;
 
 import java.util.Objects;
 
-/**
- * The {@link BaseProceedingLep} class.
- */
 public abstract class BaseProceedingLep implements ProceedingLep {
 
     private final LepMethod lepMethod;

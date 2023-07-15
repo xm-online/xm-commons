@@ -2,7 +2,9 @@ package com.icthh.xm.commons.lep.impl;
 
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.TargetProceedingLep;
+import com.icthh.xm.commons.lep.api.LepEngineSession;
 import com.icthh.xm.commons.lep.api.LepEngine;
+import com.icthh.xm.commons.lep.api.LepEngineService;
 import com.icthh.xm.commons.lep.api.LepKey;
 import com.icthh.xm.commons.lep.spring.LepService;
 import com.icthh.xm.lep.api.LepInvocationCauseException;
@@ -13,12 +15,10 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.icthh.xm.commons.lep.impl.MethodEqualsByReferenceWrapper.wrap;
@@ -45,7 +45,7 @@ public class LogicExtensionPointHandler {
     public Object handleLepMethod(Class<?> targetType, Object target, Method method, LogicExtensionPoint lep, Object[] args) {
         try {
             LepService typeLepService = targetType.getAnnotation(LepService.class);
-            requireNonNull(typeLepService, "No " + LepService.class.getSimpleName()
+            requireNonNull(typeLepService, () -> "No " + LepService.class.getSimpleName()
                 + " annotation for type " + targetType.getCanonicalName());
 
             String group = requireNonNullElse(lep.group(), typeLepService.group());
@@ -55,44 +55,47 @@ public class LogicExtensionPointHandler {
             LepMethod lepMethod = new LepMethodImpl(target, methodSignature, args, baseLepKey);
             LepKey lepKey = resolveLepKey(lep, baseLepKey, lepMethod);
 
-            Optional<LepEngine> lepEngine = this.lepEngineService.findLepEngineByLepKey(lepKey);
-            return lepEngine
-                .map(engine -> invokeLepMethod(lepEngine, target, lepMethod, lepKey))
-                .orElseGet(() -> invokeOriginalMethod(target, lepMethod));
+            try(LepEngineSession lepEngine = this.lepEngineService.openLepEngineSession(lepKey)) {
+                return lepEngine
+                    .ifLepPresent(engine -> invokeLepMethod(engine, target, lepMethod, lepKey))
+                    .ifLepNotExists(() -> invokeOriginalMethod(target, lepMethod))
+                    .getMethodResult();
+            }
 
         } catch (LepInvocationCauseException e) {
-            log.debug("Error process target", e);
+            log.debug("Error process lep", e);
             throw e.getCause();
         } catch (Exception e) {
+            log.debug("Error process lep", e);
             throw e;
         }
     }
 
     private Object invokeLepMethod(LepEngine lepEngine, Object target, LepMethod lepMethod, LepKey lepKey) {
+
         // runPreprocessors
-        // executeLep
-        lepEngine.invoke(new TargetProceedingLep(target, lepMethod, lepKey));
+        Object result = lepEngine.invoke(lepKey, new TargetProceedingLep(target, lepMethod, lepKey));
         // runPostprocessors
+        return result;
     }
 
     private LepKey resolveLepKey(LogicExtensionPoint lep, LepKey baseLepKey, LepMethod lepMethod) {
         LepKeyResolver keyResolver = getResolver(lep);
-        LepKey lepKey = new DefaultLepKey(
+        return new DefaultLepKey(
             keyResolver.group(lepMethod),
             baseLepKey.getBaseKey(),
             keyResolver.segments(lepMethod)
         );
-        return lepKey;
     }
 
     @SneakyThrows
-    private static Object invokeOriginalMethod(Object target, LepMethod lepMethod){
+    private Object invokeOriginalMethod(Object target, LepMethod lepMethod){
         return lepMethod.getMethodSignature().getMethod().invoke(target, lepMethod.getMethodArgValues());
     }
 
     private LepKeyResolver getResolver(LogicExtensionPoint lep) {
         LepKeyResolver lepKeyResolver = this.resolvers.get(lep.resolver());
-        requireNonNull(lepKeyResolver, "Lep key resolver " + lep.resolver().getCanonicalName() + " must be spring bean");
+        requireNonNull(lepKeyResolver, () -> "Lep key resolver " + lep.resolver().getCanonicalName() + " must be spring bean");
         return lepKeyResolver;
     }
 

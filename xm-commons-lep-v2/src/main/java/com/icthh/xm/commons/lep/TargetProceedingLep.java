@@ -4,7 +4,6 @@ import com.icthh.xm.commons.lep.api.LepKey;
 import com.icthh.xm.lep.api.LepMethod;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -15,7 +14,6 @@ import java.lang.reflect.Method;
 @Slf4j
 public class TargetProceedingLep extends BaseProceedingLep {
 
-    @Getter
     private final LepKey lepKey;
     @Getter
     private final Object target;
@@ -28,27 +26,11 @@ public class TargetProceedingLep extends BaseProceedingLep {
 
     @Override
     public Object proceed() throws Exception {
-        Class<?>[] parameterTypes = getMethodSignature().getParameterTypes();
-        if (!ArrayUtils.isEmpty(parameterTypes)) {
-            throw new IllegalStateException("Call proceed without parameters on method '"
-                                                + getMethodSignature().getName()
-                                                + "' with arguments for LEP resource key:"
-                                                + lepKey);
-        }
-
-        return invoke();
+        return invoke(getMethodArgValues());
     }
 
     @Override
     public Object proceed(Object[] args) throws Exception {
-        Class<?>[] parameterTypes = getMethodSignature().getParameterTypes();
-        if (ArrayUtils.isEmpty(parameterTypes)) {
-            throw new IllegalStateException("Call proceed with parameters on method '"
-                                                + getMethodSignature().getName()
-                                                + "' without arguments for LEP resource key: "
-                                                + lepKey);
-        }
-
         return invoke(args);
     }
 
