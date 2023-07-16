@@ -2,6 +2,7 @@ package com.icthh.xm.commons.lep.impl.engine;
 
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepExecutor;
+import com.icthh.xm.commons.lep.api.LepExecutorResolver;
 import com.icthh.xm.commons.lep.api.LepKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,7 @@ import static com.icthh.xm.commons.lep.impl.engine.TenantLepEngines.TenantLepEng
 
 @Slf4j
 @RequiredArgsConstructor
-class TenantLepEngines {
+class TenantLepEngines implements LepExecutorResolver {
 
     enum TenantLepEnginesStates {
         ACTIVE, DESTROYING, DESTROYED;
@@ -28,6 +29,7 @@ class TenantLepEngines {
     private final String tenant;
     private final List<LepEngine> lepEngines;
 
+    @Override
     public LepExecutor getLepExecutor(LepKey lepKey) {
         for (LepEngine lepEngine: lepEngines) {
             if (lepEngine.isExists(lepKey)) {
@@ -38,10 +40,12 @@ class TenantLepEngines {
         return new OriginalMethodLepExecutor();
     }
 
+    @Override
     public void acquireUsage() {
         this.countOfExecutions.incrementAndGet();
     }
 
+    @Override
     public void releaseUsage() {
         int executions = this.countOfExecutions.decrementAndGet();
         destroyTenantLepEngine(executions);

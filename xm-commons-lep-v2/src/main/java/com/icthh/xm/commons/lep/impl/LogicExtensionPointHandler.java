@@ -2,6 +2,7 @@ package com.icthh.xm.commons.lep.impl;
 
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.TargetProceedingLep;
+import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.api.LepExecutor;
 import com.icthh.xm.commons.lep.api.LepEngine;
@@ -33,12 +34,14 @@ public class LogicExtensionPointHandler {
     private final Map<MethodEqualsByReferenceWrapper, MethodSignature> methodsCache = new ConcurrentHashMap<>();
     private final Map<Class<? extends LepKeyResolver>, LepKeyResolver> resolvers;
     private final LepManagementService lepEngineService;
+    private final LepContextService lepContextService;
 
-    public LogicExtensionPointHandler(List<LepKeyResolver> resolverList, LepManagementService lepEngineService) {
+    public LogicExtensionPointHandler(List<LepKeyResolver> resolverList, LepManagementService lepEngineService, LepContextService lepContextService) {
         Map<Class<? extends LepKeyResolver>, LepKeyResolver> resolvers = new HashMap<>();
         resolverList.forEach(it -> resolvers.put(it.getClass(), it));
         this.resolvers = unmodifiableMap(resolvers);
         this.lepEngineService = lepEngineService;
+        this.lepContextService = lepContextService;
     }
 
     @SneakyThrows
@@ -71,10 +74,11 @@ public class LogicExtensionPointHandler {
     }
 
     private Object invokeLepMethod(LepEngine lepEngine, Object target, LepMethod lepMethod, LepKey lepKey) {
-
-        // runPreprocessors
-        Object result = lepEngine.invoke(lepKey, new TargetProceedingLep(target, lepMethod, lepKey));
-        // runPostprocessors
+        // TODO start logs
+        TargetProceedingLep targetProceedingLep = new TargetProceedingLep(target, lepMethod, lepKey);
+        BaseLepContext lepContext = lepContextService.createLepContext(targetProceedingLep);
+        Object result = lepEngine.invoke(lepKey, targetProceedingLep, lepContext);
+        // TODO end logs
         return result;
     }
 

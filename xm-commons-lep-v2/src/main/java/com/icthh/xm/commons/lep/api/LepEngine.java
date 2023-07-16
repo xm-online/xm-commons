@@ -8,5 +8,5 @@ public abstract class LepEngine {
         return 0;
     }
     public abstract boolean isExists(LepKey lepKey);
-    public abstract Object invoke(LepKey lepKey, ProceedingLep lepMethod);
+    public abstract Object invoke(LepKey lepKey, ProceedingLep lepMethod, BaseLepContext lepContext);
 }

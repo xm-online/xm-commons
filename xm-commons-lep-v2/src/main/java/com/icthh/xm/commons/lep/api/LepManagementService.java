@@ -7,7 +7,10 @@ public interface LepManagementService {
     boolean isLepEnginesInited();
     void refreshEngines(List<String> tenants, Map<String, String> configInLepFolder);
     LepExecutor getLepExecutor(LepKey lepKey);
+
     LepEngineSession beginThreadContext();
+    LepEngineSession beginThreadContext(LepExecutorResolver tenantLepEngines);
+    LepExecutorResolver getCurrentLepExecutorResolver();
 
     /**
      * @deprecated it`s temporary method for migration period
@@ -15,4 +18,6 @@ public interface LepManagementService {
      */
     @Deprecated(forRemoval = true)
     void endThreadContext();
+
+
 }

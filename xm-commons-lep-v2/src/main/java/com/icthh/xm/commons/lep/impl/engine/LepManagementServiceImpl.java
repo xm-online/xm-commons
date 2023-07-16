@@ -3,9 +3,10 @@ package com.icthh.xm.commons.lep.impl.engine;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepEngineFactory;
 import com.icthh.xm.commons.lep.api.LepEngineSession;
-import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.api.LepExecutor;
+import com.icthh.xm.commons.lep.api.LepExecutorResolver;
 import com.icthh.xm.commons.lep.api.LepKey;
+import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
@@ -26,7 +27,7 @@ public class LepManagementServiceImpl implements LepManagementService {
 
     private final AtomicBoolean isLepConfigInited = new AtomicBoolean(false);
     private final LepEnginesManager lepEnginesManager = new LepEnginesManager();
-    private final ThreadLocal<TenantLepEngines> tenantLepEnginesThreadContext = new ThreadLocal<>();
+    private final ThreadLocal<LepExecutorResolver> tenantLepEnginesThreadContext = new ThreadLocal<>();
 
     private final List<LepEngineFactory> engineFactories;
     private final TenantContextHolder tenantContextHolder;
@@ -66,27 +67,41 @@ public class LepManagementServiceImpl implements LepManagementService {
     public LepExecutor getLepExecutor(LepKey lepKey) {
         assertLepConfigInited();
         assertLepEngineInited();
-        TenantLepEngines tenantLepEngines = getCurrentTenantLepEngines();
+        LepExecutorResolver tenantLepEngines = getCurrentLepExecutorResolver();
         return tenantLepEngines.getLepExecutor(lepKey);
+    }
+
+
+    @Override
+    public LepEngineSession beginThreadContext(LepExecutorResolver tenantLepEngines) {
+        assertLepConfigInited();
+        tenantLepEnginesThreadContext.set(tenantLepEngines);
+        return beginThreadContext();
     }
 
     @Override
     public LepEngineSession beginThreadContext() {
         assertLepConfigInited();
-        String tenant = getTenantKeyFromThreadContext();
-        TenantLepEngines tenantLepEngine = lepEnginesManager.acquireTenantLeapEngine(tenant);
-        tenantLepEnginesThreadContext.set(tenantLepEngine);
+        LepExecutorResolver tenantLepEngines = tenantLepEnginesThreadContext.get();
+        if (tenantLepEngines == null) {
+            String tenant = getTenantKeyFromThreadContext();
+            tenantLepEngines = lepEnginesManager.acquireTenantLeapEngine(tenant);
+            tenantLepEnginesThreadContext.set(tenantLepEngines);
+        } else {
+            tenantLepEngines.acquireUsage();
+        }
         return this::endThreadContext;
     }
 
     @Override
     public void endThreadContext() {
-        TenantLepEngines tenantLepEngines = tenantLepEnginesThreadContext.get();
+        LepExecutorResolver tenantLepEngines = tenantLepEnginesThreadContext.get();
         tenantLepEngines.releaseUsage();
         tenantLepEnginesThreadContext.remove();
     }
 
-    private TenantLepEngines getCurrentTenantLepEngines() {
+    @Override
+    public LepExecutorResolver getCurrentLepExecutorResolver() {
         return tenantLepEnginesThreadContext.get();
     }
 
