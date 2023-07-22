@@ -65,20 +65,20 @@ public class LogicExtensionPointHandler {
                 .getMethodResult();
 
         } catch (LepInvocationCauseException e) {
-            log.debug("Error process lep", e);
+            log.error("Error process lep", e);
             throw e.getCause();
-        } catch (Exception e) {
-            log.debug("Error process lep", e);
+        } catch (Throwable e) { // Throwable to catch groovy errors
+            log.error("Error process lep", e);
             throw e;
         }
     }
 
     private Object invokeLepMethod(LepEngine lepEngine, Object target, LepMethod lepMethod, LepKey lepKey) {
-        // TODO start logs
+        // TODO start logs see LoggingConfigService
         TargetProceedingLep targetProceedingLep = new TargetProceedingLep(target, lepMethod, lepKey);
         BaseLepContext lepContext = lepContextService.createLepContext(targetProceedingLep);
         Object result = lepEngine.invoke(lepKey, targetProceedingLep, lepContext);
-        // TODO end logs
+        // TODO end logs see LoggingConfigService
         return result;
     }
 

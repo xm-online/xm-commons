@@ -3,16 +3,20 @@ package com.icthh.xm.commons.lep.spring.lepservice;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
-import com.icthh.xm.commons.lep.api.LepAdditionalContext;
-import com.icthh.xm.commons.lep.api.LepAdditionalContextField;
+import com.icthh.xm.commons.lep.spring.ApplicationLepProcessingEvent;
 import com.icthh.xm.commons.lep.spring.LepService;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
+import com.icthh.xm.lep.api.ContextScopes;
+import com.icthh.xm.lep.api.LepManager;
+import com.icthh.xm.lep.api.LepProcessingEvent;
+import com.icthh.xm.lep.api.ScopedContext;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationListener;
 import org.springframework.core.annotation.Order;
 
 import java.util.Collection;
@@ -22,17 +26,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryField.LEP_SERVICES;
 import static org.springframework.core.Ordered.LOWEST_PRECEDENCE;
 
 @LepService(group = "service.factory")
 @Order(LOWEST_PRECEDENCE)
 @IgnoreLogginAspect
 @Slf4j
-public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConfiguration, LepAdditionalContext<LepServiceFactory> {
+public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConfiguration,
+        ApplicationListener<ApplicationLepProcessingEvent> {
+
+    private static final String LEP_SERVICES = "lepServices";
 
     private final XmLepScriptConfigServerResourceLoader resourceLoader;
     private final TenantContextHolder tenantContextHolder;
+    private final LepManager lepManager;
     private final Integer timeout;
 
     private final Map<String, Map<Class<?>, Object>> serviceInstances = new ConcurrentHashMap<>();
@@ -42,10 +49,12 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
 
     public LepServiceFactoryImpl(XmLepScriptConfigServerResourceLoader resourceLoader,
                                  TenantContextHolder tenantContextHolder,
+                                 LepManager lepManager,
                                  @Value("${application.lep.service-factory-timeout:60}")
                                  Integer timeout) {
         this.resourceLoader = resourceLoader;
         this.tenantContextHolder = tenantContextHolder;
+        this.lepManager = lepManager;
         this.timeout = timeout;
     }
 
@@ -98,6 +107,14 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
     }
 
     @Override
+    public void onApplicationEvent(ApplicationLepProcessingEvent event) {
+        if (event.getLepProcessingEvent() instanceof LepProcessingEvent.BeforeExecutionEvent) {
+            ScopedContext context = lepManager.getContext(ContextScopes.EXECUTION);
+            context.setValue(LEP_SERVICES, this);
+        }
+    }
+
+    @Override
     public void refreshFinished(Collection<String> paths) {
         serviceInstances.clear();
     }
@@ -115,20 +132,5 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
     @Autowired
     public void setSelf(LepServiceFactoryImpl self) {
         this.self = self;
-    }
-
-    @Override
-    public String additionalContextKey() {
-        return LEP_SERVICES;
-    }
-
-    @Override
-    public LepServiceFactory additionalContextValue() {
-        return this;
-    }
-
-    @Override
-    public Class<? extends LepAdditionalContextField> fieldAccessorInterface() {
-        return LepServiceFactoryField.class;
     }
 }

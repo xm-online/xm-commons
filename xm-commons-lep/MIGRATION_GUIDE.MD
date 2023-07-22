@@ -1,0 +1,121 @@
+## Migration to new version of LEP
+### Replace commons and add groovy commons
+TDB example
+### Migrate resolvers
+
+_Simple example:_
+Old version:
+```java
+@Component
+public class ChangeStateTransitionLepKeyResolver extends AppendLepKeyResolver {
+
+    @Override
+    protected String[] getAppendSegments(SeparatorSegmentedLepKey baseKey,
+                                         LepMethod method,
+                                         LepManagerService managerService) {
+        String translatedXmEntityTypeKey = translateToLepConvention(getRequiredStrParam(method, "xmEntityTypeKey"));
+        String translatedPrevStateKey = translateToLepConvention(getRequiredStrParam(method, "prevStateKey"));
+        String translatedNextStateKey = translateToLepConvention(getRequiredStrParam(method, "nextStateKey"));
+
+        return new String[] {
+            translatedXmEntityTypeKey,
+            translatedPrevStateKey,
+            translatedNextStateKey
+        };
+    }
+
+}
+```
+New version
+```java
+@Component
+public class CommonsLepResolver implements LepKeyResolver {
+
+    @Override
+    public List<String> segments(LepMethod method) {
+        return List.of(
+                method.getParameter("xmEntityTypeKey", String.class),
+                method.getParameter("prevStateKey", String.class),
+                method.getParameter("nextStateKey", String.class)
+        );
+    }
+}
+```
+
+_Advanced example:_
+
+Old version
+```java
+@Component
+public class CommonsLepResolver extends SeparatorSegmentedLepKeyResolver {
+    @Override
+    protected LepKey resolveKey(SeparatorSegmentedLepKey inBaseKey, LepMethod method, LepManagerService managerService) {
+        String group = getRequiredParam(method, "group", String.class) + ".Commons";
+        String name = getRequiredParam(method, "name", String.class);
+        SeparatorSegmentedLepKey baseKey = new SeparatorSegmentedLepKey(group, XmLepConstants.EXTENSION_KEY_SEPARATOR, XmLepConstants.EXTENSION_KEY_GROUP_MODE);
+        GroupMode groupMode = new GroupMode.Builder().prefixAndIdIncludeGroup(baseKey.getGroupSegmentsSize()).build();
+        return baseKey.append(name, groupMode);
+    }
+}
+```
+New version
+```java
+@Component
+public class CommonsLepResolver implements LepKeyResolver {
+
+    @Override
+    public String group(LepMethod method) {
+        return method.getParameter("group", String.class);
+    }
+
+    @Override
+    public List<String> segments(LepMethod method) {
+        return List.of(method.getParameter("name", String.class));
+    }
+}
+```
+
+### Migrate interfaces annotated `@LepService` with methods annotated `@LogicExtensionPoint` to classes.
+
+### Replace init destroy lep context
+Old version:
+```
+...
+    lepManager.beginThreadContext(threadContext -> {
+        threadContext.setValue(THREAD_CONTEXT_KEY_TENANT_CONTEXT, tenantContextHolder.getContext());
+        threadContext.setValue(THREAD_CONTEXT_KEY_AUTH_CONTEXT, authContextHolder.getContext());
+    });
+
+    // run lep methods
+
+    lepManager.endThreadContext();
+...
+```
+
+New version:
+
+Use `LepManagementService`
+```
+ try (var context = lepManagementService.beginThreadContext()) {
+      // run lep methods
+ }
+```
+
+### Remove usage of CoreContextsHolder in LEPs. For create new thread use LepThreadHelper.
+```groovy
+lepContext.thread.runInThread(executor) {
+    // you task
+}
+```
+#### For migration period class CoreContextsHolder supported, but deprecated for removal.
+
+
+### For create lepContext you need to extend BaseLepContext and implement LepContextFactory
+#### Class MUST have name LepContext
+
+TBD example
+
+###
+
+
+

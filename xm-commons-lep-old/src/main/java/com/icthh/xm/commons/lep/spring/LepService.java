@@ -29,14 +29,12 @@ public @interface LepService {
      * @return the suggested component name, if any
      */
     @AliasFor("name")
-    @Deprecated(forRemoval = true)
     String value() default "";
 
     /**
      * The service id with optional protocol prefix. Synonym for {@link #value() value}.
      */
     @AliasFor("value")
-    @Deprecated(forRemoval = true)
     String name() default "";
 
     /**
@@ -54,19 +52,16 @@ public @interface LepService {
      *
      * @return true for explicitly LEP methods annotation
      */
-    @Deprecated(forRemoval = true)
     boolean explicitMethods() default true;
 
     /**
      * Sets the {@code @Qualifier} value for the Lep service.
      */
-    @Deprecated(forRemoval = true)
     String qualifier() default "";
 
     /**
      * Whether to mark the LepService as a primary bean. Defaults to false.
      */
-    @Deprecated(forRemoval = true)
     boolean primary() default false;
 
 }

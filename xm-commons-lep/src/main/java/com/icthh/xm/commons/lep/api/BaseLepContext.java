@@ -21,11 +21,11 @@ public abstract class BaseLepContext implements LepServiceFactoryField {
 
     private Map<String, Object> additionalContext;
 
-    public Object get(String additionalContextKey) {
+    public final Object get(String additionalContextKey) {
         return additionalContext.get(additionalContextKey);
     }
 
-    public void addAdditionalContext(String additionalContextKey, Object additionalContextValue) {
+    public final void addAdditionalContext(String additionalContextKey, Object additionalContextValue) {
         additionalContext.put(additionalContextKey, additionalContextValue);
     }
 

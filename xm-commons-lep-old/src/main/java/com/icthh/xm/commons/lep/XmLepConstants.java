@@ -1,6 +1,45 @@
 package com.icthh.xm.commons.lep;
 
+import com.icthh.xm.lep.api.Version;
+import com.icthh.xm.lep.api.commons.GroupMode;
+import com.icthh.xm.lep.api.commons.GroupMode.Builder;
+import com.icthh.xm.lep.api.commons.SeparatorSegmentedLepKey;
+
+/**
+ * The {@link XmLepConstants} class.
+ */
 public final class XmLepConstants {
+
+    /**
+     * URL delimiter constant.
+     */
+    public static final String URL_DELIMITER = "/";
+
+    /**
+     * URL net path constant.
+     */
+    public static final String URL_NET_PATH_DELIMITER = "//";
+
+    /**
+     * LEP key separator.
+     */
+    public static final String EXTENSION_KEY_SEPARATOR = ".";
+
+    /**
+     * LEP key separator regular expression.
+     */
+    public static final String EXTENSION_KEY_SEPARATOR_REGEXP = "\\.";
+
+    /**
+     * Group mode for {@link SeparatorSegmentedLepKey}.
+     */
+    public static final GroupMode EXTENSION_KEY_GROUP_MODE = new Builder().prefixExcludeLastSegmentsAndIdIncludeGroup(1)
+        .build();
+
+    /**
+     * LEP resource version for unused value.
+     */
+    public static final Version UNUSED_RESOURCE_VERSION = null;
 
     /**
      * Thread context variable name for tenant context.

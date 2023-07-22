@@ -1,17 +1,16 @@
 package com.icthh.xm.commons.lep.spring.lepservice;
 
-import com.icthh.xm.commons.lep.AppendLepKeyResolver;
-import com.icthh.xm.lep.api.LepManagerService;
+import com.icthh.xm.lep.api.LepKeyResolver;
 import com.icthh.xm.lep.api.LepMethod;
-import com.icthh.xm.lep.api.commons.SeparatorSegmentedLepKey;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
-public class LepServiceFactoryResolver extends AppendLepKeyResolver {
+public class LepServiceFactoryResolver implements LepKeyResolver {
 
     @Override
-    protected String[] getAppendSegments(SeparatorSegmentedLepKey baseKey, LepMethod method, LepManagerService managerService) {
-        String translatedFuncKey = translateToLepConvention(getRequiredStrParam(method, "serviceClassName"));
-        return new String[]{translatedFuncKey};
+    public List<String> segments(LepMethod method) {
+        return List.of(method.getParameter("serviceClassName", String.class));
     }
 }

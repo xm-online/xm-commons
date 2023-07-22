@@ -34,6 +34,6 @@ public @interface LogicExtensionPoint {
      *
      * @return LEP key resolver implementation class
      */
-    Class<? extends LepKeyResolver> resolver() default DefaultLepKeyResolver.class;
+    Class<? extends LepKeyResolver> resolver() default LepKeyResolver.class;
 
 }
