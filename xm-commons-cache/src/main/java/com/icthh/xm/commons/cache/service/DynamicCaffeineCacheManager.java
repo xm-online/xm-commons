@@ -4,7 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Ticker;
 import com.icthh.xm.commons.cache.TenantCacheManager;
-import com.icthh.xm.commons.cache.config.XmCacheConfig;
+import com.icthh.xm.commons.cache.config.XmTenantLepCacheConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -20,7 +20,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.icthh.xm.commons.cache.config.XmCacheConfig.CACHE_DEFAULTS;
+import static com.icthh.xm.commons.cache.config.XmTenantLepCacheConfig.CACHE_DEFAULTS;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -35,7 +35,7 @@ public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements
     public void onApplicationEvent(InitCachesEvent event) {
         final String tenantName = event.getTenantKey().toUpperCase();
 
-        List<Pair<String, XmCacheConfig.XmCacheConfiguration>> cacheConfigurationList =
+        List<Pair<String, XmTenantLepCacheConfig.XmCacheConfiguration>> cacheConfigurationList =
             event.getCacheList().stream()
                 .map(cfg -> Pair.of(TenantCacheManager.buildKey(tenantName,cfg.getCacheName()), cfg))
                 .collect(Collectors.toList());
@@ -50,7 +50,7 @@ public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements
                 this.cacheCfgMap.entrySet().removeIf(entry -> entry.getKey().startsWith(cachePrefix));
 
                 //add suppliers for cache builders
-                for (Pair<String, XmCacheConfig.XmCacheConfiguration> pair: cacheConfigurationList) {
+                for (Pair<String, XmTenantLepCacheConfig.XmCacheConfiguration> pair: cacheConfigurationList) {
                     this.cacheCfgMap.put(pair.getKey(), () -> buildSpec(pair.getValue()));
                 }
             }
@@ -94,7 +94,7 @@ public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements
         return cache;
     }
 
-    private Caffeine buildSpec(XmCacheConfig.XmCacheConfiguration cacheConfiguration) {
+    private Caffeine buildSpec(XmTenantLepCacheConfig.XmCacheConfiguration cacheConfiguration) {
         Caffeine c = Caffeine.newBuilder().ticker(ticker);
 
         setMaxSize(c, cacheConfiguration);
@@ -109,28 +109,28 @@ public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements
         return c;
     }
 
-    private void setMaxSize(Caffeine cache, XmCacheConfig.XmCacheConfiguration cacheConfiguration) {
+    private void setMaxSize(Caffeine cache, XmTenantLepCacheConfig.XmCacheConfiguration cacheConfiguration) {
         Integer maxItems = cacheConfiguration.getMaximumSize();
         if (!CACHE_DEFAULTS.equals(maxItems)) {
             cache.maximumSize(maxItems);
         }
     }
 
-    private void setMaxWeight(Caffeine cache, XmCacheConfig.XmCacheConfiguration cacheConfiguration) {
+    private void setMaxWeight(Caffeine cache, XmTenantLepCacheConfig.XmCacheConfiguration cacheConfiguration) {
         Integer maxWeight = cacheConfiguration.getMaximumWeight();
         if (!CACHE_DEFAULTS.equals(maxWeight)) {
             cache.maximumWeight(maxWeight);
         }
     }
 
-    private void setExpireAfterWrite(Caffeine cache, XmCacheConfig.XmCacheConfiguration cacheConfiguration) {
+    private void setExpireAfterWrite(Caffeine cache, XmTenantLepCacheConfig.XmCacheConfiguration cacheConfiguration) {
         Integer ttlSeconds = cacheConfiguration.getExpireAfterWrite();
         if (!CACHE_DEFAULTS.equals(ttlSeconds)) {
             cache.expireAfterWrite(ttlSeconds, TimeUnit.SECONDS);
         }
     }
 
-    private void setExpireAfterAccess(Caffeine cache, XmCacheConfig.XmCacheConfiguration cacheConfiguration) {
+    private void setExpireAfterAccess(Caffeine cache, XmTenantLepCacheConfig.XmCacheConfiguration cacheConfiguration) {
         Integer ttlSeconds = cacheConfiguration.getExpireAfterAccess();
         if (!CACHE_DEFAULTS.equals(ttlSeconds)) {
             cache.expireAfterAccess(ttlSeconds, TimeUnit.SECONDS);

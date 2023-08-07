@@ -3,7 +3,7 @@ package com.icthh.xm.commons.cache.service;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Ticker;
 import com.icthh.xm.commons.cache.TenantCacheManager;
-import com.icthh.xm.commons.cache.config.XmCacheConfig;
+import com.icthh.xm.commons.cache.config.XmTenantLepCacheConfig;
 import org.junit.Test;
 
 import java.util.List;
@@ -24,7 +24,7 @@ public class DynamicCaffeineCacheManagerUnitTest {
     @Test
     public void getNewCache() {
         dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker());
-        XmCacheConfig.XmCacheConfiguration c = CacheUtilityClass.buildCfg("tcache");
+        XmTenantLepCacheConfig.XmCacheConfiguration c = CacheUtilityClass.buildCfg("tcache");
         InitCachesEvent e = new InitCachesEvent(this, "test", List.of(c));
         dynamicCaffeineCacheManager.onApplicationEvent(e);
         org.springframework.cache.Cache cache = dynamicCaffeineCacheManager.getCache(TenantCacheManager.buildKey("TEST", "tcache"));
@@ -34,7 +34,7 @@ public class DynamicCaffeineCacheManagerUnitTest {
     @Test
     public void getExistingCache() {
         dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker());
-        XmCacheConfig.XmCacheConfiguration c = CacheUtilityClass.buildCfg("tcache");
+        XmTenantLepCacheConfig.XmCacheConfiguration c = CacheUtilityClass.buildCfg("tcache");
         InitCachesEvent e = new InitCachesEvent(this, "test", List.of(c));
         dynamicCaffeineCacheManager.onApplicationEvent(e);
         org.springframework.cache.Cache cache1 = dynamicCaffeineCacheManager.getCache(TenantCacheManager.buildKey("TEST", "tcache"));
@@ -53,7 +53,7 @@ public class DynamicCaffeineCacheManagerUnitTest {
     public void createCacheObject() {
         dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker());
 
-        XmCacheConfig.XmCacheConfiguration c = CacheUtilityClass.buildCfg("tcache");
+        XmTenantLepCacheConfig.XmCacheConfiguration c = CacheUtilityClass.buildCfg("tcache");
 
         InitCachesEvent e = new InitCachesEvent(this, "test", List.of(c));
         dynamicCaffeineCacheManager.onApplicationEvent(e);

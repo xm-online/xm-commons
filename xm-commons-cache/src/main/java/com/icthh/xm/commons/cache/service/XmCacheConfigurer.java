@@ -3,7 +3,7 @@ package com.icthh.xm.commons.cache.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.icthh.xm.commons.cache.config.XmCacheConfig;
+import com.icthh.xm.commons.cache.config.XmTenantLepCacheConfig;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -48,15 +48,15 @@ public class XmCacheConfigurer implements RefreshableConfiguration {
             return;
         }
         String tenantKey = extractTenant(updatedKey);
-        List<XmCacheConfig.XmCacheConfiguration> items = readConfig(updatedKey, config);
+        List<XmTenantLepCacheConfig.XmCacheConfiguration> items = readConfig(updatedKey, config);
         InitCachesEvent event = new InitCachesEvent(this, tenantKey, items);
         applicationEventPublisher.publishEvent(event);
     }
 
-    protected List<XmCacheConfig.XmCacheConfiguration> readConfig(String updatedKey, String config) {
-        List<XmCacheConfig.XmCacheConfiguration> cfg = List.of();
+    protected List<XmTenantLepCacheConfig.XmCacheConfiguration> readConfig(String updatedKey, String config) {
+        List<XmTenantLepCacheConfig.XmCacheConfiguration> cfg = List.of();
         try {
-            cfg = ymlMapper.readValue(config, new TypeReference<List<XmCacheConfig.XmCacheConfiguration>>() {});
+            cfg = ymlMapper.readValue(config, new TypeReference<List<XmTenantLepCacheConfig.XmCacheConfiguration>>() {});
         } catch (Exception e) {
             log.error("Error reading event publisher config from path: {}", updatedKey, e);
         }

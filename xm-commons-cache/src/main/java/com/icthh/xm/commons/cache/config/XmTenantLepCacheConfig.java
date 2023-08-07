@@ -9,6 +9,7 @@ import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -17,8 +18,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(value = "application.memory-cache.enabled", havingValue = "true")
-public class XmCacheConfig {
+@ConditionalOnProperty(value = "application.tenant-memory-cache.enabled", havingValue = "true")
+public class XmTenantLepCacheConfig {
 
     public final static Integer CACHE_DEFAULTS = -1;
 
@@ -35,6 +36,10 @@ public class XmCacheConfig {
     }
 
     @Bean
+    @Qualifier("lepCacheManager")
+    /**
+     * Dynamic cache to be used in LEP services
+     */
     public TenantCacheManager tenantAwareCacheManager(Ticker ticker, TenantContextHolder tenantContextHolder) {
         DynamicCaffeineCacheManager caffeineCacheManager = new DynamicCaffeineCacheManager(ticker);
         return new TenantAwareCacheManager(caffeineCacheManager, tenantContextHolder);
