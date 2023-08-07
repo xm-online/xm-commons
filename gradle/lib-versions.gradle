@@ -11,7 +11,7 @@ ext.versions = [
     commonsCodec               : '1.11',
     commonsIo                  : '2.6',
     commonsCollections         : '3.2.2',
-    commonsText                : '1.6',
+    commonsText                : '1.10.0',
 
     springBoot                 : '2.1.10.RELEASE',
     springCloud                : 'Greenwich.SR3',
