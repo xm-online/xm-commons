@@ -3,12 +3,12 @@ package com.icthh.xm.commons.domainevent.db.service.kafka;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.messaging.event.system.SystemEvent;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
-import com.icthh.xm.lep.api.LepManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -18,9 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
-import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_AUTH_CONTEXT;
-import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
-
 @Slf4j
 @Service
 public class SystemQueueConsumer {
@@ -28,12 +25,12 @@ public class SystemQueueConsumer {
     private final TenantContextHolder tenantContextHolder;
     private final XmAuthenticationContextHolder authContextHolder;
     private final SystemConsumerService systemConsumerService;
-    private final LepManager lepManager;
+    private final LepManagementService lepManager;
 
     public SystemQueueConsumer(TenantContextHolder tenantContextHolder,
                                XmAuthenticationContextHolder authContextHolder,
                                SystemConsumerService systemConsumerService,
-                               LepManager lepManager) {
+                               LepManagementService lepManager) {
         this.tenantContextHolder = tenantContextHolder;
         this.authContextHolder = authContextHolder;
         this.systemConsumerService = systemConsumerService;
@@ -79,11 +76,7 @@ public class SystemQueueConsumer {
     private void init(String tenantKey, String login) {
         if (StringUtils.isNotBlank(tenantKey)) {
             TenantContextUtils.setTenant(tenantContextHolder, tenantKey);
-
-            lepManager.beginThreadContext(threadContext -> {
-                threadContext.setValue(THREAD_CONTEXT_KEY_TENANT_CONTEXT, tenantContextHolder.getContext());
-                threadContext.setValue(THREAD_CONTEXT_KEY_AUTH_CONTEXT, authContextHolder.getContext());
-            });
+            lepManager.beginThreadContext();
         }
 
         String newRid = MdcUtils.getRid()

@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.config.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.icthh.xm.commons.tenant.Tenant;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -38,6 +39,18 @@ public class TenantAliasTree {
 
     public List<TenantAlias> getParents(String tenant) {
         return parents.getOrDefault(tenant, emptyList());
+    }
+
+    public List<String> getAllChildrenRecursive(String tenant) {
+        TenantAlias tenantAlias = tenants.get(tenant);
+        List<String> childTenant = new ArrayList<>(List.of(tenant));
+        if (tenantAlias != null) {
+            tenantAlias.traverseChild((current, child) -> {
+                childTenant.add(child.getKey());
+                return TraverseRule.CONTINUE;
+            });
+        }
+        return childTenant;
     }
 
     @Data

@@ -4,6 +4,7 @@ import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepExecutor;
 import com.icthh.xm.commons.lep.api.LepExecutorResolver;
 import com.icthh.xm.commons.lep.api.LepKey;
+import com.icthh.xm.commons.logging.util.MdcUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,6 +26,7 @@ class TenantLepEngines implements LepExecutorResolver {
 
     private final AtomicInteger countOfExecutions = new AtomicInteger();
     private final AtomicReference<TenantLepEnginesStates> state = new AtomicReference<>(ACTIVE);
+    private final String logId = MdcUtils.generateRid();
 
     private final String tenant;
     private final List<LepEngine> lepEngines;
@@ -76,7 +78,17 @@ class TenantLepEngines implements LepExecutorResolver {
         try {
             engine.destroy();
         } catch (Throwable e) {
-            log.error("Error during destroy engine", e);
+            log.error("Error during destroy engine {}", this);
         }
+    }
+
+    @Override
+    public String toString() {
+        String id = tenant + '_' + logId;
+        return "TenantLepEngines(" +
+            "id=" + id +
+            "state=" + state +
+            "countOfExecution=" + countOfExecutions.get() +
+            ")";
     }
 }

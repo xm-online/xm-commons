@@ -5,18 +5,18 @@ import java.util.Map;
 
 public interface LepManagementService {
     boolean isLepEnginesInited();
-    void refreshEngines(List<String> tenants, Map<String, String> configInLepFolder);
+    void refreshEngines(Map<String, List<XmLepConfigFile>> configInLepFolder);
     LepExecutor getLepExecutor(LepKey lepKey);
 
     LepEngineSession beginThreadContext();
     LepEngineSession beginThreadContext(LepExecutorResolver tenantLepEngines);
     LepExecutorResolver getCurrentLepExecutorResolver();
+    void runInLepContext(Runnable task);
 
     /**
-     * @deprecated it`s temporary method for migration period
-     * pls use LepEngineSession.close instead
+     * Same as LepEngineSession.close.
+     * Use LepEngineSession.close from beginThreadContext instead, if possible.
      */
-    @Deprecated(forRemoval = true)
     void endThreadContext();
 
 

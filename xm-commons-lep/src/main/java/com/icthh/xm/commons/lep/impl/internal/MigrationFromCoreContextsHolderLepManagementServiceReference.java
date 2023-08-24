@@ -20,7 +20,7 @@ public class MigrationFromCoreContextsHolderLepManagementServiceReference {
         LEP_MANAGEMENT_SERVICE = lepManagementService;
     }
 
-    public LepManagementService getLepManagementServiceInstance() {
+    public static LepManagementService getLepManagementServiceInstance() {
         log.error("You are using deprecated class LepManager or CoreContextsHolder. This classes will be removed. Migrate to LepManagementService or LepThreadHelper.");
         return LEP_MANAGEMENT_SERVICE;
     }

@@ -11,7 +11,7 @@ dependencies {
     compile project(':xm-commons-tenant')
     compile project(':xm-commons-config')
 
-    compileOnly 'javax.servlet:javax.servlet-api'
+    compile 'javax.servlet:javax.servlet-api'
 
     compile 'org.springframework:spring-context'
     compile 'org.slf4j:slf4j-api'

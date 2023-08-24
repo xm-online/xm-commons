@@ -6,5 +6,5 @@ import java.util.function.Supplier;
 
 @FunctionalInterface
 public interface LepEngineSession extends Closeable {
-
+    public void close();
 }

@@ -3,6 +3,7 @@ package com.icthh.xm.commons.lep.spring.lepservice;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
+import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader.TenantsByPathResponse;
 import com.icthh.xm.commons.lep.api.LepAdditionalContext;
 import com.icthh.xm.commons.lep.api.LepAdditionalContextField;
 import com.icthh.xm.commons.lep.spring.LepService;
@@ -22,7 +23,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryField.LEP_SERVICES;
+import static com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryField.FIELD_NAME;
+import static java.util.Optional.ofNullable;
 import static org.springframework.core.Ordered.LOWEST_PRECEDENCE;
 
 @LepService(group = "service.factory")
@@ -99,7 +101,14 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
 
     @Override
     public void refreshFinished(Collection<String> paths) {
-        serviceInstances.clear();
+        TenantsByPathResponse tenantsByPaths = resourceLoader.getTenantsByPaths(paths);
+        if (tenantsByPaths.isHasEnvCommons()) {
+            serviceInstances.clear();
+        } else {
+            tenantsByPaths.getTenants().forEach(tenantKey -> {
+                ofNullable(serviceInstances.get(tenantKey)).ifPresent(Map::clear);
+            });
+        }
     }
 
     @Override
@@ -119,7 +128,7 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
 
     @Override
     public String additionalContextKey() {
-        return LEP_SERVICES;
+        return FIELD_NAME;
     }
 
     @Override

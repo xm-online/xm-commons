@@ -67,7 +67,7 @@ public class LepThreadHelper {
 
         @SneakyThrows
         private T runInLepContext() {
-            try (var context = lepManagementService.beginThreadContext(lepExecutorResolver)){
+            try (var threadContext = lepManagementService.beginThreadContext(lepExecutorResolver)){
                 SecurityContextHolder.setContext(securityContext);
                 return task.call();
             } finally {

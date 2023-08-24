@@ -20,7 +20,7 @@ class LepEnginesManager {
         }
     }
 
-    public TenantLepEngines acquireTenantLeapEngine(String tenant) {
+    public TenantLepEngines acquireTenantLepEngine(String tenant) {
         TenantLepEngines tenantLepEngines = enginesByTenants.get(tenant);
         if (tenantLepEngines == null) {
             tenantLepEngines = enginesByTenants.computeIfAbsent(tenant, (key) -> new TenantLepEngines(tenant, List.of()));

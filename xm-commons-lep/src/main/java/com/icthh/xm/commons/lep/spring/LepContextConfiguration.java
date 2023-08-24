@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 public class LepContextConfiguration {
 
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(LepContextFactory.class)
     public LepContextFactory lepContextFactory() {
         return lepMethod -> new BaseLepContext() {};
     }

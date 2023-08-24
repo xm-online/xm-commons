@@ -111,11 +111,63 @@ lepContext.thread.runInThread(executor) {
 
 
 ### For create lepContext you need to extend BaseLepContext and implement LepContextFactory
-#### Class MUST have name LepContext
+#### Microservice MUST have class with name LepContext
 
 TBD example
 
-###
+### To add field to lepContext globally (in commons or in libs) implement LepAdditionalContext
+#### See example in LepServiceFactoryImpl or OutboxTransportService or TraceService
+Example:
+```
+@Override
+public String additionalContextKey() {
+    return FIELD_NAME; // name of additional field
+}
 
+@Override
+public LepServiceFactory additionalContextValue() {
+    return this; // new lepContext field value
+}
 
+@Override
+public Class<? extends LepAdditionalContextField> fieldAccessorInterface() {
+    return LepServiceFactoryField.class; // interface that help to typesafe access field from lep
+}
+```
+#### LepAdditionalContextField - it`s interface to keep lepContext type safe
+Example:
+```java
+public interface LepServiceFactoryField extends LepAdditionalContextField {
+    String FIELD_NAME = "lepServices";
+    default LepServiceFactory getLepServices() {
+        return (LepServiceFactory)get(FIELD_NAME);
+    }
+}
+```
+When in microservice you extend BaseLepContext you LepContext can implement this interface.
+
+Example:
+```java
+public class LepContext extends BaseLepContext implements LepServiceFactoryField {
+    public MyCoolService myCoolService;
+    // no need to implement a method from LepServiceFactoryField
+}
+```
+
+And after that field lepServices will be present in lepContext.
+```groovy
+lepContext.lepServices // groovy will call method getLepServices() for you
+```
+
+### Update LepSpringConfiguration
+Replace WebLepSpringConfiguration to LepSpringConfiguration
+
+Replace getTenantScriptStorageType() to TenantScriptStorageTypeProvider
+
+### Remove code that add _LepInterceptor_.
+LepInterceptor will be added in LepInterceptorConfiguration
+
+### In Tests after XmLepScriptConfigServerResourceLoader.onRefresh you need to call XmLepScriptConfigServerResourceLoader.refreshFinished
+
+## TODO _change spring lep configuration_
 
