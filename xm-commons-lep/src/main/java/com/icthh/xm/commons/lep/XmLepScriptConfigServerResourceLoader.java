@@ -1,7 +1,6 @@
 package com.icthh.xm.commons.lep;
 
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
-import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import lombok.Getter;
@@ -20,7 +19,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
@@ -37,19 +35,17 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
     private final Map<String, Map<String, XmLepConfigFile>> scriptsByTenant = new ConcurrentHashMap<>();
 
-    private final ExecutorService refreshExecutor = new SingleTaskExecutor();
-
     private final String tenantLepScriptsAntPathPattern;
     private final LepManagementService lepManagementService;
-    private final TenantListRepository tenantListRepository;
+    private final RefreshTaskExecutor refreshExecutor;
 
     public XmLepScriptConfigServerResourceLoader(@Value("${spring.application.name}") String appName,
                                                  LepManagementService lepManagementService,
-                                                 TenantListRepository tenantListRepository) {
+                                                 RefreshTaskExecutor refreshExecutor) {
         Objects.requireNonNull(appName, "appName can't be null");
         this.tenantLepScriptsAntPathPattern = "/config/tenants/{tenantKey}/" + appName + "/lep/**";
         this.lepManagementService = lepManagementService;
-        this.tenantListRepository = tenantListRepository;
+        this.refreshExecutor = refreshExecutor;
     }
 
     @Override
@@ -104,7 +100,7 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
     private Set<String> getTenantsToUpdate(Collection<String> paths) {
         TenantsByPathResponse tenantsByPaths = getTenantsByPaths(paths);
         if (tenantsByPaths.hasEnvCommons) {
-            return tenantListRepository.getTenants();
+            return scriptsByTenant.keySet();
         } else {
             return tenantsByPaths.getTenants();
         }

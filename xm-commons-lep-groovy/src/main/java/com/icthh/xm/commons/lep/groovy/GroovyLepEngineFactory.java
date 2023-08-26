@@ -17,6 +17,7 @@ import java.util.Map;
 @Component
 public class GroovyLepEngineFactory extends LepEngineFactory {
 
+    public static final String GROOVY_SUFFIX = ".groovy";
     private final String appName;
     private final Map<String, XmLepConfigFile> defaultLeps;
     private final TenantAliasService tenantAliasService;
@@ -44,10 +45,17 @@ public class GroovyLepEngineFactory extends LepEngineFactory {
             lepsFromConfig.put(path, new XmLepConfigFile(path, value.getContent()));
         });
 
+        Map<String, XmLepConfigFile> lepFiles = new HashMap<>();
+        lepFiles.putAll(defaultLeps);
+        lepFiles.putAll(lepsFromConfig);
 
         Map<String, XmLepConfigFile> leps = new HashMap<>();
-        leps.putAll(defaultLeps);
-        leps.putAll(lepsFromConfig);
+        lepFiles.forEach((key, lep) -> {
+            if (key.endsWith(GROOVY_SUFFIX)) {
+                key = key.substring(0, key.length() - GROOVY_SUFFIX.length());
+                leps.put(key, new XmLepConfigFile(key, lep.getContent()));
+            }
+        });
 
         return new GroovyLepEngine(appName, tenant, leps, tenantAliasService);
     }

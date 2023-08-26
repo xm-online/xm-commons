@@ -2,6 +2,7 @@ package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
+import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryImpl;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
@@ -54,6 +55,9 @@ public class DynamicLepClassResolveIntTest {
     @Autowired
     private LepManager lepManager;
 
+    @Autowired
+    private LepManagementService lepManagementService;
+
     @Mock
     private TenantContext tenantContext;
 
@@ -79,6 +83,8 @@ public class DynamicLepClassResolveIntTest {
     public void init() {
         MockitoAnnotations.initMocks(this);
 
+        TenantContextUtils.setTenant(tenantContextHolder, "TEST");
+        resourceLoader.refreshFinished(List.of());
         lepManager.beginThreadContext(ctx -> {
             ctx.setValue(THREAD_CONTEXT_KEY_TENANT_CONTEXT, tenantContext);
             ctx.setValue(THREAD_CONTEXT_KEY_AUTH_CONTEXT, authContext);
@@ -122,8 +128,7 @@ public class DynamicLepClassResolveIntTest {
     @SneakyThrows
     public void testEnumInterfaceAnnotationResolving() {
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
-        // this sleep is needed because groovy has debounce time to lep update
-        Thread.sleep(100);
+
         refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
                 loadFile("lep/TestEnumInterfaceAnnotationUsage")
         );
@@ -145,30 +150,34 @@ public class DynamicLepClassResolveIntTest {
 
     private void runTest(String suffix, String packageName, String path) throws InterruptedException {
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
-        // this sleep is needed because groovy has debounce time to lep update
-        Thread.sleep(100);
-        refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
-                loadFile("lep/TestClassUsage")
-                        .replace("${package}", packageName)
-                        .replace("${suffix}", suffix)
-        );
+
         String testClassDeclarationPath = "/config/tenants/" + path + "/TestClassDeclaration" + suffix + "$$tenant.groovy";
         String testClassBody = loadFile("lep/TestClassDeclaration")
                 .replace("${package}", packageName)
                 .replace("${suffix}", suffix)
                 .replace("${value}", "I am class in lep!");
         refreshLep(testClassDeclarationPath, testClassBody);
+        refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
+            loadFile("lep/TestClassUsage")
+                .replace("${package}", packageName)
+                .replace("${suffix}", suffix)
+        );
+
+        lepManagementService.endThreadContext();
+        lepManagementService.beginThreadContext();
 
         String result = testLepService.testLepMethod();
         assertEquals("I am class in lep!", result);
 
-        // this sleep is needed because groovy has debounce time to lep update
-        Thread.sleep(100);
         refreshLep(testClassDeclarationPath,
                 loadFile("lep/TestClassDeclaration")
                         .replace("${package}", packageName)
                         .replace("${suffix}", suffix)
                         .replace("${value}", "I am updated class in lep!"));
+
+        lepManagementService.endThreadContext();
+        lepManagementService.beginThreadContext();
+
         result = testLepService.testLepMethod();
         assertEquals("I am updated class in lep!", result);
     }
@@ -177,8 +186,7 @@ public class DynamicLepClassResolveIntTest {
     @SneakyThrows
     public void testReloadLepClass() {
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
-        // this sleep is needed because groovy has debounce time to lep update
-        Thread.sleep(100);
+
         refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
                 loadFile("lep/TestLoadClassByName")
                         .replace("${package}", "commons.lep.folder")
@@ -211,8 +219,7 @@ public class DynamicLepClassResolveIntTest {
     public void testLepServiceFactory() {
         TenantContextUtils.setTenant(tenantContextHolder, "TEST");
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
-        // this sleep is needed because groovy has debounce time to lep update
-        Thread.sleep(100);
+
         refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethodWithInput$$around.groovy",
                 loadFile("lep/TestLepServiceMethod")
         );
@@ -253,8 +260,6 @@ public class DynamicLepClassResolveIntTest {
     public void testLepWithAnotherLepDependencies() {
         TenantContextUtils.setTenant(tenantContextHolder, "TEST");
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
-        // this sleep is needed because groovy has debounce time to lep update
-        Thread.sleep(100);
 
         // 18 - because default count of buckets in hashmap is 16, and on 18 two object will be in one bucket
         // and in this case if we use recursive computeIfAbsent, that we get recursive update exception

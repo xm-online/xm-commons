@@ -6,6 +6,7 @@ import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryField;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.tenant.TenantContext;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public abstract class BaseLepContext implements LepServiceFactoryField {
@@ -19,7 +20,7 @@ public abstract class BaseLepContext implements LepServiceFactoryField {
     @Deprecated(forRemoval = true)
     public Object methodResult;
 
-    private Map<String, Object> additionalContext;
+    private Map<String, Object> additionalContext = new HashMap<>();
 
     public final Object get(String additionalContextKey) {
         return additionalContext.get(additionalContextKey);

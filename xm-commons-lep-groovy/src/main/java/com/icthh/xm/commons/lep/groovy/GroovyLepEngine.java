@@ -16,7 +16,9 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
@@ -40,7 +42,9 @@ public class GroovyLepEngine extends LepEngine {
     private void warmupScripts() {
         this.leps.values().forEach(lep -> {
             try {
+                // if class definitions in file == 1 and className endWith filePath that we do parse class else createScript
                 gse.createScript(lep.getPath(), new Binding());
+                //gse.getGroovyClassLoader().parseClass(lep.content);
             } catch (Throwable e) {
                 log.error("Error create script {}", lep.getPath(), e);
             }
@@ -81,7 +85,7 @@ public class GroovyLepEngine extends LepEngine {
 
     private List<String> getMainKeys(LepKey lepKey) {
         String lepPath = getLepPath(lepKey);
-        String legacyLepPath = getLegacyLepPath(lepKey);
+        String legacyLepPath = getLegacyLepPath(lepKey, GroovyLepEngine::translateToLepConvention);
         return List.of(
             legacyLepPath + "$$tenant",
             legacyLepPath + "$$around",
@@ -94,7 +98,7 @@ public class GroovyLepEngine extends LepEngine {
 
     private List<String> getBeforeKeys(LepKey lepKey) {
         String lepPath = getLepPath(lepKey);
-        String legacyLepPath = getLegacyLepPath(lepKey);
+        String legacyLepPath = getLegacyLepPath(lepKey, GroovyLepEngine::translateToLepConvention);
         return List.of(
             legacyLepPath + "$$before",
             lepPath + "$$before"
@@ -106,19 +110,21 @@ public class GroovyLepEngine extends LepEngine {
     }
 
     private String getLepPath(LepKey lepKey) {
-        String lepPath = lepKey.getGroup().replace(".", "/") + "/" + lepKey.getBaseKey();
-        if (isNotEmpty(lepKey.getSegments())) {
-            lepPath = lepPath + "$$" + StringUtils.join(lepKey.getSegments(), "$$");
-        }
-        lepPath = tenant + "/" + appName + "/lep/" + lepPath;
-        return lepPath;
+        return buildLepPath(lepKey, identity());
     }
 
-    private String getLegacyLepPath(LepKey lepKey) {
-        String lepPath = lepKey.getGroup().replace(".", "/") + "/" + lepKey.getBaseKey();
+    private String getLegacyLepPath(LepKey lepKey, Function<String, String> segmentMapper) {
+        return buildLepPath(lepKey, GroovyLepEngine::translateToLepConvention);
+    }
+
+    private String buildLepPath(LepKey lepKey, Function<String, String> segmentMapper) {
+        String lepPath = lepKey.getBaseKey();
         List<String> segments = lepKey.getSegments();
+        if (StringUtils.isNotBlank(lepKey.getGroup())) {
+            lepPath = lepKey.getGroup().replace(".", "/") + "/" + lepKey.getBaseKey();
+        }
         if (isNotEmpty(segments)) {
-            segments = segments.stream().map(GroovyLepEngine::translateToLepConvention).collect(toList());
+            segments = segments.stream().map(segmentMapper).collect(toList());
             lepPath = lepPath + "$$" + StringUtils.join(segments, "$$");
         }
         lepPath = tenant + "/" + appName + "/lep/" + lepPath;

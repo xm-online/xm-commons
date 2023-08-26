@@ -3,10 +3,10 @@ package com.icthh.xm.commons.lep.impl;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.TargetProceedingLep;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
-import com.icthh.xm.commons.lep.api.LepManagementService;
-import com.icthh.xm.commons.lep.api.LepExecutor;
 import com.icthh.xm.commons.lep.api.LepEngine;
+import com.icthh.xm.commons.lep.api.LepExecutor;
 import com.icthh.xm.commons.lep.api.LepKey;
+import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.spring.LepService;
 import com.icthh.xm.lep.api.LepInvocationCauseException;
 import com.icthh.xm.lep.api.LepKeyResolver;
@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.icthh.xm.commons.lep.impl.MethodEqualsByReferenceWrapper.wrap;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Objects.requireNonNull;
-import static java.util.Objects.requireNonNullElse;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Slf4j
 @Component
@@ -51,7 +51,7 @@ public class LogicExtensionPointHandler {
             requireNonNull(typeLepService, () -> "No " + LepService.class.getSimpleName()
                 + " annotation for type " + targetType.getCanonicalName());
 
-            String group = requireNonNullElse(lep.group(), typeLepService.group());
+            String group = isNotBlank(lep.group()) ? lep.group() : typeLepService.group();
             LepKey baseLepKey = new DefaultLepKey(group, lep.value());
 
             MethodSignature methodSignature = buildMethodSignature(targetType, method);

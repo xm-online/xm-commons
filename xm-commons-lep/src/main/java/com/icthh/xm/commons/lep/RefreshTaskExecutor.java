@@ -6,8 +6,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class SingleTaskExecutor extends ThreadPoolExecutor {
-    public SingleTaskExecutor() {
+public class RefreshTaskExecutor extends ThreadPoolExecutor {
+    public RefreshTaskExecutor() {
         super(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
 

@@ -9,12 +9,14 @@ import com.icthh.xm.commons.lep.api.LepKey;
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.icthh.xm.commons.tenant.TenantContextUtils.getRequiredTenantKeyValue;
@@ -29,6 +31,7 @@ public class LepManagementServiceImpl implements LepManagementService {
     private final AtomicBoolean isLepConfigInited = new AtomicBoolean(false);
     private final LepEnginesManager lepEnginesManager = new LepEnginesManager();
     private final ThreadLocal<LepExecutorResolver> tenantLepEnginesThreadContext = new ThreadLocal<>();
+    private final CountDownLatch countDownLatch = new CountDownLatch(1);
 
     private final List<LepEngineFactory> engineFactories;
     private final TenantContextHolder tenantContextHolder;
@@ -61,7 +64,9 @@ public class LepManagementServiceImpl implements LepManagementService {
             log.info("STOP | Finish creating lep engines for tenant {}, {}ms", tenant, timer.getTime(MILLISECONDS));
         });
 
-        isLepConfigInited.set(true);
+        if (!isLepConfigInited.get() && isLepConfigInited.compareAndSet(false, true)) {
+            countDownLatch.countDown();
+        }
     }
 
     @Override
@@ -119,9 +124,11 @@ public class LepManagementServiceImpl implements LepManagementService {
         return getRequiredTenantKeyValue(tenantContextHolder);
     }
 
+    @SneakyThrows
     private void assertLepConfigInited() {
         if (!isLepConfigInited.get()) {
-            throw new IllegalStateException("Lep engines not inited");
+            log.warn("Lep engines not inited");
+            countDownLatch.await();
         }
     }
 

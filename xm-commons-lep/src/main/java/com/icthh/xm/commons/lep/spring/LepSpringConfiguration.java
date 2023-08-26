@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
+import com.icthh.xm.commons.lep.RefreshTaskExecutor;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,8 +22,14 @@ public class LepSpringConfiguration {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Bean
     public XmLepScriptConfigServerResourceLoader cfgResourceLoader(LepManagementService lepManagementService,
-                                                                   TenantListRepository tenantListRepository) {
-        return new XmLepScriptConfigServerResourceLoader(appName, lepManagementService, tenantListRepository);
+                                                                   RefreshTaskExecutor refreshTaskExecutor) {
+        return new XmLepScriptConfigServerResourceLoader(appName, lepManagementService, refreshTaskExecutor);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(RefreshTaskExecutor.class)
+    public RefreshTaskExecutor refreshTaskExecutor() {
+        return new RefreshTaskExecutor();
     }
 
 }
