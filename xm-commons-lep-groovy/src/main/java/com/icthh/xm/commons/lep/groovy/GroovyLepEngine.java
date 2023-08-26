@@ -8,6 +8,7 @@ import com.icthh.xm.commons.lep.api.LepKey;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
+import groovy.lang.Script;
 import groovy.util.GroovyScriptEngine;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -42,9 +43,10 @@ public class GroovyLepEngine extends LepEngine {
     private void warmupScripts() {
         this.leps.values().forEach(lep -> {
             try {
-                // if class definitions in file == 1 and className endWith filePath that we do parse class else createScript
-                gse.createScript(lep.getPath(), new Binding());
-                //gse.getGroovyClassLoader().parseClass(lep.content);
+                Class<?> scriptClass = gse.getGroovyClassLoader().parseClass(lep.getContent(), lep.getPath());
+                if (Script.class.isAssignableFrom(scriptClass)) {
+                    gse.createScript(lep.getPath(), new Binding());
+                }
             } catch (Throwable e) {
                 log.error("Error create script {}", lep.getPath(), e);
             }

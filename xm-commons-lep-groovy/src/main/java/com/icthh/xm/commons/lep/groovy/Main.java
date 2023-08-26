@@ -101,7 +101,7 @@ public class Main {
             System.out.println("=");
 
             // if class definitions in file == 1 that we do parse class else createScript
-            gse.getGroovyClassLoader().parseClass(aGroovy, "TENANT/entity/lep/commons/a/A");
+            gse.getGroovyClassLoader().parseClass(aGroovy, "TENANT/entity/lep/commons/a/A$$tenant");
 
             System.out.println("==");
 

@@ -129,13 +129,13 @@ public class DynamicLepClassResolveIntTest {
     public void testEnumInterfaceAnnotationResolving() {
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
 
-        refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
-                loadFile("lep/TestEnumInterfaceAnnotationUsage")
-        );
         loadDeclarationLep("TestEnumDeclaration");
-        loadDeclarationLep("TestInterfaceDeclaration");
         loadDeclarationLep("TestAnnotationDeclaration");
+        loadDeclarationLep("TestInterfaceDeclaration");
         loadDeclarationLep("TestEnumInterfaceAnnotationDeclaration");
+        refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
+            loadFile("lep/TestEnumInterfaceAnnotationUsage")
+        );
 
         String result = testLepService.testLepMethod();
         assertEquals("VAL1", result);

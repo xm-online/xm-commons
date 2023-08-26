@@ -105,7 +105,6 @@ public class LepResourceConnector implements ResourceConnector {
                     if (log.isTraceEnabled()) {
                         log.trace("Resolved {} import at {}", name, resolvedFileUrl);
                     }
-                    System.out.println("Resolved " + name + " " + resolvedFileUrl);
                     return connection.get();
                 }
 
@@ -149,16 +148,21 @@ public class LepResourceConnector implements ResourceConnector {
 
     @SneakyThrows
     private boolean containsClassDefinition(String lepUrl, String path) {
-        if (!path.startsWith(lepUrl)) {
+        String lepPath = lepUrl;
+        if (lepPath.endsWith(LEP_SUFFIX)) {
+            lepPath = lepPath.substring(0, lepPath.length() - LEP_SUFFIX.length());
+        }
+
+        if (!path.startsWith(lepPath)) {
             return false;
         }
 
         String className = "";
-        if (lepUrl.lastIndexOf("/") > 0) {
-            className = lepUrl.substring(lepUrl.lastIndexOf("/") + 1);
+        if (lepPath.lastIndexOf("/") > 0) {
+            className = lepPath.substring(lepPath.lastIndexOf("/") + 1);
         }
 
-        String importValue = path.substring(lepUrl.length());
+        String importValue = path.substring(lepPath.length());
         importValue = className + importValue;
         var metadata = lepMetadata.get(lepUrl);
         return metadata != null && metadata.canImport(importValue);

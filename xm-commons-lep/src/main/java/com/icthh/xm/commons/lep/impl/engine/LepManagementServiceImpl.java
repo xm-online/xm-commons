@@ -67,6 +67,13 @@ public class LepManagementServiceImpl implements LepManagementService {
         if (!isLepConfigInited.get() && isLepConfigInited.compareAndSet(false, true)) {
             countDownLatch.countDown();
         }
+
+        // if refresh operation invoked in thread where inited threadLepContext, threadLepContext have to be reinited
+        LepExecutorResolver currentLepExecutorResolver = getCurrentLepExecutorResolver();
+        if (currentLepExecutorResolver != null) {
+            endThreadContext();
+            beginThreadContext();
+        }
     }
 
     @Override
