@@ -32,10 +32,10 @@ public class GroovyLepEngineFactory extends LepEngineFactory {
 
     @Override
     public LepEngine createLepEngine(String tenant, List<XmLepConfigFile> configInLepFolder) {
-        Map<String, XmLepConfigFile> defaultLeps = new HashMap<>();
+        Map<String, XmLepConfigFile> classPathDefaultLeps = new HashMap<>();
         this.defaultLeps.forEach((key, value) -> {
             String path = tenant + "/" + appName + "/lep" + value.getPath();
-            defaultLeps.put(path, new XmLepConfigFile(path, value.getContent()));
+            classPathDefaultLeps.put(path, new XmLepConfigFile(path, value.getContent()));
         });
 
         String configPrefix = "/config/tenants/";
@@ -46,7 +46,7 @@ public class GroovyLepEngineFactory extends LepEngineFactory {
         });
 
         Map<String, XmLepConfigFile> lepFiles = new HashMap<>();
-        lepFiles.putAll(defaultLeps);
+        lepFiles.putAll(classPathDefaultLeps);
         lepFiles.putAll(lepsFromConfig);
 
         Map<String, XmLepConfigFile> leps = new HashMap<>();

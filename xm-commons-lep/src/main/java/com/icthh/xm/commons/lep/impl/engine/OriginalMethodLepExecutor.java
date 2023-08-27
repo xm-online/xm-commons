@@ -18,7 +18,8 @@ public class OriginalMethodLepExecutor extends DefaultLepExecutor {
 
     @Override
     public LepExecutor ifLepNotExists(Supplier<Object> executeOriginalMethod) {
-        return super.ifLepNotExists(executeOriginalMethod);
+        setMethodResult(executeOriginalMethod.get());
+        return this;
     }
 
     @Override

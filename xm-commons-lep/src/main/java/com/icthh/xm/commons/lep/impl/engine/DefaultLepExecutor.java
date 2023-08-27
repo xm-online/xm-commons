@@ -29,4 +29,8 @@ public class DefaultLepExecutor implements LepExecutor {
         return methodResult;
     }
 
+    protected void setMethodResult(Object methodResult) {
+        this.methodResult = methodResult;
+    }
+
 }

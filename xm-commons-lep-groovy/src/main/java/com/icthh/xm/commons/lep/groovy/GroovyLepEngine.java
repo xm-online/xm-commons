@@ -43,9 +43,9 @@ public class GroovyLepEngine extends LepEngine {
     private void warmupScripts() {
         this.leps.values().forEach(lep -> {
             try {
-                Class<?> scriptClass = gse.getGroovyClassLoader().parseClass(lep.getContent(), lep.getPath());
+                Class<?> scriptClass = gse.getGroovyClassLoader().parseClass("lep://" + lep.getContent(), lep.getPath());
                 if (Script.class.isAssignableFrom(scriptClass)) {
-                    gse.createScript(lep.getPath(), new Binding());
+                    gse.createScript("lep://" + lep.getPath(), new Binding());
                 }
             } catch (Throwable e) {
                 log.error("Error create script {}", lep.getPath(), e);

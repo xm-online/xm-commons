@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.lep.groovy;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
-import com.icthh.xm.commons.config.domain.TenantAliasTree;
+import com.icthh.xm.commons.config.domain.TenantAliasTree.TenantAlias;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import com.icthh.xm.commons.lep.groovy.GroovyFileParser.GroovyFileMetadata;
 import groovy.util.ResourceConnector;
@@ -19,6 +19,7 @@ import java.net.URLStreamHandler;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,6 +28,8 @@ import java.util.stream.Stream;
 
 import static com.icthh.xm.commons.lep.TenantScriptStorage.URL_PREFIX_COMMONS_ENVIRONMENT;
 import static com.icthh.xm.commons.lep.TenantScriptStorage.URL_PREFIX_COMMONS_TENANT;
+import static java.util.Collections.unmodifiableSet;
+import static java.util.stream.Collectors.toSet;
 
 @Slf4j
 public class LepResourceConnector implements ResourceConnector {
@@ -54,14 +57,28 @@ public class LepResourceConnector implements ResourceConnector {
         Map<String, GroovyFileMetadata> lepMetadata = new HashMap<>();
         leps.forEach((path, lep) -> lepMetadata.put(path, groovyFileParser.getFileMetaData(lep.getContent())));
         this.lepMetadata = lepMetadata;
+        this.lepPathPrefixes = buildLepPrefixes(tenantKey, appName, tenantAliasService);
+    }
 
-        this.lepPathPrefixes = Set.of(
+    private static Set<String> buildLepPrefixes(String tenantKey, String appName, TenantAliasService tenantAliasService) {
+        Set<String> parentTenantPrefixes = tenantAliasService.getTenantAliasTree()
+            .getParents(tenantKey)
+            .stream()
+            .map(TenantAlias::getKey)
+            .flatMap(key -> Stream.of(
+                key + "/" + appName + "/lep/",
+                key + "/commons/lep/"
+            )).collect(toSet());
+        Set<String> prefixes = new HashSet<>();
+        prefixes.addAll(parentTenantPrefixes);
+        prefixes.addAll(Set.of(
             tenantKey + "/" + appName + "/lep/",
             tenantKey + "/commons/lep/",
             "commons/tenant/",
             "commons/environment/",
             "commons/lep/"
-        );
+        ));
+        return unmodifiableSet(prefixes);
     }
 
 
@@ -170,19 +187,21 @@ public class LepResourceConnector implements ResourceConnector {
 
     private Optional<LepRootPath> getLepBasePath(String name) {
         List<LepRootPath> rootPathVariants = new ArrayList<>();
-        rootPathVariants.add(new LepRootPath(name, List.of(tenantKey, COMMONS, LEP_FOLDER), URL_PREFIX_COMMONS_TENANT));
-        rootPathVariants.add(new LepRootPath(name, List.of(COMMONS, LEP_FOLDER), URL_PREFIX_COMMONS_ENVIRONMENT));
-        rootPathVariants.add(new LepRootPath(name, List.of(tenantKey, COMMONS), tenantKey + "/" + COMMONS));
-        rootPathVariants.add(new LepRootPath(name, List.of(COMMONS), COMMONS));
+        rootPathVariants.add(new LepRootPath(name, tenantKey + "/" + COMMONS + "/" + LEP_FOLDER, URL_PREFIX_COMMONS_TENANT));
+        rootPathVariants.add(new LepRootPath(name, COMMONS + "/" + LEP_FOLDER, URL_PREFIX_COMMONS_ENVIRONMENT));
+        rootPathVariants.add(new LepRootPath(name, tenantKey + "/" + COMMONS, tenantKey + "/" + COMMONS));
+        rootPathVariants.add(new LepRootPath(name, COMMONS, COMMONS));
 
-        List<List<String>> rootFoldersVariants = new ArrayList<>();
-        rootFoldersVariants.add(List.of(tenantKey, appName));
+        List<String> rootFoldersVariants = new ArrayList<>();
+        rootFoldersVariants.add(tenantKey + "/" + appName);
         tenantAliasService.getTenantAliasTree()
             .getParents(tenantKey).stream()
-            .map(TenantAliasTree.TenantAlias::getKey)
-            .map(tenant -> List.of(tenant, appName))
+            .map(TenantAlias::getKey)
+            .map(tenant -> tenant + "/" + appName)
             .forEach(rootFoldersVariants::add);
-        rootFoldersVariants.stream().map(it -> new LepRootPath(name, it)).forEach(rootPathVariants::add);
+        rootFoldersVariants.stream()
+            .map(it -> new LepRootPath(name, tenantKey + "/" + appName, it))
+            .forEach(rootPathVariants::add);
 
         return rootPathVariants.stream().filter(LepRootPath::isMatch).findFirst();
     }
@@ -218,15 +237,15 @@ public class LepResourceConnector implements ResourceConnector {
         private final String rootPath;
         private final String prefix;
 
-        LepRootPath(String name, List<String> rootPath) {
+        LepRootPath(String name, String rootPath) {
             this.name = name;
-            this.rootPath = String.join("/", rootPath);
+            this.rootPath = rootPath;
             this.prefix = this.rootPath;
         }
 
-        LepRootPath(String name, List<String> rootPath, String prefix) {
+        LepRootPath(String name, String rootPath, String prefix) {
             this.name = name;
-            this.rootPath = String.join("/", rootPath);
+            this.rootPath = rootPath;
             this.prefix = prefix;
         }
 

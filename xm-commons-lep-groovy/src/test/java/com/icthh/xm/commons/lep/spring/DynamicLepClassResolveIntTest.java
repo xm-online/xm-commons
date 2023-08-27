@@ -163,9 +163,6 @@ public class DynamicLepClassResolveIntTest {
                 .replace("${suffix}", suffix)
         );
 
-        lepManagementService.endThreadContext();
-        lepManagementService.beginThreadContext();
-
         String result = testLepService.testLepMethod();
         assertEquals("I am class in lep!", result);
 
@@ -174,9 +171,6 @@ public class DynamicLepClassResolveIntTest {
                         .replace("${package}", packageName)
                         .replace("${suffix}", suffix)
                         .replace("${value}", "I am updated class in lep!"));
-
-        lepManagementService.endThreadContext();
-        lepManagementService.beginThreadContext();
 
         result = testLepService.testLepMethod();
         assertEquals("I am updated class in lep!", result);

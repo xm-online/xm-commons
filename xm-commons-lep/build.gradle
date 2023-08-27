@@ -6,6 +6,8 @@ dependencyManagement {
     }
 }
 
+sourceSets.main.resources.includes = [ "**/*.groovy" ]
+
 dependencies {
     compile project(':xm-commons-logging')
     compile project(':xm-commons-tenant')
@@ -19,6 +21,7 @@ dependencies {
     compile "com.google.code.findbugs:jsr305:${versions.jsr305}"
     compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
     compile "commons-io:commons-io:${versions.commonsIo}"
+    compile "org.reflections:reflections:${versions.reflections}"
 
     testCompile 'junit:junit'
     testCompile 'org.mockito:mockito-core'
