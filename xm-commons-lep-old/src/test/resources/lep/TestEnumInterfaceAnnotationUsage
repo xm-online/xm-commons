@@ -1,3 +1,0 @@
-import TEST.testApp.lep.commons.folder.TestEnumInterfaceAnnotationDeclaration
-
-return new TestEnumInterfaceAnnotationDeclaration().test().name()

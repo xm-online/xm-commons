@@ -1,5 +1,0 @@
----
-tenantAliasTree:
-  - key: PARENT
-    children:
-      - key: TEST

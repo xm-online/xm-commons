@@ -1,5 +1,0 @@
-import ${package}.TestClassDeclaration${suffix}
-import ${package}.TestClassDeclaration${suffix}.InnerStaticClass
-
-InnerStaticClass classField = new TestClassDeclaration${suffix}().classField
-return classField.hello
