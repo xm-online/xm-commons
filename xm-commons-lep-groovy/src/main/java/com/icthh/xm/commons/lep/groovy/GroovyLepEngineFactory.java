@@ -6,6 +6,7 @@ import com.icthh.xm.commons.lep.api.LepEngineFactory;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import com.icthh.xm.commons.lep.utils.ClassPathLepRepository;
 import groovy.util.logging.Slf4j;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -15,12 +16,13 @@ import java.util.Map;
 
 @Slf4j
 @Component
-public class GroovyLepEngineFactory extends LepEngineFactory {
+public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClassLoaderAware {
 
     public static final String GROOVY_SUFFIX = ".groovy";
     private final String appName;
     private final Map<String, XmLepConfigFile> defaultLeps;
     private final TenantAliasService tenantAliasService;
+    private volatile ClassLoader classLoader;
 
     public GroovyLepEngineFactory(@Value("${spring.application.name}") String appName,
                                   ClassPathLepRepository classPathLepRepository,
@@ -57,6 +59,11 @@ public class GroovyLepEngineFactory extends LepEngineFactory {
             }
         });
 
-        return new GroovyLepEngine(appName, tenant, leps, tenantAliasService);
+        return new GroovyLepEngine(appName, tenant, leps, tenantAliasService, classLoader);
+    }
+
+    @Override
+    public void setBeanClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
     }
 }

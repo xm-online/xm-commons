@@ -181,18 +181,18 @@ public class DynamicLepClassResolveIntTest {
     public void testReloadLepClass() {
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
 
+        String testClassDeclarationPath = "/config/tenants/commons/lep/folder/TestClassDeclarationReloadClass$$tenant.groovy";
+        String testClassBody = loadFile("lep/TestClassDeclaration")
+            .replace("${package}", "commons.lep.folder")
+            .replace("${suffix}", "ReloadClass")
+            .replace("${value}", "I am class in lep!");
+        refreshLep(testClassDeclarationPath, testClassBody);
+
         refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
                 loadFile("lep/TestLoadClassByName")
                         .replace("${package}", "commons.lep.folder")
                         .replace("${suffix}", "ReloadClass")
         );
-
-        String testClassDeclarationPath = "/config/tenants/commons/lep/folder/TestClassDeclarationReloadClass$$tenant.groovy";
-        String testClassBody = loadFile("lep/TestClassDeclaration")
-                .replace("${package}", "commons.lep.folder")
-                .replace("${suffix}", "ReloadClass")
-                .replace("${value}", "I am class in lep!");
-        refreshLep(testClassDeclarationPath, testClassBody);
 
         String result = testLepService.testLepMethod();
         assertEquals("I am class in lep!", result);

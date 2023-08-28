@@ -31,12 +31,13 @@ public class GroovyLepEngine extends LepEngine {
     private final Map<String, XmLepConfigFile> leps;
     private final GroovyScriptEngine gse;
 
-    public GroovyLepEngine(String appName, String tenant, Map<String, XmLepConfigFile> leps, TenantAliasService tenantAliasService) {
+    public GroovyLepEngine(String appName, String tenant, Map<String, XmLepConfigFile> leps,
+                           TenantAliasService tenantAliasService, ClassLoader classLoader) {
         this.appName = appName;
         this.tenant = tenant;
         this.leps = leps;
         LepResourceConnector lepResourceConnector = new LepResourceConnector(tenant, appName, tenantAliasService, leps);
-        this.gse = new GroovyScriptEngine(lepResourceConnector, new GroovyClassLoader());
+        this.gse = new GroovyScriptEngine(lepResourceConnector, classLoader);
         warmupScripts();
     }
 
