@@ -19,7 +19,7 @@ dependencies {
     compile 'org.liquibase:liquibase-core'
     compile 'org.springframework:spring-context'
     compile 'org.hibernate:hibernate-core'
-    implementation "com.vladmihalcea:hibernate-types-52:${versions.hibernateTypes52}"
+    compile "com.vladmihalcea:hibernate-types-52:${versions.hibernateTypes52}" // must by api ib next gradle versions, because classes using in method api
 
     testCompile 'junit:junit'
     testCompile 'org.mockito:mockito-core'
