@@ -49,7 +49,6 @@ import static org.mockito.Mockito.when;
         XmAuthenticationContextConfiguration.class
 })
 @ActiveProfiles("resolveclasstest")
-@TestPropertySource(properties = {"application.lep.full-recompile-on-lep-update=true", "spring.application.name=testApp"})
 public class DynamicLepClassResolveIntTest {
 
     @Autowired
@@ -84,7 +83,6 @@ public class DynamicLepClassResolveIntTest {
         MockitoAnnotations.initMocks(this);
 
         TenantContextUtils.setTenant(tenantContextHolder, "TEST");
-        resourceLoader.refreshFinished(List.of());
         lepManager.beginThreadContext(ctx -> {
             ctx.setValue(THREAD_CONTEXT_KEY_TENANT_CONTEXT, tenantContext);
             ctx.setValue(THREAD_CONTEXT_KEY_AUTH_CONTEXT, authContext);

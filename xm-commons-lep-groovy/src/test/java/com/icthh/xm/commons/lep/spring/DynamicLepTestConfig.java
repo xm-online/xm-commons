@@ -1,22 +1,24 @@
 package com.icthh.xm.commons.lep.spring;
 
-import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.RefreshTaskExecutor;
+import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
+import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
-import lombok.SneakyThrows;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
+import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  *
@@ -55,6 +57,34 @@ public class DynamicLepTestConfig extends LepSpringConfiguration {
                 callerRunsPolicy.rejectedExecution(command, this);
             }
         };
+    }
+
+    @Bean
+    public XmLepScriptConfigServerResourceLoader cfgResourceLoader(LepManagementService lepManagementService,
+                                                                   RefreshTaskExecutor refreshTaskExecutor) {
+        var resourceLoader = new XmLepScriptConfigServerResourceLoader("testApp", lepManagementService, refreshTaskExecutor) {
+            @Override
+            public void onRefresh(String updatedKey, String configContent) {
+                super.onRefresh(updatedKey, configContent);
+                refreshFinished(List.of(updatedKey));
+            }
+        };
+        resourceLoader.refreshFinished(List.of());
+        return resourceLoader;
+    }
+
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer properties() {
+        PropertySourcesPlaceholderConfigurer pspc = new PropertySourcesPlaceholderConfigurer();
+
+        String properties = "spring.application.name=testApp";
+        Resource propertiesResource = new ByteArrayResource(properties.getBytes(UTF_8));
+
+        pspc.setLocation(propertiesResource);
+        pspc.setIgnoreResourceNotFound(false);
+        pspc.setIgnoreUnresolvablePlaceholders(false);
+
+        return pspc;
     }
 
 }

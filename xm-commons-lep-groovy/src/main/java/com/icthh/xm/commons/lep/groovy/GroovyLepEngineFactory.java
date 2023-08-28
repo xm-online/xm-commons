@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@Component
+@Component // TODO move declaration of bean to java configuration
 public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClassLoaderAware {
 
     public static final String GROOVY_SUFFIX = ".groovy";
