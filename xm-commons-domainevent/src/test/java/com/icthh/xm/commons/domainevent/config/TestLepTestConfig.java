@@ -1,46 +1,39 @@
 package com.icthh.xm.commons.domainevent.config;
 
+import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.domainevent.service.filter.lep.WebLepFilter;
-import com.icthh.xm.commons.domainevent.service.filter.lep.WebLepFilterIntTest;
 import com.icthh.xm.commons.domainevent.service.impl.KafkaTransactionSynchronizationAdapter;
 import com.icthh.xm.commons.domainevent.service.impl.KafkaTransactionSynchronizationAdapterService;
-import com.icthh.xm.commons.lep.TenantScriptStorage;
-import com.icthh.xm.commons.lep.spring.EnableLepServices;
-import com.icthh.xm.commons.lep.spring.SpringLepProcessingApplicationListener;
-import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactory;
-import com.icthh.xm.commons.lep.spring.web.WebLepSpringConfiguration;
+import com.icthh.xm.commons.lep.RefreshTaskExecutor;
+import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
+import com.icthh.xm.commons.lep.api.LepManagementService;
+import com.icthh.xm.commons.lep.groovy.GroovyLepEngineFactory;
+import com.icthh.xm.commons.lep.spring.LepSpringConfiguration;
+import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
-import com.icthh.xm.lep.api.ScopedContext;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.transaction.support.SimpleTransactionScope;
+
+import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  *
  */
 @Configuration
-@EnableLepServices(basePackageClasses = {WebLepFilterIntTest.class, LepServiceFactory.class})
 @ComponentScan({"com.icthh.xm.commons.lep.spring", "com.icthh.xm.commons.domainevent", "com.icthh.xm.commons.tenant"})
 @EnableAutoConfiguration
-public class TestLepTestConfig extends WebLepSpringConfiguration {
+public class TestLepTestConfig extends LepSpringConfiguration {
 
-    public TestLepTestConfig(ApplicationEventPublisher eventPublisher,
-                             ResourceLoader resourceLoader,
-                             ConfigurableListableBeanFactory factory) {
-        super("app-name", eventPublisher, resourceLoader);
+    public TestLepTestConfig(ConfigurableListableBeanFactory factory) {
+        super("app-name");
         factory.registerScope("transaction", new SimpleTransactionScope());
-    }
-
-    @Override
-    protected TenantScriptStorage getTenantScriptStorageType() {
-        return TenantScriptStorage.XM_MS_CONFIG;
     }
 
     @Bean
@@ -54,15 +47,6 @@ public class TestLepTestConfig extends WebLepSpringConfiguration {
     }
 
     @Bean
-    public SpringLepProcessingApplicationListener springLepProcessingApplicationListener() {
-        return new SpringLepProcessingApplicationListener() {
-            @Override
-            protected void bindExecutionContext(ScopedContext executionContext) {
-            }
-        };
-    }
-
-    @Bean
     KafkaTransactionSynchronizationAdapterService kafkaTransactionSynchronizationAdapterService(ApplicationContext context) {
         return new KafkaTransactionSynchronizationAdapterService() {
             @Override
@@ -70,6 +54,37 @@ public class TestLepTestConfig extends WebLepSpringConfiguration {
                 return context.getBean(KafkaTransactionSynchronizationAdapter.class);
             }
         };
+    }
+
+    @Bean
+    public RefreshTaskExecutor refreshTaskExecutor() {
+        return new RefreshTaskExecutor() {
+            ThreadPoolExecutor.CallerRunsPolicy callerRunsPolicy = new ThreadPoolExecutor.CallerRunsPolicy();
+            @Override
+            public void execute(Runnable command) {
+                callerRunsPolicy.rejectedExecution(command, this);
+            }
+        };
+    }
+
+    @Bean
+    public XmLepScriptConfigServerResourceLoader cfgResourceLoader(LepManagementService lepManagementService,
+                                                                   RefreshTaskExecutor refreshTaskExecutor) {
+        var resourceLoader = new XmLepScriptConfigServerResourceLoader("app-name", lepManagementService, refreshTaskExecutor) {
+            @Override
+            public void onRefresh(String updatedKey, String configContent) {
+                super.onRefresh(updatedKey, configContent);
+                refreshFinished(List.of(updatedKey));
+            }
+        };
+        resourceLoader.refreshFinished(List.of());
+        return resourceLoader;
+    }
+
+    @Bean
+    public GroovyLepEngineFactory groovyLepEngineFactory(ClassPathLepRepository classPathLepRepository,
+                                                         TenantAliasService tenantAliasService) {
+        return new GroovyLepEngineFactory("app-name", classPathLepRepository, tenantAliasService);
     }
 
 }

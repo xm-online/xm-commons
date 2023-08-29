@@ -115,7 +115,7 @@ lepContext.thread.runInThread(executor) {
 
 TBD example
 
-### To add field to lepContext globally (in commons or in libs) implement LepAdditionalContext
+### To add field to lepContext globally (in commons or in libs) implement LepAdditionalContext. Pls use this ONLY IN LIBS OR XM-COMMONS.
 #### See example in LepServiceFactoryImpl or OutboxTransportService or TraceService
 Example:
 ```
@@ -168,6 +168,44 @@ Replace getTenantScriptStorageType() to TenantScriptStorageTypeProvider
 LepInterceptor will be added in LepInterceptorConfiguration
 
 ### In Tests after XmLepScriptConfigServerResourceLoader.onRefresh you need to call XmLepScriptConfigServerResourceLoader.refreshFinished
+
+Or to make test migration with minimal changes add next beans to you **TEST** configuration:
+
+```groovy
+    @Bean
+    public RefreshTaskExecutor refreshTaskExecutor() {
+        return new RefreshTaskExecutor() {
+            CallerRunsPolicy callerRunsPolicy = new ThreadPoolExecutor.CallerRunsPolicy();
+            @Override
+            public void execute(Runnable command) {
+                callerRunsPolicy.rejectedExecution(command, this);
+            }
+        };
+    }
+
+    @Bean
+    public XmLepScriptConfigServerResourceLoader cfgResourceLoader(LepManagementService lepManagementService,
+                                                                   RefreshTaskExecutor refreshTaskExecutor) {
+        var resourceLoader = new XmLepScriptConfigServerResourceLoader(<app-name>, lepManagementService, refreshTaskExecutor) {
+            @Override
+            public void onRefresh(String updatedKey, String configContent) {
+                super.onRefresh(updatedKey, configContent);
+                refreshFinished(List.of(updatedKey));
+            }
+        };
+        resourceLoader.refreshFinished(List.of());
+        return resourceLoader;
+    }
+
+    @Bean
+    public GroovyLepEngineFactory groovyLepEngineFactory(ClassPathLepRepository classPathLepRepository,
+                                                         TenantAliasService tenantAliasService) {
+        return new GroovyLepEngineFactory(<app-name>, classPathLepRepository, tenantAliasService);
+    }
+```
+
+### If you write xm-commons or lib add to dependency ONLY `implementation project(':xm-commons-lep')`,  if you need groovy lep in test add test deps `testImplementation project(':xm-commons-lep-groovy')`
+This will allow to choose lep engine in target microservices.
 
 ## TODO _change spring lep configuration_
 

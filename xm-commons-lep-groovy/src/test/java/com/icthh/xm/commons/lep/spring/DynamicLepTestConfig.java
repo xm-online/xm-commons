@@ -4,6 +4,8 @@ import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.RefreshTaskExecutor;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.lep.api.LepManagementService;
+import com.icthh.xm.commons.lep.groovy.GroovyLepEngineFactory;
+import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -11,14 +13,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  *
@@ -74,17 +71,9 @@ public class DynamicLepTestConfig extends LepSpringConfiguration {
     }
 
     @Bean
-    public static PropertySourcesPlaceholderConfigurer properties() {
-        PropertySourcesPlaceholderConfigurer pspc = new PropertySourcesPlaceholderConfigurer();
-
-        String properties = "spring.application.name=testApp";
-        Resource propertiesResource = new ByteArrayResource(properties.getBytes(UTF_8));
-
-        pspc.setLocation(propertiesResource);
-        pspc.setIgnoreResourceNotFound(false);
-        pspc.setIgnoreUnresolvablePlaceholders(false);
-
-        return pspc;
+    public GroovyLepEngineFactory groovyLepEngineFactory(ClassPathLepRepository classPathLepRepository,
+                                                         TenantAliasService tenantAliasService) {
+        return new GroovyLepEngineFactory("testApp", classPathLepRepository, tenantAliasService);
     }
 
 }

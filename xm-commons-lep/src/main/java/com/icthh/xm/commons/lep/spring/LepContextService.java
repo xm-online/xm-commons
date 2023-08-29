@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.lep.impl;
+package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.lep.TargetProceedingLep;
 import com.icthh.xm.commons.lep.api.BaseLepContext;

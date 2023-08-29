@@ -25,7 +25,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.toUnmodifiableList;
 
 @Slf4j
-@Component
 public class LepManagementServiceImpl implements LepManagementService {
 
     private final AtomicBoolean isLepConfigInited = new AtomicBoolean(false);
@@ -128,7 +127,7 @@ public class LepManagementServiceImpl implements LepManagementService {
     }
 
     private String getTenantKeyFromThreadContext() {
-        return getRequiredTenantKeyValue(tenantContextHolder);
+        return getRequiredTenantKeyValue(tenantContextHolder).toUpperCase();
     }
 
     @SneakyThrows

@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.lep.utils;
+package com.icthh.xm.commons.lep.impl.utils;
 
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import lombok.SneakyThrows;
@@ -13,7 +13,6 @@ import java.util.Set;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-@Component
 public class ClassPathLepRepository {
 
     @SneakyThrows

@@ -4,18 +4,15 @@ import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepEngineFactory;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
-import com.icthh.xm.commons.lep.utils.ClassPathLepRepository;
+import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
 import groovy.util.logging.Slf4j;
 import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@Component // TODO move declaration of bean to java configuration
 public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClassLoaderAware {
 
     public static final String GROOVY_SUFFIX = ".groovy";
@@ -24,9 +21,10 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
     private final TenantAliasService tenantAliasService;
     private volatile ClassLoader classLoader;
 
-    public GroovyLepEngineFactory(@Value("${spring.application.name}") String appName,
+    public GroovyLepEngineFactory(String appName,
                                   ClassPathLepRepository classPathLepRepository,
                                   TenantAliasService tenantAliasService) {
+        super(appName);
         this.appName = appName;
         this.defaultLeps = classPathLepRepository.getLepFilesFromResources();
         this.tenantAliasService = tenantAliasService;

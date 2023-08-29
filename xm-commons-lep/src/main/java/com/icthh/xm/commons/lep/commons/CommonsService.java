@@ -8,7 +8,6 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.stereotype.Service;
 
 @Slf4j
-@Service
 @LepService
 @IgnoreLogginAspect
 public class CommonsService {
