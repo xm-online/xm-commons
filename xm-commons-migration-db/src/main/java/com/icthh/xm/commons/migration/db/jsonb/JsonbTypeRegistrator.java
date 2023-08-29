@@ -52,6 +52,9 @@ public class JsonbTypeRegistrator implements SessionFactoryBuilderFactory {
         Class<?> persistentClass) {
         while (propertyIterator.hasNext()) {
             Property property = propertyIterator.next();
+            if (property.isSynthetic()) {
+                continue;
+            }
             Class<?> fieldType = getField(persistentClass, property).getType();
             if (property.getValue() instanceof Component) {
                 Component component = (Component) property.getValue();
