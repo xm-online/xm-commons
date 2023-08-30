@@ -30,6 +30,7 @@ public class GroovyLepEngine extends LepEngine {
     private final String tenant;
     private final Map<String, XmLepConfigFile> leps;
     private final GroovyScriptEngine gse;
+    private final GroovyScriptEngine engineForCompile;
 
     public GroovyLepEngine(String appName, String tenant, Map<String, XmLepConfigFile> leps,
                            TenantAliasService tenantAliasService, ClassLoader classLoader) {
@@ -38,13 +39,14 @@ public class GroovyLepEngine extends LepEngine {
         this.leps = leps;
         LepResourceConnector lepResourceConnector = new LepResourceConnector(tenant, appName, tenantAliasService, leps);
         this.gse = new GroovyScriptEngine(lepResourceConnector, classLoader);
+        this.engineForCompile = new GroovyScriptEngine(lepResourceConnector, classLoader);
         warmupScripts();
     }
 
     private void warmupScripts() {
         this.leps.values().forEach(lep -> {
             try {
-                Class<?> scriptClass = gse.getGroovyClassLoader().parseClass(lep.getContent(), lep.getPath());
+                Class<?> scriptClass = engineForCompile.loadScriptByName("lep://" + lep.getPath());
                 if (Script.class.isAssignableFrom(scriptClass)) {
                     gse.createScript("lep://" + lep.getPath(), new Binding());
                 }
@@ -79,7 +81,7 @@ public class GroovyLepEngine extends LepEngine {
     @SneakyThrows
     private Object executeLep(String key, BaseLepContext lepContext) {
         try {
-            return gse.run(key, new Binding(Map.of("lepContext", lepContext)));
+            return gse.run("lep://" + key, new Binding(Map.of("lepContext", lepContext)));
         } catch (Throwable e) {
             log.error("Error run lep {}", key, e);
             throw e;

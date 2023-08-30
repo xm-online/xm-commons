@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
 public class DefaultLepKeyResolver implements LepKeyResolver {
     @Override
     public List<String> segments(LepMethod method) {

@@ -18,7 +18,6 @@ import java.util.function.Consumer;
  * To create new Thread pls use LepThreadHelper
  */
 @Deprecated(forRemoval = true)
-@Component
 public class CoreLepManager implements LepManager {
 
     private final CoreContextsHolder contextsHolder = new CoreContextsHolder();

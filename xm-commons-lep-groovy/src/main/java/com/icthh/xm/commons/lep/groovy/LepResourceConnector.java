@@ -144,7 +144,7 @@ public class LepResourceConnector implements ResourceConnector {
         XmLepConfigFile xmLepConfigFile = leps.get(path);
         if (xmLepConfigFile != null) {
             String content = xmLepConfigFile.getContent();
-            URL url = new URL(null, LEP_URL_PREFIX + path, new LepURLStreamHandler(content));
+            URL url = new URL(null, LEP_URL_PREFIX + path, new LepURLStreamHandler(xmLepConfigFile));
             return Optional.of(url.openConnection());
         } else {
             return Optional.empty();
@@ -156,7 +156,7 @@ public class LepResourceConnector implements ResourceConnector {
         XmLepConfigFile xmLepConfigFile = leps.get(lepUrl);
         if (xmLepConfigFile != null && containsClassDefinition(lepUrl, path)) {
             String content = xmLepConfigFile.getContent();
-            URL url = new URL(null, LEP_URL_PREFIX + lepUrl, new LepURLStreamHandler(content));
+            URL url = new URL(null, LEP_URL_PREFIX + lepUrl, new LepURLStreamHandler(xmLepConfigFile));
             return Optional.of(url.openConnection());
         } else {
             return Optional.empty();
@@ -208,26 +208,35 @@ public class LepResourceConnector implements ResourceConnector {
 
     private static class LepURLStreamHandler extends URLStreamHandler {
         private final String content;
+        private final long lastModified;
 
-        public LepURLStreamHandler(String content) {
-            this.content = content;
+        public LepURLStreamHandler(XmLepConfigFile xmLepConfigFile) {
+            this.content = xmLepConfigFile.getContent();
+            this.lastModified = xmLepConfigFile.getUpdateDate().toEpochMilli();
         }
 
         protected URLConnection openConnection(URL u) {
-            return new LepURLConnection(u, content);
+            return new LepURLConnection(u, content, lastModified);
         }
     }
 
     @Getter
     private static class LepURLConnection extends URLConnection {
         private final InputStream inputStream;
+        private final long lastModified;
 
-        protected LepURLConnection(URL url, String content) {
+        protected LepURLConnection(URL url, String content, long lastModified) {
             super(url);
             this.inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+            this.lastModified = lastModified;
         }
 
         public void connect() {
+        }
+
+        @Override
+        public long getLastModified() {
+            return super.getLastModified();
         }
     }
 

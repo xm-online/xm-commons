@@ -2,6 +2,8 @@ package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.tenant.TenantContext;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
+import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.TenantKey;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import com.icthh.xm.lep.api.LepManager;
@@ -38,12 +40,19 @@ public class LepServiceInstanceUnitTest {
     private TenantContext tenantContext;
 
     @Autowired
+    private TenantContextHolder tenantContextHolder;
+
+    @Autowired
     private TestLepService lepService;
 
     @Before
     public void init() {
         MockitoAnnotations.initMocks(this);
+    }
 
+    private void setTenant(String tenantKey) {
+        TenantContextUtils.setTenant(tenantContextHolder, tenantKey);
+        lepManager.endThreadContext();
         lepManager.beginThreadContext(ctx -> {
             ctx.setValue(THREAD_CONTEXT_KEY_TENANT_CONTEXT, tenantContext);
         });
@@ -51,7 +60,7 @@ public class LepServiceInstanceUnitTest {
 
     @Test
     public void successProcessingAroundLepForTestTenant() throws Throwable {
-        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("test")));
+        setTenant("test");
 
         String result = lepService.sayHello();
         assertEquals("ScriptWithAround.groovy around, tenant: test", result);
@@ -59,7 +68,7 @@ public class LepServiceInstanceUnitTest {
 
     @Test
     public void successProcessingAroundLepForSuperTenant() throws Throwable {
-        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("super")));
+        setTenant("super");
 
         String result = lepService.sayHello();
         assertEquals("ScriptWithAround.groovy around, tenant: super", result);
@@ -67,7 +76,7 @@ public class LepServiceInstanceUnitTest {
 
     @Test
     public void successProcessingDefaultLepForUnknownTenant() throws Throwable {
-        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("unknown")));
+        setTenant("unknown");
 
         String result = lepService.sayHello();
         assertEquals("ScriptWithAround.groovy default", result);
@@ -76,12 +85,12 @@ public class LepServiceInstanceUnitTest {
     @Test
     public void successProcessingAroundLepWhileSwitchTenant() throws Throwable {
         // "super" tenant
-        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("super")));
+        setTenant("super");
         String result = lepService.sayHello();
         assertEquals("ScriptWithAround.groovy around, tenant: super", result);
 
         // "test" tenant
-        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("test")));
+        setTenant("test");
         result = lepService.sayHello();
         assertEquals("ScriptWithAround.groovy around, tenant: test", result);
     }

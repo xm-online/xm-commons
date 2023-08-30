@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
+import com.icthh.xm.commons.lep.DefaultLepKeyResolver;
 import com.icthh.xm.commons.lep.RefreshTaskExecutor;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
@@ -8,12 +9,16 @@ import com.icthh.xm.commons.lep.api.LepContextFactory;
 import com.icthh.xm.commons.lep.api.LepEngineFactory;
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.commons.CommonsConfiguration;
+import com.icthh.xm.commons.lep.config.LepInterceptorConfiguration;
 import com.icthh.xm.commons.lep.impl.LepMethodAspect;
 import com.icthh.xm.commons.lep.impl.LogicExtensionPointHandler;
 import com.icthh.xm.commons.lep.impl.engine.LepManagementServiceImpl;
+import com.icthh.xm.commons.lep.impl.internal.MigrationFromCoreContextsHolderLepManagementServiceReference;
 import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.lep.api.LepKeyResolver;
+import com.icthh.xm.lep.api.LepManager;
+import com.icthh.xm.lep.core.CoreLepManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +31,7 @@ import java.util.List;
 @Configuration
 @ConditionalOnMissingBean(LepSpringConfiguration.class)
 @EnableAspectJAutoProxy
-@Import(CommonsConfiguration.class)
+@Import({CommonsConfiguration.class, LepInterceptorConfiguration.class})
 public class LepSpringConfiguration {
 
     private final String appName;
@@ -80,6 +85,23 @@ public class LepSpringConfiguration {
     @ConditionalOnMissingBean(LepContextFactory.class)
     public LepContextFactory lepContextFactory() {
         return lepMethod -> new BaseLepContext() {};
+    }
+
+    @Bean
+    public DefaultLepKeyResolver defaultLepKeyResolver() {
+        return new DefaultLepKeyResolver();
+    }
+
+    @Bean
+    @Deprecated(forRemoval = true)
+    public LepManager lepManager() {
+        return new CoreLepManager();
+    }
+
+    @Bean
+    @Deprecated(forRemoval = true)
+    public MigrationFromCoreContextsHolderLepManagementServiceReference migrationFromCoreContextsHolderLepManagementServiceReference(LepManagementService lepManagementService) {
+        return new MigrationFromCoreContextsHolderLepManagementServiceReference(lepManagementService);
     }
 
 }

@@ -204,6 +204,11 @@ Or to make test migration with minimal changes add next beans to you **TEST** co
     }
 ```
 
+#### You need to specify tenant before beginThreadContext
+```groovy
+TenantContextUtils.setTenant(tenantContextHolder, "TEST");
+```
+
 ### If you write xm-commons or lib add to dependency ONLY `implementation project(':xm-commons-lep')`,  if you need groovy lep in test add test deps `testImplementation project(':xm-commons-lep-groovy')`
 This will allow to choose lep engine in target microservices.
 
