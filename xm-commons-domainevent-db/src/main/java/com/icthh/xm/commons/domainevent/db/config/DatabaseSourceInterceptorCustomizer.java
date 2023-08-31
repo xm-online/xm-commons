@@ -2,6 +2,7 @@ package com.icthh.xm.commons.domainevent.db.config;
 
 import com.icthh.xm.commons.domainevent.db.service.DatabaseSourceInterceptor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -10,6 +11,7 @@ import java.util.Map;
 
 @Slf4j
 @Component
+@ConditionalOnProperty(value = "application.domain-event.enabled", havingValue = "true")
 public class DatabaseSourceInterceptorCustomizer implements HibernatePropertiesCustomizer {
 
     public static final String SESSION_FACTORY_INTERCEPTOR_PROPERTY = "hibernate.session_factory.interceptor";
