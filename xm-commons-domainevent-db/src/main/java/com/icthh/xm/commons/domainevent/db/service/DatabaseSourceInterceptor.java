@@ -1,9 +1,9 @@
 package com.icthh.xm.commons.domainevent.db.service;
 
 import com.icthh.xm.commons.domainevent.config.Column;
+import com.icthh.xm.commons.domainevent.config.DbSourceConfig;
 import com.icthh.xm.commons.domainevent.config.EntityFilter;
 import com.icthh.xm.commons.domainevent.config.Query;
-import com.icthh.xm.commons.domainevent.config.DbSourceConfig;
 import com.icthh.xm.commons.domainevent.config.XmDomainEventConfiguration;
 import com.icthh.xm.commons.domainevent.db.domain.JpaEntityContext;
 import com.icthh.xm.commons.domainevent.db.domain.State;
@@ -11,7 +11,7 @@ import com.icthh.xm.commons.domainevent.db.service.mapper.JpaEntityMapper;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation;
 import com.icthh.xm.commons.domainevent.service.EventPublisher;
-import com.icthh.xm.commons.logging.LoggingAspectConfig;
+import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,7 +65,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
     private final TenantContextHolder tenantContextHolder;
 
     @Override
-    @LoggingAspectConfig(inputDetails = false, resultDetails = false)
+    @IgnoreLogginAspect
     public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState,
                                 String[] propertyNames, Type[] types) {
         publishEvent(entity, id, currentState, previousState, propertyNames, UPDATE);
@@ -74,7 +74,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
     }
 
     @Override
-    @LoggingAspectConfig(inputDetails = false, resultDetails = false)
+    @IgnoreLogginAspect
     public boolean onSave(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
         publishEvent(entity, id, state, null, propertyNames, CREATE);
 
@@ -82,7 +82,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
     }
 
     @Override
-    @LoggingAspectConfig(inputDetails = false, resultDetails = false)
+    @IgnoreLogginAspect
     public void onDelete(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
         publishEvent(entity, id, null, state, propertyNames, DELETE);
         super.onDelete(entity, id, state, propertyNames, types);
