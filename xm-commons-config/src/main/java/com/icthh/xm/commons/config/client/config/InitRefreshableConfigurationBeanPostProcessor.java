@@ -1,32 +1,44 @@
 package com.icthh.xm.commons.config.client.config;
 
+import static org.apache.commons.lang3.StringUtils.length;
+
 import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.api.ConfigurationChangedListener;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.config.domain.Configuration;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.util.AntPathMatcher;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
-@RequiredArgsConstructor
 public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostProcessor {
 
     public static final String LOG_CONFIG_EMPTY = "<CONFIG_EMPTY>";
-
+    private static final String CONFIG_PATH = "/config/tenants/{tenantName}/**";
+    private static final String COMMONS = "commons";
     private final ConfigService configService;
 
     private final Map<String, RefreshableConfiguration> refreshableConfigurations = new HashMap<>();
     private volatile Map<String, Configuration> configMap;
+
+    private final Set<String> includedTenants;
+    private final AntPathMatcher matcher = new AntPathMatcher();
+
+    public InitRefreshableConfigurationBeanPostProcessor(ConfigService configService,
+                                                         XmConfigProperties xmConfigProperties) {
+        this.configService = configService;
+        this.includedTenants = xmConfigProperties.getIncludeTenantUppercase();
+        addLepCommons();
+    }
 
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
@@ -53,26 +65,11 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
     }
 
     private void initBean(RefreshableConfiguration refreshableConfiguration, Map<String, Configuration> configMap) {
-        configMap.forEach((key, value) -> {
-            if (refreshableConfiguration.isListeningConfiguration(key)) {
-                log.info(
-                    "Process config init event: [key = {}, size = {}, newHash = {}] in bean: [{}]",
-                    key,
-                    StringUtils.length(value.getContent()),
-                    getValueHash(value.getContent()),
-                    getBeanName(refreshableConfiguration));
-
-                refreshableConfiguration.onInit(key, value.getContent());
-            }
-        });
-        List<String> initedPaths = configMap.keySet()
-                .stream()
-                .filter(refreshableConfiguration::isListeningConfiguration)
-                .collect(Collectors.toList());
+        List<String> initedPaths = initConfigPaths(refreshableConfiguration, configMap);
         refreshFinished(refreshableConfiguration, initedPaths);
 
         log.info("refreshable configuration bean [{}] initialized by configMap with {} entries",
-            getBeanName(refreshableConfiguration), configMap.size());
+                 getBeanName(refreshableConfiguration), configMap.size());
 
         configService.addConfigurationChangedListener(new ConfigurationChangedListener() {
             @Override
@@ -83,12 +80,54 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
             @Override
             public void refreshFinished(Collection<String> paths) {
                 List<String> listenPaths = paths.stream()
-                        .filter(refreshableConfiguration::isListeningConfiguration).collect(Collectors.toList());
+                                                .filter(s -> isTenantIncluded(s))
+                                                .filter(refreshableConfiguration::isListeningConfiguration)
+                                                .collect(Collectors.toList());
                 if (!listenPaths.isEmpty()) {
-                    InitRefreshableConfigurationBeanPostProcessor.this.refreshFinished(refreshableConfiguration, listenPaths);
+                    InitRefreshableConfigurationBeanPostProcessor.this.refreshFinished(refreshableConfiguration,
+                                                                                       listenPaths);
                 }
             }
         });
+    }
+
+    public List<String> initConfigPaths(final RefreshableConfiguration refreshableConfiguration,
+                                        final Map<String, Configuration> configMap) {
+        return configMap
+            .entrySet()
+            .stream()
+            .filter(e -> isTenantIncluded(e.getKey()))
+            .filter(e -> refreshableConfiguration.isListeningConfiguration(e.getKey()))
+            .peek(e -> printLog(getBeanName(refreshableConfiguration), e))
+            .peek(e -> refreshableConfiguration.onInit(e.getKey(), e.getValue().getContent()))
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toList());
+    }
+
+    private static void printLog(final String beanName,
+                                 final Map.Entry<String, Configuration> e) {
+        log.info("Process config init event: [key = {}, size = {}, newHash = {}] in bean: [{}]",
+                 e.getKey(),
+                 length(e.getValue().getContent()),
+                 getValueHash(e.getValue().getContent()),
+                 beanName);
+    }
+
+    private boolean isTenantIncluded(String configKey) {
+        if (!includedTenants.isEmpty()) {
+            if (matcher.match(CONFIG_PATH, configKey)) {
+                String tenant = matcher.extractUriTemplateVariables(CONFIG_PATH, configKey).get("tenantName");
+                return includedTenants.contains(tenant);
+            }
+            return false;
+        }
+        return true;
+    }
+
+    private void addLepCommons() {
+        if (!includedTenants.isEmpty()) {
+            includedTenants.add(COMMONS); // tenant level commons are always included.
+        }
     }
 
     private void refreshFinished(RefreshableConfiguration refreshableConfiguration, Collection<String> paths) {
@@ -102,21 +141,22 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
     private void onEntryChange(RefreshableConfiguration refreshableConfiguration, Configuration configuration) {
         String configContent = configuration.getContent();
 
-        if (refreshableConfiguration.isListeningConfiguration(configuration.getPath())) {
-            refreshableConfiguration.onRefresh(configuration.getPath(), configContent);
+        if (isTenantIncluded(configuration.getPath())) {
+            if (refreshableConfiguration.isListeningConfiguration(configuration.getPath())) {
+                refreshableConfiguration.onRefresh(configuration.getPath(), configContent);
 
-            log.info(
-                "Process config update event: "
-                    + "[path = {}, size = {}, hash = {}] in bean: [{}]",
-                configuration.getPath(),
-                StringUtils.length(configContent),
-                getValueHash(configContent),
-                getBeanName(refreshableConfiguration));
-        } else {
-            log.debug("Ignored config update event: [path = {}, configSize = {} in bean [{}]",
-                configuration.getPath(),
-                StringUtils.length(configContent),
-                getBeanName(refreshableConfiguration));
+                log.info(
+                    "Process config update event: [path = {}, size = {}, hash = {}] in bean: [{}]",
+                    configuration.getPath(),
+                    length(configContent),
+                    getValueHash(configContent),
+                    getBeanName(refreshableConfiguration));
+            } else {
+                log.debug("Ignored config update event: [path = {}, configSize = {} in bean [{}]",
+                          configuration.getPath(),
+                          length(configContent),
+                          getBeanName(refreshableConfiguration));
+            }
         }
     }
 
@@ -126,6 +166,6 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
 
     private static String getValueHash(final String configContent) {
         return StringUtils.isEmpty(configContent) ? LOG_CONFIG_EMPTY :
-            DigestUtils.md5Hex(configContent);
+               DigestUtils.md5Hex(configContent);
     }
 }

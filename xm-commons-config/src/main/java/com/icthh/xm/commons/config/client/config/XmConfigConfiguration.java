@@ -38,8 +38,8 @@ public class XmConfigConfiguration {
 
     @Bean
     public InitRefreshableConfigurationBeanPostProcessor refreshableConfigurationPostProcessor(
-        ConfigService configService) {
-        return new InitRefreshableConfigurationBeanPostProcessor(configService);
+        ConfigService configService, XmConfigProperties xmConfigProperties) {
+        return new InitRefreshableConfigurationBeanPostProcessor(configService, xmConfigProperties);
     }
 
     @Bean
