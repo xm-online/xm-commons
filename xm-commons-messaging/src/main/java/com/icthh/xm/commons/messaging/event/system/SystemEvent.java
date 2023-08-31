@@ -3,6 +3,7 @@ package com.icthh.xm.commons.messaging.event.system;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.Instant;
@@ -13,6 +14,7 @@ import java.util.Map;
  * The {@link SystemEvent} class.
  */
 @Data
+@ToString(exclude = "data")
 public class SystemEvent {
 
     private String eventId;
