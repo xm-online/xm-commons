@@ -26,10 +26,10 @@ public abstract class LepEngine {
     }
 
     public void destroy() {
-        destroyCallbacks.forEach(DestroyCallback::onDestroy);
+        destroyCallbacks.forEach(it -> it.onDestroy(this));
     }
 
     public interface DestroyCallback {
-        void onDestroy();
+        void onDestroy(LepEngine lepEngine);
     }
 }

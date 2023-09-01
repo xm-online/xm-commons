@@ -6,24 +6,24 @@ import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import com.icthh.xm.commons.lep.groovy.GroovyFileParser.GroovyFileMetadata;
 import groovy.util.ResourceConnector;
 import groovy.util.ResourceException;
-import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.InputStreamSource;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
-import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import static java.util.Collections.unmodifiableSet;
@@ -54,10 +54,14 @@ public class LepResourceConnector implements ResourceConnector {
         this.appName = appName;
         this.tenantAliasService = tenantAliasService;
         this.leps = leps;
-        Map<String, GroovyFileMetadata> lepMetadata = new HashMap<>();
-        leps.forEach(lep -> lepMetadata.put(lep.getPath(), groovyFileParser.getFileMetaData(lep.getContent())));
+        Map<String, GroovyFileMetadata> lepMetadata = new ConcurrentHashMap<>();
+        leps.forEach(lep -> lepMetadata.put(lep.metadataKey(), toFileMetaData(lep)));
         this.lepMetadata = lepMetadata;
         this.lepPathPrefixes = buildLepPrefixes(tenantKey, appName, tenantAliasService);
+    }
+
+    private GroovyFileMetadata toFileMetaData(XmLepConfigFile lep) {
+        return groovyFileParser.getFileMetaData(lep.readContent());
     }
 
     private static Set<String> buildLepPrefixes(String tenantKey, String appName, TenantAliasService tenantAliasService) {
@@ -82,7 +86,8 @@ public class LepResourceConnector implements ResourceConnector {
 
 
     @SneakyThrows
-    public URLConnection getResourceConnection(String name) {
+    public URLConnection getResourceConnection(final String url) {
+        String name = url;
         if (log.isTraceEnabled()) {
             log.trace("Resolve import {}", name);
         }
@@ -135,7 +140,12 @@ public class LepResourceConnector implements ResourceConnector {
         if (log.isTraceEnabled()) {
             log.trace("Resource {} not found", name);
         }
-        throw new ResourceException("Resource not found " + name);
+
+        if (url.startsWith(LEP_URL_PREFIX)) {
+            return toEmptyLepConnection(url);
+        } else {
+            throw new ResourceException("Resource not found " + name);
+        }
     }
 
     @SneakyThrows
@@ -150,9 +160,15 @@ public class LepResourceConnector implements ResourceConnector {
     }
 
     @SneakyThrows
+    public URLConnection toEmptyLepConnection(String path) {
+        URL url = new URL(null, LEP_URL_PREFIX + path, new EmptyLepURLStreamHandler(path));
+        return url.openConnection();
+    }
+
+    @SneakyThrows
     public Optional<URLConnection> toLepConnection(String lepUrl, String path) {
         XmLepConfigFile xmLepConfigFile = leps.getByPath(lepUrl);
-        if (xmLepConfigFile != null && containsClassDefinition(lepUrl, path)) {
+        if (xmLepConfigFile != null && containsClassDefinition(lepUrl, path, xmLepConfigFile)) {
             URL url = new URL(null, LEP_URL_PREFIX + lepUrl, new LepURLStreamHandler(xmLepConfigFile));
             return Optional.of(url.openConnection());
         } else {
@@ -161,7 +177,7 @@ public class LepResourceConnector implements ResourceConnector {
     }
 
     @SneakyThrows
-    private boolean containsClassDefinition(String lepUrl, String path) {
+    private boolean containsClassDefinition(String lepUrl, String path, XmLepConfigFile lepFile) {
         String lepPath = lepUrl;
         if (lepPath.endsWith(LEP_SUFFIX)) {
             lepPath = lepPath.substring(0, lepPath.length() - LEP_SUFFIX.length());
@@ -178,37 +194,42 @@ public class LepResourceConnector implements ResourceConnector {
 
         String importValue = path.substring(lepPath.length());
         importValue = className + importValue;
-        var metadata = lepMetadata.get(lepUrl);
+        var metadata = lepMetadata.computeIfAbsent(lepFile.metadataKey(), it -> toFileMetaData(lepFile));
         return metadata != null && metadata.canImport(importValue);
     }
 
     private Optional<LepRootPath> getLepBasePath(String name) {
         List<LepRootPath> rootPathVariants = new ArrayList<>();
-        rootPathVariants.add(new LepRootPath(name, tenantKey + "/" + COMMONS + "/" + LEP_FOLDER, URL_PREFIX_COMMONS_TENANT));
-        rootPathVariants.add(new LepRootPath(name, COMMONS + "/" + LEP_FOLDER, URL_PREFIX_COMMONS_ENVIRONMENT));
-        rootPathVariants.add(new LepRootPath(name, tenantKey + "/" + COMMONS, tenantKey + "/" + COMMONS));
-        rootPathVariants.add(new LepRootPath(name, COMMONS, COMMONS));
 
-        List<String> rootFoldersVariants = new ArrayList<>();
-        rootFoldersVariants.add(tenantKey + "/" + appName);
+        rootPathVariants.add(new LepRootPath(name, tenantKey + "/" + appName, tenantKey + "/" + appName));
+
         tenantAliasService.getTenantAliasTree()
             .getParentKeys(tenantKey).stream()
             .map(tenant -> tenant + "/" + appName)
-            .forEach(rootFoldersVariants::add);
-        rootFoldersVariants.stream()
             .map(it -> new LepRootPath(name, tenantKey + "/" + appName, it))
             .forEach(rootPathVariants::add);
+
+        tenantAliasService.getTenantAliasTree()
+            .getParentKeys(tenantKey).stream()
+            .map(tenant -> tenant + "/" + COMMONS)
+            .map(it -> new LepRootPath(name, tenantKey + "/" + COMMONS, it))
+            .forEach(rootPathVariants::add);
+
+        rootPathVariants.add(new LepRootPath(name, tenantKey + "/" + COMMONS + "/" + LEP_FOLDER, URL_PREFIX_COMMONS_TENANT));
+        rootPathVariants.add(new LepRootPath(name, tenantKey + "/" + COMMONS, tenantKey + "/" + COMMONS));
+        rootPathVariants.add(new LepRootPath(name, COMMONS + "/" + LEP_FOLDER, URL_PREFIX_COMMONS_ENVIRONMENT));
+        rootPathVariants.add(new LepRootPath(name, COMMONS, COMMONS));
 
         return rootPathVariants.stream().filter(LepRootPath::isMatch).findFirst();
     }
 
     private static class LepURLStreamHandler extends URLStreamHandler {
-        private final String content;
+        private final InputStreamSource content;
         private final long lastModified;
 
         public LepURLStreamHandler(XmLepConfigFile xmLepConfigFile) {
-            this.content = xmLepConfigFile.getContent();
-            this.lastModified = xmLepConfigFile.getUpdateDate().toEpochMilli();
+            this.content = xmLepConfigFile.getContentStream();
+            this.lastModified = xmLepConfigFile.getLastModified();
         }
 
         protected URLConnection openConnection(URL u) {
@@ -216,23 +237,62 @@ public class LepResourceConnector implements ResourceConnector {
         }
     }
 
-    @Getter
     private static class LepURLConnection extends URLConnection {
-        private final InputStream inputStream;
+        private final InputStreamSource inputStream;
         private final long lastModified;
 
-        protected LepURLConnection(URL url, String content, long lastModified) {
+        protected LepURLConnection(URL url, InputStreamSource inputStream, long lastModified) {
             super(url);
-            this.inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+            this.inputStream = inputStream;
             this.lastModified = lastModified;
         }
 
-        public void connect() {
+        @Override
+        @SneakyThrows
+        public InputStream getInputStream() {
+            return inputStream.getInputStream();
         }
 
         @Override
         public long getLastModified() {
-            return super.getLastModified();
+            return lastModified;
+        }
+
+        public void connect() {
+        }
+    }
+
+    @RequiredArgsConstructor
+    private static class EmptyLepURLStreamHandler extends URLStreamHandler {
+        private final String url;
+
+        @Override
+        protected URLConnection openConnection(URL u) {
+            return new EmptyLepURLConnection(u);
+        }
+    }
+
+    private static class EmptyLepURLConnection extends URLConnection {
+
+        protected EmptyLepURLConnection(URL url) {
+            super(url);
+        }
+
+        @Override
+        @SneakyThrows
+        public InputStream getInputStream() {
+            throw new ResourceException("Resource not found " + url);
+        }
+
+        @Override
+        public long getLastModified() {
+            return Instant.now().toEpochMilli();
+        }
+
+        @Override
+        @SneakyThrows
+        public void connect() {
+            throw new ResourceException("Resource not found " + url);
         }
     }
 

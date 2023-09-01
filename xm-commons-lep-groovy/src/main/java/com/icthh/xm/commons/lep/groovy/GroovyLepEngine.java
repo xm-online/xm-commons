@@ -12,6 +12,7 @@ import groovy.util.GroovyScriptEngine;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.groovy.control.CompilerConfiguration;
 
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,11 @@ public class GroovyLepEngine extends LepEngine {
         this.leps = leps;
         LepResourceConnector lepResourceConnector = new LepResourceConnector(tenant, appName, tenantAliasService, leps);
         this.gse = new GroovyScriptEngine(lepResourceConnector, classLoader);
+        CompilerConfiguration config = this.gse.getConfig();
+        config.setRecompileGroovySource(true);
+        config.setMinimumRecompilationInterval(50);
+        this.gse.setConfig(config);
+        this.gse.getGroovyClassLoader().setShouldRecompile(true);
         this.engineForCompile = new GroovyScriptEngine(lepResourceConnector, classLoader);
         warmupScripts();
     }

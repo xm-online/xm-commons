@@ -7,6 +7,7 @@ import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepAdditionalContext;
 import com.icthh.xm.commons.lep.api.LepContextFactory;
+import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepEngineFactory;
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.commons.CommonsConfiguration;
@@ -16,6 +17,7 @@ import com.icthh.xm.commons.lep.impl.LogicExtensionPointHandler;
 import com.icthh.xm.commons.lep.impl.engine.LepManagementServiceImpl;
 import com.icthh.xm.commons.lep.impl.internal.MigrationFromCoreContextsHolderLepManagementServiceReference;
 import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
+import com.icthh.xm.commons.lep.spring.lepservice.ClearServicesOnEngineDestroy;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryResolver;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryWithLepFactoryMethod;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
@@ -25,10 +27,12 @@ import com.icthh.xm.lep.api.LepManager;
 import com.icthh.xm.lep.core.CoreLepManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 
 import java.util.List;
 
@@ -46,8 +50,10 @@ public class LepSpringConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(LepManagementService.class)
-    public LepManagementService lepManagementService(List<LepEngineFactory> engineFactories, TenantContextHolder tenantContextHolder) {
-        return new LepManagementServiceImpl(engineFactories, tenantContextHolder);
+    public LepManagementService lepManagementService(List<LepEngineFactory> engineFactories,
+                                                     TenantContextHolder tenantContextHolder,
+                                                     List<LepEngine.DestroyCallback> destroyCallbacks) {
+        return new LepManagementServiceImpl(engineFactories, tenantContextHolder, destroyCallbacks);
     }
 
     @Bean
@@ -83,8 +89,8 @@ public class LepSpringConfiguration {
     }
 
     @Bean
-    public ClassPathLepRepository classPathLepRepository() {
-        return new ClassPathLepRepository();
+    public ClassPathLepRepository classPathLepRepository(ApplicationContext applicationContext) {
+        return new ClassPathLepRepository(applicationContext);
     }
 
     @Bean
@@ -140,11 +146,17 @@ public class LepSpringConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(LepServiceFactoryWithLepFactoryMethod.class)
     public LepServiceFactoryWithLepFactoryMethod lepServiceFactory(
         @Value("${application.lep.service-factory-timeout:60}")
         Integer timeout
     ) {
         return new LepServiceFactoryWithLepFactoryMethod(timeout);
+    }
+
+    @Bean
+    public ClearServicesOnEngineDestroy clearServicesOnEngineDestroy(LepServiceFactoryWithLepFactoryMethod factory) {
+        return new ClearServicesOnEngineDestroy(factory);
     }
 
     @Bean

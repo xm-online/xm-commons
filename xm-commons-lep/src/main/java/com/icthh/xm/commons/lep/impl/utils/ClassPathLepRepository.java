@@ -1,27 +1,30 @@
 package com.icthh.xm.commons.lep.impl.utils;
 
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.apache.commons.io.IOUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.ResourcesScanner;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
+@RequiredArgsConstructor
 public class ClassPathLepRepository {
+
+    private final ResourceLoader resourceLoader;
 
     @SneakyThrows
     public Map<String, XmLepConfigFile> getLepFilesFromResources(String folderName) {
         Set<String> defaultLeps = getResourceFiles(folderName);
         Map<String, XmLepConfigFile> defauleLepsMap = new HashMap<>();
         for (String fileName: defaultLeps) {
-            String content = IOUtils.toString(getClass().getResourceAsStream("/" + fileName), UTF_8);
+            Resource resource = resourceLoader.getResource("classpath:" + fileName);
             String relativePath = fileName.substring(folderName.length());
-            defauleLepsMap.put(relativePath, new XmLepConfigFile(relativePath, content));
+            defauleLepsMap.put(relativePath, new XmLepConfigFile(relativePath, resource));
         }
         return defauleLepsMap;
     }

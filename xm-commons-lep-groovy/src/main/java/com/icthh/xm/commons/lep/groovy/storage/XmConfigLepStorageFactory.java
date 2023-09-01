@@ -22,14 +22,14 @@ public class XmConfigLepStorageFactory implements LepStorageFactory {
         Map<String, XmLepConfigFile> classPathDefaultLeps = new HashMap<>();
         this.defaultLeps.forEach((key, value) -> {
             String path = tenant + "/" + appName + "/lep" + value.getPath();
-            classPathDefaultLeps.put(path, new XmLepConfigFile(path, value.getContent()));
+            classPathDefaultLeps.put(path, new XmLepConfigFile(path, value.getContentStream()));
         });
 
         String configPrefix = "/config/tenants/";
         Map<String, XmLepConfigFile> lepsFromConfig = new HashMap<>();
         lepFromConfig.forEach((value) -> {
             String path = value.getPath().substring(configPrefix.length());
-            lepsFromConfig.put(path, new XmLepConfigFile(path, value.getContent()));
+            lepsFromConfig.put(path, new XmLepConfigFile(path, value.getContentStream()));
         });
 
         Map<String, XmLepConfigFile> lepFiles = new HashMap<>();
@@ -40,7 +40,7 @@ public class XmConfigLepStorageFactory implements LepStorageFactory {
         lepFiles.forEach((key, lep) -> {
             if (key.endsWith(GROOVY_SUFFIX)) {
                 key = key.substring(0, key.length() - GROOVY_SUFFIX.length());
-                leps.put(key, new XmLepConfigFile(key, lep.getContent()));
+                leps.put(key, new XmLepConfigFile(key, lep.getContentStream()));
             }
         });
 

@@ -1,8 +1,10 @@
 package com.icthh.xm.commons.lep.groovy;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
+import com.icthh.xm.commons.lep.FileSystemUtils;
 import com.icthh.xm.commons.lep.TenantScriptStorage;
 import com.icthh.xm.commons.lep.groovy.storage.ClassPathLepStorageFactory;
+import com.icthh.xm.commons.lep.groovy.storage.FileLepStorageFactory;
 import com.icthh.xm.commons.lep.groovy.storage.LepStorageFactory;
 import com.icthh.xm.commons.lep.groovy.storage.XmConfigLepStorageFactory;
 import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
@@ -46,13 +48,17 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
         } else if (storageType.equals(CLASSPATH)) {
             return new ClassPathLepStorageFactory(appName, classPathLepRepository, tenantAliasService);
         } else if (storageType.equals(FILE)) {
-            return null;
+            return new FileLepStorageFactory(appName, classPathLepRepository, tenantAliasService, getFileTenantScriptPathResolverBaseDir());
         } else if (storageType.equals(FILE_FULL_UPDATE)) {
             return null;
         } else {
             throw new RuntimeException("Unsupported storage type");
         }
 
+    }
+
+    protected String getFileTenantScriptPathResolverBaseDir() {
+        return FileSystemUtils.getAppHomeDir();
     }
 
     @Bean

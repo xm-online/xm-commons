@@ -34,10 +34,14 @@ public class LepManagementServiceImpl implements LepManagementService {
 
     private final List<LepEngineFactory> engineFactories;
     private final TenantContextHolder tenantContextHolder;
+    private final List<LepEngine.DestroyCallback> destroyCallbacks;
 
-    public LepManagementServiceImpl(List<LepEngineFactory> engineFactories, TenantContextHolder tenantContextHolder) {
+    public LepManagementServiceImpl(List<LepEngineFactory> engineFactories,
+                                    TenantContextHolder tenantContextHolder,
+                                    List<LepEngine.DestroyCallback> destroyCallbacks) {
         this.engineFactories = engineFactories;
         this.tenantContextHolder = tenantContextHolder;
+        this.destroyCallbacks = destroyCallbacks;
     }
 
     @Override
@@ -51,13 +55,17 @@ public class LepManagementServiceImpl implements LepManagementService {
         log.trace("Start lep engines refresh by configs {}", configInLepFolder.values());
 
         configInLepFolder.keySet().forEach(tenantKey -> {
-            String tenant = tenantKey.toUpperCase();
             StopWatch timer = StopWatch.createStarted();
+
+            String tenant = tenantKey.toUpperCase();
             List<XmLepConfigFile> tenantConfigs = configInLepFolder.getOrDefault(tenantKey, emptyList());
             log.info("START | Create lep engines for tenant: {} | configInLepFolder.size: {}", tenant, tenantConfigs.size());
             log.debug("START | Create lep engines for tenant: {} | configInLepFolder.size: {}", tenant, tenantConfigs);
+
             List<LepEngine> engines = createEngines(tenantKey, tenantConfigs);
+            engines.forEach(engine -> destroyCallbacks.forEach(engine::addDestroyCallback));
             lepEnginesManager.update(tenant, engines);
+
             log.info("STOP | Finish creating lep engines for tenant {}, {}ms", tenant, timer.getTime(MILLISECONDS));
         });
 

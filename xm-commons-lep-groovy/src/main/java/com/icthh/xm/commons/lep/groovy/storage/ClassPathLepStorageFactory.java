@@ -31,7 +31,7 @@ public class ClassPathLepStorageFactory implements LepStorageFactory {
         Map<String, XmLepConfigFile> classPathDefaultLeps = new HashMap<>();
         this.defaultLeps.forEach((key, value) -> {
             String path = tenant + "/" + appName + "/lep" + value.getPath();
-            classPathDefaultLeps.put(path, new XmLepConfigFile(path, value.getContent()));
+            classPathDefaultLeps.put(path, new XmLepConfigFile(path, value.getContentStream()));
         });
 
         List<String> parentTenants = tenantAliasService.getTenantAliasTree().getParentKeys(tenant);
@@ -45,7 +45,7 @@ public class ClassPathLepStorageFactory implements LepStorageFactory {
                 String pathTenantKey = path.substring(0, path.indexOf("/"));
                 if (pathTenantKey.equalsIgnoreCase(tenantKey)) {
                     path = tenant.toUpperCase() + "/" + appName + "/lep" + path.substring(path.indexOf("/"));
-                    lepsFromClassPath.put(path, new XmLepConfigFile(path, value.getContent()));
+                    lepsFromClassPath.put(path, new XmLepConfigFile(path, value.getContentStream()));
                 }
             });
         });
@@ -58,7 +58,7 @@ public class ClassPathLepStorageFactory implements LepStorageFactory {
         lepFiles.forEach((key, lep) -> {
             if (key.endsWith(GROOVY_SUFFIX)) {
                 key = key.substring(0, key.length() - GROOVY_SUFFIX.length());
-                leps.put(key, new XmLepConfigFile(key, lep.getContent()));
+                leps.put(key, new XmLepConfigFile(key, lep.getContentStream()));
             }
         });
 

@@ -3,13 +3,11 @@ package com.icthh.xm.commons.lep.spring.lepservice;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
-import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.annotation.Order;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,11 +15,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.springframework.core.Ordered.LOWEST_PRECEDENCE;
-
 @Slf4j
 @IgnoreLogginAspect
-@Order(LOWEST_PRECEDENCE)
 @LepService(group = "service.factory")
 public class LepServiceFactoryWithLepFactoryMethod {
 
@@ -88,4 +83,7 @@ public class LepServiceFactoryWithLepFactoryMethod {
         this.self = self;
     }
 
+    public void clear(String scopeId) {
+        serviceInstances.remove(scopeId);
+    }
 }

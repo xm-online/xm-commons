@@ -30,11 +30,11 @@ public class DynamicLepTestFileConfig extends DynamicLepTestConfig {
     }
 
     @Bean
-    public TenantScriptStorageTypeProvider tenantScriptStorageTypeProvider() {
+    public TenantScriptStorageTypeProvider getTenantScriptStorageType() {
         return () -> TenantScriptStorage.FILE;
     }
 
-
+    @Override
     protected String getFileTenantScriptPathResolverBaseDir() {
         return folder.getRoot().toPath().toFile().getAbsolutePath();
     }

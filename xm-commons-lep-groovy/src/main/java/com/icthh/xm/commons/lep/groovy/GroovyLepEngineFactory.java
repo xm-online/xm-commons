@@ -1,10 +1,10 @@
 package com.icthh.xm.commons.lep.groovy;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
-import com.icthh.xm.commons.lep.groovy.storage.XmConfigLepStorage;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepEngineFactory;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
+import com.icthh.xm.commons.lep.groovy.storage.LepStorage;
 import com.icthh.xm.commons.lep.groovy.storage.LepStorageFactory;
 import groovy.util.logging.Slf4j;
 import org.springframework.beans.factory.BeanClassLoaderAware;
@@ -36,7 +36,7 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
 
     @Override
     public LepEngine createLepEngine(String tenant, List<XmLepConfigFile> lepFromConfig) {
-        XmConfigLepStorage lepConfigStorage = lepStorageFactory.buildXmConfigLepStorage(tenant, lepFromConfig);
+        LepStorage lepConfigStorage = lepStorageFactory.buildXmConfigLepStorage(tenant, lepFromConfig);
         return new GroovyLepEngine(appName, tenant, lepConfigStorage, tenantAliasService, classLoader);
     }
 }

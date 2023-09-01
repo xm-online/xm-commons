@@ -8,5 +8,5 @@ public interface LepStorageFactory {
 
     String GROOVY_SUFFIX = ".groovy";
 
-    XmConfigLepStorage buildXmConfigLepStorage(String tenant, List<XmLepConfigFile> lepStorage);
+    LepStorage buildXmConfigLepStorage(String tenant, List<XmLepConfigFile> lepStorage);
 }
