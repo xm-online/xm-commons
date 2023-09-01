@@ -11,6 +11,8 @@ import java.util.Map;
 public class HttpDomainEventPayload extends DomainEventPayload {
     private String method;
     private String url;
+    private String urlPattern;
+    private Map<String, Object> urlPathParams;
     private String queryString;
     private Long requestLength;
     private String requestBody;

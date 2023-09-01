@@ -9,10 +9,9 @@ import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 
 import java.sql.Types;
 
-public class CustomPostgreSQL95Dialect extends PostgreSQL95Dialect {
+public class CustomPostgreSQL95Dialect extends PostgreSQL95Dialect implements CustomDialect {
 
     public static final String JSON_QUERY_TEMPLATE = "jsonb_path_query_first(?1, ?2::jsonpath)";
-    public static final String JSON_QUERY = "json_query";
 
     public static final String JSON_EXTRACT_PATH = "jsonb_extract_path_text";
     public static final String JSON_EXTRACT_PATH_TEMPLATE = "jsonb_to_string";
@@ -30,7 +29,7 @@ public class CustomPostgreSQL95Dialect extends PostgreSQL95Dialect {
 
     @Override
     public SqlTypeDescriptor remapSqlTypeDescriptor(SqlTypeDescriptor sqlTypeDescriptor) {
-        if (sqlTypeDescriptor.getSqlType() == java.sql.Types.BLOB) {
+        if (sqlTypeDescriptor.getSqlType() == Types.BLOB) {
             return BinaryTypeDescriptor.INSTANCE;
         }
         return super.remapSqlTypeDescriptor(sqlTypeDescriptor);
