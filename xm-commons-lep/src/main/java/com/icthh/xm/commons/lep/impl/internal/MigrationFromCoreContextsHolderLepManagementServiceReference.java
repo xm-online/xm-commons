@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
  * This class will be removed after migration from CoreContextsHolder;
  */
 @Slf4j
-@Component
 @Deprecated(forRemoval = true)
 public class MigrationFromCoreContextsHolderLepManagementServiceReference {
 

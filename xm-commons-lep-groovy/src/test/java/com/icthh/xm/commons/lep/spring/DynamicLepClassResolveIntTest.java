@@ -3,7 +3,7 @@ package com.icthh.xm.commons.lep.spring;
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.lep.api.LepManagementService;
-import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryImpl;
+import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryWithLepFactoryMethod;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.tenant.TenantContext;
@@ -13,6 +13,7 @@ import com.icthh.xm.commons.tenant.TenantKey;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import com.icthh.xm.lep.api.LepManager;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.InputStream;
@@ -39,9 +39,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-/**
- *
- */
+@Slf4j
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {
         DynamicLepTestConfig.class,
@@ -76,7 +74,7 @@ public class DynamicLepClassResolveIntTest {
     private XmLepScriptConfigServerResourceLoader resourceLoader;
 
     @Autowired
-    private LepServiceFactoryImpl serviceFactoryService;
+    private LepServiceFactoryWithLepFactoryMethod serviceFactoryService;
 
     @Before
     public void init() {
@@ -118,8 +116,6 @@ public class DynamicLepClassResolveIntTest {
     public void refreshLep(String path, String content) {
         resourceLoader.onRefresh(path, content);
         resourceLoader.refreshFinished(List.of(path));
-        serviceFactoryService.onRefresh(path, content);
-        serviceFactoryService.refreshFinished(List.of(path));
     }
 
     @Test
@@ -134,7 +130,7 @@ public class DynamicLepClassResolveIntTest {
         refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
             loadFile("lep/TestEnumInterfaceAnnotationUsage")
         );
-
+        log.info("Run lep method");
         String result = testLepService.testLepMethod();
         assertEquals("VAL1", result);
     }

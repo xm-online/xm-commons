@@ -12,7 +12,6 @@ import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
@@ -20,6 +19,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.icthh.xm.commons.tenant.TenantContextUtils.getRequiredTenantKeyValue;
+import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparingInt;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.toUnmodifiableList;
@@ -47,18 +47,16 @@ public class LepManagementServiceImpl implements LepManagementService {
 
     @Override
     public void refreshEngines(Map<String, List<XmLepConfigFile>> configInLepFolder) {
-        log.info("Start lep engines refresh for tenants {}", configInLepFolder.keySet());
+        log.info("START | Start lep engines refresh for tenants {}", configInLepFolder.keySet());
         log.trace("Start lep engines refresh by configs {}", configInLepFolder.values());
 
         configInLepFolder.keySet().forEach(tenantKey -> {
             String tenant = tenantKey.toUpperCase();
             StopWatch timer = StopWatch.createStarted();
-
-            log.info("START | Create lep engines for tenant {}", tenant);
-            var engines = engineFactories.stream()
-                .map(it -> it.createLepEngine(tenant, configInLepFolder.get(tenantKey)))
-                .sorted(comparingInt(LepEngine::order))
-                .collect(toUnmodifiableList());
+            List<XmLepConfigFile> tenantConfigs = configInLepFolder.getOrDefault(tenantKey, emptyList());
+            log.info("START | Create lep engines for tenant: {} | configInLepFolder.size: {}", tenant, tenantConfigs.size());
+            log.debug("START | Create lep engines for tenant: {} | configInLepFolder.size: {}", tenant, tenantConfigs);
+            List<LepEngine> engines = createEngines(tenantKey, tenantConfigs);
             lepEnginesManager.update(tenant, engines);
             log.info("STOP | Finish creating lep engines for tenant {}, {}ms", tenant, timer.getTime(MILLISECONDS));
         });
@@ -67,12 +65,14 @@ public class LepManagementServiceImpl implements LepManagementService {
             countDownLatch.countDown();
         }
 
-        // if refresh operation invoked in thread where inited threadLepContext, threadLepContext have to be reinited
-        LepExecutorResolver currentLepExecutorResolver = getCurrentLepExecutorResolver();
-        if (currentLepExecutorResolver != null) {
-            endThreadContext();
-            beginThreadContext();
-        }
+        log.info("STOP | Finish lep engines refresh");
+    }
+
+    private List<LepEngine> createEngines(String tenantKey, List<XmLepConfigFile> tenantConfigs) {
+        return engineFactories.stream()
+            .map(it -> it.createLepEngine(tenantKey, tenantConfigs))
+            .sorted(comparingInt(LepEngine::order))
+            .collect(toUnmodifiableList());
     }
 
     @Override
@@ -104,7 +104,7 @@ public class LepManagementServiceImpl implements LepManagementService {
         LepExecutorResolver tenantLepEngines = tenantLepEnginesThreadContext.get();
         if (tenantLepEngines == null) {
             String tenant = getTenantKeyFromThreadContext();
-            tenantLepEngines = lepEnginesManager.acquireTenantLepEngine(tenant);
+            tenantLepEngines = lepEnginesManager.acquireTenantLepEngine(tenant, (tenantKey) -> createEngines(tenantKey, List.of()));
             tenantLepEnginesThreadContext.set(tenantLepEngines);
         } else {
             tenantLepEngines.acquireUsage();

@@ -5,6 +5,7 @@ import com.icthh.xm.commons.lep.api.LepEngine;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 class LepEnginesManager {
 
@@ -20,10 +21,10 @@ class LepEnginesManager {
         }
     }
 
-    public TenantLepEngines acquireTenantLepEngine(String tenant) {
+    public TenantLepEngines acquireTenantLepEngine(String tenant, Function<String, List<LepEngine>> engines) {
         TenantLepEngines tenantLepEngines = enginesByTenants.get(tenant);
         if (tenantLepEngines == null) {
-            tenantLepEngines = enginesByTenants.computeIfAbsent(tenant, (key) -> new TenantLepEngines(tenant, List.of()));
+            tenantLepEngines = enginesByTenants.computeIfAbsent(tenant, (key) -> new TenantLepEngines(tenant, engines.apply(tenant)));
         }
 
         int retryCount = 0;

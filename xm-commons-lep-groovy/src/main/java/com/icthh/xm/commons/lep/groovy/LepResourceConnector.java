@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.lep.groovy;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
-import com.icthh.xm.commons.config.domain.TenantAliasTree.TenantAlias;
+import com.icthh.xm.commons.lep.groovy.storage.LepStorage;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import com.icthh.xm.commons.lep.groovy.GroovyFileParser.GroovyFileMetadata;
 import groovy.util.ResourceConnector;
@@ -26,8 +26,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static com.icthh.xm.commons.lep.TenantScriptStorage.URL_PREFIX_COMMONS_ENVIRONMENT;
-import static com.icthh.xm.commons.lep.TenantScriptStorage.URL_PREFIX_COMMONS_TENANT;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.toSet;
 
@@ -38,33 +36,34 @@ public class LepResourceConnector implements ResourceConnector {
     private static final String LEP_SUFFIX = "$$tenant";
     private static final String LEP_URL_PREFIX = "lep://";
     private static final String LEP_FOLDER = "lep";
+    public static final String URL_PREFIX_COMMONS_ENVIRONMENT = "commons/environment";
+    public static final String URL_PREFIX_COMMONS_TENANT = "commons/tenant";
 
     private final GroovyFileParser groovyFileParser = new GroovyFileParser();
 
     private final String tenantKey;
     private final String appName;
     private final TenantAliasService tenantAliasService;
-    private final Map<String, XmLepConfigFile> leps;
+    private final LepStorage leps;
     private final Map<String, GroovyFileMetadata> lepMetadata;
 
     private final Set<String> lepPathPrefixes;
 
-    public LepResourceConnector(String tenantKey, String appName, TenantAliasService tenantAliasService, Map<String, XmLepConfigFile> leps) {
+    public LepResourceConnector(String tenantKey, String appName, TenantAliasService tenantAliasService, LepStorage leps) {
         this.tenantKey = tenantKey;
         this.appName = appName;
         this.tenantAliasService = tenantAliasService;
         this.leps = leps;
         Map<String, GroovyFileMetadata> lepMetadata = new HashMap<>();
-        leps.forEach((path, lep) -> lepMetadata.put(path, groovyFileParser.getFileMetaData(lep.getContent())));
+        leps.forEach(lep -> lepMetadata.put(lep.getPath(), groovyFileParser.getFileMetaData(lep.getContent())));
         this.lepMetadata = lepMetadata;
         this.lepPathPrefixes = buildLepPrefixes(tenantKey, appName, tenantAliasService);
     }
 
     private static Set<String> buildLepPrefixes(String tenantKey, String appName, TenantAliasService tenantAliasService) {
         Set<String> parentTenantPrefixes = tenantAliasService.getTenantAliasTree()
-            .getParents(tenantKey)
+            .getParentKeys(tenantKey)
             .stream()
-            .map(TenantAlias::getKey)
             .flatMap(key -> Stream.of(
                 key + "/" + appName + "/lep/",
                 key + "/commons/lep/"
@@ -141,9 +140,8 @@ public class LepResourceConnector implements ResourceConnector {
 
     @SneakyThrows
     public Optional<URLConnection> toLepConnection(String path) {
-        XmLepConfigFile xmLepConfigFile = leps.get(path);
+        XmLepConfigFile xmLepConfigFile = leps.getByPath(path);
         if (xmLepConfigFile != null) {
-            String content = xmLepConfigFile.getContent();
             URL url = new URL(null, LEP_URL_PREFIX + path, new LepURLStreamHandler(xmLepConfigFile));
             return Optional.of(url.openConnection());
         } else {
@@ -153,9 +151,8 @@ public class LepResourceConnector implements ResourceConnector {
 
     @SneakyThrows
     public Optional<URLConnection> toLepConnection(String lepUrl, String path) {
-        XmLepConfigFile xmLepConfigFile = leps.get(lepUrl);
+        XmLepConfigFile xmLepConfigFile = leps.getByPath(lepUrl);
         if (xmLepConfigFile != null && containsClassDefinition(lepUrl, path)) {
-            String content = xmLepConfigFile.getContent();
             URL url = new URL(null, LEP_URL_PREFIX + lepUrl, new LepURLStreamHandler(xmLepConfigFile));
             return Optional.of(url.openConnection());
         } else {
@@ -195,8 +192,7 @@ public class LepResourceConnector implements ResourceConnector {
         List<String> rootFoldersVariants = new ArrayList<>();
         rootFoldersVariants.add(tenantKey + "/" + appName);
         tenantAliasService.getTenantAliasTree()
-            .getParents(tenantKey).stream()
-            .map(TenantAlias::getKey)
+            .getParentKeys(tenantKey).stream()
             .map(tenant -> tenant + "/" + appName)
             .forEach(rootFoldersVariants::add);
         rootFoldersVariants.stream()
@@ -245,12 +241,6 @@ public class LepResourceConnector implements ResourceConnector {
         private final String name;
         private final String rootPath;
         private final String prefix;
-
-        LepRootPath(String name, String rootPath) {
-            this.name = name;
-            this.rootPath = rootPath;
-            this.prefix = this.rootPath;
-        }
 
         LepRootPath(String name, String rootPath, String prefix) {
             this.name = name;

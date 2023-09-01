@@ -29,7 +29,6 @@ import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Slf4j
-@Component
 public class LogicExtensionPointHandler {
 
     private final Map<MethodEqualsByReferenceWrapper, MethodSignature> methodsCache = new ConcurrentHashMap<>();
@@ -77,7 +76,7 @@ public class LogicExtensionPointHandler {
     private Object invokeLepMethod(LepEngine lepEngine, Object target, LepMethod lepMethod, LepKey lepKey) {
         // TODO start logs see LoggingConfigService
         TargetProceedingLep targetProceedingLep = new TargetProceedingLep(target, lepMethod, lepKey);
-        BaseLepContext lepContext = lepContextService.createLepContext(targetProceedingLep);
+        BaseLepContext lepContext = lepContextService.createLepContext(lepEngine, targetProceedingLep);
         Object result = lepEngine.invoke(lepKey, targetProceedingLep, lepContext);
         // TODO end logs see LoggingConfigService
         return result;

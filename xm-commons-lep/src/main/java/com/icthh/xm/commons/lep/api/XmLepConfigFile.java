@@ -8,7 +8,7 @@ import lombok.ToString;
 import java.time.Instant;
 
 @Getter
-@ToString
+@ToString(exclude = "content")
 @RequiredArgsConstructor
 // immutable: very important!
 public class XmLepConfigFile {

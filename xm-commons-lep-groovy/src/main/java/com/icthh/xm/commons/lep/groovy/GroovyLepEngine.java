@@ -1,13 +1,12 @@
 package com.icthh.xm.commons.lep.groovy;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
+import com.icthh.xm.commons.lep.groovy.storage.LepStorage;
 import com.icthh.xm.commons.lep.ProceedingLep;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepKey;
-import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import groovy.lang.Binding;
-import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;
 import groovy.util.GroovyScriptEngine;
 import lombok.SneakyThrows;
@@ -28,11 +27,11 @@ public class GroovyLepEngine extends LepEngine {
 
     private final String appName;
     private final String tenant;
-    private final Map<String, XmLepConfigFile> leps;
+    private final LepStorage leps;
     private final GroovyScriptEngine gse;
     private final GroovyScriptEngine engineForCompile;
 
-    public GroovyLepEngine(String appName, String tenant, Map<String, XmLepConfigFile> leps,
+    public GroovyLepEngine(String appName, String tenant, LepStorage leps,
                            TenantAliasService tenantAliasService, ClassLoader classLoader) {
         this.appName = appName;
         this.tenant = tenant;
@@ -44,7 +43,7 @@ public class GroovyLepEngine extends LepEngine {
     }
 
     private void warmupScripts() {
-        this.leps.values().forEach(lep -> {
+        this.leps.forEach(lep -> {
             try {
                 Class<?> scriptClass = engineForCompile.loadScriptByName("lep://" + lep.getPath());
                 if (Script.class.isAssignableFrom(scriptClass)) {
@@ -90,7 +89,7 @@ public class GroovyLepEngine extends LepEngine {
 
     private List<String> getMainKeys(LepKey lepKey) {
         String lepPath = getLepPath(lepKey);
-        String legacyLepPath = getLegacyLepPath(lepKey, GroovyLepEngine::translateToLepConvention);
+        String legacyLepPath = getLegacyLepPath(lepKey);
         return List.of(
             legacyLepPath + "$$tenant",
             legacyLepPath + "$$around",
@@ -103,7 +102,7 @@ public class GroovyLepEngine extends LepEngine {
 
     private List<String> getBeforeKeys(LepKey lepKey) {
         String lepPath = getLepPath(lepKey);
-        String legacyLepPath = getLegacyLepPath(lepKey, GroovyLepEngine::translateToLepConvention);
+        String legacyLepPath = getLegacyLepPath(lepKey);
         return List.of(
             legacyLepPath + "$$before",
             lepPath + "$$before"
@@ -111,14 +110,14 @@ public class GroovyLepEngine extends LepEngine {
     }
 
     private Optional<String> getExistingKey(List<String> keys) {
-        return keys.stream().filter(leps::containsKey).findFirst();
+        return keys.stream().filter(leps::isExists).findFirst();
     }
 
     private String getLepPath(LepKey lepKey) {
         return buildLepPath(lepKey, identity());
     }
 
-    private String getLegacyLepPath(LepKey lepKey, Function<String, String> segmentMapper) {
+    private String getLegacyLepPath(LepKey lepKey) {
         return buildLepPath(lepKey, GroovyLepEngine::translateToLepConvention);
     }
 
@@ -140,8 +139,4 @@ public class GroovyLepEngine extends LepEngine {
         return xmEntitySpecKey.replaceAll("-", "_").replaceAll("\\.", "\\$");
     }
 
-    @Override
-    public void destroy() {
-        // do nothing
-    }
 }

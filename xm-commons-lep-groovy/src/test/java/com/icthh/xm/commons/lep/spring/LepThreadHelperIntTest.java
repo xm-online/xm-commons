@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
+import com.icthh.xm.commons.lep.groovy.GroovyLepEngineConfiguration;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
@@ -34,9 +35,9 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {
-        DynamicLepTestConfig.class,
-        TenantContextConfiguration.class,
-        XmAuthenticationContextConfiguration.class
+    DynamicLepTestConfig.class,
+    TenantContextConfiguration.class,
+    XmAuthenticationContextConfiguration.class
 })
 @ActiveProfiles("resolveclasstest")
 public class LepThreadHelperIntTest {

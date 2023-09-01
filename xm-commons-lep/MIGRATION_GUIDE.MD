@@ -116,7 +116,7 @@ lepContext.thread.runInThread(executor) {
 TBD example
 
 ### To add field to lepContext globally (in commons or in libs) implement LepAdditionalContext. Pls use this ONLY IN LIBS OR XM-COMMONS.
-#### See example in LepServiceFactoryImpl or OutboxTransportService or TraceService
+#### See example in OutboxTransportService or TraceService
 Example:
 ```
 @Override
@@ -125,22 +125,22 @@ public String additionalContextKey() {
 }
 
 @Override
-public LepServiceFactory additionalContextValue() {
+public TraceService additionalContextValue() {
     return this; // new lepContext field value
 }
 
 @Override
 public Class<? extends LepAdditionalContextField> fieldAccessorInterface() {
-    return LepServiceFactoryField.class; // interface that help to typesafe access field from lep
+    return TraceServiceField.class; // interface that help to typesafe access field from lep
 }
 ```
 #### LepAdditionalContextField - it`s interface to keep lepContext type safe
 Example:
 ```java
-public interface LepServiceFactoryField extends LepAdditionalContextField {
-    String FIELD_NAME = "lepServices";
-    default LepServiceFactory getLepServices() {
-        return (LepServiceFactory)get(FIELD_NAME);
+public interface TraceServiceField extends LepAdditionalContextField {
+    String FIELD_NAME = "traceService";
+    default TraceService getLepServices() { // default it's important!!!
+        return (TraceService)get(FIELD_NAME);
     }
 }
 ```
@@ -148,63 +148,43 @@ When in microservice you extend BaseLepContext you LepContext can implement this
 
 Example:
 ```java
-public class LepContext extends BaseLepContext implements LepServiceFactoryField {
+public class LepContext extends BaseLepContext implements TraceServiceField {
     public MyCoolService myCoolService;
     // no need to implement a method from LepServiceFactoryField
 }
 ```
 
-And after that field lepServices will be present in lepContext.
+And after that field traceService will be present in lepContext.
 ```groovy
-lepContext.lepServices // groovy will call method getLepServices() for you
+lepContext.traceService // groovy will call method getLepServices() for you
 ```
 
 ### Update LepSpringConfiguration
-Replace WebLepSpringConfiguration to LepSpringConfiguration
+Replace extends from WebLepSpringConfiguration to extends from GroovyLepEngineConfiguration,
+Or just remove lep configuration.
 
 Replace getTenantScriptStorageType() to TenantScriptStorageTypeProvider
 
-### Remove code that add _LepInterceptor_.
+### Remove code that add _LepInterceptor_ in you configuration.
 LepInterceptor will be added in LepInterceptorConfiguration
 
-### In Tests after XmLepScriptConfigServerResourceLoader.onRefresh you need to call XmLepScriptConfigServerResourceLoader.refreshFinished
+### Simple test migration
 
-Or to make test migration with minimal changes add next beans to you **TEST** configuration:
+To make test migration with minimal changes:
+1 - Extends **TEST** configuration from `GroovyLepEngineConfiguration`
+2 - Add next bean:
 
 ```groovy
-    @Bean
-    public RefreshTaskExecutor refreshTaskExecutor() {
-        return new RefreshTaskExecutor() {
-            CallerRunsPolicy callerRunsPolicy = new ThreadPoolExecutor.CallerRunsPolicy();
-            @Override
-            public void execute(Runnable command) {
-                callerRunsPolicy.rejectedExecution(command, this);
-            }
-        };
-    }
-
-    @Bean
-    public XmLepScriptConfigServerResourceLoader cfgResourceLoader(LepManagementService lepManagementService,
-                                                                   RefreshTaskExecutor refreshTaskExecutor) {
-        var resourceLoader = new XmLepScriptConfigServerResourceLoader(<app-name>, lepManagementService, refreshTaskExecutor) {
-            @Override
-            public void onRefresh(String updatedKey, String configContent) {
-                super.onRefresh(updatedKey, configContent);
-                refreshFinished(List.of(updatedKey));
-            }
-        };
-        resourceLoader.refreshFinished(List.of());
-        return resourceLoader;
-    }
-
-    @Bean
-    public GroovyLepEngineFactory groovyLepEngineFactory(ClassPathLepRepository classPathLepRepository,
-                                                         TenantAliasService tenantAliasService) {
-        return new GroovyLepEngineFactory(<app-name>, classPathLepRepository, tenantAliasService);
+    @Override
+    public LepUpdateMode lepUpdateMode() {
+        return LepUpdateMode.SYNCHRONOUS;
     }
 ```
 
-#### You need to specify tenant before beginThreadContext
+
+
+
+#### Specify tenant before beginThreadContext
 ```groovy
 TenantContextUtils.setTenant(tenantContextHolder, "TEST");
 ```

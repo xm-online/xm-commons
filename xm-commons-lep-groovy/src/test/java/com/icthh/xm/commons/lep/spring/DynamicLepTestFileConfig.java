@@ -1,6 +1,8 @@
 package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.lep.TenantScriptStorage;
+import com.icthh.xm.commons.lep.groovy.GroovyLepEngineConfiguration;
+import com.icthh.xm.commons.lep.groovy.TenantScriptStorageTypeProvider;
 import lombok.SneakyThrows;
 import org.junit.rules.TemporaryFolder;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -8,6 +10,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ResourceLoader;
 
@@ -26,10 +29,10 @@ public class DynamicLepTestFileConfig extends DynamicLepTestConfig {
         folder.create();
     }
 
-    //@Override
-    //protected TenantScriptStorage getTenantScriptStorageType() {
-    //    return TenantScriptStorage.FILE;
-    //}
+    @Bean
+    public TenantScriptStorageTypeProvider tenantScriptStorageTypeProvider() {
+        return () -> TenantScriptStorage.FILE;
+    }
 
 
     protected String getFileTenantScriptPathResolverBaseDir() {

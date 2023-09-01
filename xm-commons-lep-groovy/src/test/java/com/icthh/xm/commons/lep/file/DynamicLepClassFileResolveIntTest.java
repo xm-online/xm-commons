@@ -1,11 +1,14 @@
 package com.icthh.xm.commons.lep.file;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
+import com.icthh.xm.commons.lep.groovy.GroovyLepEngineConfiguration;
 import com.icthh.xm.commons.lep.spring.DynamicLepTestFileConfig;
 import com.icthh.xm.commons.lep.spring.DynamicTestLepService;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.tenant.TenantContext;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
+import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.TenantKey;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import com.icthh.xm.lep.api.LepManager;
@@ -52,8 +55,8 @@ public class DynamicLepClassFileResolveIntTest {
     @Autowired
     private LepManager lepManager;
 
-    @Mock
-    private TenantContext tenantContext;
+    @Autowired
+    private TenantContextHolder tenantContextHolder;
 
     @Mock
     private XmAuthenticationContext authContext;
@@ -72,8 +75,8 @@ public class DynamicLepClassFileResolveIntTest {
     public void init() {
         MockitoAnnotations.initMocks(this);
 
+        TenantContextUtils.setTenant(tenantContextHolder, "TEST");
         lepManager.beginThreadContext(ctx -> {
-            ctx.setValue(THREAD_CONTEXT_KEY_TENANT_CONTEXT, tenantContext);
             ctx.setValue(THREAD_CONTEXT_KEY_AUTH_CONTEXT, authContext);
         });
 
@@ -96,7 +99,6 @@ public class DynamicLepClassFileResolveIntTest {
     @Test
     @SneakyThrows
     public void testUpdateFileLep() {
-        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
 
         runTest("msCommons", "TEST.testApp.lep.commons.folder", "TEST/testApp/lep/commons/folder");
         FileUtils.cleanDirectory(folder.getRoot());
@@ -110,7 +112,6 @@ public class DynamicLepClassFileResolveIntTest {
     @Test
     @SneakyThrows
     public void testLepFromParentTenant() {
-        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
         tenantAliasService.onRefresh(TENANT_ALIAS_CONFIG, loadFile("lep/TenantAlias.yml"));
         String testString = "Hello from parent lep";
         createFile("/config/tenants/PARENT/testApp/lep/service/TestLepMethod$$around.groovy", "return '" + testString + "'");
@@ -133,7 +134,6 @@ public class DynamicLepClassFileResolveIntTest {
     }
 
     private void runTest(String suffix, String packageName, String path) throws InterruptedException {
-        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
         createFile("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
                 loadFile("lep/TestClassUsage")
                         .replace("${package}", packageName)

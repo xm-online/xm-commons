@@ -1,7 +1,6 @@
 package com.icthh.xm.commons.config.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.icthh.xm.commons.tenant.Tenant;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +18,7 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Objects.requireNonNullElse;
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 public class TenantAliasTree {
@@ -39,6 +39,10 @@ public class TenantAliasTree {
 
     public List<TenantAlias> getParents(String tenant) {
         return parents.getOrDefault(tenant, emptyList());
+    }
+
+    public List<String> getParentKeys(String tenant) {
+        return getParents(tenant).stream().map(TenantAlias::getKey).collect(toList());
     }
 
     public List<String> getAllChildrenRecursive(String tenant) {

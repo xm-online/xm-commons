@@ -5,16 +5,20 @@ import com.icthh.xm.commons.lep.DefaultLepKeyResolver;
 import com.icthh.xm.commons.lep.RefreshTaskExecutor;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
+import com.icthh.xm.commons.lep.api.LepAdditionalContext;
 import com.icthh.xm.commons.lep.api.LepContextFactory;
 import com.icthh.xm.commons.lep.api.LepEngineFactory;
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.commons.CommonsConfiguration;
-import com.icthh.xm.commons.lep.config.LepInterceptorConfiguration;
+import com.icthh.xm.commons.lep.commons.CommonsService;
 import com.icthh.xm.commons.lep.impl.LepMethodAspect;
 import com.icthh.xm.commons.lep.impl.LogicExtensionPointHandler;
 import com.icthh.xm.commons.lep.impl.engine.LepManagementServiceImpl;
 import com.icthh.xm.commons.lep.impl.internal.MigrationFromCoreContextsHolderLepManagementServiceReference;
 import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
+import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryResolver;
+import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryWithLepFactoryMethod;
+import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.lep.api.LepKeyResolver;
 import com.icthh.xm.lep.api.LepManager;
@@ -31,7 +35,7 @@ import java.util.List;
 @Configuration
 @ConditionalOnMissingBean(LepSpringConfiguration.class)
 @EnableAspectJAutoProxy
-@Import({CommonsConfiguration.class, LepInterceptorConfiguration.class})
+@Import({CommonsConfiguration.class})
 public class LepSpringConfiguration {
 
     private final String appName;
@@ -41,22 +45,41 @@ public class LepSpringConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(LepManagementService.class)
+    public LepManagementService lepManagementService(List<LepEngineFactory> engineFactories, TenantContextHolder tenantContextHolder) {
+        return new LepManagementServiceImpl(engineFactories, tenantContextHolder);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(ApplicationNameProvider.class)
+    public ApplicationNameProvider applicationNameProvider() {
+        return new ApplicationNameProvider(appName);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(LepUpdateMode.class)
+    public LepUpdateMode lepUpdateMode() {
+        return LepUpdateMode.LIVE;
+    }
+
+    @Bean
     @ConditionalOnMissingBean(XmLepScriptConfigServerResourceLoader.class)
-    public XmLepScriptConfigServerResourceLoader cfgResourceLoader(LepManagementService lepManagementService,
-                                                                   RefreshTaskExecutor refreshTaskExecutor) {
-        return new XmLepScriptConfigServerResourceLoader(appName, lepManagementService, refreshTaskExecutor);
+    public XmLepScriptConfigServerResourceLoader cfgResourceLoader(ApplicationNameProvider applicationNameProvider,
+                                                                   LepManagementService lepManagementService,
+                                                                   RefreshTaskExecutor refreshTaskExecutor,
+                                                                   LepUpdateMode lepUpdateMode) {
+        return new XmLepScriptConfigServerResourceLoader(
+            applicationNameProvider,
+            lepManagementService,
+            refreshTaskExecutor,
+            lepUpdateMode
+        );
     }
 
     @Bean
     @ConditionalOnMissingBean(RefreshTaskExecutor.class)
     public RefreshTaskExecutor refreshTaskExecutor() {
         return new RefreshTaskExecutor();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean(LepManagementService.class)
-    public LepManagementService lepManagementService(List<LepEngineFactory> engineFactories, TenantContextHolder tenantContextHolder) {
-        return new LepManagementServiceImpl(engineFactories, tenantContextHolder);
     }
 
     @Bean
@@ -90,6 +113,43 @@ public class LepSpringConfiguration {
     @Bean
     public DefaultLepKeyResolver defaultLepKeyResolver() {
         return new DefaultLepKeyResolver();
+    }
+
+    @Bean
+    public LepServiceFactoryResolver lepServiceFactoryResolver() {
+        return new LepServiceFactoryResolver();
+    }
+
+    @Bean
+    public LepContextService lepContextService(LepContextFactory lepContextFactory,
+                                               LepServiceFactoryWithLepFactoryMethod lepServiceFactory,
+                                               LepThreadHelper lepThreadHelper,
+                                               TenantContextHolder tenantContextHolder,
+                                               XmAuthenticationContextHolder xmAuthContextHolder,
+                                               List<LepAdditionalContext<?>> additionalContexts,
+                                               CommonsService commonsService) {
+        return new LepContextService(
+            lepContextFactory,
+            lepServiceFactory,
+            lepThreadHelper,
+            tenantContextHolder,
+            xmAuthContextHolder,
+            additionalContexts,
+            commonsService
+        );
+    }
+
+    @Bean
+    public LepServiceFactoryWithLepFactoryMethod lepServiceFactory(
+        @Value("${application.lep.service-factory-timeout:60}")
+        Integer timeout
+    ) {
+        return new LepServiceFactoryWithLepFactoryMethod(timeout);
+    }
+
+    @Bean
+    public LepThreadHelper lepThreadHelper(TenantContextHolder tenantContextHolder, LepManagementService lepManagementService) {
+        return new LepThreadHelper(tenantContextHolder, lepManagementService);
     }
 
     @Bean

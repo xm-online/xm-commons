@@ -62,14 +62,14 @@ class TenantLepEngines implements LepExecutorResolver {
             return; // when already destroy in progress or destroyed
         }
 
-        log.info("START | destroying lep engines for tenant {}", tenant);
+        log.debug("START | destroying lep engines for tenant {}", tenant);
     }
 
     private void destroyTenantLepEngine(int executions) {
         if (executions == 0 && state.get() == DESTROYING) {
             if (state.compareAndSet(DESTROYING, DESTROYED)) {
                 lepEngines.forEach(this::destroyEngine);
-                log.info("STOP | destroying lep engines for tenant {}", tenant);
+                log.debug("STOP | destroying lep engines for tenant {}", tenant);
             }
         }
     }

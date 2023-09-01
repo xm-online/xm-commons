@@ -1,10 +1,10 @@
 package com.icthh.xm.commons.lep.spring;
 
+import com.icthh.xm.commons.lep.groovy.GroovyLepEngineConfiguration;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
-import com.icthh.xm.commons.tenant.TenantKey;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import com.icthh.xm.lep.api.LepManager;
 import org.junit.Before;
@@ -16,11 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Optional;
-
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
 
 /**
  *
@@ -35,9 +32,6 @@ public class LepServiceInstanceUnitTest {
 
     @Autowired
     private LepManager lepManager;
-
-    @Mock
-    private TenantContext tenantContext;
 
     @Autowired
     private TenantContextHolder tenantContextHolder;
@@ -54,7 +48,6 @@ public class LepServiceInstanceUnitTest {
         TenantContextUtils.setTenant(tenantContextHolder, tenantKey);
         lepManager.endThreadContext();
         lepManager.beginThreadContext(ctx -> {
-            ctx.setValue(THREAD_CONTEXT_KEY_TENANT_CONTEXT, tenantContext);
         });
     }
 

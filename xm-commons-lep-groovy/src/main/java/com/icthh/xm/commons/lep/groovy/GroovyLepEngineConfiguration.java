@@ -1,19 +1,67 @@
 package com.icthh.xm.commons.lep.groovy;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
+import com.icthh.xm.commons.lep.TenantScriptStorage;
+import com.icthh.xm.commons.lep.groovy.storage.ClassPathLepStorageFactory;
+import com.icthh.xm.commons.lep.groovy.storage.LepStorageFactory;
+import com.icthh.xm.commons.lep.groovy.storage.XmConfigLepStorageFactory;
 import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
+import com.icthh.xm.commons.lep.spring.ApplicationNameProvider;
+import com.icthh.xm.commons.lep.spring.LepSpringConfiguration;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import static com.icthh.xm.commons.lep.TenantScriptStorage.CLASSPATH;
+import static com.icthh.xm.commons.lep.TenantScriptStorage.FILE;
+import static com.icthh.xm.commons.lep.TenantScriptStorage.FILE_FULL_UPDATE;
+import static com.icthh.xm.commons.lep.TenantScriptStorage.XM_MS_CONFIG;
+
 @Configuration
-public class GroovyLepEngineConfiguration {
+@ConditionalOnMissingBean(GroovyLepEngineConfiguration.class)
+public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
+
+    public GroovyLepEngineConfiguration(@Value("${spring.application.name}") String appName) {
+        super(appName);
+    }
 
     @Bean
-    public GroovyLepEngineFactory groovyLepEngineFactory(@Value("${spring.application.name}") String appName,
-                                                         ClassPathLepRepository classPathLepRepository,
-                                                         TenantAliasService tenantAliasService) {
-        return new GroovyLepEngineFactory(appName, classPathLepRepository, tenantAliasService);
+    public GroovyLepEngineFactory groovyLepEngineFactory(ApplicationNameProvider applicationNameProvider,
+                                                         TenantAliasService tenantAliasService,
+                                                         LepStorageFactory lepStorageFactory) {
+        String appName = applicationNameProvider.getAppName();
+        return new GroovyLepEngineFactory(appName, tenantAliasService, lepStorageFactory);
+    }
+
+    @Bean
+    public LepStorageFactory lepStorageFactory(ApplicationNameProvider applicationNameProvider,
+                                               ClassPathLepRepository classPathLepRepository,
+                                               TenantAliasService tenantAliasService,
+                                               TenantScriptStorageTypeProvider storageTypeProvider) {
+        String appName = applicationNameProvider.getAppName();
+        TenantScriptStorage storageType = storageTypeProvider.getTenantScriptStorage();
+        if (storageType.equals(XM_MS_CONFIG)) {
+            return new XmConfigLepStorageFactory(appName, classPathLepRepository);
+        } else if (storageType.equals(CLASSPATH)) {
+            return new ClassPathLepStorageFactory(appName, classPathLepRepository, tenantAliasService);
+        } else if (storageType.equals(FILE)) {
+            return null;
+        } else if (storageType.equals(FILE_FULL_UPDATE)) {
+            return null;
+        } else {
+            throw new RuntimeException("Unsupported storage type");
+        }
+
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(TenantScriptStorageTypeProvider.class)
+    public TenantScriptStorageTypeProvider tenantScriptStorageTypeProvider(
+        @Value("${application.lep.tenant-script-storage:#{T(com.icthh.xm.commons.lep.TenantScriptStorage).XM_MS_CONFIG}}")
+        TenantScriptStorage storage
+    ) {
+        return new TenantScriptStorageTypeProviderImpl(storage);
     }
 
 }
