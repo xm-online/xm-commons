@@ -181,8 +181,8 @@ public class DomainEventProviderImplUnitTest {
         payload.setRequestBody(requestBody);
         payload.setResponseBody(MASKED_CONTENT);
         payload.setResponseLength((long) MASKED_CONTENT.length());
-        payload.setRequestHeaders(HttpHeaders.of(headers, (s1, s2) -> true));
-        payload.setResponseHeaders(HttpHeaders.of(Map.of(), (s1, s2) -> true));
+        payload.setRequestHeaders(headers);
+        payload.setResponseHeaders(Map.of());
         payload.setResponseCode(response.getStatus());
         payload.setExecTime(MdcUtils.getExecTimeMs());
 

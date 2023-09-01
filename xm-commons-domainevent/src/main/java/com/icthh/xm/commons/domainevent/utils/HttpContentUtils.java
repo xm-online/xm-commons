@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
-import java.net.http.HttpHeaders;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -18,6 +17,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Slf4j
 @UtilityClass
@@ -49,7 +50,7 @@ public class HttpContentUtils {
         return "";
     }
 
-    public static HttpHeaders getRequestHeaders(HttpServletRequest request, Set<String> headerNames) {
+    public static Map<String, List<String>> getRequestHeaders(HttpServletRequest request, Set<String> headerNames) {
         Map<String, List<String>> headers = new LinkedHashMap<>();
         Enumeration<String> names = request.getHeaderNames();
         while (names.hasMoreElements()) {
@@ -58,10 +59,12 @@ public class HttpContentUtils {
                 headers.put(name.toLowerCase(), Collections.list(request.getHeaders(name)));
             }
         }
-        return HttpHeaders.of(headers, (s1, s2) -> true);
+
+        removeEmptyHeaders(headers);
+        return headers;
     }
 
-    public static HttpHeaders getResponseHeaders(HttpServletResponse httpServletResponse, Set<String> headerNames) {
+    public static Map<String, List<String>> getResponseHeaders(HttpServletResponse httpServletResponse, Set<String> headerNames) {
         Map<String, List<String>> headers = new LinkedHashMap<>();
         for (String header : httpServletResponse.getHeaderNames()) {
             if (!headerNames.contains(header.toLowerCase())) {
@@ -70,7 +73,12 @@ public class HttpContentUtils {
             }
         }
         headers.remove("set-cookie");
+        removeEmptyHeaders(headers);
 
-        return HttpHeaders.of(headers, (s1, s2) -> true);
+        return headers;
+    }
+
+    private void removeEmptyHeaders(Map<String, List<String>> headers) {
+        headers.entrySet().removeIf(it -> isEmpty(it.getValue()));
     }
 }
