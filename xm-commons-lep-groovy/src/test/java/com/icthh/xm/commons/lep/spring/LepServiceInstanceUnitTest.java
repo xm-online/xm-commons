@@ -45,6 +45,7 @@ public class LepServiceInstanceUnitTest {
     }
 
     private void setTenant(String tenantKey) {
+        tenantContextHolder.getPrivilegedContext().destroyCurrentContext();
         TenantContextUtils.setTenant(tenantContextHolder, tenantKey);
         lepManager.endThreadContext();
         lepManager.beginThreadContext(ctx -> {
@@ -61,10 +62,10 @@ public class LepServiceInstanceUnitTest {
 
     @Test
     public void successProcessingAroundLepForSuperTenant() throws Throwable {
-        setTenant("super");
+        setTenant("xm");
 
         String result = lepService.sayHello();
-        assertEquals("ScriptWithAround.groovy around, tenant: super", result);
+        assertEquals("ScriptWithAround.groovy around, tenant: xm", result);
     }
 
     @Test
@@ -78,9 +79,9 @@ public class LepServiceInstanceUnitTest {
     @Test
     public void successProcessingAroundLepWhileSwitchTenant() throws Throwable {
         // "super" tenant
-        setTenant("super");
+        setTenant("xm");
         String result = lepService.sayHello();
-        assertEquals("ScriptWithAround.groovy around, tenant: super", result);
+        assertEquals("ScriptWithAround.groovy around, tenant: xm", result);
 
         // "test" tenant
         setTenant("test");

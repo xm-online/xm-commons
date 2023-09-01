@@ -41,10 +41,10 @@ public class ClassPathLepStorageFactory implements LepStorageFactory {
         Map<String, XmLepConfigFile> lepsFromClassPath = new HashMap<>();
         parentTenants.forEach(tenantKey -> {
             classPathLeps.values().forEach((value) -> {
-                String path = value.getPath();
+                String path = value.getPath().substring(1);
                 String pathTenantKey = path.substring(0, path.indexOf("/"));
                 if (pathTenantKey.equalsIgnoreCase(tenantKey)) {
-                    path = tenant.toUpperCase() + "/" + path.substring(path.indexOf("/"));
+                    path = tenant.toUpperCase() + "/" + appName + "/lep" + path.substring(path.indexOf("/"));
                     lepsFromClassPath.put(path, new XmLepConfigFile(path, value.getContent()));
                 }
             });
