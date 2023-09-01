@@ -77,14 +77,15 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
         if (!lock.tryLock(timeout, TimeUnit.SECONDS)) {
             throw new IllegalStateException(String.format("Timeout waiting service factory for service %s.", lepServiceClass.getCanonicalName()));
         }
-        log.trace("Successfully acquired lock for service {} in {}ns", lepServiceClass.getSimpleName(), stopWatch.getNanoTime());
-
-        instance = tenantInstances.get(lepServiceClass);
-        if (instance != null) {
-            return (T) instance;
-        }
-
         try {
+
+            log.trace("Successfully acquired lock for service {} in {}ns", lepServiceClass.getSimpleName(), stopWatch.getNanoTime());
+
+            instance = tenantInstances.get(lepServiceClass);
+            if (instance != null) {
+                return (T) instance;
+            }
+
             var newInstance = self.createServiceByLepFactory(simpleClassName, lepServiceClass);
             tenantInstances.put(lepServiceClass, newInstance);
             return newInstance;
