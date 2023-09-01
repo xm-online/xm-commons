@@ -3,7 +3,7 @@ package com.icthh.xm.commons.domainevent.domain;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.net.http.HttpHeaders;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -18,8 +18,8 @@ public class HttpDomainEventPayload extends DomainEventPayload {
     private String requestBody;
     private Long responseLength;
     private String responseBody;
-    private HttpHeaders requestHeaders;
-    private HttpHeaders responseHeaders;
+    private Map<String, List<String>> requestHeaders;
+    private Map<String, List<String>> responseHeaders;
     private Integer responseCode;
     private Long execTime;
 }
