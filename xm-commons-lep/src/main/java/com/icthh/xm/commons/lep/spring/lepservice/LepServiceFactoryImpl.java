@@ -74,11 +74,11 @@ public class LepServiceFactoryImpl implements LepServiceFactory, RefreshableConf
         Lock lock = tenantServiceFactoryLocks.computeIfAbsent(lepServiceClass, key -> new ReentrantLock());
         log.trace("Try to acquired lock for service {}", lepServiceClass.getCanonicalName());
         StopWatch stopWatch = StopWatch.createStarted();
+        if (!lock.tryLock(timeout, TimeUnit.SECONDS)) {
+            throw new IllegalStateException(String.format("Timeout waiting service factory for service %s.", lepServiceClass.getCanonicalName()));
+        }
         try {
 
-            if (!lock.tryLock(timeout, TimeUnit.SECONDS)) {
-                throw new IllegalStateException(String.format("Timeout waiting service factory for service %s.", lepServiceClass.getCanonicalName()));
-            }
             log.trace("Successfully acquired lock for service {} in {}ns", lepServiceClass.getSimpleName(), stopWatch.getNanoTime());
 
             instance = tenantInstances.get(lepServiceClass);
