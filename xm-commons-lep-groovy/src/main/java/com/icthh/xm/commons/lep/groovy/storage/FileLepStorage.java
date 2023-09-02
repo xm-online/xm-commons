@@ -26,7 +26,7 @@ public class FileLepStorage implements LepStorage {
     private final Map<String, XmLepConfigFile> defaultLeps;
     private final TenantAliasService tenantAliasService;
     private final List<String> baseDirs;
-    private final String prefix;
+    private final String baseDir;
 
     public FileLepStorage(String tenant,
                           String appName,
@@ -37,7 +37,7 @@ public class FileLepStorage implements LepStorage {
         this.appName = appName;
         this.defaultLeps = defaultLeps;
         this.tenantAliasService = tenantAliasService;
-        this.prefix = baseDir + TENANT_PREFIX;
+        this.baseDir = baseDir;
 
         this.baseDirs = getLepBasePaths(tenant, appName, tenantAliasService).stream()
             .map(path -> baseDir + TENANT_PREFIX + path)
@@ -85,8 +85,8 @@ public class FileLepStorage implements LepStorage {
         List<String> parentKeys = tenantAliasService.getTenantAliasTree().getParentKeys(tenant);
         parentKeys.add(0, tenant);
         return parentKeys.stream()
-            .map(tenantKey -> replaceTenantName(path, tenantKey))
-            .map(it -> prefix + it)
+            .map(tenantKey -> replaceTenantName(TENANT_PREFIX + path, tenantKey))
+            .map(it -> baseDir + it)
             .map(File::new)
             .filter(File::exists)
             .findFirst();

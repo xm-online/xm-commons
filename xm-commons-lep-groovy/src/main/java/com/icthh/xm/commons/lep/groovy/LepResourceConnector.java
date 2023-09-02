@@ -1,9 +1,9 @@
 package com.icthh.xm.commons.lep.groovy;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
-import com.icthh.xm.commons.lep.groovy.storage.LepStorage;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import com.icthh.xm.commons.lep.groovy.GroovyFileParser.GroovyFileMetadata;
+import com.icthh.xm.commons.lep.groovy.storage.LepStorage;
 import groovy.util.ResourceConnector;
 import groovy.util.ResourceException;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +46,7 @@ public class LepResourceConnector implements ResourceConnector {
     private final TenantAliasService tenantAliasService;
     private final LepStorage leps;
     private final Map<String, GroovyFileMetadata> lepMetadata;
-
+    private final List<String> parentKeysOnCreateEngine;
     private final Set<String> lepPathPrefixes;
 
     public LepResourceConnector(String tenantKey, String appName, TenantAliasService tenantAliasService, LepStorage leps) {
@@ -57,17 +57,19 @@ public class LepResourceConnector implements ResourceConnector {
         Map<String, GroovyFileMetadata> lepMetadata = new ConcurrentHashMap<>();
         leps.forEach(lep -> lepMetadata.put(lep.metadataKey(), toFileMetaData(lep)));
         this.lepMetadata = lepMetadata;
-        this.lepPathPrefixes = buildLepPrefixes(tenantKey, appName, tenantAliasService);
+
+        List<String> parentKeys = tenantAliasService.getTenantAliasTree()
+            .getParentKeys(tenantKey);
+        this.parentKeysOnCreateEngine = parentKeys;
+        this.lepPathPrefixes = buildLepPrefixes(tenantKey, appName, parentKeys);
     }
 
     private GroovyFileMetadata toFileMetaData(XmLepConfigFile lep) {
         return groovyFileParser.getFileMetaData(lep.readContent());
     }
 
-    private static Set<String> buildLepPrefixes(String tenantKey, String appName, TenantAliasService tenantAliasService) {
-        Set<String> parentTenantPrefixes = tenantAliasService.getTenantAliasTree()
-            .getParentKeys(tenantKey)
-            .stream()
+    private static Set<String> buildLepPrefixes(String tenantKey, String appName, List<String> parentKeys) {
+        Set<String> parentTenantPrefixes = parentKeys.stream()
             .flatMap(key -> Stream.of(
                 key + "/" + appName + "/lep/",
                 key + "/commons/lep/"
@@ -99,12 +101,7 @@ public class LepResourceConnector implements ResourceConnector {
             name = name.substring(0, name.length() - FILE_EXTENSION.length());
         }
 
-        if (lepPathPrefixes.stream().noneMatch(name::startsWith)) {
-            if (log.isTraceEnabled()) {
-                log.trace("Import {} it's not are lep file", name);
-            }
-            throw new ResourceException("Resource not found " + name);
-        }
+        assertPrefix(name);
 
         var optionalLepBasePath = getLepBasePath(name);
         if (optionalLepBasePath.isPresent()) {
@@ -144,6 +141,16 @@ public class LepResourceConnector implements ResourceConnector {
         if (url.startsWith(LEP_URL_PREFIX)) {
             return toEmptyLepConnection(url);
         } else {
+            throw new ResourceException("Resource not found " + name);
+        }
+    }
+
+    private void assertPrefix(String name) throws ResourceException {
+        List<String> actualParentKeys = tenantAliasService.getTenantAliasTree().getParentKeys(tenantKey);
+        if (lepPathPrefixes.stream().noneMatch(name::startsWith) && this.parentKeysOnCreateEngine.equals(actualParentKeys)) {
+            if (log.isTraceEnabled()) {
+                log.trace("Import {} it's not are lep file", name);
+            }
             throw new ResourceException("Resource not found " + name);
         }
     }
@@ -203,14 +210,14 @@ public class LepResourceConnector implements ResourceConnector {
 
         rootPathVariants.add(new LepRootPath(name, tenantKey + "/" + appName, tenantKey + "/" + appName));
 
-        tenantAliasService.getTenantAliasTree()
-            .getParentKeys(tenantKey).stream()
+        List<String> parentKeys = tenantAliasService.getTenantAliasTree()
+            .getParentKeys(tenantKey);
+        parentKeys.stream()
             .map(tenant -> tenant + "/" + appName)
             .map(it -> new LepRootPath(name, tenantKey + "/" + appName, it))
             .forEach(rootPathVariants::add);
 
-        tenantAliasService.getTenantAliasTree()
-            .getParentKeys(tenantKey).stream()
+        parentKeys.stream()
             .map(tenant -> tenant + "/" + COMMONS)
             .map(it -> new LepRootPath(name, tenantKey + "/" + COMMONS, it))
             .forEach(rootPathVariants::add);

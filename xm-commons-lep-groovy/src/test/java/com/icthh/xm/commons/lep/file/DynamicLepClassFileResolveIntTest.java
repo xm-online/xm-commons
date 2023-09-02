@@ -133,6 +133,48 @@ public class DynamicLepClassFileResolveIntTest {
         runTest("envCommons", "commons.lep.folder", "commons/lep/folder");
     }
 
+    @Test
+    @SneakyThrows
+    public void runEnvCommons() {
+        createFile("/config/tenants/commons/lep/Commons$$testEnvCommons$$around.groovy",
+            "return 'envCommonsWorks'"
+        );
+        createFile("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
+            "return lepContext.commons.environment.testEnvCommons()"
+        );
+        Thread.sleep(110);
+        String result = testLepService.testLepMethod();
+        assertEquals("envCommonsWorks", result);
+    }
+
+    @Test
+    @SneakyThrows
+    public void runTenantCommons() {
+        createFile("/config/tenants/TEST/commons/lep/Commons$$testTenantCommons$$around.groovy",
+            "return 'tenantCommonsWorks'"
+        );
+        createFile("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
+            "return lepContext.commons.tenant.testTenantCommons()"
+        );
+        Thread.sleep(110);
+        String result = testLepService.testLepMethod();
+        assertEquals("tenantCommonsWorks", result);
+    }
+
+    @Test
+    @SneakyThrows
+    public void runCommons() {
+        createFile("/config/tenants/TEST/testApp/lep/commons/Commons$$testTenantCommons$$around.groovy",
+            "return 'tenantCommonsWorks'"
+        );
+        createFile("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
+            "return lepContext.commons.testTenantCommons()"
+        );
+        Thread.sleep(110);
+        String result = testLepService.testLepMethod();
+        assertEquals("tenantCommonsWorks", result);
+    }
+
     private void runTest(String suffix, String packageName, String path) throws InterruptedException {
         createFile("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
                 loadFile("lep/TestClassUsage")

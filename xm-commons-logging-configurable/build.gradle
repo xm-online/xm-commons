@@ -25,4 +25,5 @@ dependencies {
     testCompile 'org.springframework:spring-test'
     testCompile "commons-io:commons-io:${versions.commonsIo}"
     testCompile "org.springframework.boot:spring-boot-starter-test"
+    testImplementation project(':xm-commons-lep-groovy')
 }

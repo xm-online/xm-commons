@@ -2,7 +2,6 @@ package com.icthh.xm.commons.logging.configurable;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import com.icthh.xm.commons.lep.spring.SpringLepManager;
 import com.icthh.xm.commons.logging.config.LoggingConfig.LepLogConfiguration;
 import com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration;
 import com.icthh.xm.commons.logging.spring.config.ServiceLoggingAspectConfiguration;
@@ -12,6 +11,7 @@ import com.icthh.xm.commons.tenant.Tenant;
 import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantKey;
+import com.icthh.xm.lep.api.LepManager;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -53,7 +53,7 @@ public class LoggingRefreshableConfigurationUnitTest {
     private static final String TEST_INCLUDE_EXCLUDE_CONFIG = "logging-include-exclude.yml";
 
     @Autowired
-    private SpringLepManager lepManager;
+    private LepManager lepManager;
 
     @Autowired
     private TestService testService;

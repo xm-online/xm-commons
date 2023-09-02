@@ -74,12 +74,14 @@ public class LogicExtensionPointHandler {
     }
 
     private Object invokeLepMethod(LepEngine lepEngine, Object target, LepMethod lepMethod, LepKey lepKey) {
-        // TODO start logs see LoggingConfigService
-        TargetProceedingLep targetProceedingLep = new TargetProceedingLep(target, lepMethod, lepKey);
-        BaseLepContext lepContext = lepContextService.createLepContext(lepEngine, targetProceedingLep);
-        Object result = lepEngine.invoke(lepKey, targetProceedingLep, lepContext);
-        // TODO end logs see LoggingConfigService
-        return result;
+        try {
+            log.info("lep:start: execute lep at [{}], script: {}");
+            TargetProceedingLep targetProceedingLep = new TargetProceedingLep(target, lepMethod, lepKey);
+            BaseLepContext lepContext = lepContextService.createLepContext(lepEngine, targetProceedingLep);
+            return lepEngine.invoke(lepKey, targetProceedingLep, lepContext);
+        } catch (Throwable e) {
+            throw e;
+        }
     }
 
     @SneakyThrows

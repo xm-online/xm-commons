@@ -113,6 +113,45 @@ public class DynamicLepClassResolveIntTest {
         runTest("envCommons", "commons.lep.folder", "commons/lep/folder");
     }
 
+    @Test
+    @SneakyThrows
+    public void runEnvCommons() {
+        refreshLep("/config/tenants/commons/lep/Commons$$testEnvCommons$$around.groovy",
+            "return 'envCommonsWorks'"
+        );
+        refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
+            "return lepContext.commons.environment.testEnvCommons()"
+        );
+        String result = testLepService.testLepMethod();
+        assertEquals("envCommonsWorks", result);
+    }
+
+    @Test
+    @SneakyThrows
+    public void runTenantCommons() {
+        refreshLep("/config/tenants/TEST/commons/lep/Commons$$testTenantCommons$$around.groovy",
+            "return 'tenantCommonsWorks'"
+        );
+        refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
+            "return lepContext.commons.tenant.testTenantCommons()"
+        );
+        String result = testLepService.testLepMethod();
+        assertEquals("tenantCommonsWorks", result);
+    }
+
+    @Test
+    @SneakyThrows
+    public void runCommons() {
+        refreshLep("/config/tenants/TEST/testApp/lep/commons/Commons$$testTenantCommons$$around.groovy",
+            "return 'tenantCommonsWorks'"
+        );
+        refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
+            "return lepContext.commons.testTenantCommons()"
+        );
+        String result = testLepService.testLepMethod();
+        assertEquals("tenantCommonsWorks", result);
+    }
+
     public void refreshLep(String path, String content) {
         resourceLoader.onRefresh(path, content);
         resourceLoader.refreshFinished(List.of(path));

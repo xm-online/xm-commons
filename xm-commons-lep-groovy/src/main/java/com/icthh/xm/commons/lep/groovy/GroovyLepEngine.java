@@ -1,11 +1,12 @@
 package com.icthh.xm.commons.lep.groovy;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
-import com.icthh.xm.commons.lep.groovy.storage.LepStorage;
 import com.icthh.xm.commons.lep.ProceedingLep;
+import com.icthh.xm.commons.lep.TenantScriptStorage;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepKey;
+import com.icthh.xm.commons.lep.groovy.storage.LepStorage;
 import groovy.lang.Binding;
 import groovy.lang.Script;
 import groovy.util.GroovyScriptEngine;
@@ -19,6 +20,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+import static com.icthh.xm.commons.lep.groovy.LepResourceConnector.URL_PREFIX_COMMONS_ENVIRONMENT;
+import static com.icthh.xm.commons.lep.groovy.LepResourceConnector.URL_PREFIX_COMMONS_TENANT;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
@@ -137,7 +140,14 @@ public class GroovyLepEngine extends LepEngine {
             segments = segments.stream().map(segmentMapper).collect(toList());
             lepPath = lepPath + "$$" + StringUtils.join(segments, "$$");
         }
-        lepPath = tenant + "/" + appName + "/lep/" + lepPath;
+
+        if (lepPath.startsWith(URL_PREFIX_COMMONS_ENVIRONMENT)) {
+            lepPath = "commons/lep" + lepPath.substring(URL_PREFIX_COMMONS_ENVIRONMENT.length());
+        } else if (lepPath.startsWith(URL_PREFIX_COMMONS_TENANT)) {
+            lepPath = tenant + "/commons/lep" + lepPath.substring(URL_PREFIX_COMMONS_TENANT.length());
+        } else {
+            lepPath = tenant + "/" + appName + "/lep/" + lepPath;
+        }
         return lepPath;
     }
 

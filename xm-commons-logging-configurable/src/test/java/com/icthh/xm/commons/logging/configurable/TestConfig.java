@@ -1,28 +1,32 @@
 package com.icthh.xm.commons.logging.configurable;
 
 import com.icthh.xm.commons.lep.TenantScriptStorage;
-import com.icthh.xm.commons.lep.spring.EnableLepServices;
-import com.icthh.xm.commons.lep.spring.LepSpringConfiguration;
+import com.icthh.xm.commons.lep.groovy.GroovyLepEngineConfiguration;
+import com.icthh.xm.commons.lep.groovy.TenantScriptStorageTypeProvider;
+import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
+import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ResourceLoader;
 
 @Configuration
-@EnableLepServices(basePackageClasses = TestService.class)
 @ComponentScan("com.icthh.xm.commons.lep.spring")
 @EnableAutoConfiguration
-public class TestConfig extends LepSpringConfiguration {
+public class TestConfig extends GroovyLepEngineConfiguration {
 
-    public TestConfig(final ApplicationEventPublisher eventPublisher,
-                      final ResourceLoader resourceLoader) {
-        super("testApp", eventPublisher, resourceLoader);
+    public TestConfig() {
+        super("testApp");
     }
 
-    @Override
-    protected TenantScriptStorage getTenantScriptStorageType() {
-        return TenantScriptStorage.CLASSPATH;
+    @Bean
+    public TenantScriptStorageTypeProvider tenantScriptStorageTypeProvider() {
+        return () -> TenantScriptStorage.CLASSPATH;
+    }
+
+    @Bean
+    public XmAuthenticationContextHolder authenticationContextHolder() {
+        return Mockito.mock(XmAuthenticationContextHolder.class);
     }
 
 }
