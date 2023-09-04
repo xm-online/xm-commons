@@ -1,15 +1,12 @@
 package com.icthh.xm.commons.lep.file;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
-import com.icthh.xm.commons.lep.groovy.GroovyLepEngineConfiguration;
 import com.icthh.xm.commons.lep.spring.DynamicLepTestFileConfig;
 import com.icthh.xm.commons.lep.spring.DynamicTestLepService;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
-import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
-import com.icthh.xm.commons.tenant.TenantKey;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import com.icthh.xm.lep.api.LepManager;
 import lombok.SneakyThrows;
@@ -30,14 +27,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.Optional;
 
 import static com.icthh.xm.commons.config.client.service.TenantAliasService.TENANT_ALIAS_CONFIG;
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_AUTH_CONTEXT;
-import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
 
 /**
  *

@@ -10,6 +10,7 @@ import com.icthh.xm.commons.lep.groovy.storage.XmConfigLepStorageFactory;
 import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
 import com.icthh.xm.commons.lep.spring.ApplicationNameProvider;
 import com.icthh.xm.commons.lep.spring.LepSpringConfiguration;
+import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -31,9 +32,23 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     @Bean
     public GroovyLepEngineFactory groovyLepEngineFactory(ApplicationNameProvider applicationNameProvider,
                                                          TenantAliasService tenantAliasService,
-                                                         LepStorageFactory lepStorageFactory) {
+                                                         LepStorageFactory lepStorageFactory,
+                                                         LoggingWrapper loggingWrapper,
+                                                         GroovyFileParser groovyFileParser) {
         String appName = applicationNameProvider.getAppName();
-        return new GroovyLepEngineFactory(appName, tenantAliasService, lepStorageFactory);
+        return new GroovyLepEngineFactory(appName, tenantAliasService, lepStorageFactory, loggingWrapper, groovyFileParser);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(GroovyFileParser.class)
+    public GroovyFileParser groovyFileParser() {
+        return new GroovyFileParser();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(LoggingWrapper.class)
+    public LoggingWrapper loggingWrapper(LoggingConfigService loggingConfigService) {
+        return new LoggingWrapper(loggingConfigService);
     }
 
     @Bean

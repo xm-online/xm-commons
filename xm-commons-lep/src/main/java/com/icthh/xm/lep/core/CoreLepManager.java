@@ -2,7 +2,6 @@ package com.icthh.xm.lep.core;
 
 import com.icthh.xm.lep.api.LepManager;
 import com.icthh.xm.lep.api.ScopedContext;
-import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 import java.util.function.Consumer;

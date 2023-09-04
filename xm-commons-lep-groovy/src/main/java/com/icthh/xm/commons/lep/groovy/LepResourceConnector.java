@@ -39,7 +39,7 @@ public class LepResourceConnector implements ResourceConnector {
     public static final String URL_PREFIX_COMMONS_ENVIRONMENT = "commons/environment";
     public static final String URL_PREFIX_COMMONS_TENANT = "commons/tenant";
 
-    private final GroovyFileParser groovyFileParser = new GroovyFileParser();
+    private final GroovyFileParser groovyFileParser;
 
     private final String tenantKey;
     private final String appName;
@@ -49,17 +49,21 @@ public class LepResourceConnector implements ResourceConnector {
     private final List<String> parentKeysOnCreateEngine;
     private final Set<String> lepPathPrefixes;
 
-    public LepResourceConnector(String tenantKey, String appName, TenantAliasService tenantAliasService, LepStorage leps) {
+    public LepResourceConnector(String tenantKey,
+                                String appName,
+                                TenantAliasService tenantAliasService,
+                                LepStorage leps,
+                                GroovyFileParser groovyFileParser) {
         this.tenantKey = tenantKey;
         this.appName = appName;
         this.tenantAliasService = tenantAliasService;
         this.leps = leps;
+        this.groovyFileParser = groovyFileParser;
         Map<String, GroovyFileMetadata> lepMetadata = new ConcurrentHashMap<>();
         leps.forEach(lep -> lepMetadata.put(lep.metadataKey(), toFileMetaData(lep)));
         this.lepMetadata = lepMetadata;
 
-        List<String> parentKeys = tenantAliasService.getTenantAliasTree()
-            .getParentKeys(tenantKey);
+        List<String> parentKeys = tenantAliasService.getTenantAliasTree().getParentKeys(tenantKey);
         this.parentKeysOnCreateEngine = parentKeys;
         this.lepPathPrefixes = buildLepPrefixes(tenantKey, appName, parentKeys);
     }

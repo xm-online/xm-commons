@@ -8,7 +8,6 @@ import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.SneakyThrows;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;

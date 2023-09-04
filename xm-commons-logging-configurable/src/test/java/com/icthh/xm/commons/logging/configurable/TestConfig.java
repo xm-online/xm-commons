@@ -3,6 +3,7 @@ package com.icthh.xm.commons.logging.configurable;
 import com.icthh.xm.commons.lep.TenantScriptStorage;
 import com.icthh.xm.commons.lep.groovy.GroovyLepEngineConfiguration;
 import com.icthh.xm.commons.lep.groovy.TenantScriptStorageTypeProvider;
+import com.icthh.xm.commons.lep.spring.LepUpdateMode;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -27,6 +28,11 @@ public class TestConfig extends GroovyLepEngineConfiguration {
     @Bean
     public XmAuthenticationContextHolder authenticationContextHolder() {
         return Mockito.mock(XmAuthenticationContextHolder.class);
+    }
+
+    @Override
+    public LepUpdateMode lepUpdateMode() {
+        return LepUpdateMode.SYNCHRONOUS;
     }
 
 }

@@ -172,16 +172,19 @@ LepInterceptor will be added in LepInterceptorConfiguration
 
 To make test migration with minimal changes:
 1 - Extends **TEST** configuration from `GroovyLepEngineConfiguration`
-2 - Add next bean:
+2 - Add next beans:
 
 ```groovy
     @Override
     public LepUpdateMode lepUpdateMode() {
         return LepUpdateMode.SYNCHRONOUS;
     }
+
+    @Bean
+    public LoggingConfigService LoggingConfigService() {
+        return new LoggingConfigServiceStub();
+    }
 ```
-
-
 
 
 #### Specify tenant before beginThreadContext

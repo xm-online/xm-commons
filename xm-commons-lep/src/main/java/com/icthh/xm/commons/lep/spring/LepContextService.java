@@ -7,15 +7,12 @@ import com.icthh.xm.commons.lep.api.LepContextFactory;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.commons.CommonsExecutor;
 import com.icthh.xm.commons.lep.commons.CommonsService;
-import com.icthh.xm.commons.lep.spring.LepThreadHelper;
-import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactory;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryImpl;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryWithLepFactoryMethod;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.lep.api.LepMethod;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
 import java.util.List;

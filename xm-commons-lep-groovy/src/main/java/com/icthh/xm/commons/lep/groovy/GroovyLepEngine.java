@@ -1,8 +1,6 @@
 package com.icthh.xm.commons.lep.groovy;
 
-import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.ProceedingLep;
-import com.icthh.xm.commons.lep.TenantScriptStorage;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepKey;
@@ -22,6 +20,7 @@ import java.util.function.Function;
 
 import static com.icthh.xm.commons.lep.groovy.LepResourceConnector.URL_PREFIX_COMMONS_ENVIRONMENT;
 import static com.icthh.xm.commons.lep.groovy.LepResourceConnector.URL_PREFIX_COMMONS_TENANT;
+import static com.icthh.xm.commons.lep.groovy.storage.LepStorage.FILE_EXTENSION;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
@@ -29,34 +28,45 @@ import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 @Slf4j
 public class GroovyLepEngine extends LepEngine {
 
+    public static final String LEP_PREFIX = "lep://";
     private final String appName;
     private final String tenant;
     private final LepStorage leps;
     private final GroovyScriptEngine gse;
     private final GroovyScriptEngine engineForCompile;
+    private final LoggingWrapper loggingWrapper;
 
-    public GroovyLepEngine(String appName, String tenant, LepStorage leps,
-                           TenantAliasService tenantAliasService, ClassLoader classLoader) {
+    public GroovyLepEngine(String appName,
+                           String tenant,
+                           LepStorage leps,
+                           LoggingWrapper loggingWrapper,
+                           ClassLoader classLoader,
+                           LepResourceConnector lepResourceConnector) {
         this.appName = appName;
         this.tenant = tenant;
         this.leps = leps;
-        LepResourceConnector lepResourceConnector = new LepResourceConnector(tenant, appName, tenantAliasService, leps);
-        this.gse = new GroovyScriptEngine(lepResourceConnector, classLoader);
-        CompilerConfiguration config = this.gse.getConfig();
-        config.setRecompileGroovySource(true);
-        config.setMinimumRecompilationInterval(50);
-        this.gse.setConfig(config);
-        this.gse.getGroovyClassLoader().setShouldRecompile(true);
+        this.loggingWrapper = loggingWrapper;
+        this.gse = buildGroovyEngine(classLoader, lepResourceConnector);
         this.engineForCompile = new GroovyScriptEngine(lepResourceConnector, classLoader);
         warmupScripts();
+    }
+
+    protected GroovyScriptEngine buildGroovyEngine(ClassLoader classLoader, LepResourceConnector lepResourceConnector) {
+        var gse = new GroovyScriptEngine(lepResourceConnector, classLoader);
+        CompilerConfiguration config = gse.getConfig();
+        config.setRecompileGroovySource(true);
+        config.setMinimumRecompilationInterval(50);
+        gse.setConfig(config);
+        gse.getGroovyClassLoader().setShouldRecompile(true);
+        return gse;
     }
 
     private void warmupScripts() {
         this.leps.forEach(lep -> {
             try {
-                Class<?> scriptClass = engineForCompile.loadScriptByName("lep://" + lep.getPath());
+                Class<?> scriptClass = engineForCompile.loadScriptByName(LEP_PREFIX + lep.getPath());
                 if (Script.class.isAssignableFrom(scriptClass)) {
-                    gse.createScript("lep://" + lep.getPath(), new Binding());
+                    gse.createScript(LEP_PREFIX + lep.getPath(), new Binding());
                 }
             } catch (Throwable e) {
                 log.error("Error create script {}", lep.getPath(), e);
@@ -75,25 +85,23 @@ public class GroovyLepEngine extends LepEngine {
     @SneakyThrows
     public Object invoke(LepKey lepKey, ProceedingLep lepMethod, BaseLepContext lepContext) {
         List<String> beforeKeys = getBeforeKeys(lepKey);
-        getExistingKey(beforeKeys).ifPresent(key -> executeLep(key, lepContext));
+        getExistingKey(beforeKeys).ifPresent(key -> executeLep(key, lepKey, lepMethod, lepContext));
 
         List<String> mainKeys = getMainKeys(lepKey);
         Optional<String> mainKey = getExistingKey(mainKeys);
         if (mainKey.isPresent()) {
-            return executeLep(mainKey.get(), lepContext);
+            return executeLep(mainKey.get(), lepKey, lepMethod, lepContext);
         } else {
             return lepContext.lep.proceed();
         }
     }
 
     @SneakyThrows
-    private Object executeLep(String key, BaseLepContext lepContext) {
-        try {
-            return gse.run("lep://" + key, new Binding(Map.of("lepContext", lepContext)));
-        } catch (Throwable e) {
-            log.error("Error run lep {}", key, e);
-            throw e;
-        }
+    private Object executeLep(String key, LepKey lepKey, ProceedingLep lepMethod, BaseLepContext lepContext) {
+        String scriptName = LEP_PREFIX + key + FILE_EXTENSION;
+        return loggingWrapper.doWithLogs(lepMethod, scriptName, lepKey, () ->
+            gse.run(LEP_PREFIX + key, new Binding(Map.of("lepContext", lepContext)))
+        );
     }
 
     private List<String> getMainKeys(LepKey lepKey) {

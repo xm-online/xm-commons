@@ -36,11 +36,13 @@ public class LoggingRefreshableConfiguration implements RefreshableConfiguration
 
     private final TenantContextHolder tenantContextHolder;
     private final String mappingPath;
+    private final String appName;
 
     public LoggingRefreshableConfiguration(TenantContextHolder tenantContextHolder,
                                            @Value("${spring.application.name}") String appName) {
         this.tenantContextHolder = tenantContextHolder;
         this.mappingPath = "/config/tenants/{tenantName}/" + appName + "/logging.yml";
+        this.appName = appName;
     }
 
     @Override
@@ -57,7 +59,7 @@ public class LoggingRefreshableConfiguration implements RefreshableConfiguration
             LoggingConfig spec = ymlMapper.readValue(config, LoggingConfig.class);
             this.serviceLoggingConfig.put(tenant, spec.buildServiceLoggingConfigs());
             this.apiLoggingConfig.put(tenant, spec.buildApiLoggingConfigs());
-            this.lepLoggingConfig.put(tenant, spec.buildLepLoggingConfigs(tenant));
+            this.lepLoggingConfig.put(tenant, spec.buildLepLoggingConfigs(tenant, appName));
 
             log.info("Tenant configuration was updated for tenant [{}] by key [{}]", tenant, updatedKey);
         } catch (Exception e) {

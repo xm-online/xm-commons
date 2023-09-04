@@ -1,18 +1,16 @@
 package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.lep.TenantScriptStorage;
-import com.icthh.xm.commons.lep.groovy.GroovyLepEngineConfiguration;
 import com.icthh.xm.commons.lep.groovy.TenantScriptStorageTypeProvider;
+import com.icthh.xm.commons.logging.config.LoggingConfigService;
+import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
 import lombok.SneakyThrows;
 import org.junit.rules.TemporaryFolder;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.io.ResourceLoader;
 
 import javax.annotation.PreDestroy;
 
@@ -47,6 +45,11 @@ public class DynamicLepTestFileConfig extends DynamicLepTestConfig {
     @PreDestroy
     public void preDestroy() {
         folder.delete();
+    }
+
+    @Bean
+    public LoggingConfigService LoggingConfigService() {
+        return new LoggingConfigServiceStub();
     }
 
 }

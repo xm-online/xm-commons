@@ -2,6 +2,7 @@ package com.icthh.xm.commons.logging.configurable;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.logging.config.LoggingConfig.LepLogConfiguration;
 import com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration;
 import com.icthh.xm.commons.logging.spring.config.ServiceLoggingAspectConfiguration;
@@ -64,6 +65,9 @@ public class LoggingRefreshableConfigurationUnitTest {
     @Autowired
     private LoggingRefreshableConfiguration loggingRefreshableConfiguration;
 
+    @Autowired
+    private XmLepScriptConfigServerResourceLoader lepLoader;
+
     @MockBean
     private TenantContextHolder tenantContextHolder;
 
@@ -117,7 +121,10 @@ public class LoggingRefreshableConfigurationUnitTest {
 
         //lep
         LepLogConfiguration lepLoggingConfig =
-            loggingRefreshableConfiguration.getLepLoggingConfig("lep://TEST/general/TestLep$$default.groovy");
+            loggingRefreshableConfiguration.getLepLoggingConfig("lep://TEST/testApp/lep/general/TestLep.groovy");
+        assertNotNull(lepLoggingConfig);
+        lepLoggingConfig =
+            loggingRefreshableConfiguration.getLepLoggingConfig("lep://TEST/testApp/lep/general/TestLep$$around.groovy");
         assertNotNull(lepLoggingConfig);
     }
 
@@ -128,26 +135,46 @@ public class LoggingRefreshableConfigurationUnitTest {
         // service
         testService.testMethodFirst("firstArgValue", "secondArgValue");
         ILoggingEvent event = TestAppender.searchByMessage("srv:start: {}, input: {}");
-        assertEquals(event.getLevel(), Level.WARN);
+        assertEquals(Level.WARN, event.getLevel());
 
         event = TestAppender.searchByMessage("srv:stop:  {}, result: {}, time = {} ms");
-        assertEquals(event.getLevel(), Level.WARN);
+        assertEquals(Level.WARN, event.getLevel());
 
         //api
         testResource.testMethodFirst("firstArgValue", "secondArgValue");
         event = TestAppender.searchByMessage("START {} : {} --> {}, input: {}");
-        assertEquals(event.getLevel(), Level.WARN);
+        assertEquals(Level.WARN, event.getLevel());
 
         event = TestAppender.searchByMessage("STOP  {} : {} --> {}, result: {}, time = {} ms");
-        assertEquals(event.getLevel(), Level.WARN);
+        assertEquals(Level.WARN, event.getLevel());
 
         //lep
-        testService.testMethodSecond("firstArgValue", "secondArgValue");
+        String result = testService.testMethodSecond("firstArgValue", "secondArgValue");
+        assertEquals("lepResult", result);
+
         event = TestAppender.searchByMessage("lep:start: execute lep at [{}], script: {}");
-        assertEquals(event.getLevel(), Level.WARN);
+        assertEquals(Level.WARN, event.getLevel());
 
         event = TestAppender.searchByMessage("lep:stop:  execute lep at [{}], script: {}");
-        assertEquals(event.getLevel(), Level.WARN);
+        assertEquals(Level.WARN, event.getLevel());
+
+        TestAppender.clearEvents();
+
+        //lep
+        lepLoader.onRefresh("/config/tenants/TEST/testApp/lep/general/TestLep$$around.groovy",
+            "return 'helloFromRefreshedTestLep'");
+        result = testService.testMethodSecond("firstArgValue", "secondArgValue");
+        assertEquals("helloFromRefreshedTestLep", result);
+
+        event = TestAppender.searchByMessage("lep:start: execute lep at [{}], script: {}");
+        assertEquals(Level.ERROR, event.getLevel());
+
+        event = TestAppender.searchByMessage("lep:stop:  execute lep at [{}], script: {}");
+        assertEquals(Level.ERROR, event.getLevel());
+    }
+
+    public void testLogOnRunLep() {
+
     }
 
     @Test

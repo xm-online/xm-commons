@@ -2,7 +2,6 @@ package com.icthh.xm.commons.lep.commons;
 
 import com.icthh.xm.lep.api.LepKeyResolver;
 import com.icthh.xm.lep.api.LepMethod;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 

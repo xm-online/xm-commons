@@ -17,16 +17,22 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
     private final String appName;
     private final TenantAliasService tenantAliasService;
     private final LepStorageFactory lepStorageFactory;
+    private final LoggingWrapper loggingWrapper;
+    private final GroovyFileParser groovyFileParser;
 
     private volatile ClassLoader classLoader;
 
     public GroovyLepEngineFactory(String appName,
                                   TenantAliasService tenantAliasService,
-                                  LepStorageFactory lepStorageFactory) {
+                                  LepStorageFactory lepStorageFactory,
+                                  LoggingWrapper loggingWrapper,
+                                  GroovyFileParser groovyFileParser) {
         super(appName);
         this.appName = appName;
         this.tenantAliasService = tenantAliasService;
         this.lepStorageFactory = lepStorageFactory;
+        this.loggingWrapper = loggingWrapper;
+        this.groovyFileParser = groovyFileParser;
     }
 
     @Override
@@ -37,6 +43,20 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
     @Override
     public LepEngine createLepEngine(String tenant, List<XmLepConfigFile> lepFromConfig) {
         LepStorage lepConfigStorage = lepStorageFactory.buildXmConfigLepStorage(tenant, lepFromConfig);
-        return new GroovyLepEngine(appName, tenant, lepConfigStorage, tenantAliasService, classLoader);
+        LepResourceConnector lepResourceConnector = new LepResourceConnector(
+            tenant,
+            appName,
+            tenantAliasService,
+            lepConfigStorage,
+            groovyFileParser
+        );
+        return new GroovyLepEngine(
+            appName,
+            tenant,
+            lepConfigStorage,
+            loggingWrapper,
+            classLoader,
+            lepResourceConnector
+        );
     }
 }

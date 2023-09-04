@@ -2,7 +2,6 @@ package com.icthh.xm.commons.lep.impl.internal;
 
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 /**
  * Don't use it in lep!
