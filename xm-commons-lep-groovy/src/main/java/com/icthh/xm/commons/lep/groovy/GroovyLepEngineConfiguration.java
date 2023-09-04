@@ -25,6 +25,9 @@ import static com.icthh.xm.commons.lep.TenantScriptStorage.XM_MS_CONFIG;
 @ConditionalOnMissingBean(GroovyLepEngineConfiguration.class)
 public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
 
+    @Value("${application.lep.tenant-script-storage:#{T(com.icthh.xm.commons.lep.TenantScriptStorage).XM_MS_CONFIG}}")
+    private TenantScriptStorage tenantScriptStorageType;
+
     public GroovyLepEngineConfiguration(@Value("${spring.application.name}") String appName) {
         super(appName);
     }
@@ -54,10 +57,9 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     @Bean
     public LepStorageFactory lepStorageFactory(ApplicationNameProvider applicationNameProvider,
                                                ClassPathLepRepository classPathLepRepository,
-                                               TenantAliasService tenantAliasService,
-                                               TenantScriptStorageTypeProvider storageTypeProvider) {
+                                               TenantAliasService tenantAliasService) {
         String appName = applicationNameProvider.getAppName();
-        TenantScriptStorage storageType = storageTypeProvider.getTenantScriptStorage();
+        TenantScriptStorage storageType = getTenantScriptStorageType();
         if (storageType.equals(XM_MS_CONFIG)) {
             return new XmConfigLepStorageFactory(appName, classPathLepRepository);
         } else if (storageType.equals(CLASSPATH)) {
@@ -76,13 +78,8 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
         return FileSystemUtils.getAppHomeDir();
     }
 
-    @Bean
-    @ConditionalOnMissingBean(TenantScriptStorageTypeProvider.class)
-    public TenantScriptStorageTypeProvider tenantScriptStorageTypeProvider(
-        @Value("${application.lep.tenant-script-storage:#{T(com.icthh.xm.commons.lep.TenantScriptStorage).XM_MS_CONFIG}}")
-        TenantScriptStorage storage
-    ) {
-        return new TenantScriptStorageTypeProviderImpl(storage);
+    protected TenantScriptStorage getTenantScriptStorageType() {
+        return tenantScriptStorageType;
     }
 
 }

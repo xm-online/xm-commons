@@ -27,11 +27,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.nio.charset.Charset;
+import java.time.Duration;
 import java.util.Optional;
 
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
+import static com.icthh.xm.commons.logging.configurable.TestAppender.findMessage;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
@@ -157,24 +160,16 @@ public class LoggingRefreshableConfigurationUnitTest {
 
         event = TestAppender.searchByMessage("lep:stop:  execute lep at [{}], script: {}");
         assertEquals(Level.WARN, event.getLevel());
-
-        TestAppender.clearEvents();
-
-        //lep
-        lepLoader.onRefresh("/config/tenants/TEST/testApp/lep/general/TestLep$$around.groovy",
-            "return 'helloFromRefreshedTestLep'");
-        result = testService.testMethodSecond("firstArgValue", "secondArgValue");
-        assertEquals("helloFromRefreshedTestLep", result);
-
-        event = TestAppender.searchByMessage("lep:start: execute lep at [{}], script: {}");
-        assertEquals(Level.ERROR, event.getLevel());
-
-        event = TestAppender.searchByMessage("lep:stop:  execute lep at [{}], script: {}");
-        assertEquals(Level.ERROR, event.getLevel());
     }
 
-    public void testLogOnRunLep() {
-
+    @Test
+    public void testLogOnLepOff() {
+        loggingRefreshableConfiguration.onRefresh(UPDATE_KEY, readConfig(TEST_LOG_UPDATE_CONFIG));
+        TestAppender.clearEvents();
+        String result = testService.testMethodWithOffLog("firstArgValue", "secondArgValue");
+        assertEquals("helloFromRefreshedTestLepWithOffLogs", result);
+        assertFalse(findMessage("lep:start: execute lep at [{}], script: {}").isPresent());
+        assertFalse(findMessage("lep:stop:  execute lep at [{}], script: {}").isPresent());
     }
 
     @Test

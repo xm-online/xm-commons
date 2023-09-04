@@ -2,7 +2,6 @@ package com.icthh.xm.commons.logging.configurable;
 
 import com.icthh.xm.commons.lep.TenantScriptStorage;
 import com.icthh.xm.commons.lep.groovy.GroovyLepEngineConfiguration;
-import com.icthh.xm.commons.lep.groovy.TenantScriptStorageTypeProvider;
 import com.icthh.xm.commons.lep.spring.LepUpdateMode;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import org.mockito.Mockito;
@@ -20,9 +19,9 @@ public class TestConfig extends GroovyLepEngineConfiguration {
         super("testApp");
     }
 
-    @Bean
-    public TenantScriptStorageTypeProvider tenantScriptStorageTypeProvider() {
-        return () -> TenantScriptStorage.CLASSPATH;
+    @Override
+    public TenantScriptStorage getTenantScriptStorageType() {
+        return TenantScriptStorage.CLASSPATH;
     }
 
     @Bean

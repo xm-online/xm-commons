@@ -163,8 +163,6 @@ lepContext.traceService // groovy will call method getLepServices() for you
 Replace extends from WebLepSpringConfiguration to extends from GroovyLepEngineConfiguration,
 Or just remove lep configuration.
 
-Replace getTenantScriptStorageType() to TenantScriptStorageTypeProvider
-
 ### Remove code that add _LepInterceptor_ in you configuration.
 LepInterceptor will be added in LepInterceptorConfiguration
 

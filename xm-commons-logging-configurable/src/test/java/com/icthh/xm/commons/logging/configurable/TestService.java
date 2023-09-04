@@ -19,4 +19,9 @@ public class TestService {
         return "result";
     }
 
+    @LogicExtensionPoint("TestLepOFFLOG")
+    public String testMethodWithOffLog(String firstArg, String secondArg) {
+        return "result";
+    }
+
 }

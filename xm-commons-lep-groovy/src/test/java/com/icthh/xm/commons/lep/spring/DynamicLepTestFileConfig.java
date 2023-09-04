@@ -1,7 +1,6 @@
 package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.lep.TenantScriptStorage;
-import com.icthh.xm.commons.lep.groovy.TenantScriptStorageTypeProvider;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
 import lombok.SneakyThrows;
@@ -27,9 +26,9 @@ public class DynamicLepTestFileConfig extends DynamicLepTestConfig {
         folder.create();
     }
 
-    @Bean
-    public TenantScriptStorageTypeProvider getTenantScriptStorageType() {
-        return () -> TenantScriptStorage.FILE;
+    @Override
+    public TenantScriptStorage getTenantScriptStorageType() {
+        return TenantScriptStorage.FILE;
     }
 
     @Override

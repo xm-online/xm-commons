@@ -2,7 +2,6 @@ package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.lep.TenantScriptStorage;
 import com.icthh.xm.commons.lep.groovy.GroovyLepEngineConfiguration;
-import com.icthh.xm.commons.lep.groovy.TenantScriptStorageTypeProvider;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -22,9 +21,9 @@ public class LepTestConfig extends GroovyLepEngineConfiguration {
         super("testApp");
     }
 
-    @Bean
-    public TenantScriptStorageTypeProvider getTenantScriptStorageType() {
-        return () -> TenantScriptStorage.CLASSPATH;
+    @Override
+    public TenantScriptStorage getTenantScriptStorageType() {
+        return TenantScriptStorage.CLASSPATH;
     }
 
     @Bean
