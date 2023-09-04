@@ -25,8 +25,11 @@ public class JsonUtil {
 
     public static String[] extractIdAndTypeKey(JsonFactory jsonFactory, String json) {
         String[] values = new String[FIELD_COUNT];
+        if (json == null) {
+            return values;
+        }
         try (JsonParser jParser = jsonFactory.createParser(json)) {
-            while (jParser.nextToken() != JsonToken.END_OBJECT) {
+            while (jParser.nextToken() != JsonToken.END_OBJECT && !jParser.isClosed()) {
                 String fieldName = jParser.getCurrentName();
 
                 if (fieldName == null) {

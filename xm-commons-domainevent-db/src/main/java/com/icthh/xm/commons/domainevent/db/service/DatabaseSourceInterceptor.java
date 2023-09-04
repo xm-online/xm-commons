@@ -11,6 +11,7 @@ import com.icthh.xm.commons.domainevent.db.service.mapper.JpaEntityMapper;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation;
 import com.icthh.xm.commons.domainevent.service.EventPublisher;
+import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.EmptyInterceptor;
@@ -18,6 +19,7 @@ import org.hibernate.metamodel.spi.MetamodelImplementor;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.Type;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -42,6 +44,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(value = "application.domain-event.enabled", havingValue = "true")
 public class DatabaseSourceInterceptor extends EmptyInterceptor {
 
     private static final Map<Class<?>, String> TABLE_NAME_CACHE = new ConcurrentHashMap<>();
@@ -59,6 +62,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
     private final DatabaseDslFilter databaseDslFilter;
 
     @Override
+    @IgnoreLogginAspect
     public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState,
                                 String[] propertyNames, Type[] types) {
         publishEvent(entity, id, currentState, previousState, propertyNames, UPDATE);
@@ -67,6 +71,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
     }
 
     @Override
+    @IgnoreLogginAspect
     public boolean onSave(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
         publishEvent(entity, id, state, null, propertyNames, CREATE);
 
@@ -74,6 +79,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
     }
 
     @Override
+    @IgnoreLogginAspect
     public void onDelete(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
         publishEvent(entity, id, null, state, propertyNames, DELETE);
         super.onDelete(entity, id, state, propertyNames, types);
