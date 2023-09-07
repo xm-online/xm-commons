@@ -152,10 +152,6 @@ If you have separate configuration for test
 TenantContextUtils.setTenant(tenantContextHolder, "TEST");
 ```
 
-### If you write xm-commons or lib add to dependency ONLY `implementation project(':xm-commons-lep')`,  if you need groovy lep in test add test deps `testImplementation project(':xm-commons-lep-groovy')`
-This will allow to choose lep engine in target microservices.
-
-
 ### For create lepContext you need to extend BaseLepContext and implement LepContextFactory
 #### Microservice MUST have class with name LepContext
 
@@ -231,6 +227,10 @@ public class BalanceLepContextFactory implements LepContextFactory {
 
 
 ## NEXT STEP ONLY FOR COMMONS OR LIBs
+
+### If you write xm-commons or lib add to dependency ONLY `implementation project(':xm-commons-lep')`,  if you need groovy lep in test add test deps `testImplementation project(':xm-commons-lep-groovy')`
+This will allow to choose lep engine in target microservices.
+
 ### To add field to lepContext globally (in commons or in libs) implement LepAdditionalContext. Pls use this ONLY IN LIBS OR XM-COMMONS.
 #### See example in OutboxTransportService or TraceService
 Example:
