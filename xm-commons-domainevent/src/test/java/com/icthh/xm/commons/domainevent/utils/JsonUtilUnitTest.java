@@ -1,10 +1,14 @@
 package com.icthh.xm.commons.domainevent.utils;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import org.junit.Assert;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.util.Arrays;
 
 public class JsonUtilUnitTest {
 
@@ -40,6 +44,21 @@ public class JsonUtilUnitTest {
         String[] values = JsonUtil.extractIdAndTypeKey(jsonFactory, json);
 
         assertResult(values);
+    }
+
+    @Test
+    public void shouldNotHungWithEmptyJson(){
+        String json = "";
+        String[] values = JsonUtil.extractIdAndTypeKey(jsonFactory, json);
+        assertNotNull(values);
+        Arrays.stream(values).forEach(Assert::assertNull);
+    }
+
+    @Test
+    public void shouldNotHungWithNullJson(){
+        String[] values = JsonUtil.extractIdAndTypeKey(jsonFactory, null);
+        assertNotNull(values);
+        Arrays.stream(values).forEach(Assert::assertNull);
     }
 
     private void assertResult(String[]  values) {

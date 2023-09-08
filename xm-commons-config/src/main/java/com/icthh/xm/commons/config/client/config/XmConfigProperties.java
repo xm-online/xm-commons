@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @ConditionalOnProperty("xm-config.enabled")
@@ -23,10 +24,18 @@ public class XmConfigProperties {
     private Set<String> includeTenants;
 
     public Set<String> getIncludeTenantLowercase() {
+        return includedTenantsStream().map(String::toLowerCase)
+                                      .collect(Collectors.toSet());
+    }
+
+    public Set<String> getIncludeTenantUppercase() {
+        return includedTenantsStream().map(String::toUpperCase)
+                                      .collect(Collectors.toSet());
+    }
+
+    private Stream<String> includedTenantsStream() {
         return Optional.ofNullable(getIncludeTenants())
                        .orElse(new HashSet<>())
-                       .stream()
-                       .map(String::toLowerCase)
-                       .collect(Collectors.toSet());
+                       .stream();
     }
 }
