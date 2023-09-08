@@ -16,10 +16,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.web.servlet.HandlerMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -61,6 +63,8 @@ public class DomainEventProviderImpl implements DomainEventProvider {
         HttpDomainEventPayload payload = new HttpDomainEventPayload();
         payload.setMethod(request.getMethod());
         payload.setUrl(request.getRequestURI());
+        payload.setUrlPattern(String.valueOf(request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE)));
+        payload.setUrlPathParams(extractPathParams(request));
         payload.setQueryString(request.getQueryString());
         payload.setRequestLength(request.getContentLengthLong());
         payload.setRequestBody(maskContent(requestBody, request.getRequestURI(), true, request.getMethod()));
@@ -71,6 +75,15 @@ public class DomainEventProviderImpl implements DomainEventProvider {
         payload.setResponseCode(response.getStatus());
         payload.setExecTime(MdcUtils.getExecTimeMs());
         return payload;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> extractPathParams(HttpServletRequest request) {
+        Object params = request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+        if(params instanceof Map){
+            return (Map<String, Object>) params;
+        }
+        return null;
     }
 
     private String maskContent(final String content, String uri, boolean request, String httpMethod) {
