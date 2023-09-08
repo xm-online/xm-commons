@@ -16,6 +16,7 @@ import com.icthh.xm.lep.api.MethodSignature;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
@@ -60,7 +61,7 @@ public class LogicExtensionPointHandler {
             LepExecutor lepEngine = this.lepEngineService.getLepExecutor(lepKey);
             return lepEngine
                 .ifLepPresent(engine -> invokeLepMethod(engine, target, lepMethod, lepKey))
-                .ifLepNotExists(() -> invokeOriginalMethod(target, lepMethod))
+                .ifLepNotExists(() -> invokeOriginalMethod(target, lepMethod, lepKey))
                 .getMethodResult();
 
         } catch (LepInvocationCauseException e) {
@@ -79,8 +80,31 @@ public class LogicExtensionPointHandler {
     }
 
     @SneakyThrows
-    private Object invokeOriginalMethod(Object target, LepMethod lepMethod){
-        return lepMethod.getMethodSignature().getMethod().invoke(target, lepMethod.getMethodArgValues());
+    private Object invokeOriginalMethod(Object target, LepMethod lepMethod, LepKey lepKey) {
+        Method method = lepMethod.getMethodSignature().getMethod();
+        try {
+            return method.invoke(target, lepMethod.getMethodArgValues());
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException("Error while processing target method: " + method, e);
+        } catch (InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            if (cause == null) {
+                throw new IllegalStateException("Invocation exception cause is null, "
+                    + "while processing target method for LEP resource key: "
+                    + lepKey);
+            }
+
+            if (cause instanceof Error) {
+                throw Error.class.cast(cause);
+            } else if (cause instanceof Exception) {
+                throw Exception.class.cast(cause);
+            } else {
+                log.warn("Error execute LEP target method", e);
+                throw new IllegalStateException("Error processing target method for LEP resource key: "
+                    + lepKey + ". "
+                    + cause.getMessage(), cause);
+            }
+        }
     }
 
     private LepKey resolveLepKey(LogicExtensionPoint lep, LepKey baseLepKey, LepMethod lepMethod) {

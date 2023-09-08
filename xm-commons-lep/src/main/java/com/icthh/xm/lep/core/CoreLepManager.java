@@ -1,10 +1,17 @@
 package com.icthh.xm.lep.core;
 
+import com.icthh.xm.commons.tenant.TenantContext;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
+import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.lep.api.LepManager;
 import com.icthh.xm.lep.api.ScopedContext;
+import lombok.RequiredArgsConstructor;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+
+import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
+import static com.icthh.xm.commons.tenant.TenantContextUtils.buildTenant;
 
 /**
  * @deprecated
@@ -17,15 +24,30 @@ import java.util.function.Consumer;
  * To create new Thread pls use LepThreadHelper
  */
 @Deprecated(forRemoval = true)
+@RequiredArgsConstructor
 public class CoreLepManager implements LepManager {
 
     private final CoreContextsHolder contextsHolder = new CoreContextsHolder();
+    private final TenantContextHolder tenantContextHolder;
 
     @Override
     public void beginThreadContext(Consumer<? super ScopedContext> contextInitAction) {
         Objects.requireNonNull(contextInitAction, "context init action can't be null");
-        contextInitAction.accept(contextsHolder.beginThreadContext());
+        ScopedContext scopedContext = contextsHolder.beginThreadContext();
+
+        if (TenantContextUtils.getTenantKey(tenantContextHolder).isEmpty() && scopedContext.contains(THREAD_CONTEXT_KEY_TENANT_CONTEXT)) {
+            TenantContext value = (TenantContext) scopedContext.getValue(THREAD_CONTEXT_KEY_TENANT_CONTEXT);
+            if (value != null && value.isInitialized() && value.getTenant().isPresent()) {
+                tenantContextHolder.getPrivilegedContext().execute(value.getTenant().get(), () -> {
+                    contextInitAction.accept(scopedContext);
+                });
+                return;
+            }
+        }
+
+        contextInitAction.accept(scopedContext);
     }
+
 
     @Override
     public void endThreadContext() {

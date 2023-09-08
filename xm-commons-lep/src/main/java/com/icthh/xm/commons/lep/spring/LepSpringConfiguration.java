@@ -165,8 +165,8 @@ public class LepSpringConfiguration {
 
     @Bean
     @Deprecated(forRemoval = true)
-    public LepManager lepManager() {
-        return new CoreLepManager();
+    public LepManager lepManager(TenantContextHolder tenantContextHolder) {
+        return new CoreLepManager(tenantContextHolder);
     }
 
     @Bean

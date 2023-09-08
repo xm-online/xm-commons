@@ -3,6 +3,7 @@ package com.icthh.xm.commons.lep.impl;
 import com.icthh.xm.commons.lep.api.LepKey;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,4 +20,8 @@ public class DefaultLepKey implements LepKey {
         this(group, baseKey, Collections.emptyList());
     }
 
+    @Override
+    public String toString() {
+        return "lep://" + group + "/" + baseKey + "[" + StringUtils.join(segments, ",") + "]";
+    }
 }

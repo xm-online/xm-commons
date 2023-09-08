@@ -3,18 +3,16 @@ package com.icthh.xm.commons.lep.spring;
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.lep.api.LepManagementService;
-import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryWithLepFactoryMethod;
-import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.TenantKey;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
-import com.icthh.xm.lep.api.LepManager;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,8 +31,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.icthh.xm.commons.config.client.service.TenantAliasService.TENANT_ALIAS_CONFIG;
-import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_AUTH_CONTEXT;
-import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -50,16 +46,10 @@ import static org.mockito.Mockito.when;
 public class DynamicLepClassResolveIntTest {
 
     @Autowired
-    private LepManager lepManager;
-
-    @Autowired
     private LepManagementService lepManagementService;
 
     @Mock
     private TenantContext tenantContext;
-
-    @Mock
-    private XmAuthenticationContext authContext;
 
     @Autowired
     private TenantContextHolder tenantContextHolder;
@@ -73,18 +63,17 @@ public class DynamicLepClassResolveIntTest {
     @Autowired
     private XmLepScriptConfigServerResourceLoader resourceLoader;
 
-    @Autowired
-    private LepServiceFactoryWithLepFactoryMethod serviceFactoryService;
-
     @Before
     public void init() {
         MockitoAnnotations.initMocks(this);
 
         TenantContextUtils.setTenant(tenantContextHolder, "TEST");
-        lepManager.beginThreadContext(ctx -> {
-            ctx.setValue(THREAD_CONTEXT_KEY_TENANT_CONTEXT, tenantContext);
-            ctx.setValue(THREAD_CONTEXT_KEY_AUTH_CONTEXT, authContext);
-        });
+        lepManagementService.beginThreadContext();
+    }
+
+    @After
+    public void after() {
+        lepManagementService.endThreadContext();
     }
 
     @Test
@@ -181,7 +170,7 @@ public class DynamicLepClassResolveIntTest {
     }
 
 
-    private void runTest(String suffix, String packageName, String path) throws InterruptedException {
+    private void runTest(String suffix, String packageName, String path) {
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
 
         String testClassDeclarationPath = "/config/tenants/" + path + "/TestClassDeclaration" + suffix + "$$tenant.groovy";
