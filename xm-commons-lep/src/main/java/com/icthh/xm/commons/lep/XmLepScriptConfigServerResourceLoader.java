@@ -6,6 +6,7 @@ import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import com.icthh.xm.commons.lep.spring.ApplicationNameProvider;
 import com.icthh.xm.commons.lep.spring.LepUpdateMode;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -39,21 +40,22 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
     private final Map<String, Map<String, XmLepConfigFile>> scriptsByTenant = new ConcurrentHashMap<>();
+    private final RefreshTaskExecutor refreshExecutor = new RefreshTaskExecutor();
 
     private final String tenantLepScriptsAntPathPattern;
     private final LepManagementService lepManagementService;
-    private final RefreshTaskExecutor refreshExecutor;
     private final LepUpdateMode lepUpdateMode;
+    private final TenantContextHolder tenantContextHolder;
 
     public XmLepScriptConfigServerResourceLoader(ApplicationNameProvider applicationNameProvider,
                                                  LepManagementService lepManagementService,
-                                                 RefreshTaskExecutor refreshExecutor,
-                                                 LepUpdateMode lepUpdateMode) {
+                                                 LepUpdateMode lepUpdateMode,
+                                                 TenantContextHolder tenantContextHolder) {
         String appName = applicationNameProvider.getAppName();
         this.tenantLepScriptsAntPathPattern = "/config/tenants/{tenantKey}/" + appName + "/lep/**";
         this.lepManagementService = lepManagementService;
-        this.refreshExecutor = refreshExecutor;
         this.lepUpdateMode = lepUpdateMode;
+        this.tenantContextHolder = tenantContextHolder;
     }
 
     @Override
@@ -85,7 +87,7 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
             refreshEngines(tenantsToUpdate, false).get();
             // if refresh operation invoked in thread where inited threadLepContext, threadLepContext have to be reinited
             LepExecutorResolver currentLepExecutorResolver = lepManagementService.getCurrentLepExecutorResolver();
-            if (currentLepExecutorResolver != null) {
+            if (currentLepExecutorResolver != null && tenantContextHolder.getContext().isInitialized()) {
                 lepManagementService.endThreadContext();
                 lepManagementService.beginThreadContext();
             }

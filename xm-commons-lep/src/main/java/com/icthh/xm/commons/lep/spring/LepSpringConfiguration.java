@@ -2,7 +2,6 @@ package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.DefaultLepKeyResolver;
-import com.icthh.xm.commons.lep.RefreshTaskExecutor;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepAdditionalContext;
@@ -71,20 +70,14 @@ public class LepSpringConfiguration {
     @ConditionalOnMissingBean(XmLepScriptConfigServerResourceLoader.class)
     public XmLepScriptConfigServerResourceLoader cfgResourceLoader(ApplicationNameProvider applicationNameProvider,
                                                                    LepManagementService lepManagementService,
-                                                                   RefreshTaskExecutor refreshTaskExecutor,
-                                                                   LepUpdateMode lepUpdateMode) {
+                                                                   LepUpdateMode lepUpdateMode,
+                                                                   TenantContextHolder tenantContextHolder) {
         return new XmLepScriptConfigServerResourceLoader(
             applicationNameProvider,
             lepManagementService,
-            refreshTaskExecutor,
-            lepUpdateMode
+            lepUpdateMode,
+            tenantContextHolder
         );
-    }
-
-    @Bean
-    @ConditionalOnMissingBean(RefreshTaskExecutor.class)
-    public RefreshTaskExecutor refreshTaskExecutor() {
-        return new RefreshTaskExecutor();
     }
 
     @Bean
@@ -165,8 +158,8 @@ public class LepSpringConfiguration {
 
     @Bean
     @Deprecated(forRemoval = true)
-    public LepManager lepManager(TenantContextHolder tenantContextHolder) {
-        return new CoreLepManager(tenantContextHolder);
+    public LepManager lepManager(TenantContextHolder tenantContextHolder, LepManagementService lepManagementService) {
+        return new CoreLepManager(tenantContextHolder, lepManagementService);
     }
 
     @Bean

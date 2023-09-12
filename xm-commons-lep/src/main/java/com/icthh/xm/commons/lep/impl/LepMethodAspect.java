@@ -7,6 +7,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 
@@ -17,11 +18,8 @@ public class LepMethodAspect {
         super();
     }
 
-    /**
-     * LEP service handler.
-     */
     @Autowired
-    private LogicExtensionPointHandler lepHandler;
+    private LogicExtensionPointHandler handler;
 
     @Around("@annotation(com.icthh.xm.commons.lep.LogicExtensionPoint)")
     @SuppressWarnings("squid:S00112")
@@ -42,7 +40,7 @@ public class LepMethodAspect {
         if (lep == null) {
             resultValue = joinPoint.proceed();
         } else {
-            resultValue = lepHandler.handleLepMethod(declaringType, joinPoint.getTarget(), method, lep, joinPoint.getArgs());
+            resultValue = handler.handleLepMethod(declaringType, joinPoint.getTarget(), method, lep, joinPoint.getArgs());
         }
         return resultValue;
     }

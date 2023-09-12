@@ -5,6 +5,7 @@ import com.icthh.xm.commons.lep.api.LepExecutor;
 import com.icthh.xm.commons.lep.api.LepExecutorResolver;
 import com.icthh.xm.commons.lep.api.LepKey;
 import com.icthh.xm.commons.logging.util.MdcUtils;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,6 +29,7 @@ class TenantLepEngines implements LepExecutorResolver {
     private final AtomicReference<TenantLepEnginesStates> state = new AtomicReference<>(ACTIVE);
     private final String logId = MdcUtils.generateRid();
 
+    @Getter
     private final String tenant;
     private final List<LepEngine> lepEngines;
 
@@ -87,8 +89,10 @@ class TenantLepEngines implements LepExecutorResolver {
         String id = tenant + '_' + logId;
         return "TenantLepEngines(" +
             "id=" + id +
-            "state=" + state +
-            "countOfExecution=" + countOfExecutions.get() +
+            ", state=" + state +
+            ", tenant=" + tenant +
+            ", lepEngines.size=" + lepEngines.size() +
+            ", countOfExecution=" + countOfExecutions.get() +
             ")";
     }
 }

@@ -1,17 +1,15 @@
 package com.icthh.xm.lep.core;
 
-import com.icthh.xm.commons.tenant.TenantContext;
+import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
+import com.icthh.xm.lep.api.ContextScopes;
 import com.icthh.xm.lep.api.LepManager;
 import com.icthh.xm.lep.api.ScopedContext;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-
-import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
-import static com.icthh.xm.commons.tenant.TenantContextUtils.buildTenant;
 
 /**
  * @deprecated
@@ -27,36 +25,25 @@ import static com.icthh.xm.commons.tenant.TenantContextUtils.buildTenant;
 @RequiredArgsConstructor
 public class CoreLepManager implements LepManager {
 
-    private final CoreContextsHolder contextsHolder = new CoreContextsHolder();
     private final TenantContextHolder tenantContextHolder;
+    private final LepManagementService lepManagementService;
 
     @Override
     public void beginThreadContext(Consumer<? super ScopedContext> contextInitAction) {
         Objects.requireNonNull(contextInitAction, "context init action can't be null");
-        ScopedContext scopedContext = contextsHolder.beginThreadContext();
+        ScopedContext scopedContext = new DefaultScopedContext(ContextScopes.THREAD);
 
-        if (TenantContextUtils.getTenantKey(tenantContextHolder).isEmpty() && scopedContext.contains(THREAD_CONTEXT_KEY_TENANT_CONTEXT)) {
-            TenantContext value = (TenantContext) scopedContext.getValue(THREAD_CONTEXT_KEY_TENANT_CONTEXT);
-            if (value != null && value.isInitialized() && value.getTenant().isPresent()) {
-                tenantContextHolder.getPrivilegedContext().execute(value.getTenant().get(), () -> {
-                    contextInitAction.accept(scopedContext);
-                });
-                return;
-            }
+        if (TenantContextUtils.getTenantKey(tenantContextHolder).isEmpty()) {
+            throw new IllegalStateException("Thread context not initd");
         }
 
         contextInitAction.accept(scopedContext);
+        lepManagementService.beginThreadContext();
     }
-
 
     @Override
     public void endThreadContext() {
-        contextsHolder.endThreadContext();
-    }
-
-    @Override
-    public ScopedContext getContext(String scope) {
-        return contextsHolder.getContext(scope);
+        lepManagementService.endThreadContext();
     }
 
 }
