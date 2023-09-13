@@ -19,6 +19,7 @@ import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
 import com.icthh.xm.commons.lep.spring.lepservice.ClearServicesOnEngineDestroy;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryResolver;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryWithLepFactoryMethod;
+import com.icthh.xm.commons.lep.spring.web.LepInterceptor;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.lep.api.LepKeyResolver;
@@ -88,6 +89,11 @@ public class LepSpringConfiguration {
     @Bean
     public TenantAliasService tenantAliasService() {
         return new TenantAliasService();
+    }
+
+    @Bean
+    public LepInterceptor lepInterceptor(LepManagementService lepManagementService) {
+        return new LepInterceptor(lepManagementService);
     }
 
     @Bean
