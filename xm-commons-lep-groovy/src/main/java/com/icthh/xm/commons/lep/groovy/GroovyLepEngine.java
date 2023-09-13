@@ -17,13 +17,12 @@ import org.codehaus.groovy.control.CompilerConfiguration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import static com.icthh.xm.commons.lep.groovy.LepResourceConnector.URL_PREFIX_COMMONS_ENVIRONMENT;
 import static com.icthh.xm.commons.lep.groovy.LepResourceConnector.URL_PREFIX_COMMONS_TENANT;
 import static com.icthh.xm.commons.lep.groovy.storage.LepStorage.FILE_EXTENSION;
-import static java.util.concurrent.TimeUnit.MICROSECONDS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
@@ -82,7 +81,7 @@ public class GroovyLepEngine extends LepEngine {
                 log.error("Error create script {}", lep.getPath(), e);
             }
         });
-        log.info("End warmup lep scripts | time {}ms", stopWatch.getTime(MICROSECONDS));
+        log.info("End warmup lep scripts | time {}ms", stopWatch.getTime(MILLISECONDS));
     }
 
     @Override

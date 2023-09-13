@@ -92,11 +92,6 @@ public class LepSpringConfiguration {
     }
 
     @Bean
-    public LepInterceptor lepInterceptor(LepManagementService lepManagementService) {
-        return new LepInterceptor(lepManagementService);
-    }
-
-    @Bean
     public LepMethodAspect lepMethodAspect() {
         return new LepMethodAspect();
     }
