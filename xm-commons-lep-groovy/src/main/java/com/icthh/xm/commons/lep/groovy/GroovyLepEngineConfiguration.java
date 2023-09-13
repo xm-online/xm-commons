@@ -28,6 +28,9 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     @Value("${application.lep.tenant-script-storage:#{T(com.icthh.xm.commons.lep.TenantScriptStorage).XM_MS_CONFIG}}")
     private TenantScriptStorage tenantScriptStorageType;
 
+    @Value("${application.lep.warmup-scripts:true}")
+    private boolean warmupScripts;
+
     public GroovyLepEngineConfiguration(@Value("${spring.application.name}") String appName) {
         super(appName);
     }
@@ -39,7 +42,7 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
                                                          LoggingWrapper loggingWrapper,
                                                          GroovyFileParser groovyFileParser) {
         String appName = applicationNameProvider.getAppName();
-        return new GroovyLepEngineFactory(appName, tenantAliasService, lepStorageFactory, loggingWrapper, groovyFileParser);
+        return new GroovyLepEngineFactory(appName, tenantAliasService, lepStorageFactory, loggingWrapper, groovyFileParser, warmupScripts);
     }
 
     @Bean

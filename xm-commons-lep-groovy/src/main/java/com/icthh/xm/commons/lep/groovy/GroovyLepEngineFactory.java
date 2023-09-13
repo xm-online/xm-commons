@@ -19,6 +19,7 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
     private final LepStorageFactory lepStorageFactory;
     private final LoggingWrapper loggingWrapper;
     private final GroovyFileParser groovyFileParser;
+    private final boolean isWarmupEnabled;
 
     private volatile ClassLoader classLoader;
 
@@ -26,13 +27,15 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
                                   TenantAliasService tenantAliasService,
                                   LepStorageFactory lepStorageFactory,
                                   LoggingWrapper loggingWrapper,
-                                  GroovyFileParser groovyFileParser) {
+                                  GroovyFileParser groovyFileParser,
+                                  boolean isWarmupEnabled) {
         super(appName);
         this.appName = appName;
         this.tenantAliasService = tenantAliasService;
         this.lepStorageFactory = lepStorageFactory;
         this.loggingWrapper = loggingWrapper;
         this.groovyFileParser = groovyFileParser;
+        this.isWarmupEnabled = isWarmupEnabled;
     }
 
     @Override
@@ -56,7 +59,8 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
             lepConfigStorage,
             loggingWrapper,
             classLoader,
-            lepResourceConnector
+            lepResourceConnector,
+            isWarmupEnabled
         );
     }
 }

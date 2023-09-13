@@ -11,16 +11,19 @@ import groovy.util.GroovyScriptEngine;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.codehaus.groovy.control.CompilerConfiguration;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import static com.icthh.xm.commons.lep.groovy.LepResourceConnector.URL_PREFIX_COMMONS_ENVIRONMENT;
 import static com.icthh.xm.commons.lep.groovy.LepResourceConnector.URL_PREFIX_COMMONS_TENANT;
 import static com.icthh.xm.commons.lep.groovy.storage.LepStorage.FILE_EXTENSION;
+import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
@@ -41,14 +44,19 @@ public class GroovyLepEngine extends LepEngine {
                            LepStorage leps,
                            LoggingWrapper loggingWrapper,
                            ClassLoader classLoader,
-                           LepResourceConnector lepResourceConnector) {
+                           LepResourceConnector lepResourceConnector,
+                           boolean isWarmupEnabled) {
         this.appName = appName;
         this.tenant = tenant;
         this.leps = leps;
         this.loggingWrapper = loggingWrapper;
         this.gse = buildGroovyEngine(classLoader, lepResourceConnector);
         this.engineForCompile = new GroovyScriptEngine(lepResourceConnector, classLoader);
-        warmupScripts();
+        if (isWarmupEnabled) {
+            warmupScripts();
+        } else {
+            log.warn("Warmup lep script disabled");
+        }
     }
 
     protected GroovyScriptEngine buildGroovyEngine(ClassLoader classLoader, LepResourceConnector lepResourceConnector) {
@@ -62,6 +70,8 @@ public class GroovyLepEngine extends LepEngine {
     }
 
     private void warmupScripts() {
+        StopWatch stopWatch = StopWatch.createStarted();
+        log.info("Start warmup lep scripts");
         this.leps.forEach(lep -> {
             try {
                 Class<?> scriptClass = engineForCompile.loadScriptByName(LEP_PREFIX + lep.getPath());
@@ -72,6 +82,7 @@ public class GroovyLepEngine extends LepEngine {
                 log.error("Error create script {}", lep.getPath(), e);
             }
         });
+        log.info("End warmup lep scripts | time {}ms", stopWatch.getTime(MICROSECONDS));
     }
 
     @Override
