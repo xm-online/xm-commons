@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.codehaus.groovy.control.CompilerConfiguration;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -110,7 +111,8 @@ public class GroovyLepEngine extends LepEngine {
     private Object executeLep(String key, LepKey lepKey, ProceedingLep lepMethod, BaseLepContext lepContext) {
         String scriptName = LEP_PREFIX + key + FILE_EXTENSION;
         return loggingWrapper.doWithLogs(lepMethod, scriptName, lepKey, () ->
-            gse.run(LEP_PREFIX + key, new Binding(Map.of("lepContext", lepContext)))
+            // map HAVE TO be mutable!
+            gse.run(LEP_PREFIX + key, new Binding(new HashMap<>(Map.of("lepContext", lepContext))))
         );
     }
 

@@ -12,9 +12,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.StopWatch;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.util.AntPathMatcher;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,12 +28,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static com.icthh.xm.commons.lep.spring.LepUpdateMode.SYNCHRONOUS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 @Slf4j
-public class XmLepScriptConfigServerResourceLoader implements RefreshableConfiguration {
+public class XmLepScriptConfigServerResourceLoader implements RefreshableConfiguration, ApplicationListener<ApplicationReadyEvent> {
 
     private static final String commonsLepScriptsAntPathPattern = "/config/tenants/{tenantKey}/commons/lep/**";
     private static final String environmentLepScriptsAntPathPattern = "/config/tenants/commons/lep/**";
@@ -104,14 +107,6 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
         }
     }
 
-    @PostConstruct
-    @SneakyThrows
-    public void init() {
-        // in case when no lep exists we need to init lep engines to pass await
-        Set<String> tenantsToUpdate = scriptsByTenant.keySet();
-        refreshEngines(tenantsToUpdate, true).get(); // wait before lep will be inited
-    }
-
     private Future<?> refreshEngines(Set<String> tenantsToUpdate, boolean isInit) {
         log.info("Submit task for update lep engines for tenants {}", tenantsToUpdate);
         return refreshExecutor.submit(() -> {
@@ -173,6 +168,17 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
         } else {
             return ENV_COMMONS;
         }
+    }
+
+    @Override
+    @SneakyThrows
+    public void onApplicationEvent(ApplicationReadyEvent event) {
+        StopWatch stopWatch = StopWatch.createStarted();
+        // in case when no lep exists we need to init lep engines to pass await
+        Set<String> tenantsToUpdate = scriptsByTenant.keySet();
+        log.info("START | Start init leps for tenants {}", tenantsToUpdate);
+        refreshEngines(tenantsToUpdate, true).get(); // wait before lep will be inited
+        log.info("STOP | Leps inited, time: {}ms", stopWatch.getTime(MILLISECONDS));
     }
 
     @Getter
