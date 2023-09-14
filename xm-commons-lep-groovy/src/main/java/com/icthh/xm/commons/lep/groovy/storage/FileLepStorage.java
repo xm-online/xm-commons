@@ -102,4 +102,8 @@ public class FileLepStorage implements LepStorage {
         return TENANT_PREFIX + tenant + "/" + subfolder + "/lep/";
     }
 
+    @Override
+    public LepConnectionCache buildCache() {
+        return new EmptyLepConnectionCache();
+    }
 }

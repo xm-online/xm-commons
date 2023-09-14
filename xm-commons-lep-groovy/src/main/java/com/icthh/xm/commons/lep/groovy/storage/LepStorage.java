@@ -11,4 +11,8 @@ public interface LepStorage {
     void forEach(Consumer<XmLepConfigFile> lep);
     XmLepConfigFile getByPath(String path);
     boolean isExists(String path);
+
+    default LepConnectionCache buildCache() {
+        return new MemoryLepConnectionCache();
+    }
 }

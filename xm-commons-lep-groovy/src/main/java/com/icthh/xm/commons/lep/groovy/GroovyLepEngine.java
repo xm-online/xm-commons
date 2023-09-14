@@ -13,16 +13,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.runtime.InvokerHelper;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static com.icthh.xm.commons.lep.groovy.LepResourceConnector.URL_PREFIX_COMMONS_ENVIRONMENT;
 import static com.icthh.xm.commons.lep.groovy.LepResourceConnector.URL_PREFIX_COMMONS_TENANT;
 import static com.icthh.xm.commons.lep.groovy.storage.LepStorage.FILE_EXTENSION;
+import static java.lang.reflect.Modifier.isStatic;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
@@ -74,9 +79,10 @@ public class GroovyLepEngine extends LepEngine {
         log.info("Start warmup lep scripts");
         this.leps.forEach(lep -> {
             try {
-                Class<?> scriptClass = engineForCompile.loadScriptByName(LEP_PREFIX + lep.getPath());
+                Class<?> scriptClass = engineForCompile.loadScriptByName(LEP_PREFIX + lep.getPath()); // local script
                 if (Script.class.isAssignableFrom(scriptClass)) {
-                    engineForCompile.loadScriptByName(LEP_PREFIX + lep.getPath());
+                    gse.loadScriptByName(LEP_PREFIX + lep.getPath());
+                    InvokerHelper.getMetaClass(scriptClass); // build metaclass
                 }
             } catch (Throwable e) {
                 log.error("Error create script {}", lep.getPath(), e);

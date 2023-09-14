@@ -17,6 +17,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.util.AntPathMatcher;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -172,7 +173,14 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
 
     @Override
     @SneakyThrows
+    // to block starting app before engines was created
     public void onApplicationEvent(ApplicationReadyEvent event) {
+        init();
+    }
+
+    @SneakyThrows
+    @PostConstruct // unit test don't throw ApplicationReadyEvent
+    public void init() {
         StopWatch stopWatch = StopWatch.createStarted();
         // in case when no lep exists we need to init lep engines to pass await
         Set<String> tenantsToUpdate = scriptsByTenant.keySet();

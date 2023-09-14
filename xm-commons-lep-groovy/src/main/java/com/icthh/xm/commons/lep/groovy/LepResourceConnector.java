@@ -3,6 +3,7 @@ package com.icthh.xm.commons.lep.groovy;
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import com.icthh.xm.commons.lep.groovy.GroovyFileParser.GroovyFileMetadata;
+import com.icthh.xm.commons.lep.groovy.storage.LepConnectionCache;
 import com.icthh.xm.commons.lep.groovy.storage.LepStorage;
 import groovy.util.ResourceConnector;
 import groovy.util.ResourceException;
@@ -48,6 +49,7 @@ public class LepResourceConnector implements ResourceConnector {
     private final Map<String, GroovyFileMetadata> lepMetadata;
     private final List<String> parentKeysOnCreateEngine;
     private final Set<String> lepPathPrefixes;
+    private final LepConnectionCache lepConnectionCache;
 
     public LepResourceConnector(String tenantKey,
                                 String appName,
@@ -58,6 +60,7 @@ public class LepResourceConnector implements ResourceConnector {
         this.appName = appName;
         this.tenantAliasService = tenantAliasService;
         this.leps = leps;
+        this.lepConnectionCache = leps.buildCache();
         this.groovyFileParser = groovyFileParser;
         Map<String, GroovyFileMetadata> lepMetadata = new ConcurrentHashMap<>();
         leps.forEach(lep -> lepMetadata.put(lep.metadataKey(), toFileMetaData(lep)));
@@ -98,6 +101,10 @@ public class LepResourceConnector implements ResourceConnector {
             log.trace("Resolve import {}", name);
         }
 
+        if (lepConnectionCache.isConnectionExists(url)) {
+            return lepConnectionCache.getConnection(url);
+        }
+
         if (name.startsWith(LEP_URL_PREFIX)) {
             name = name.substring(LEP_URL_PREFIX.length());
         }
@@ -127,7 +134,7 @@ public class LepResourceConnector implements ResourceConnector {
                     if (log.isTraceEnabled()) {
                         log.trace("Resolved {} import at {}", name, resolvedFileUrl);
                     }
-                    return connection.get();
+                    return lepConnectionCache.putConnection(url, connection::get);
                 }
 
                 if (currentPath.lastIndexOf("$") <= 0) {
@@ -143,9 +150,12 @@ public class LepResourceConnector implements ResourceConnector {
         }
 
         if (url.startsWith(LEP_URL_PREFIX)) {
-            return toEmptyLepConnection(url);
+            return lepConnectionCache.putConnection(url, () ->  toEmptyLepConnection(url));
         } else {
-            throw new ResourceException("Resource not found " + name);
+            var finalName = name;
+            return lepConnectionCache.putConnection(url, () -> {
+                throw new ResourceException("Resource not found " + finalName);
+            });
         }
     }
 
