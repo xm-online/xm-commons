@@ -117,10 +117,12 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
         return refreshExecutor.submit(() -> {
             try {
                 // if not init - it`s refresh, if it`s init we need to check that not inited yet
-                if (!isInit || !lepManagementService.isLepEnginesInited()) {
-                    Map<String, List<XmLepConfigFile>> configToUpdate = prepareConfigs(tenantsToUpdate);
-                    lepManagementService.refreshEngines(configToUpdate);
+                if (isInit && lepManagementService.isLepEnginesInited()) {
+                    return false;
                 }
+
+                Map<String, List<XmLepConfigFile>> configToUpdate = prepareConfigs(tenantsToUpdate);
+                lepManagementService.refreshEngines(configToUpdate);
                 return true;
             } catch (Throwable e) {
                 log.error("Error during refresh configs", e);

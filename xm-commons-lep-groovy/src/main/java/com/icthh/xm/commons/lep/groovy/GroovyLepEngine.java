@@ -75,7 +75,7 @@ public class GroovyLepEngine extends LepEngine {
             try {
                 Class<?> scriptClass = engineForCompile.loadScriptByName(LEP_PREFIX + lep.getPath());
                 if (Script.class.isAssignableFrom(scriptClass)) {
-                    gse.createScript(LEP_PREFIX + lep.getPath(), new Binding());
+                    engineForCompile.loadScriptByName(LEP_PREFIX + lep.getPath());
                 }
             } catch (Throwable e) {
                 log.error("Error create script {}", lep.getPath(), e);

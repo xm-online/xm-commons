@@ -51,6 +51,7 @@ public class XmMsWebConfiguration {
     }
 
     @Bean
+    @Order(4)
     XmLoggingInterceptor xmLoggingInterceptor(XmAuthenticationContextHolder xmAuthenticationContextHolder,
                                               TenantContextHolder tenantContextHolder) {
         return new XmLoggingInterceptor(xmAuthenticationContextHolder, tenantContextHolder);
