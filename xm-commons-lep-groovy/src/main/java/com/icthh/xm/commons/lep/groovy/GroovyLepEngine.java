@@ -6,7 +6,6 @@ import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepKey;
 import com.icthh.xm.commons.lep.groovy.storage.LepStorage;
 import groovy.lang.Binding;
-import groovy.lang.Script;
 import groovy.util.GroovyScriptEngine;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -15,19 +14,16 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.runtime.InvokerHelper;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import static com.icthh.xm.commons.lep.groovy.LepResourceConnector.URL_PREFIX_COMMONS_ENVIRONMENT;
 import static com.icthh.xm.commons.lep.groovy.LepResourceConnector.URL_PREFIX_COMMONS_TENANT;
 import static com.icthh.xm.commons.lep.groovy.storage.LepStorage.FILE_EXTENSION;
-import static java.lang.reflect.Modifier.isStatic;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
@@ -37,18 +33,22 @@ import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 public class GroovyLepEngine extends LepEngine {
 
     public static final String LEP_PREFIX = "lep://";
+    public static final String COMMONS = "commons/lep";
+    public static final String COMMONS_SCRIPT = "/Commons$$";
     private final String appName;
     private final String tenant;
     private final LepStorage leps;
     private final GroovyScriptEngine gse;
-    private final GroovyScriptEngine engineForCompile;
     private final LoggingWrapper loggingWrapper;
+
+    private final Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata = new ConcurrentHashMap<>();
 
     public GroovyLepEngine(String appName,
                            String tenant,
                            LepStorage leps,
                            LoggingWrapper loggingWrapper,
                            ClassLoader classLoader,
+                           Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata,
                            LepResourceConnector lepResourceConnector,
                            boolean isWarmupEnabled) {
         this.appName = appName;
@@ -56,7 +56,7 @@ public class GroovyLepEngine extends LepEngine {
         this.leps = leps;
         this.loggingWrapper = loggingWrapper;
         this.gse = buildGroovyEngine(classLoader, lepResourceConnector);
-        this.engineForCompile = new GroovyScriptEngine(lepResourceConnector, classLoader);
+        this.lepMetadata.putAll(lepMetadata);
         if (isWarmupEnabled) {
             warmupScripts();
         } else {
@@ -79,10 +79,14 @@ public class GroovyLepEngine extends LepEngine {
         log.info("Start warmup lep scripts");
         this.leps.forEach(lep -> {
             try {
-                Class<?> scriptClass = engineForCompile.loadScriptByName(LEP_PREFIX + lep.getPath()); // local script
-                if (Script.class.isAssignableFrom(scriptClass)) {
-                    gse.loadScriptByName(LEP_PREFIX + lep.getPath());
-                    InvokerHelper.getMetaClass(scriptClass); // build metaclass
+                if (!isCommonsClass(lep.getPath())) {
+                    if (lepMetadata.containsKey(lep.metadataKey()) && lepMetadata.get(lep.metadataKey()).isScript()) {
+                        StopWatch warmUpTime = StopWatch.createStarted();
+                        log.trace("START | Warmup lep {}", lep.getPath());
+                        Class<?> scriptClass = gse.loadScriptByName(LEP_PREFIX + lep.getPath());
+                        InvokerHelper.getMetaClass(scriptClass); // build metaclass
+                        log.trace("STOP | Warmup lep {}, time: {}", lep.getPath(), warmUpTime.getTime(MILLISECONDS));
+                    }
                 }
             } catch (Throwable e) {
                 log.error("Error create script {}", lep.getPath(), e);
@@ -168,9 +172,9 @@ public class GroovyLepEngine extends LepEngine {
         }
 
         if (lepPath.startsWith(URL_PREFIX_COMMONS_ENVIRONMENT)) {
-            lepPath = "commons/lep" + lepPath.substring(URL_PREFIX_COMMONS_ENVIRONMENT.length());
+            lepPath = COMMONS + lepPath.substring(URL_PREFIX_COMMONS_ENVIRONMENT.length());
         } else if (lepPath.startsWith(URL_PREFIX_COMMONS_TENANT)) {
-            lepPath = tenant + "/commons/lep" + lepPath.substring(URL_PREFIX_COMMONS_TENANT.length());
+            lepPath = tenant + "/" + COMMONS + lepPath.substring(URL_PREFIX_COMMONS_TENANT.length());
         } else {
             lepPath = tenant + "/" + appName + "/lep/" + lepPath;
         }
@@ -179,6 +183,14 @@ public class GroovyLepEngine extends LepEngine {
 
     private static String translateToLepConvention(String xmEntitySpecKey) {
         return xmEntitySpecKey.replaceAll("-", "_").replaceAll("\\.", "\\$");
+    }
+
+    private boolean isCommonsClass(String path) {
+        return (
+            path.startsWith(COMMONS)
+            || path.startsWith(tenant + "/" + COMMONS + "/")
+            || path.startsWith(tenant + "/" + appName + "/lep/commons/")
+        ) && !path.contains(COMMONS_SCRIPT);
     }
 
 }

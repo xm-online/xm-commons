@@ -13,8 +13,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.ApplicationListener;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.util.AntPathMatcher;
 
 import javax.annotation.PostConstruct;
@@ -35,7 +34,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 @Slf4j
-public class XmLepScriptConfigServerResourceLoader implements RefreshableConfiguration, ApplicationListener<ApplicationReadyEvent> {
+public class XmLepScriptConfigServerResourceLoader implements RefreshableConfiguration, SmartInitializingSingleton {
 
     private static final String commonsLepScriptsAntPathPattern = "/config/tenants/{tenantKey}/commons/lep/**";
     private static final String environmentLepScriptsAntPathPattern = "/config/tenants/commons/lep/**";
@@ -171,13 +170,6 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
         }
     }
 
-    @Override
-    @SneakyThrows
-    // to block starting app before engines was created
-    public void onApplicationEvent(ApplicationReadyEvent event) {
-        init();
-    }
-
     @SneakyThrows
     @PostConstruct // unit test don't throw ApplicationReadyEvent
     public void init() {
@@ -187,6 +179,11 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
         log.info("START | Start init leps for tenants {}", tenantsToUpdate);
         refreshEngines(tenantsToUpdate, true).get(); // wait before lep will be inited
         log.info("STOP | Leps inited, time: {}ms", stopWatch.getTime(MILLISECONDS));
+    }
+
+    @Override
+    public void afterSingletonsInstantiated() {
+        init();
     }
 
     @Getter

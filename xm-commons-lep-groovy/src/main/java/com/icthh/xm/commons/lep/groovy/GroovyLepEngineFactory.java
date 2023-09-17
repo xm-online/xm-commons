@@ -9,7 +9,10 @@ import com.icthh.xm.commons.lep.groovy.storage.LepStorageFactory;
 import groovy.util.logging.Slf4j;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClassLoaderAware {
@@ -46,11 +49,16 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
     @Override
     public LepEngine createLepEngine(String tenant, List<XmLepConfigFile> lepFromConfig) {
         LepStorage lepConfigStorage = lepStorageFactory.buildXmConfigLepStorage(tenant, lepFromConfig);
+
+        Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata = new HashMap<>();
+        lepConfigStorage.forEach(lep -> lepMetadata.put(lep.metadataKey(), groovyFileParser.getFileMetaData(lep.readContent())));
+
         LepResourceConnector lepResourceConnector = new LepResourceConnector(
             tenant,
             appName,
             tenantAliasService,
             lepConfigStorage,
+            lepMetadata,
             groovyFileParser
         );
         return new GroovyLepEngine(
@@ -59,6 +67,7 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
             lepConfigStorage,
             loggingWrapper,
             classLoader,
+            lepMetadata,
             lepResourceConnector,
             isWarmupEnabled
         );

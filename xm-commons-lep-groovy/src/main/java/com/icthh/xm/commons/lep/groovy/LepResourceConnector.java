@@ -46,7 +46,7 @@ public class LepResourceConnector implements ResourceConnector {
     private final String appName;
     private final TenantAliasService tenantAliasService;
     private final LepStorage leps;
-    private final Map<String, GroovyFileMetadata> lepMetadata;
+    private final Map<String, GroovyFileMetadata> lepMetadata = new ConcurrentHashMap<>();
     private final List<String> parentKeysOnCreateEngine;
     private final Set<String> lepPathPrefixes;
     private final LepConnectionCache lepConnectionCache;
@@ -55,6 +55,7 @@ public class LepResourceConnector implements ResourceConnector {
                                 String appName,
                                 TenantAliasService tenantAliasService,
                                 LepStorage leps,
+                                Map<String, GroovyFileMetadata> lepMetadata,
                                 GroovyFileParser groovyFileParser) {
         this.tenantKey = tenantKey;
         this.appName = appName;
@@ -62,9 +63,7 @@ public class LepResourceConnector implements ResourceConnector {
         this.leps = leps;
         this.lepConnectionCache = leps.buildCache();
         this.groovyFileParser = groovyFileParser;
-        Map<String, GroovyFileMetadata> lepMetadata = new ConcurrentHashMap<>();
-        leps.forEach(lep -> lepMetadata.put(lep.metadataKey(), toFileMetaData(lep)));
-        this.lepMetadata = lepMetadata;
+        this.lepMetadata.putAll(lepMetadata);
 
         List<String> parentKeys = tenantAliasService.getTenantAliasTree().getParentKeys(tenantKey);
         this.parentKeysOnCreateEngine = parentKeys;
