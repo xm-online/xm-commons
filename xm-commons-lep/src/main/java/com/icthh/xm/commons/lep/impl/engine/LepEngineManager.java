@@ -7,13 +7,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-class LepEnginesManager {
+class LepEngineManager {
 
-    private final Map<String, TenantLepEngines> enginesByTenants = new ConcurrentHashMap<>();
+    private final Map<String, TenantLepEngine> enginesByTenants = new ConcurrentHashMap<>();
 
     public void update(String tenant, List<LepEngine> engines) {
-        TenantLepEngines oldTenantLepEngines = enginesByTenants.get(tenant);
-        enginesByTenants.put(tenant, new TenantLepEngines(tenant, engines));
+        TenantLepEngine oldTenantLepEngines = enginesByTenants.get(tenant);
+        enginesByTenants.put(tenant, new TenantLepEngine(tenant, engines));
         if (oldTenantLepEngines != null) {
             oldTenantLepEngines.acquireUsage();
             oldTenantLepEngines.destroy();
@@ -21,10 +21,10 @@ class LepEnginesManager {
         }
     }
 
-    public TenantLepEngines acquireTenantLepEngine(String tenant, Function<String, List<LepEngine>> engines) {
-        TenantLepEngines tenantLepEngines = enginesByTenants.get(tenant);
+    public TenantLepEngine acquireTenantLepEngine(String tenant, Function<String, List<LepEngine>> engines) {
+        TenantLepEngine tenantLepEngines = enginesByTenants.get(tenant);
         if (tenantLepEngines == null) {
-            tenantLepEngines = enginesByTenants.computeIfAbsent(tenant, (key) -> new TenantLepEngines(tenant, engines.apply(tenant)));
+            tenantLepEngines = enginesByTenants.computeIfAbsent(tenant, (key) -> new TenantLepEngine(tenant, engines.apply(tenant)));
         }
 
         int retryCount = 0;

@@ -28,7 +28,7 @@ import static java.util.stream.Collectors.toUnmodifiableList;
 public class LepManagementServiceImpl implements LepManagementService {
 
     private final AtomicBoolean isLepConfigInited = new AtomicBoolean(false);
-    private final LepEnginesManager lepEnginesManager = new LepEnginesManager();
+    private final LepEngineManager lepEnginesManager = new LepEngineManager();
     private final ThreadLocal<LepExecutorResolver> tenantLepEnginesThreadContext = new ThreadLocal<>();
     private final CountDownLatch countDownLatch = new CountDownLatch(1);
 

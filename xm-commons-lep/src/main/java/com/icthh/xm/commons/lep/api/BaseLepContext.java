@@ -17,6 +17,7 @@ public abstract class BaseLepContext {
     public LepThreadHelper thread;
     public XmAuthenticationContext authContext;
     public TenantContext tenantContext;
+    // just remove usage, no alternatives
     @Deprecated(forRemoval = true)
     public Object methodResult;
     public LepServiceFactory lepServices;

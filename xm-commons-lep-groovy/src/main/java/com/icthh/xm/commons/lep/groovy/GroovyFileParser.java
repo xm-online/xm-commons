@@ -37,186 +37,10 @@ public class GroovyFileParser {
 
         try {
             GroovyFileMetadata metadata = new GroovyFileMetadata();
-            parseGroovy(source, new VisitorAdapter() {
-                private final LinkedList<String> classNames = new LinkedList<>();
-                private final LinkedList<Integer> levels = new LinkedList<>();
-                private int level = 0;
-
-                private boolean isInAnnotation = false;
-                private boolean isInAnnotationArray = false;
-
-                @Override
-                public void visitVariableDef(GroovySourceAST t, int visit) {
-                    if (isStatic(t)) {
-                        metadata.staticFields.add(StringUtils.join(classNames, "$") + "." + getIdent(t));
-                    }
-                    super.visitVariableDef(t, visit); // to detect outside code
-                }
-
-                @Override
-                public void visitMethodDef(GroovySourceAST t, int visit) {
-                    if (isStatic(t)) {
-                        metadata.staticMethods.add(StringUtils.join(classNames, "$") + "." + getIdent(t));
-                    }
-                    super.visitMethodDef(t, visit); // to detect outside code
-                }
-
-                @Override
-                public void visitEnumConstantDef(GroovySourceAST t, int visit) {
-                    metadata.staticFields.add(StringUtils.join(classNames, "$") + "." + getIdent(t));
-                }
-
-                @Override
-                public void visitClassDef(GroovySourceAST t, int visit) {
-                    if (visit != OPENING_VISIT) {
-                        return;
-                    }
-
-                    String currentClassName = getIdent(t);
-                    classNames.addLast(currentClassName);
-                    levels.addLast(level);
-                    level = 0;
-                    metadata.classes.add(StringUtils.join(classNames, "$"));
-                }
-
-                @Override
-                public void visitObjblock(GroovySourceAST t, int visit) {
-                    if (visit == OPENING_VISIT) {
-                        level++;
-                    } else if (visit == CLOSING_VISIT) {
-                        level--;
-                        if (level == 0) {
-                            classNames.removeLast();
-                            levels.removeLast();
-
-                            if (!levels.isEmpty()) {
-                                level = levels.getLast();
-                            }
-                        }
-                    }
-                }
-
-                @Override
-                public void visitInterfaceDef(GroovySourceAST t, int visit) {
-                    visitClassDef(t, visit);
-                }
-
-                @Override
-                public void visitEnumDef(GroovySourceAST t, int visit) {
-                    visitClassDef(t, visit);
-                }
-
-                @Override
-                public void visitAnnotationDef(GroovySourceAST t, int visit) {
-                    visitClassDef(t, visit);
-                }
-
-                @Override
-                public void visitPackageDef(GroovySourceAST t, int visit) {
-                    // it's not are outside code
-                }
-
-                @Override
-                public void visitStaticImport(GroovySourceAST t, int visit) {
-                    // it's not are outside code
-                }
-
-                @Override
-                public void visitImport(GroovySourceAST t, int visit) {
-                    // it's not are outside code
-                }
-
-                @Override
-                public void visitMlComment(GroovySourceAST t, int visit) {
-                    // it's not are outside code
-                }
-
-                @Override
-                public void visitShComment(GroovySourceAST t, int visit) {
-                    // it's not are outside code
-                }
-
-                @Override
-                public void visitSlComment(GroovySourceAST t, int visit) {
-                    // it's not are outside code
-                }
-
-                @Override
-                public void visitAnnotation(GroovySourceAST t, int visit) {
-                    // it's not are outside code
-                    if (visit == OPENING_VISIT) {
-                        isInAnnotation = true;
-                    } else if (visit == CLOSING_VISIT) {
-                        isInAnnotation = false;
-                    }
-                }
-
-                @Override
-                public void visitAnnotations(GroovySourceAST t, int visit) {
-                    // it's not are outside code
-                    if (visit == OPENING_VISIT) {
-                        isInAnnotationArray = true;
-                    } else if (visit == CLOSING_VISIT) {
-                        isInAnnotationArray = false;
-                    }
-                }
-
-                @Override
-                public void visitIdent(GroovySourceAST t, int visit) {
-                    // it's not are outside code
-                }
-
-                @Override
-                public void visitDot(GroovySourceAST t, int visit) {
-                    // it's not are outside code
-                }
-
-                @Override
-                public void visitModifiers(GroovySourceAST t, int visit) {
-                    // it's not are outside code
-                }
-
-                @Override
-                public void visitExtendsClause(GroovySourceAST t, int visit) {
-                    // it's not are outside code
-                }
-
-                @Override
-                public void visitImplementsClause(GroovySourceAST t, int visit) {
-                    // it's not are outside code
-                }
-
-                @Override
-                public void visitAnnotationMemberValuePair(GroovySourceAST t, int visit) {
-                    // it's not are outside code
-                }
-
-                @Override
-                public void visitAnnotationArrayInit(GroovySourceAST t, int visit) {
-                    // it's not are outside code
-                }
-
-                @Override
-                public void visitDefault(GroovySourceAST t, int visit) {
-                    if (level == 0 && !isInAnnotation && !isInAnnotationArray) {
-                        super.visitDefault(t, visit);
-                        metadata.isScript = true;
-                    }
-                }
-
-                private boolean isStatic(GroovySourceAST t) {
-                    return Optional.ofNullable(t.childOfType(MODIFIERS))
-                        .map(it -> it.childOfType(LITERAL_static)).isPresent();
-                }
-
-                private String getIdent(GroovySourceAST t) {
-                    return t.childOfType(IDENT).getText();
-                }
-
-            });
+            parseGroovy(source, new GroovyParseVisitor(metadata));
             return metadata;
         } catch (Throwable e) {
-            log.error("Error parse groovy", e);
+            log.error("Error parse groovy: {}", e.getMessage(), e);
         }
 
 
@@ -258,4 +82,191 @@ public class GroovyFileParser {
         }
     }
 
+    private static class GroovyParseVisitor extends VisitorAdapter {
+        private final LinkedList<String> classNames;
+        private final LinkedList<Integer> levels;
+        private final GroovyFileMetadata metadata;
+        private int level;
+
+        private boolean isInAnnotation;
+        private boolean isInAnnotationArray;
+
+        public GroovyParseVisitor(GroovyFileMetadata metadata) {
+            this.metadata = metadata;
+            classNames = new LinkedList<>();
+            levels = new LinkedList<>();
+            level = 0;
+            isInAnnotation = false;
+            isInAnnotationArray = false;
+        }
+
+        @Override
+        public void visitVariableDef(GroovySourceAST t, int visit) {
+            if (isStatic(t)) {
+                metadata.staticFields.add(StringUtils.join(classNames, "$") + "." + getIdent(t));
+            }
+            super.visitVariableDef(t, visit); // to detect outside code
+        }
+
+        @Override
+        public void visitMethodDef(GroovySourceAST t, int visit) {
+            if (isStatic(t)) {
+                metadata.staticMethods.add(StringUtils.join(classNames, "$") + "." + getIdent(t));
+            }
+            super.visitMethodDef(t, visit); // to detect outside code
+        }
+
+        @Override
+        public void visitEnumConstantDef(GroovySourceAST t, int visit) {
+            metadata.staticFields.add(StringUtils.join(classNames, "$") + "." + getIdent(t));
+        }
+
+        @Override
+        public void visitClassDef(GroovySourceAST t, int visit) {
+            if (visit != OPENING_VISIT) {
+                return;
+            }
+
+            String currentClassName = getIdent(t);
+            classNames.addLast(currentClassName);
+            levels.addLast(level);
+            level = 0;
+            metadata.classes.add(StringUtils.join(classNames, "$"));
+        }
+
+        @Override
+        public void visitObjblock(GroovySourceAST t, int visit) {
+            if (visit == OPENING_VISIT) {
+                level++;
+            } else if (visit == CLOSING_VISIT) {
+                level--;
+                if (level == 0) {
+                    classNames.removeLast();
+                    levels.removeLast();
+
+                    if (!levels.isEmpty()) {
+                        level = levels.getLast();
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void visitInterfaceDef(GroovySourceAST t, int visit) {
+            visitClassDef(t, visit);
+        }
+
+        @Override
+        public void visitEnumDef(GroovySourceAST t, int visit) {
+            visitClassDef(t, visit);
+        }
+
+        @Override
+        public void visitAnnotationDef(GroovySourceAST t, int visit) {
+            visitClassDef(t, visit);
+        }
+
+        @Override
+        public void visitPackageDef(GroovySourceAST t, int visit) {
+            // it's not are outside code
+        }
+
+        @Override
+        public void visitStaticImport(GroovySourceAST t, int visit) {
+            // it's not are outside code
+        }
+
+        @Override
+        public void visitImport(GroovySourceAST t, int visit) {
+            // it's not are outside code
+        }
+
+        @Override
+        public void visitMlComment(GroovySourceAST t, int visit) {
+            // it's not are outside code
+        }
+
+        @Override
+        public void visitShComment(GroovySourceAST t, int visit) {
+            // it's not are outside code
+        }
+
+        @Override
+        public void visitSlComment(GroovySourceAST t, int visit) {
+            // it's not are outside code
+        }
+
+        @Override
+        public void visitAnnotation(GroovySourceAST t, int visit) {
+            // it's not are outside code
+            if (visit == OPENING_VISIT) {
+                isInAnnotation = true;
+            } else if (visit == CLOSING_VISIT) {
+                isInAnnotation = false;
+            }
+        }
+
+        @Override
+        public void visitAnnotations(GroovySourceAST t, int visit) {
+            // it's not are outside code
+            if (visit == OPENING_VISIT) {
+                isInAnnotationArray = true;
+            } else if (visit == CLOSING_VISIT) {
+                isInAnnotationArray = false;
+            }
+        }
+
+        @Override
+        public void visitIdent(GroovySourceAST t, int visit) {
+            // it's not are outside code
+        }
+
+        @Override
+        public void visitDot(GroovySourceAST t, int visit) {
+            // it's not are outside code
+        }
+
+        @Override
+        public void visitModifiers(GroovySourceAST t, int visit) {
+            // it's not are outside code
+        }
+
+        @Override
+        public void visitExtendsClause(GroovySourceAST t, int visit) {
+            // it's not are outside code
+        }
+
+        @Override
+        public void visitImplementsClause(GroovySourceAST t, int visit) {
+            // it's not are outside code
+        }
+
+        @Override
+        public void visitAnnotationMemberValuePair(GroovySourceAST t, int visit) {
+            // it's not are outside code
+        }
+
+        @Override
+        public void visitAnnotationArrayInit(GroovySourceAST t, int visit) {
+            // it's not are outside code
+        }
+
+        @Override
+        public void visitDefault(GroovySourceAST t, int visit) {
+            if (level == 0 && !isInAnnotation && !isInAnnotationArray) {
+                super.visitDefault(t, visit);
+                metadata.isScript = true;
+            }
+        }
+
+        private boolean isStatic(GroovySourceAST t) {
+            return Optional.ofNullable(t.childOfType(MODIFIERS))
+                .map(it -> it.childOfType(LITERAL_static)).isPresent();
+        }
+
+        private String getIdent(GroovySourceAST t) {
+            return t.childOfType(IDENT).getText();
+        }
+
+    }
 }

@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.lep.groovy;
 
+import com.icthh.xm.commons.lep.LepPathResolver;
 import com.icthh.xm.commons.lep.ProceedingLep;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepEngine;
@@ -9,7 +10,6 @@ import groovy.lang.Binding;
 import groovy.util.GroovyScriptEngine;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.runtime.InvokerHelper;
@@ -19,44 +19,39 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
-import static com.icthh.xm.commons.lep.groovy.LepResourceConnector.URL_PREFIX_COMMONS_ENVIRONMENT;
-import static com.icthh.xm.commons.lep.groovy.LepResourceConnector.URL_PREFIX_COMMONS_TENANT;
 import static com.icthh.xm.commons.lep.groovy.storage.LepStorage.FILE_EXTENSION;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 @Slf4j
 public class GroovyLepEngine extends LepEngine {
 
     public static final String LEP_PREFIX = "lep://";
-    public static final String COMMONS = "commons/lep";
     public static final String COMMONS_SCRIPT = "/Commons$$";
-    private final String appName;
     private final String tenant;
     private final LepStorage leps;
     private final GroovyScriptEngine gse;
     private final LoggingWrapper loggingWrapper;
+    private final LepPathResolver lepPathResolver;
+    private final List<String> tenantCommonsFolders;
 
     private final Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata = new ConcurrentHashMap<>();
 
-    public GroovyLepEngine(String appName,
-                           String tenant,
+    public GroovyLepEngine(String tenant,
                            LepStorage leps,
                            LoggingWrapper loggingWrapper,
                            ClassLoader classLoader,
                            Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata,
                            LepResourceConnector lepResourceConnector,
+                           LepPathResolver lepPathResolver,
                            boolean isWarmupEnabled) {
-        this.appName = appName;
         this.tenant = tenant;
         this.leps = leps;
         this.loggingWrapper = loggingWrapper;
         this.gse = buildGroovyEngine(classLoader, lepResourceConnector);
         this.lepMetadata.putAll(lepMetadata);
+        this.lepPathResolver = lepPathResolver;
+        this.tenantCommonsFolders = lepPathResolver.getLepCommonsPaths(tenant);
         if (isWarmupEnabled) {
             warmupScripts();
         } else {
@@ -85,14 +80,14 @@ public class GroovyLepEngine extends LepEngine {
                         log.trace("START | Warmup lep {}", lep.getPath());
                         Class<?> scriptClass = gse.loadScriptByName(LEP_PREFIX + lep.getPath());
                         InvokerHelper.getMetaClass(scriptClass); // build metaclass
-                        log.trace("STOP | Warmup lep {}, time: {}", lep.getPath(), warmUpTime.getTime(MILLISECONDS));
+                        log.trace("STOP | Warmup lep {}, time: {} ms", lep.getPath(), warmUpTime.getTime(MILLISECONDS));
                     }
                 }
             } catch (Throwable e) {
                 log.error("Error create script {}", lep.getPath(), e);
             }
         });
-        log.info("End warmup lep scripts | time {}ms", stopWatch.getTime(MILLISECONDS));
+        log.info("Stop warm-up LEP scripts, time = {} ms, ", stopWatch.getTime(MILLISECONDS));
     }
 
     @Override
@@ -127,8 +122,8 @@ public class GroovyLepEngine extends LepEngine {
     }
 
     private List<String> getMainKeys(LepKey lepKey) {
-        String lepPath = getLepPath(lepKey);
-        String legacyLepPath = getLegacyLepPath(lepKey);
+        String lepPath = lepPathResolver.getLepPath(lepKey, tenant);
+        String legacyLepPath = lepPathResolver.getLegacyLepPath(lepKey, tenant);
         return List.of(
             legacyLepPath + "$$tenant",
             legacyLepPath + "$$around",
@@ -140,8 +135,8 @@ public class GroovyLepEngine extends LepEngine {
     }
 
     private List<String> getBeforeKeys(LepKey lepKey) {
-        String lepPath = getLepPath(lepKey);
-        String legacyLepPath = getLegacyLepPath(lepKey);
+        String lepPath = lepPathResolver.getLepPath(lepKey, tenant);
+        String legacyLepPath = lepPathResolver.getLegacyLepPath(lepKey, tenant);
         return List.of(
             legacyLepPath + "$$before",
             lepPath + "$$before"
@@ -152,44 +147,10 @@ public class GroovyLepEngine extends LepEngine {
         return keys.stream().filter(leps::isExists).findFirst();
     }
 
-    private String getLepPath(LepKey lepKey) {
-        return buildLepPath(lepKey, identity());
-    }
-
-    private String getLegacyLepPath(LepKey lepKey) {
-        return buildLepPath(lepKey, GroovyLepEngine::translateToLepConvention);
-    }
-
-    private String buildLepPath(LepKey lepKey, Function<String, String> segmentMapper) {
-        String lepPath = lepKey.getBaseKey();
-        List<String> segments = lepKey.getSegments();
-        if (StringUtils.isNotBlank(lepKey.getGroup())) {
-            lepPath = lepKey.getGroup().replace(".", "/") + "/" + lepKey.getBaseKey();
-        }
-        if (isNotEmpty(segments)) {
-            segments = segments.stream().map(segmentMapper).collect(toList());
-            lepPath = lepPath + "$$" + StringUtils.join(segments, "$$");
-        }
-
-        if (lepPath.startsWith(URL_PREFIX_COMMONS_ENVIRONMENT)) {
-            lepPath = COMMONS + lepPath.substring(URL_PREFIX_COMMONS_ENVIRONMENT.length());
-        } else if (lepPath.startsWith(URL_PREFIX_COMMONS_TENANT)) {
-            lepPath = tenant + "/" + COMMONS + lepPath.substring(URL_PREFIX_COMMONS_TENANT.length());
-        } else {
-            lepPath = tenant + "/" + appName + "/lep/" + lepPath;
-        }
-        return lepPath;
-    }
-
-    private static String translateToLepConvention(String xmEntitySpecKey) {
-        return xmEntitySpecKey.replaceAll("-", "_").replaceAll("\\.", "\\$");
-    }
-
     private boolean isCommonsClass(String path) {
         return (
-            path.startsWith(COMMONS)
-            || path.startsWith(tenant + "/" + COMMONS + "/")
-            || path.startsWith(tenant + "/" + appName + "/lep/commons/")
+            // TODO check this code
+            tenantCommonsFolders.stream().anyMatch(path::startsWith)
         ) && !path.contains(COMMONS_SCRIPT);
     }
 

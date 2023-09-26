@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.lep.groovy.storage;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
+import com.icthh.xm.commons.lep.LepPathResolver;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import org.apache.commons.io.FileUtils;
 
@@ -13,7 +14,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static com.icthh.xm.commons.lep.LepPathsUtils.getLepBasePaths;
 import static java.util.Collections.reverse;
 import static java.util.stream.Collectors.toList;
 
@@ -32,6 +32,7 @@ public class FileLepStorage implements LepStorage {
                           String appName,
                           Map<String, XmLepConfigFile> defaultLeps,
                           TenantAliasService tenantAliasService,
+                          LepPathResolver lepPathResolver,
                           String baseDir) {
         this.tenant = tenant;
         this.appName = appName;
@@ -39,7 +40,7 @@ public class FileLepStorage implements LepStorage {
         this.tenantAliasService = tenantAliasService;
         this.baseDir = baseDir;
 
-        this.baseDirs = getLepBasePaths(tenant, appName, tenantAliasService).stream()
+        this.baseDirs = lepPathResolver.getLepBasePaths(tenant).stream()
             .map(path -> baseDir + TENANT_PREFIX + path)
             .collect(toList());
         reverse(this.baseDirs);
@@ -54,6 +55,7 @@ public class FileLepStorage implements LepStorage {
                 toXmLepConfigFile(rootDir, file, leps);
             });
         });
+        leps.values().forEach(action);
     }
 
     private static void toXmLepConfigFile(File rootDir, File file, Map<String, XmLepConfigFile> leps) {

@@ -13,13 +13,13 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.icthh.xm.commons.lep.impl.engine.TenantLepEngines.TenantLepEnginesStates.ACTIVE;
-import static com.icthh.xm.commons.lep.impl.engine.TenantLepEngines.TenantLepEnginesStates.DESTROYED;
-import static com.icthh.xm.commons.lep.impl.engine.TenantLepEngines.TenantLepEnginesStates.DESTROYING;
+import static com.icthh.xm.commons.lep.impl.engine.TenantLepEngine.TenantLepEnginesStates.ACTIVE;
+import static com.icthh.xm.commons.lep.impl.engine.TenantLepEngine.TenantLepEnginesStates.DESTROYED;
+import static com.icthh.xm.commons.lep.impl.engine.TenantLepEngine.TenantLepEnginesStates.DESTROYING;
 
 @Slf4j
 @RequiredArgsConstructor
-class TenantLepEngines implements LepExecutorResolver {
+class TenantLepEngine implements LepExecutorResolver {
 
     enum TenantLepEnginesStates {
         ACTIVE, DESTROYING, DESTROYED;

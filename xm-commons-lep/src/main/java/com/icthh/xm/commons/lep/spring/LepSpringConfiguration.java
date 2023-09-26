@@ -2,6 +2,7 @@ package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.DefaultLepKeyResolver;
+import com.icthh.xm.commons.lep.LepPathResolver;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepAdditionalContext;
@@ -19,7 +20,6 @@ import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
 import com.icthh.xm.commons.lep.spring.lepservice.ClearServicesOnEngineDestroy;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryResolver;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryWithLepFactoryMethod;
-import com.icthh.xm.commons.lep.spring.web.LepInterceptor;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.lep.api.LepKeyResolver;
@@ -69,16 +69,22 @@ public class LepSpringConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(XmLepScriptConfigServerResourceLoader.class)
-    public XmLepScriptConfigServerResourceLoader cfgResourceLoader(ApplicationNameProvider applicationNameProvider,
+    public XmLepScriptConfigServerResourceLoader cfgResourceLoader(LepPathResolver lepPathResolver,
                                                                    LepManagementService lepManagementService,
                                                                    LepUpdateMode lepUpdateMode,
                                                                    TenantContextHolder tenantContextHolder) {
         return new XmLepScriptConfigServerResourceLoader(
-            applicationNameProvider,
+            lepPathResolver,
             lepManagementService,
             lepUpdateMode,
             tenantContextHolder
         );
+    }
+
+    @Bean
+    public LepPathResolver lepPathResolver(ApplicationNameProvider applicationNameProvider,
+                                           TenantAliasService tenantAliasService) {
+        return new LepPathResolver(applicationNameProvider, tenantAliasService);
     }
 
     @Bean

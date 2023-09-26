@@ -4,7 +4,6 @@ import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.lep.api.LepExecutorResolver;
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
-import com.icthh.xm.commons.lep.spring.ApplicationNameProvider;
 import com.icthh.xm.commons.lep.spring.LepUpdateMode;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.Getter;
@@ -27,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import static com.icthh.xm.commons.lep.LepPathResolver.ENV_COMMONS;
 import static com.icthh.xm.commons.lep.spring.LepUpdateMode.SYNCHRONOUS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.function.Predicate.not;
@@ -36,26 +36,22 @@ import static java.util.stream.Collectors.toSet;
 @Slf4j
 public class XmLepScriptConfigServerResourceLoader implements RefreshableConfiguration, SmartInitializingSingleton {
 
-    private static final String commonsLepScriptsAntPathPattern = "/config/tenants/{tenantKey}/commons/lep/**";
-    private static final String environmentLepScriptsAntPathPattern = "/config/tenants/commons/lep/**";
-    private static final String TENANT_NAME = "tenantKey";
-    private static final String ENV_COMMONS = "commons";
-
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
     private final Map<String, Map<String, XmLepConfigFile>> scriptsByTenant = new ConcurrentHashMap<>();
     private final RefreshTaskExecutor refreshExecutor = new RefreshTaskExecutor();
 
-    private final String tenantLepScriptsAntPathPattern;
     private final LepManagementService lepManagementService;
     private final LepUpdateMode lepUpdateMode;
     private final TenantContextHolder tenantContextHolder;
+    private final LepPathResolver lepPathResolver;
+    private final List<String> lepPathPatterns;
 
-    public XmLepScriptConfigServerResourceLoader(ApplicationNameProvider applicationNameProvider,
+    public XmLepScriptConfigServerResourceLoader(LepPathResolver lepPathResolver,
                                                  LepManagementService lepManagementService,
                                                  LepUpdateMode lepUpdateMode,
                                                  TenantContextHolder tenantContextHolder) {
-        String appName = applicationNameProvider.getAppName();
-        this.tenantLepScriptsAntPathPattern = "/config/tenants/{tenantKey}/" + appName + "/lep/**";
+        this.lepPathPatterns = lepPathResolver.getLepPathPatterns();
+        this.lepPathResolver = lepPathResolver;
         this.lepManagementService = lepManagementService;
         this.lepUpdateMode = lepUpdateMode;
         this.tenantContextHolder = tenantContextHolder;
@@ -63,15 +59,13 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
 
     @Override
     public boolean isListeningConfiguration(String updatedKey) {
-        return pathMatcher.match(tenantLepScriptsAntPathPattern, updatedKey)
-            || pathMatcher.match(commonsLepScriptsAntPathPattern, updatedKey)
-            || pathMatcher.match(environmentLepScriptsAntPathPattern, updatedKey);
+        return lepPathPatterns.stream().anyMatch(it -> pathMatcher.match(it, updatedKey));
     }
 
     @Override
     @SneakyThrows
     public void onRefresh(String updatedKey, String configContent) {
-        String tenant = getTenant(updatedKey);
+        String tenant = lepPathResolver.getTenantFromPath(updatedKey);
         scriptsByTenant.computeIfAbsent(tenant, (path) -> new ConcurrentHashMap<>());
 
         if (StringUtils.isBlank(configContent)) {
@@ -120,7 +114,7 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
                 lepManagementService.refreshEngines(configToUpdate);
                 return true;
             } catch (Throwable e) {
-                log.error("Error during refresh configs", e);
+                log.error("Error during refresh configs: {}", e.getMessage(), e);
                 return false;
             }
         });
@@ -154,20 +148,10 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
     }
 
     public TenantsByPathResponse getTenantsByPaths(Collection<String> paths) {
-        List<String> tenantsInPath = paths.stream().map(this::getTenant).collect(toList());
+        List<String> tenantsInPath = paths.stream().map(lepPathResolver::getTenantFromPath).collect(toList());
         boolean hasEnvCommons = tenantsInPath.stream().anyMatch(ENV_COMMONS::equals);
         Set<String> tenants = tenantsInPath.stream().filter(not(ENV_COMMONS::equals)).collect(toSet());
         return new TenantsByPathResponse(tenants, hasEnvCommons);
-    }
-
-    private String getTenant(String path) {
-        if (pathMatcher.match(tenantLepScriptsAntPathPattern, path)) {
-            return pathMatcher.extractUriTemplateVariables(tenantLepScriptsAntPathPattern, path).get(TENANT_NAME);
-        } else if (pathMatcher.match(commonsLepScriptsAntPathPattern, path)) {
-            return pathMatcher.extractUriTemplateVariables(commonsLepScriptsAntPathPattern, path).get(TENANT_NAME);
-        } else {
-            return ENV_COMMONS;
-        }
     }
 
     @SneakyThrows

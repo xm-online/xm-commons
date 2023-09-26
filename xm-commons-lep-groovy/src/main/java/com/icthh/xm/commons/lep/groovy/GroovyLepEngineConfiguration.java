@@ -2,6 +2,7 @@ package com.icthh.xm.commons.lep.groovy;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.FileSystemUtils;
+import com.icthh.xm.commons.lep.LepPathResolver;
 import com.icthh.xm.commons.lep.TenantScriptStorage;
 import com.icthh.xm.commons.lep.groovy.storage.ClassPathLepStorageFactory;
 import com.icthh.xm.commons.lep.groovy.storage.FileLepStorageFactory;
@@ -37,12 +38,19 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
 
     @Bean
     public GroovyLepEngineFactory groovyLepEngineFactory(ApplicationNameProvider applicationNameProvider,
-                                                         TenantAliasService tenantAliasService,
                                                          LepStorageFactory lepStorageFactory,
                                                          LoggingWrapper loggingWrapper,
+                                                         LepPathResolver lepPathResolver,
                                                          GroovyFileParser groovyFileParser) {
         String appName = applicationNameProvider.getAppName();
-        return new GroovyLepEngineFactory(appName, tenantAliasService, lepStorageFactory, loggingWrapper, groovyFileParser, warmupScripts);
+        return new GroovyLepEngineFactory(
+            appName,
+            lepStorageFactory,
+            loggingWrapper,
+            lepPathResolver,
+            groovyFileParser,
+            warmupScripts
+        );
     }
 
     @Bean
@@ -60,6 +68,7 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     @Bean
     public LepStorageFactory lepStorageFactory(ApplicationNameProvider applicationNameProvider,
                                                ClassPathLepRepository classPathLepRepository,
+                                               LepPathResolver lepPathResolver,
                                                TenantAliasService tenantAliasService) {
         String appName = applicationNameProvider.getAppName();
         TenantScriptStorage storageType = getTenantScriptStorageType();
@@ -68,7 +77,7 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
         } else if (storageType.equals(CLASSPATH)) {
             return new ClassPathLepStorageFactory(appName, classPathLepRepository, tenantAliasService);
         } else if (storageType.equals(FILE)) {
-            return new FileLepStorageFactory(appName, classPathLepRepository, tenantAliasService, getFileTenantScriptPathResolverBaseDir());
+            return new FileLepStorageFactory(appName, classPathLepRepository, tenantAliasService, lepPathResolver, getFileTenantScriptPathResolverBaseDir());
         } else if (storageType.equals(FILE_FULL_UPDATE)) {
             return null;
         } else {
