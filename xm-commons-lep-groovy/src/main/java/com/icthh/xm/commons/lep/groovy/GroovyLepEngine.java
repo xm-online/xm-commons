@@ -55,7 +55,7 @@ public class GroovyLepEngine extends LepEngine {
         if (isWarmupEnabled) {
             warmupScripts();
         } else {
-            log.warn("Warmup lep script disabled");
+            log.warn("Warmup lep script for tenant {} disabled", tenant);
         }
     }
 

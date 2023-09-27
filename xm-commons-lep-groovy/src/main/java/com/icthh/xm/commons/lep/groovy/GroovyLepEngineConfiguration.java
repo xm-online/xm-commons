@@ -17,9 +17,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Set;
+
 import static com.icthh.xm.commons.lep.TenantScriptStorage.CLASSPATH;
 import static com.icthh.xm.commons.lep.TenantScriptStorage.FILE;
 import static com.icthh.xm.commons.lep.TenantScriptStorage.XM_MS_CONFIG;
+import static java.util.Collections.emptySet;
 
 @Configuration
 @ConditionalOnMissingBean(GroovyLepEngineConfiguration.class)
@@ -30,6 +33,9 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
 
     @Value("${application.lep.warmup-scripts:true}")
     private boolean warmupScripts;
+
+    @Value("${application.lep.tenants-with-lep-warmup:#{T(java.util.Set).of('XM')}}")
+    private Set<String> tenantsWithLepWarmup;
 
     public GroovyLepEngineConfiguration(@Value("${spring.application.name}") String appName) {
         super(appName);
@@ -48,7 +54,7 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
             loggingWrapper,
             lepPathResolver,
             groovyFileParser,
-            warmupScripts
+            warmupScripts ? tenantsWithLepWarmup : emptySet()
         );
     }
 

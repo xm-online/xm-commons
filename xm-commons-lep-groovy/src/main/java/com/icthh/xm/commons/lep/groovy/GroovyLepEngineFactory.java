@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.lep.groovy;
 
-import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.LepPathResolver;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepEngineFactory;
@@ -13,6 +12,7 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClassLoaderAware {
@@ -21,7 +21,7 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
     private final LoggingWrapper loggingWrapper;
     private final GroovyFileParser groovyFileParser;
     private final LepPathResolver lepPathResolver;
-    private final boolean isWarmupEnabled;
+    private final Set<String> tenantWithWarmup;
 
     private volatile ClassLoader classLoader;
 
@@ -30,13 +30,13 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
                                   LoggingWrapper loggingWrapper,
                                   LepPathResolver lepPathResolver,
                                   GroovyFileParser groovyFileParser,
-                                  boolean isWarmupEnabled) {
+                                  Set<String> tenantWithWarmup) {
         super(appName);
         this.lepPathResolver = lepPathResolver;
         this.lepStorageFactory = lepStorageFactory;
         this.loggingWrapper = loggingWrapper;
         this.groovyFileParser = groovyFileParser;
-        this.isWarmupEnabled = isWarmupEnabled;
+        this.tenantWithWarmup = tenantWithWarmup;
     }
 
     @Override
@@ -66,7 +66,7 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
             lepMetadata,
             lepResourceConnector,
             lepPathResolver,
-            isWarmupEnabled
+            tenantWithWarmup.contains(tenant)
         );
     }
 }
