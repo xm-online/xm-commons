@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Configuration;
 
 import static com.icthh.xm.commons.lep.TenantScriptStorage.CLASSPATH;
 import static com.icthh.xm.commons.lep.TenantScriptStorage.FILE;
-import static com.icthh.xm.commons.lep.TenantScriptStorage.FILE_FULL_UPDATE;
 import static com.icthh.xm.commons.lep.TenantScriptStorage.XM_MS_CONFIG;
 
 @Configuration
@@ -78,8 +77,6 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
             return new ClassPathLepStorageFactory(appName, classPathLepRepository, tenantAliasService);
         } else if (storageType.equals(FILE)) {
             return new FileLepStorageFactory(appName, classPathLepRepository, tenantAliasService, lepPathResolver, getFileTenantScriptPathResolverBaseDir());
-        } else if (storageType.equals(FILE_FULL_UPDATE)) {
-            return null;
         } else {
             throw new RuntimeException("Unsupported storage type");
         }

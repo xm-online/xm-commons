@@ -85,5 +85,6 @@ public class LepServiceFactoryWithLepFactoryMethod {
 
     public void clear(String scopeId) {
         serviceInstances.remove(scopeId);
+        serviceLocks.remove(scopeId);
     }
 }

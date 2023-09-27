@@ -124,15 +124,13 @@ public class LepPathResolver {
             .collect(toList());
     }
 
-    public Optional<LepRootPath> getLepBasePath(String tenantKey, String name) {
+    public List<LepRootPath> getLepPathVariants(String tenantKey) {
         List<String> parentKeys = tenantAliasService.getTenantAliasTree()
             .getParentKeys(tenantKey);
 
-        List<LepRootPath> rootPathVariants = baseLepPaths.stream()
-            .flatMap(it -> it.buildLepRootPaths(name, tenantKey, parentKeys).stream())
+        return baseLepPaths.stream()
+            .flatMap(it -> it.buildLepRootPaths(tenantKey, parentKeys).stream())
             .collect(toList());
-
-        return rootPathVariants.stream().filter(LepRootPath::isMatch).findFirst();
     }
 
     @RequiredArgsConstructor
@@ -172,16 +170,16 @@ public class LepPathResolver {
             return lepFolderPrefix.apply(tenant) + lepPath;
         }
 
-        public List<LepRootPath> buildLepRootPaths(String name, String tenantKey, List<String> parentTenants) {
+        public List<LepRootPath> buildLepRootPaths(String tenantKey, List<String> parentTenants) {
             List<LepRootPath> result = new ArrayList<>();
-            result.add(new LepRootPath(name, lepFolderPrefix.apply(tenantKey), lepFolderPrefix.apply(tenantKey)));
+            result.add(new LepRootPath(lepFolderPrefix.apply(tenantKey), lepFolderPrefix.apply(tenantKey)));
 
             if (StringUtils.isNotBlank(lepPrefix)) {
-                result.add(new LepRootPath(name, lepPrefix, lepFolderPrefix.apply(tenantKey)));
+                result.add(new LepRootPath(lepPrefix, lepFolderPrefix.apply(tenantKey)));
             }
 
             for (var parentTenant: parentTenants) {
-                LepRootPath lepRootPath = new LepRootPath(name, lepFolderPrefix.apply(parentTenant), lepFolderPrefix.apply(tenantKey));
+                LepRootPath lepRootPath = new LepRootPath(lepFolderPrefix.apply(parentTenant), lepFolderPrefix.apply(tenantKey));
                 result.add(lepRootPath);
             }
 
@@ -192,15 +190,14 @@ public class LepPathResolver {
     @ToString
     @RequiredArgsConstructor
     public static class LepRootPath {
-        private final String name;
         private final String prefix;
         private final String rootPath;
 
-        public String getPath() {
+        public String getPath(String name) {
             return rootPath + name.substring(prefix.length());
         }
 
-        public boolean isMatch() {
+        public boolean isMatch(String name) {
             return name.startsWith(prefix);
         }
 

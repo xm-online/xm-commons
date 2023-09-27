@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.lep.groovy;
 
-import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.LepPathResolver;
+import com.icthh.xm.commons.lep.LepPathResolver.LepRootPath;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import com.icthh.xm.commons.lep.groovy.GroovyFileParser.GroovyFileMetadata;
 import com.icthh.xm.commons.lep.groovy.storage.LepConnectionCache;
@@ -21,7 +21,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -32,11 +31,11 @@ public class LepResourceConnector implements ResourceConnector {
 
     private final GroovyFileParser groovyFileParser;
 
-    private final String tenantKey;
     private final LepStorage leps;
     private final Map<String, GroovyFileMetadata> lepMetadata = new ConcurrentHashMap<>();
     private final LepConnectionCache lepConnectionCache;
     private final LepPathResolver lepPathResolver;
+    private final String tenantKey;
 
     public LepResourceConnector(String tenantKey,
                                 LepPathResolver lepPathResolver,
@@ -44,11 +43,11 @@ public class LepResourceConnector implements ResourceConnector {
                                 Map<String, GroovyFileMetadata> lepMetadata,
                                 GroovyFileParser groovyFileParser) {
         this.tenantKey = tenantKey;
-        this.lepPathResolver = lepPathResolver;
         this.leps = leps;
         this.lepConnectionCache = leps.buildCache();
         this.groovyFileParser = groovyFileParser;
         this.lepMetadata.putAll(lepMetadata);
+        this.lepPathResolver = lepPathResolver;
     }
 
     private GroovyFileMetadata toFileMetaData(XmLepConfigFile lep) {
@@ -73,12 +72,12 @@ public class LepResourceConnector implements ResourceConnector {
             name = name.substring(0, name.length() - FILE_EXTENSION.length());
         }
 
-        var optionalLepBasePath = lepPathResolver.getLepBasePath(tenantKey, name);
+        var optionalLepBasePath = getLepBasePath(name);
         if (optionalLepBasePath.isPresent()) {
             var lepBasePath = optionalLepBasePath.get();
 
             // While with cut path by $ for inner for classes support
-            String path = lepBasePath.getPath();
+            String path = lepBasePath.getPath(name);
             String currentPath = path;
             while (true) {
 
@@ -116,6 +115,10 @@ public class LepResourceConnector implements ResourceConnector {
                 throw new ResourceException("Resource not found " + finalName);
             });
         }
+    }
+
+    private Optional<LepRootPath> getLepBasePath(String name) {
+        return lepPathResolver.getLepPathVariants(tenantKey).stream().filter(it -> it.isMatch(name)).findFirst();
     }
 
     @SneakyThrows
