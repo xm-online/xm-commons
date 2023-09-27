@@ -74,6 +74,7 @@ public class GroovyLepEngine extends LepEngine {
         log.info("Start warmup lep scripts");
         this.leps.forEach(lep -> {
             try {
+                // skip classes that can't be are entry point, and will be compiled on import from other script
                 if (!isCommonsClass(lep.getPath())) {
                     if (lepMetadata.containsKey(lep.metadataKey()) && lepMetadata.get(lep.metadataKey()).isScript()) {
                         StopWatch warmUpTime = StopWatch.createStarted();
@@ -148,10 +149,7 @@ public class GroovyLepEngine extends LepEngine {
     }
 
     private boolean isCommonsClass(String path) {
-        return (
-            // TODO check this code
-            tenantCommonsFolders.stream().anyMatch(path::startsWith)
-        ) && !path.contains(COMMONS_SCRIPT);
+        return !path.contains(COMMONS_SCRIPT) && tenantCommonsFolders.stream().anyMatch(path::startsWith);
     }
 
 }

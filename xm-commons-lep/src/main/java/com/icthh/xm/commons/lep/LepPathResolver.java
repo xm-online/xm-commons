@@ -78,7 +78,7 @@ public class LepPathResolver {
         tenantKeys.addAll(tenantAliasService.getTenantAliasTree().getParentKeys(tenant));
 
         return tenantKeys.stream().flatMap(tenantKey ->
-            baseLepPaths.stream().map(it -> it.folderPrefix.apply(tenantKey))
+            baseLepPaths.stream().map(it -> it.lepFolderPrefix.apply(tenantKey))
         ).collect(toList());
     }
 
@@ -105,11 +105,11 @@ public class LepPathResolver {
             lepPath = lepPath + "$$" + StringUtils.join(segments, "$$");
         }
 
-        String resultLepPath = lepPath;
+        String relativeLepPath = lepPath;
         return this.reversedBaseLepPaths.stream()
-            .filter(it -> it.isMatchPrefix(resultLepPath))
-            .map(it -> it.buildLepPath(tenant, resultLepPath))
-            .findFirst().get();
+            .filter(it -> it.isMatchPrefix(relativeLepPath))
+            .map(it -> it.buildAbsoluteLepPath(tenant, relativeLepPath))
+            .findFirst().get(); // safe, because isMatchPrefix always true in microservice LepPath
     }
 
     public List<String> getLepCommonsPaths(String tenant) {
@@ -120,32 +120,17 @@ public class LepPathResolver {
 
     public List<String> getLepPathPatterns() {
         return baseLepPaths.stream()
-            .map(LepPath::getAntFolderPattern)
+            .map(LepPath::getLepFolderAntPattern)
             .collect(toList());
     }
 
-
     public Optional<LepRootPath> getLepBasePath(String tenantKey, String name) {
-        List<LepRootPath> rootPathVariants = new ArrayList<>();
-
-        rootPathVariants.add(new LepRootPath(name, tenantKey + "/" + appName, tenantKey + "/" + appName));
-
         List<String> parentKeys = tenantAliasService.getTenantAliasTree()
             .getParentKeys(tenantKey);
-        parentKeys.stream()
-            .map(tenant -> tenant + "/" + appName)
-            .map(it -> new LepRootPath(name, it, tenantKey + "/" + appName))
-            .forEach(rootPathVariants::add);
 
-        parentKeys.stream()
-            .map(tenant -> tenant + "/commons")
-            .map(it -> new LepRootPath(name, it, tenantKey + "/commons"))
-            .forEach(rootPathVariants::add);
-
-        rootPathVariants.add(new LepRootPath(name, URL_PREFIX_COMMONS_TENANT, tenantKey + "/commons/lep"));
-        rootPathVariants.add(new LepRootPath(name, tenantKey + "/commons", tenantKey + "/commons"));
-        rootPathVariants.add(new LepRootPath(name, URL_PREFIX_COMMONS_ENVIRONMENT, "commons/lep"));
-        rootPathVariants.add(new LepRootPath(name, "commons", "commons"));
+        List<LepRootPath> rootPathVariants = baseLepPaths.stream()
+            .flatMap(it -> it.buildLepRootPaths(name, tenantKey, parentKeys).stream())
+            .collect(toList());
 
         return rootPathVariants.stream().filter(LepRootPath::isMatch).findFirst();
     }
@@ -153,36 +138,54 @@ public class LepPathResolver {
     @RequiredArgsConstructor
     public static class LepPath {
         @Getter
-        private final String antFolderPattern;
-        private final Function<String, String> folderPrefix;
+        private final String lepFolderAntPattern;
+        // path to folder in config repository and prefix on import lep class
+        private final Function<String, String> lepFolderPrefix;
+        // prefix that we get using call tenant or env commons
         private final String lepPrefix;
-        private final String commonsFolder;
+        private final String relativeCommonsFolderPath;
 
         private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
         public String getCommonsPath(String tenant) {
-            return folderPrefix.apply(tenant) + commonsFolder;
+            return lepFolderPrefix.apply(tenant) + relativeCommonsFolderPath;
         }
 
         public boolean isMatchPatter(String path) {
-            return pathMatcher.match(antFolderPattern, path);
+            return pathMatcher.match(lepFolderAntPattern, path);
         }
 
 
         public String getPathVariable(String path, String variable) {
-            return pathMatcher.extractUriTemplateVariables(antFolderPattern, path).get(variable);
+            return pathMatcher.extractUriTemplateVariables(lepFolderAntPattern, path).get(variable);
         }
 
         public boolean isMatchPrefix(String lepPath) {
             return lepPath.startsWith(lepPrefix);
         }
 
-        public String buildLepPath(String tenant, String resultLepPath) {
-            String lepPath = resultLepPath.substring(lepPrefix.length());
+        public String buildAbsoluteLepPath(String tenant, String relativeLepPath) {
+            String lepPath = relativeLepPath.substring(lepPrefix.length());
             if (!lepPath.startsWith("/")) {
                 lepPath = "/" + lepPath;
             }
-            return folderPrefix.apply(tenant) + lepPath;
+            return lepFolderPrefix.apply(tenant) + lepPath;
+        }
+
+        public List<LepRootPath> buildLepRootPaths(String name, String tenantKey, List<String> parentTenants) {
+            List<LepRootPath> result = new ArrayList<>();
+            result.add(new LepRootPath(name, lepFolderPrefix.apply(tenantKey), lepFolderPrefix.apply(tenantKey)));
+
+            if (StringUtils.isNotBlank(lepPrefix)) {
+                result.add(new LepRootPath(name, lepPrefix, lepFolderPrefix.apply(tenantKey)));
+            }
+
+            for (var parentTenant: parentTenants) {
+                LepRootPath lepRootPath = new LepRootPath(name, lepFolderPrefix.apply(parentTenant), lepFolderPrefix.apply(tenantKey));
+                result.add(lepRootPath);
+            }
+
+            return result;
         }
     }
 
