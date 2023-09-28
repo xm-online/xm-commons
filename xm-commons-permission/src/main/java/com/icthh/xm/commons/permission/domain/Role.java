@@ -13,11 +13,12 @@ import lombok.ToString;
 @Setter
 @EqualsAndHashCode(of = "key")
 @ToString
-@JsonPropertyOrder( {"description", "createdDate", "createdBy", "updatedDate", "updatedBy"})
+@JsonPropertyOrder( {"name", "description", "createdDate", "createdBy", "updatedDate", "updatedBy"})
 public class Role implements Comparable<Role> {
 
     @JsonIgnore
     private String key;
+    private Map<String, String> name;
     private String description;
     private String createdDate;
     private String createdBy;
