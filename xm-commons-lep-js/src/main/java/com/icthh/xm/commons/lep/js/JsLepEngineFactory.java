@@ -3,24 +3,25 @@ package com.icthh.xm.commons.lep.js;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepEngineFactory;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
+import com.icthh.xm.commons.lep.impl.LoggingWrapper;
+import com.icthh.xm.commons.lep.spring.ApplicationNameProvider;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import static java.util.function.Function.identity;
 
 @Slf4j
+@Component
 public class JsLepEngineFactory extends LepEngineFactory {
 
     private final LoggingWrapper loggingWrapper;
 
 
-    public JsLepEngineFactory(String appName,
+    public JsLepEngineFactory(ApplicationNameProvider applicationNameProvider,
                               LoggingWrapper loggingWrapper) {
-        super(appName);
+        super(applicationNameProvider.getAppName());
         this.loggingWrapper = loggingWrapper;
     }
 

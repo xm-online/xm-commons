@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.lep.spring;
 
-import com.icthh.xm.commons.lep.js.JsLepEngineConfiguration;
+import com.icthh.xm.commons.lep.impl.LoggingWrapper;
+import com.icthh.xm.commons.lep.js.JsLepEngineFactory;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
 import org.springframework.context.annotation.Bean;
@@ -11,10 +12,15 @@ import org.springframework.context.annotation.Import;
  *
  */
 @Configuration
-@Import({LepSpringConfiguration.class, JsLepEngineConfiguration.class})
+@Import({LepSpringConfiguration.class})
 public class JsLepTestConfig {
 
     public JsLepTestConfig() {
+    }
+
+    @Bean
+    public JsLepEngineFactory jsLepEngineFactory(LoggingWrapper loggingWrapper, ApplicationNameProvider applicationNameProvider) {
+        return new JsLepEngineFactory(applicationNameProvider, loggingWrapper);
     }
 
     @Bean

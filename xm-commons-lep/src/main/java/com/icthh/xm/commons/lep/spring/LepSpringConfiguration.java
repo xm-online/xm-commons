@@ -13,6 +13,7 @@ import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.commons.CommonsConfiguration;
 import com.icthh.xm.commons.lep.commons.CommonsService;
 import com.icthh.xm.commons.lep.impl.LepMethodAspect;
+import com.icthh.xm.commons.lep.impl.LoggingWrapper;
 import com.icthh.xm.commons.lep.impl.LogicExtensionPointHandler;
 import com.icthh.xm.commons.lep.impl.engine.LepManagementServiceImpl;
 import com.icthh.xm.commons.lep.impl.internal.MigrationFromCoreContextsHolderLepManagementServiceReference;
@@ -20,6 +21,7 @@ import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
 import com.icthh.xm.commons.lep.spring.lepservice.ClearServicesOnEngineDestroy;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryResolver;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryWithLepFactoryMethod;
+import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.lep.api.LepKeyResolver;
@@ -156,6 +158,12 @@ public class LepSpringConfiguration {
     @Bean
     public ClearServicesOnEngineDestroy clearServicesOnEngineDestroy(LepServiceFactoryWithLepFactoryMethod factory) {
         return new ClearServicesOnEngineDestroy(factory);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(LoggingWrapper.class)
+    public LoggingWrapper loggingWrapper(LoggingConfigService loggingConfigService) {
+        return new LoggingWrapper(loggingConfigService);
     }
 
     @Bean

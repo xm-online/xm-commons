@@ -6,6 +6,7 @@ import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepKey;
 import com.icthh.xm.commons.lep.groovy.storage.LepStorage;
+import com.icthh.xm.commons.lep.impl.LoggingWrapper;
 import groovy.lang.Binding;
 import groovy.util.GroovyScriptEngine;
 import lombok.SneakyThrows;
@@ -78,10 +79,10 @@ public class GroovyLepEngine extends LepEngine {
                 if (!isCommonsClass(lep.getPath())) {
                     if (lepMetadata.containsKey(lep.metadataKey()) && lepMetadata.get(lep.metadataKey()).isScript()) {
                         StopWatch warmUpTime = StopWatch.createStarted();
-                        log.trace("START | Warmup lep {}", lep.getPath());
+                        log.info("START | Warmup lep {}", lep.getPath());
                         Class<?> scriptClass = gse.loadScriptByName(LEP_PREFIX + lep.getPath());
                         InvokerHelper.getMetaClass(scriptClass); // build metaclass
-                        log.trace("STOP | Warmup lep {}, time: {} ms", lep.getPath(), warmUpTime.getTime(MILLISECONDS));
+                        log.info("STOP | Warmup lep {}, time: {} ms", lep.getPath(), warmUpTime.getTime(MILLISECONDS));
                     }
                 }
             } catch (Throwable e) {

@@ -6,6 +6,7 @@ import com.icthh.xm.commons.lep.api.LepEngineFactory;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import com.icthh.xm.commons.lep.groovy.storage.LepStorage;
 import com.icthh.xm.commons.lep.groovy.storage.LepStorageFactory;
+import com.icthh.xm.commons.lep.impl.LoggingWrapper;
 import groovy.util.logging.Slf4j;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 

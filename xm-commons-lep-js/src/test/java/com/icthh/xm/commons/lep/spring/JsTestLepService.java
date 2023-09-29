@@ -11,7 +11,7 @@ import java.util.Map;
 public class JsTestLepService {
 
     @LogicExtensionPoint(value = "TestLepMethodWithResolver", resolver = JsTestResolver.class)
-    public Object testLepMethodWithResolver(String key) {
+    public String testLepMethodWithResolver(String key) {
         return "Hello lep method with resolver!";
     }
 

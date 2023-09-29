@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.lep.groovy;
+package com.icthh.xm.commons.lep.impl;
 
 import com.icthh.xm.commons.lep.api.LepKey;
 import com.icthh.xm.commons.logging.config.LoggingConfig.LepLogConfiguration;

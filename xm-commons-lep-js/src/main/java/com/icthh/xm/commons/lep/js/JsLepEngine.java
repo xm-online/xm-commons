@@ -5,6 +5,7 @@ import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepKey;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
+import com.icthh.xm.commons.lep.impl.LoggingWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
