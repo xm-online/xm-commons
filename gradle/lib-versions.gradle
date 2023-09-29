@@ -9,7 +9,7 @@ ext.versions = [
     equalsverifier             : '3.1.10',
     commonsLang3               : '3.8.1',
     commonsCodec               : '1.11',
-    commonsIo                  : '2.6',
+    commonsIo                  : '2.7',
     commonsCollections         : '3.2.2',
     commonsText                : '1.10.0',
 
