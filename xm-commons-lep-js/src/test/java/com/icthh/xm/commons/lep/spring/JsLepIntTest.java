@@ -72,6 +72,14 @@ public class JsLepIntTest {
         assertEquals("Hello JSTEST", result);
     }
 
+    @Test
+    public void testJsWithResolver() {
+        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethodWithResolver__MY.KEY.js",
+            loadFile("lep/testLepMethod.js"));
+        String result = testLepService.testLepMethodWithResolver("MY.KEY");
+        assertEquals("JSTEST", result);
+    }
+
     @SneakyThrows
     public static String loadFile(String path) {
         try (InputStream cfgInputStream = new ClassPathResource(path).getInputStream()) {

@@ -10,6 +10,11 @@ import java.util.Map;
 @LepService(group = "service")
 public class JsTestLepService {
 
+    @LogicExtensionPoint(value = "TestLepMethodWithResolver", resolver = JsTestResolver.class)
+    public Object testLepMethodWithResolver(String key) {
+        return "Hello lep method with resolver!";
+    }
+
     @LogicExtensionPoint("TestLepMethod")
     public String testLepMethod() {
         return "Hello I am service method!";

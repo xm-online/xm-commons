@@ -32,7 +32,16 @@ public class JsLepEngine extends LepEngine {
     @Override
     public boolean isExists(LepKey lepKey) {
         String lepPath = toLepPath(lepKey);
-        return leps.containsKey(lepPath);
+        boolean exists = leps.containsKey(lepPath);
+        if (!exists) {
+            log.debug("Lep in js engine by path {} not found.", lepPath);
+        }
+        return exists;
+    }
+
+    @Override
+    public int order() {
+        return 1;
     }
 
     @Override
