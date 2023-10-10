@@ -7,6 +7,7 @@ import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.service.filter.lep.WebLepFilter;
 import com.icthh.xm.commons.domainevent.utils.HttpContentUtils;
 import com.icthh.xm.commons.domainevent.utils.JsonUtil;
+import com.icthh.xm.commons.logging.LoggingAspectConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,6 +50,7 @@ public class WebFilterEngine {
         this.jFactory = new JsonFactory();
     }
 
+    @LoggingAspectConfig(inputDetails = false, resultDetails = false)
     public DomainEvent isIgnoreRequest(HttpServletRequest request, HttpServletResponse response, String tenant,
                                        BiFunction<String[], String, DomainEvent> domainEventFactory) {
 

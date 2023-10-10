@@ -10,6 +10,7 @@ import com.icthh.xm.commons.domainevent.domain.DomainEventPayload;
 import com.icthh.xm.commons.domainevent.service.builder.DomainEventFactory;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
+import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
+@IgnoreLogginAspect
 @RequiredArgsConstructor
 @LepService(group = "event.db.mapper")
 public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
