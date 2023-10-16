@@ -9,7 +9,6 @@ import org.springframework.util.concurrent.ListenableFuture;
 
 @Service
 @RequiredArgsConstructor
-@LoggingAspectConfig(resultDetails = false)
 public class KafkaTemplateService {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
@@ -21,6 +20,7 @@ public class KafkaTemplateService {
      * @param data  The data.
      * @return a Future for the {@link SendResult}.
      **/
+    @LoggingAspectConfig(inputExcludeParams = "data", resultDetails = false)
     public ListenableFuture<SendResult<String, String>> send(String topic, String data) {
         return kafkaTemplate.send(topic, data);
     }
@@ -34,6 +34,7 @@ public class KafkaTemplateService {
      * @param data      the data.
      * @return a Future for the {@link SendResult}.
      */
+    @LoggingAspectConfig(inputExcludeParams = "data", resultDetails = false)
     public ListenableFuture<SendResult<String, String>> send(String topic,
                                                              Integer partition,
                                                              String key,

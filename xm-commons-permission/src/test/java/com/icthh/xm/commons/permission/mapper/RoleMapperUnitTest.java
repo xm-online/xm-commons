@@ -17,18 +17,22 @@ public class RoleMapperUnitTest {
 
     private static final String CORRECT_YML = "---\n"
         + "KEY1:\n"
+        + "  name: null\n"
         + "  description: \"test1\"\n"
         + "  createdDate: \"C_DATE1\"\n"
         + "  createdBy: \"C_BY1\"\n"
         + "  updatedDate: \"U_DATE1\"\n"
         + "  updatedBy: \"U_BY1\"\n"
         + "KEY2:\n"
+        + "  name:\n"
+        + "    en: \"enName\"\n"
         + "  description: \"test2\"\n"
         + "  createdDate: \"C_DATE2\"\n"
         + "  createdBy: \"C_BY2\"\n"
         + "  updatedDate: \"U_DATE2\"\n"
         + "  updatedBy: \"U_BY2\"\n"
         + "KEY3:\n"
+        + "  name: null\n"
         + "  description: \"test3\"\n"
         + "  createdDate: \"C_DATE3\"\n"
         + "  createdBy: \"C_BY3\"\n"
@@ -61,7 +65,9 @@ public class RoleMapperUnitTest {
 
     private Collection<Role> roles() {
         Set<Role> roles = new HashSet<>();
-        roles.add(getRole(2));
+        Role role2 = getRole(2);
+        role2.setName(Map.of("en", "enName"));
+        roles.add(role2);
         roles.add(getRole(3));
         roles.add(getRole(1));
         return roles;

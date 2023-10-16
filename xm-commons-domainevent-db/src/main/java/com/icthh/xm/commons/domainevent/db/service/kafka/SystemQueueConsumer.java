@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.icthh.xm.commons.lep.api.LepManagementService;
+import com.icthh.xm.commons.logging.LoggingAspectConfig;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.messaging.event.system.SystemEvent;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
@@ -42,6 +43,7 @@ public class SystemQueueConsumer {
      *
      * @param message the system event message
      */
+    @LoggingAspectConfig(inputDetails = false)
     @Retryable(maxAttemptsExpression = "${application.retry.max-attempts}",
         backoff = @Backoff(delayExpression = "${application.retry.delay}",
             multiplierExpression = "${application.retry.multiplier}"))

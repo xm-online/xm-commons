@@ -3,6 +3,7 @@ package com.icthh.xm.commons.domainevent.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.service.Transport;
+import com.icthh.xm.commons.logging.LoggingAspectConfig;
 import com.icthh.xm.commons.topic.service.KafkaTemplateService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -47,6 +48,7 @@ public class SyncKafkaTransport implements Transport {
     private final ObjectMapper objectMapper;
     private final KafkaTransactionSynchronizationAdapterService kafkaTransactionSynchronizationAdapterService;
 
+    @LoggingAspectConfig(inputDetails = false)
     @Override
     public void send(DomainEvent event) {
         Consumer<DomainEvent> domainEventConsumer = sendMessageConsumer();
