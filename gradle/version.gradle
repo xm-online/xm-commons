@@ -32,7 +32,6 @@ public class SemVersion {
     public boolean isRelease() {
         return !"0.0.0".equals(value) && MAIN_VERSION_REG.matcher(value).matches();
     }
-
 }
 
 ext.SemVersion = SemVersion
