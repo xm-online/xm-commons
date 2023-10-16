@@ -33,7 +33,7 @@ public class ChangeStateTransitionLepKeyResolver extends AppendLepKeyResolver {
 New version
 ```java
 @Component
-public class CommonsLepResolver implements LepKeyResolver {
+public class ChangeStateTransitionLepKeyResolver implements LepKeyResolver {
 
     @Override
     public List<String> segments(LepMethod method) {
@@ -82,7 +82,7 @@ public class CommonsLepResolver implements LepKeyResolver {
 ### Migrate interfaces annotated `@LepService` with methods annotated `@LogicExtensionPoint` to classes.
 Change interface to simple class where all methods throws exception, or smth like this.
 
-### Replace init destroy lep context
+### Replace init destroy lep context (still supported, but deprecated for removal)
 Old version:
 ```
 ...
