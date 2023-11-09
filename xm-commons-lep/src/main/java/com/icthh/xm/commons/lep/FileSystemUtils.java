@@ -40,4 +40,12 @@ public final class FileSystemUtils {
         return Paths.get(base, "xm-online").toString();
     }
 
+    public static String getFilePrefix() {
+        return SystemUtils.IS_OS_WINDOWS ? "file:///" : "file://";
+    }
+
+    public static String getCompleteFilePath() {
+        return getFilePrefix() + getAppHomeDir();
+    }
+
 }

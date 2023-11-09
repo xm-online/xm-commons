@@ -1,9 +1,9 @@
 package com.icthh.xm.commons.lep.storage;
 
+import static com.icthh.xm.commons.lep.FileSystemUtils.getFilePrefix;
 import com.icthh.xm.commons.lep.TenantScriptStorage;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.SystemUtils;
 
 import java.nio.file.Paths;
 
@@ -11,6 +11,8 @@ import java.nio.file.Paths;
 public class FileTenantScriptPathResolver extends BaseTenantScriptPathResolver {
 
     private final String baseDir;
+
+    private static final String PREFIX = getFilePrefix();
 
     @Override
     public TenantScriptStorage resolverType() {
@@ -29,11 +31,7 @@ public class FileTenantScriptPathResolver extends BaseTenantScriptPathResolver {
         String lepDir = Paths.get(baseDir, paths).toString();
         String path = "/" + details.getPath();
 
-        if (SystemUtils.IS_OS_WINDOWS) {
-            return "file:///" + lepDir + FilenameUtils.separatorsToSystem(path);
-        }
-
-        return "file://" + lepDir + FilenameUtils.separatorsToSystem(path);
+        return PREFIX + lepDir + FilenameUtils.separatorsToSystem(path);
     }
 
 }

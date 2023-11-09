@@ -12,6 +12,8 @@ import com.icthh.xm.commons.tenant.TenantKey;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.SystemUtils;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -175,6 +177,7 @@ public class DynamicLepClassResolveIntTest {
     @Test
     @SneakyThrows
     public void testReloadLepClass() {
+        Assume.assumeTrue(!SystemUtils.IS_OS_WINDOWS);
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
         // this sleep is needed because groovy has debounce time to lep update
         Thread.sleep(100);

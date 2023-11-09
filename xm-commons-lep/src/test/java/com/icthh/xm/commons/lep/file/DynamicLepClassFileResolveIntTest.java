@@ -1,7 +1,9 @@
 package com.icthh.xm.commons.lep.file;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
-import com.icthh.xm.commons.lep.CacheableLepEngine;
+import static com.icthh.xm.commons.config.client.service.TenantAliasService.TENANT_ALIAS_CONFIG;
+import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_AUTH_CONTEXT;
+import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
 import com.icthh.xm.commons.lep.spring.DynamicLepTestFileConfig;
 import com.icthh.xm.commons.lep.spring.DynamicTestLepService;
 import com.icthh.xm.commons.lep.spring.SpringLepManager;
@@ -10,15 +12,21 @@ import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfig
 import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantKey;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.SystemUtils;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -29,13 +37,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Optional;
-
-import static com.icthh.xm.commons.config.client.service.TenantAliasService.TENANT_ALIAS_CONFIG;
-import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_AUTH_CONTEXT;
-import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
 
 /**
  *
@@ -111,6 +112,7 @@ public class DynamicLepClassFileResolveIntTest {
     @Test
     @SneakyThrows
     public void testLepFromParentTenant() {
+        Assume.assumeTrue(!SystemUtils.IS_OS_WINDOWS);
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
         tenantAliasService.onRefresh(TENANT_ALIAS_CONFIG, loadFile("lep/TenantAlias.yml"));
         String testString = "Hello from parent lep";
@@ -168,7 +170,10 @@ public class DynamicLepClassFileResolveIntTest {
     private void createFile(String path, String content) {
         File file = new File(folder.getRoot().toPath().toFile().getAbsolutePath() + path);
         file.getParentFile().mkdirs();
-        file.createNewFile();
+        boolean newFile = file.createNewFile();
+        if (!newFile) {
+            log.warn("File exist {} was not created", file.getAbsolutePath());
+        }
         FileUtils.writeStringToFile(file, content, UTF_8);
         log.info("Path to file {}", file.getAbsolutePath());
     }

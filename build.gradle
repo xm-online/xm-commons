@@ -250,6 +250,12 @@ subprojects {
                                 id = 'ssenko'
                                 name = 'Serhii Senko'
                             }
+
+                            developer {
+                                id = 'ichupryna'
+                                name = 'Ievgen Chupryna'
+                                email = 'ievgen.chupryna@jevera.software'
+                            }
                         }
 
                     }
