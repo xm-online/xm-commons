@@ -210,7 +210,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
     private boolean processQuery(Query query, JpaEntityContext context) {
         log.trace("Query: {}", query);
         if (isNull(query)) {
-            return false;
+            return true;
         }
         log.trace("JpaEntityContext: {}", context);
         for (Map.Entry<String, Column> columnEntry : query.getColumns().entrySet()) {
