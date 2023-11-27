@@ -22,17 +22,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-public class XmDomainEventConfigurationTest {
+public class XmDomainEventConfigurationUnitTest {
 
     public static final String APP_NAME = "testEntity";
     public static final String TENANT = "TEST";
     public static final String UPDATE_KEY = "/config/tenants/" + TENANT + "/testEntity/domainevent.yml";
     private XmDomainEventConfiguration xmDomainEventConfiguration;
-
-    @Mock
-    private TenantContextHolder tenantContextHolder;
 
     @Mock
     private InitSourceEventPublisher initSourceEventPublisher;
@@ -45,9 +41,7 @@ public class XmDomainEventConfigurationTest {
     public void init() {
         MockitoAnnotations.initMocks(this);
 
-        when(tenantContextHolder.getTenantKey()).thenReturn(TENANT);
         xmDomainEventConfiguration = new XmDomainEventConfiguration(APP_NAME,
-            tenantContextHolder,
             initSourceEventPublisher,
             applicationContext);
     }
@@ -70,7 +64,7 @@ public class XmDomainEventConfigurationTest {
     public void shouldInitEnabledConfig() {
         String enabledConfig = readConfigFile("/enabledDomainEvents.yml");
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
-        DbSourceConfig db = xmDomainEventConfiguration.getDbSourceConfig("DB");
+        DbSourceConfig db = xmDomainEventConfiguration.getDbSourceConfig(TENANT, "DB");
         assertNotNull(db);
         verify(initSourceEventPublisher, times(1)).publish(eq(TENANT), any());
     }
@@ -79,49 +73,40 @@ public class XmDomainEventConfigurationTest {
     public void shouldNotInitDisabledConfig() {
         String disabledConfig = readConfigFile("/disabledDomainEvents.yml");
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, disabledConfig);
-        Exception exception = null;
-        try {
-            xmDomainEventConfiguration.getDbSourceConfig("DB");
-        } catch (Exception e) {
-            exception = e;
-        }
-        assertEquals(NullPointerException.class, exception.getClass());
+        DbSourceConfig db = xmDomainEventConfiguration.getDbSourceConfig(TENANT, "DB");
+        assertNull(db);
         verify(initSourceEventPublisher, never()).publish(eq(TENANT), any());
     }
 
     @Test
-    public void shouldRemoveDisabledConfig() {
+    public void shouldReturnNull_forNotFountConfig() {
         String enabledConfig = readConfigFile("/enabledDomainEvents.yml");
         String configSource = "DB";
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
-        DbSourceConfig db = xmDomainEventConfiguration.getDbSourceConfig(configSource);
+        DbSourceConfig db = xmDomainEventConfiguration.getDbSourceConfig(TENANT, configSource);
         assertNotNull(db);
         String disabledConfig = readConfigFile("/disabledDomainEvents.yml");
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, disabledConfig);
-        Exception exception = null;
-        try {
-            xmDomainEventConfiguration.getDbSourceConfig(configSource);
-        } catch (Exception e) {
-            exception = e;
-        }
-        assertEquals(NullPointerException.class, exception.getClass());
+
+        DbSourceConfig result = xmDomainEventConfiguration.getDbSourceConfig(TENANT, configSource);
+        assertNull(result);
     }
 
     @Test
     public void shouldInitConfig() {
         String enabledConfig = readConfigFile("/enabledDomainEvents.yml");
         xmDomainEventConfiguration.onRefresh(UPDATE_KEY, enabledConfig);
-        DbSourceConfig dbSourceConfig = xmDomainEventConfiguration.getDbSourceConfig("DB");
+        DbSourceConfig dbSourceConfig = xmDomainEventConfiguration.getDbSourceConfig(TENANT, "DB");
         assertNotNull(dbSourceConfig);
         assertEquals("outboxTransport", dbSourceConfig.getTransport());
         assertTrue(dbSourceConfig.isEnabled());
 
-        WebSourceConfig webSourceConfig = xmDomainEventConfiguration.getWebSourceConfig("WEB");
+        WebSourceConfig webSourceConfig = xmDomainEventConfiguration.getWebSourceConfig(TENANT, "WEB");
         assertNotNull(webSourceConfig);
         assertEquals("outboxTransport", webSourceConfig.getTransport());
         assertFalse(webSourceConfig.isEnabled());
 
-        SourceConfig nonExistentConfig = xmDomainEventConfiguration.getDbSourceConfig("nonExistentConfig");
+        SourceConfig nonExistentConfig = xmDomainEventConfiguration.getDbSourceConfig(TENANT, "nonExistentConfig");
         assertNull(nonExistentConfig);
     }
 

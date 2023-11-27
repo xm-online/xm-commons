@@ -1,9 +1,9 @@
 package com.icthh.xm.commons.domainevent.db.service;
 
 import com.icthh.xm.commons.domainevent.config.Column;
+import com.icthh.xm.commons.domainevent.config.DbSourceConfig;
 import com.icthh.xm.commons.domainevent.config.EntityFilter;
 import com.icthh.xm.commons.domainevent.config.Query;
-import com.icthh.xm.commons.domainevent.config.DbSourceConfig;
 import com.icthh.xm.commons.domainevent.config.XmDomainEventConfiguration;
 import com.icthh.xm.commons.domainevent.db.domain.JpaEntityContext;
 import com.icthh.xm.commons.domainevent.db.domain.State;
@@ -12,6 +12,7 @@ import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation;
 import com.icthh.xm.commons.domainevent.service.EventPublisher;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.EmptyInterceptor;
@@ -61,6 +62,8 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
 
     private final DatabaseDslFilter databaseDslFilter;
 
+    private final TenantContextHolder tenantContextHolder;
+
     @Override
     @IgnoreLogginAspect
     public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState,
@@ -87,7 +90,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
 
     private void publishEvent(Object entity, Serializable id, Object[] currentState, Object[] previousState,
                               String[] propertyNames, DefaultDomainEventOperation operation) {
-        DbSourceConfig sourceConfig = xmDomainEventConfiguration.getDbSourceConfig(DB.getCode());
+        DbSourceConfig sourceConfig = xmDomainEventConfiguration.getDbSourceConfig(tenantContextHolder.getTenantKey(), DB.getCode());
         if (sourceConfig != null && sourceConfig.isEnabled() && sourceConfig.getFilter() != null) {
             String tableName = findTableName(entity);
             log.trace("publishEvent: tableName: {}, id: {}, operation: {}", tableName, id, operation);
@@ -97,7 +100,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
             if (isIntercepted(tableName, sourceConfig, context)) {
                 DomainEvent dbDomainEvent = jpaEntityMapper.map(context);
                 log.trace("DomainEvent before publish: {}", dbDomainEvent);
-                eventPublisher.publish(DB.name(), dbDomainEvent);
+                eventPublisher.publish(DB.getCode(), dbDomainEvent);
             }
         }
     }
