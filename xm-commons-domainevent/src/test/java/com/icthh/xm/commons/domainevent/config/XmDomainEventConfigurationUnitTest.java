@@ -1,7 +1,6 @@
 package com.icthh.xm.commons.domainevent.config;
 
 import com.icthh.xm.commons.domainevent.config.event.InitSourceEventPublisher;
-import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

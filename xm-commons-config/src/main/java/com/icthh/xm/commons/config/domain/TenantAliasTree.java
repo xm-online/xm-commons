@@ -18,6 +18,7 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Objects.requireNonNullElse;
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 public class TenantAliasTree {
@@ -38,6 +39,22 @@ public class TenantAliasTree {
 
     public List<TenantAlias> getParents(String tenant) {
         return parents.getOrDefault(tenant, emptyList());
+    }
+
+    public List<String> getParentKeys(String tenant) {
+        return getParents(tenant).stream().map(TenantAlias::getKey).collect(toList());
+    }
+
+    public List<String> getAllChildrenRecursive(String tenant) {
+        TenantAlias tenantAlias = tenants.get(tenant);
+        List<String> childTenant = new ArrayList<>(List.of(tenant));
+        if (tenantAlias != null) {
+            tenantAlias.traverseChild((current, child) -> {
+                childTenant.add(child.getKey());
+                return TraverseRule.CONTINUE;
+            });
+        }
+        return childTenant;
     }
 
     @Data
