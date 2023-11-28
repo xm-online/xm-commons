@@ -6,7 +6,6 @@ import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.domainevent.config.event.InitSourceEventPublisher;
 import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventSource;
 import com.icthh.xm.commons.domainevent.service.Transport;
-import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -30,10 +29,15 @@ import java.util.stream.Stream;
 public class XmDomainEventConfiguration implements RefreshableConfiguration {
 
     private static final String TENANT_NAME = "tenant";
+    private static final EventPublisherConfig DEFAULT_EVENT_PUBLISHER_CONFIG;
+    static {
+        DEFAULT_EVENT_PUBLISHER_CONFIG = new EventPublisherConfig();
+        DEFAULT_EVENT_PUBLISHER_CONFIG.setEnabled(false);
+        DEFAULT_EVENT_PUBLISHER_CONFIG.setSources(Map.of());
+    }
 
     private final AntPathMatcher matcher = new AntPathMatcher();
     private final ObjectMapper ymlMapper = new ObjectMapper(new YAMLFactory());
-    private final TenantContextHolder tenantContextHolder;
     private final InitSourceEventPublisher initSourceEventPublisher;
     private final ApplicationContext applicationContext;
     private final String configPath;
@@ -48,41 +52,34 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
     //<tenant, Set<String>>
     private final ConcurrentHashMap<String, Set<String>> headersSetByTenant = new ConcurrentHashMap<>();
 
-
     public XmDomainEventConfiguration(@Value("${spring.application.name}") String appName,
-                                      TenantContextHolder tenantContextHolder,
                                       InitSourceEventPublisher initSourceEventPublisher,
                                       ApplicationContext applicationContext) {
-        this.tenantContextHolder = tenantContextHolder;
         this.configPath = "/config/tenants/{tenant}/" + appName + "/domainevent.yml";
         this.initSourceEventPublisher = initSourceEventPublisher;
         this.applicationContext = applicationContext;
     }
 
-    public DbSourceConfig getDbSourceConfig(String source) {
+    public DbSourceConfig getDbSourceConfig(String tenantKey, String source) {
         DbSourceConfig dbSourceConfig = null;
-        SourceConfig sourceConfig = getEventPublisherConfig().getSources().get(source);
+        SourceConfig sourceConfig = getEventPublisherConfig(tenantKey).getSources().get(source);
         if (sourceConfig instanceof DbSourceConfig) {
             dbSourceConfig = (DbSourceConfig) sourceConfig;
         }
         return dbSourceConfig;
     }
 
-    public WebSourceConfig getWebSourceConfig(String source) {
+    public WebSourceConfig getWebSourceConfig(String tenantKey, String source) {
         WebSourceConfig webSourceConfig = null;
-        SourceConfig sourceConfig = getEventPublisherConfig().getSources().get(source);
+        SourceConfig sourceConfig = getEventPublisherConfig(tenantKey).getSources().get(source);
         if (sourceConfig instanceof WebSourceConfig) {
             webSourceConfig = (WebSourceConfig) sourceConfig;
         }
         return webSourceConfig;
     }
 
-    public PublisherConfig getPublisherConfig(String source) {
-        return getEventPublisherConfig().getPublisher();
-    }
-
-    public Transport getTransport(String source) {
-        String tenantKey = tenantContextHolder.getTenantKey();
+    public Transport getTransport(String tenantKey, String source) {
+        Objects.requireNonNull(tenantKey, "Tenant key does not exists!");
         return Optional
             .ofNullable(transportBySource.get(tenantKey))
             .map(sourceTransportMap -> sourceTransportMap.get(source))
@@ -91,11 +88,9 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
             );
     }
 
-    private EventPublisherConfig getEventPublisherConfig() {
-        String tenantKey = tenantContextHolder.getTenantKey();
-        EventPublisherConfig config = configByTenant.get(tenantKey);
-        Objects.requireNonNull(config, String.format("EventPublisherConfig does not exists for tenant: %s", tenantKey));
-        return config;
+
+    private EventPublisherConfig getEventPublisherConfig(String tenantKey) {
+        return configByTenant.getOrDefault(tenantKey, DEFAULT_EVENT_PUBLISHER_CONFIG);
     }
 
     @Override
@@ -129,7 +124,7 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
             initTransportSourceMap(tenantKey, sources);
             initSourceEventPublisher.publish(tenantKey, sources.values());
 
-            WebSourceConfig sourceConfig = getWebSourceConfig(DefaultDomainEventSource.WEB.getCode());
+            WebSourceConfig sourceConfig = getWebSourceConfig(tenantKey ,DefaultDomainEventSource.WEB.getCode());
             if (sourceConfig == null || !sourceConfig.isEnabled()) {
                 return;
             }

@@ -54,7 +54,7 @@ public class WebApiSourceUnitTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
+        MockitoAnnotations.initMocks(this);
 
         domainEvent = DomainEvent.builder()
             .id(UUID.randomUUID())

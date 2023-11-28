@@ -81,7 +81,8 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
             public void refreshFinished(Collection<String> paths) {
                 List<String> listenPaths = paths.stream()
                                                 .filter(s -> isTenantIncluded(s))
-                        .filter(refreshableConfiguration::isListeningConfiguration).collect(Collectors.toList());
+                                                .filter(refreshableConfiguration::isListeningConfiguration)
+                                                .collect(Collectors.toList());
                 if (!listenPaths.isEmpty()) {
                     InitRefreshableConfigurationBeanPostProcessor.this.refreshFinished(refreshableConfiguration, listenPaths);
                 }
@@ -140,22 +141,22 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
         String configContent = configuration.getContent();
 
         if (isTenantIncluded(configuration.getPath())) {
-        if (refreshableConfiguration.isListeningConfiguration(configuration.getPath())) {
-            refreshableConfiguration.onRefresh(configuration.getPath(), configContent);
+            if (refreshableConfiguration.isListeningConfiguration(configuration.getPath())) {
+                refreshableConfiguration.onRefresh(configuration.getPath(), configContent);
 
-            log.info(
+                log.info(
                     "Process config update event: [path = {}, size = {}, hash = {}] in bean: [{}]",
-                configuration.getPath(),
+                    configuration.getPath(),
                     length(configContent),
-                getValueHash(configContent),
-                getBeanName(refreshableConfiguration));
-        } else {
-            log.debug("Ignored config update event: [path = {}, configSize = {} in bean [{}]",
-                configuration.getPath(),
+                    getValueHash(configContent),
+                    getBeanName(refreshableConfiguration));
+            } else {
+                log.debug("Ignored config update event: [path = {}, configSize = {} in bean [{}]",
+                          configuration.getPath(),
                           length(configContent),
-                getBeanName(refreshableConfiguration));
+                          getBeanName(refreshableConfiguration));
+            }
         }
-    }
     }
 
     private static String getBeanName(final RefreshableConfiguration refreshableConfiguration) {
@@ -164,6 +165,6 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
 
     private static String getValueHash(final String configContent) {
         return StringUtils.isEmpty(configContent) ? LOG_CONFIG_EMPTY :
-            DigestUtils.md5Hex(configContent);
+               DigestUtils.md5Hex(configContent);
     }
 }

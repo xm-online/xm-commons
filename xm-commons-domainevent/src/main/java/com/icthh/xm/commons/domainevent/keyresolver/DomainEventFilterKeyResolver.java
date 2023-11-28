@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.domainevent.db.lep;
+package com.icthh.xm.commons.domainevent.keyresolver;
 
 import com.icthh.xm.commons.lep.AppendLepKeyResolver;
 import com.icthh.xm.lep.api.LepManagerService;
@@ -7,14 +7,13 @@ import com.icthh.xm.lep.api.commons.SeparatorSegmentedLepKey;
 import org.springframework.stereotype.Component;
 
 @Component
-public class FilterKeyResolver extends AppendLepKeyResolver {
-
+public class DomainEventFilterKeyResolver extends AppendLepKeyResolver {
     @Override
     protected String[] getAppendSegments(SeparatorSegmentedLepKey baseKey, LepMethod method, LepManagerService managerService) {
-        String key = getRequiredParam(method, "key", String.class);
+        String template = getRequiredParam(method, "key", String.class);
+        String translatedTemplate = translateToLepConvention(template);
         return new String[]{
-            key.toUpperCase()
+            translatedTemplate
         };
     }
-
 }
