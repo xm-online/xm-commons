@@ -8,6 +8,7 @@
 **/src/main/java/com/icthh/xm/commons/gen/**
 gradle-local.properties
 .swagger-codegen/
+**/src/main/generated/**
 ######################
 # Node
 ######################
@@ -147,6 +148,4 @@ Desktop.ini
 # ESLint
 ######################
 .eslintcache
-
-
 

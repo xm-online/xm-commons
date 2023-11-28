@@ -6,6 +6,8 @@ dependencyManagement {
     }
 }
 
+sourceSets.main.resources.includes = [ "**/*.groovy" ]
+
 dependencies {
     api project(':xm-commons-logging')
     api project(':xm-commons-tenant')

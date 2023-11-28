@@ -42,5 +42,7 @@ ext.versions = [
 
     mapstruct                  : '1.5.3.Final',
 
-    hibernateTypes52           : '2.4.3'
+    hibernateTypes52           : '2.4.3',
+
+    groovyAll                  : '2.5.23'
 ]
