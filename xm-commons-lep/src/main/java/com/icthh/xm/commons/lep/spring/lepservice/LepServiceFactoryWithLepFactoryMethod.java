@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -79,7 +80,7 @@ public class LepServiceFactoryWithLepFactoryMethod {
     }
 
     @Autowired
-    public void setSelf(LepServiceFactoryWithLepFactoryMethod self) {
+    public void setSelf(@Lazy LepServiceFactoryWithLepFactoryMethod self) {
         this.self = self;
     }
 

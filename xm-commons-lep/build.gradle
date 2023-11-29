@@ -21,7 +21,8 @@ dependencies {
     api "com.google.code.findbugs:jsr305:${versions.jsr305}"
     api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
     api "commons-io:commons-io:${versions.commonsIo}"
-    implementation "org.reflections:reflections:${versions.reflections}"
+    api "com.google.guava:guava:${versions.guava}"
+    api "org.reflections:reflections:${versions.reflections}"
 
     testImplementation 'junit:junit'
     testImplementation 'org.mockito:mockito-core'

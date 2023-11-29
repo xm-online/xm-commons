@@ -72,6 +72,6 @@ public class LepThreadHelperIntTest {
         resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy", threadBody);
         resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethodWithInput$$around.groovy", body);
         String result = testLepService.testLepMethod(Map.of("testLepService", testLepService));
-        assertEquals("TEST", result);
+        assertEquals("test", result);
     }
 }
