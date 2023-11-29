@@ -24,12 +24,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_AUTH_CONTEXT;
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
 import static com.icthh.xm.commons.lep.spring.DynamicLepClassResolveIntTest.loadFile;
 import static java.util.Collections.emptySet;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {
@@ -83,4 +85,18 @@ public class LepThreadHelperIntTest {
         String result = testLepService.testLepMethod(Map.of("testLepService", testLepService));
         assertEquals("TEST", result);
     }
+
+    @Test
+    @SneakyThrows
+    public void testBackwardCompatibilityOfRunInThread() {
+        String threadUtils = loadFile("lep/Commons$$threadUtils$$around.groovy");
+        String threadBody = loadFile("lep/TestLepInBackground.groovy");
+
+        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/commons/Commons$$threadUtils$$around.groovy", threadUtils);
+        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethodWithInput$$around.groovy", threadBody);
+        AtomicBoolean lepResult = new AtomicBoolean(false);
+        testLepService.testLepMethod(Map.of("result", lepResult));
+        assertTrue(lepResult.get());
+    }
+
 }

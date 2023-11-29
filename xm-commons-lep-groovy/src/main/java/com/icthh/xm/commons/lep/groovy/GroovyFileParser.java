@@ -34,17 +34,18 @@ public class GroovyFileParser {
 
     @SneakyThrows
     public GroovyFileMetadata getFileMetaData(String source) {
-
         try {
-            GroovyFileMetadata metadata = new GroovyFileMetadata();
-            parseGroovy(source, new GroovyParseVisitor(metadata));
-            return metadata;
+            return getGroovyFileMetadata(source);
         } catch (Throwable e) {
             log.error("Error parse groovy: {}", e.getMessage(), e);
         }
-
-
         return new GroovyFileMetadata();
+    }
+
+    public GroovyFileMetadata getGroovyFileMetadata(String source) throws TokenStreamException, RecognitionException {
+        GroovyFileMetadata metadata = new GroovyFileMetadata();
+        parseGroovy(source, new GroovyParseVisitor(metadata));
+        return metadata;
     }
 
     private void parseGroovy(String source, Visitor visitor) throws TokenStreamException, RecognitionException {
@@ -141,9 +142,12 @@ public class GroovyFileParser {
             } else if (visit == CLOSING_VISIT) {
                 level--;
                 if (level == 0) {
-                    classNames.removeLast();
-                    levels.removeLast();
-
+                    if (!classNames.isEmpty()) {
+                        classNames.removeLast();
+                    }
+                    if (!levels.isEmpty()) {
+                        levels.removeLast();
+                    }
                     if (!levels.isEmpty()) {
                         level = levels.getLast();
                     }
