@@ -21,6 +21,7 @@ import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
 import com.icthh.xm.commons.lep.spring.lepservice.ClearServicesOnEngineDestroy;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryResolver;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryWithLepFactoryMethod;
+import com.icthh.xm.commons.lep.spring.web.LepInterceptor;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
@@ -34,6 +35,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.core.annotation.Order;
 
 import java.util.List;
 
@@ -169,6 +172,12 @@ public class LepSpringConfiguration {
     @Bean
     public LepThreadHelper lepThreadHelper(TenantContextHolder tenantContextHolder, LepManagementService lepManagementService) {
         return new LepThreadHelper(tenantContextHolder, lepManagementService);
+    }
+
+    @Bean
+    @Order(5) // 5 - after TenantInterceptor-s
+    public LepInterceptor lepInterceptor(@Lazy LepManagementService lepManagementService) {
+        return new LepInterceptor(lepManagementService);
     }
 
     @Bean

@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.lep.spring.web;
 
 import com.icthh.xm.commons.lep.api.LepManagementService;
+import com.icthh.xm.commons.tenant.XmRelatedComponent;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -9,7 +10,7 @@ import org.springframework.web.servlet.AsyncHandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@Component
+@XmRelatedComponent
 @Order(5) // 5 - after TenantInterceptor-s
 public class LepInterceptor implements AsyncHandlerInterceptor {
 

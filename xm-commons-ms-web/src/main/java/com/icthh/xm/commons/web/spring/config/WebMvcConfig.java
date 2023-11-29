@@ -1,12 +1,12 @@
 package com.icthh.xm.commons.web.spring.config;
 
+import com.icthh.xm.commons.tenant.XmRelatedComponent;
 import com.icthh.xm.commons.web.spring.TenantInterceptor;
-import com.icthh.xm.commons.web.spring.TenantVerifyInterceptor;
 import com.icthh.xm.commons.web.spring.XmLoggingInterceptor;
-import com.icthh.xm.commons.web.spring.XmWebInterceptorProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.web.servlet.AsyncHandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 
@@ -18,7 +18,7 @@ import java.util.List;
 })
 public class WebMvcConfig extends XmWebMvcConfigurerAdapter {
 
-    private final List<XmWebInterceptorProvider> interceptors;
+    private final List<AsyncHandlerInterceptor> interceptors;
     private final List<String> tenantIgnoredPathList;
 
     public WebMvcConfig(
@@ -26,15 +26,15 @@ public class WebMvcConfig extends XmWebMvcConfigurerAdapter {
         List<String> tenantIgnoredPathList,
         TenantInterceptor tenantInterceptor,
         XmLoggingInterceptor xmLoggingInterceptor,
-        List<XmWebInterceptorProvider> interceptors) {
+        List<AsyncHandlerInterceptor> interceptors) {
         super(tenantInterceptor, xmLoggingInterceptor);
-        this.interceptors = interceptors;
+        this.interceptors = interceptors.stream().filter(it -> it.getClass().isAnnotationPresent(XmRelatedComponent.class)).toList();
         this.tenantIgnoredPathList = tenantIgnoredPathList;
     }
 
     @Override
     protected void xmAddInterceptors(InterceptorRegistry registry) {
-        interceptors.forEach(interceptor -> registerTenantInterceptorWithIgnorePathPattern(registry, interceptor.getInterceptor()));
+        interceptors.forEach(interceptor -> registerTenantInterceptorWithIgnorePathPattern(registry, interceptor));
     }
 
     @Override
