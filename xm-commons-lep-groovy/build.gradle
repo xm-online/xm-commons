@@ -7,24 +7,24 @@ dependencyManagement {
 }
 
 dependencies {
-    compile project(':xm-commons-logging')
-    compile project(':xm-commons-tenant')
-    compile project(':xm-commons-config')
-    compile project(':xm-commons-lep')
+    api project(':xm-commons-logging')
+    api project(':xm-commons-tenant')
+    api project(':xm-commons-config')
+    api project(':xm-commons-lep')
 
     compileOnly 'javax.servlet:javax.servlet-api'
 
-    compile 'org.springframework:spring-context'
-    compile 'org.slf4j:slf4j-api'
-    compile 'org.aspectj:aspectjweaver'
-    compile "com.google.code.findbugs:jsr305:${versions.jsr305}"
-    compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
-    compile "commons-io:commons-io:${versions.commonsIo}"
-    compile "org.codehaus.groovy:groovy-all:${versions.groovyAll}"
+    api 'org.springframework:spring-context'
+    api 'org.slf4j:slf4j-api'
+    api 'org.aspectj:aspectjweaver'
+    api "com.google.code.findbugs:jsr305:${versions.jsr305}"
+    api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+    api "commons-io:commons-io:${versions.commonsIo}"
+    api "org.codehaus.groovy:groovy-all:${versions.groovyAll}"
 
-    testCompile 'junit:junit'
-    testCompile 'org.mockito:mockito-core'
-    testCompile 'org.hamcrest:hamcrest-library'
-    testCompile 'org.springframework:spring-test'
-    testCompile "com.github.stefanbirkner:system-rules:${versions.systemRules}"
+    testImplementation 'junit:junit'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.hamcrest:hamcrest-library'
+    testImplementation 'org.springframework:spring-test'
+    testImplementation "com.github.stefanbirkner:system-rules:${versions.systemRules}"
 }

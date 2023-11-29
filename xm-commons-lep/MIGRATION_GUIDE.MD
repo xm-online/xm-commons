@@ -1,8 +1,10 @@
 ## Migration to new version of LEP
-### Add groovy commons
+### Add commons
 
 ```groovy
+implementation "com.icthh.xm.commons:xm-commons-lep-web:${xm_commons_version}"
 implementation "com.icthh.xm.commons:xm-commons-lep-groovy:${xm_commons_version}"
+implementation "com.icthh.xm.commons:xm-commons-lep-js:${xm_commons_version}" // optional
 ```
 
 ### Migrate resolvers
@@ -121,6 +123,7 @@ Or just remove lep configuration if no customization required.
 ### Make sure that _LepInterceptor_ run after TenantInterceptor.
 Register LepInterceptor after TenantInterceptor in you webapp config.
 Use registerTenantInterceptorWithIgnorePathPattern method to register LepInterceptor.
+
 
 ### Simple test migration (Make test migration with minimal changes)
 If you test run ALL spring context just add next bean to **TEST** context.

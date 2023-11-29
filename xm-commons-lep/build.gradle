@@ -23,6 +23,7 @@ dependencies {
     api "commons-io:commons-io:${versions.commonsIo}"
     api "com.icthh.xm.lep:xm-lep-core:${versions.lep}"
     api "com.icthh.xm.lep:xm-lep-groovy:${versions.lep}"
+    implementation "org.reflections:reflections:${versions.reflections}"
 
     testImplementation 'junit:junit'
     testImplementation 'org.mockito:mockito-core'

@@ -9,8 +9,6 @@ import org.springframework.web.servlet.AsyncHandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.springframework.core.Ordered.LOWEST_PRECEDENCE;
-
 @Component
 @Order(5) // 5 - after TenantInterceptor-s
 public class LepInterceptor implements AsyncHandlerInterceptor {
