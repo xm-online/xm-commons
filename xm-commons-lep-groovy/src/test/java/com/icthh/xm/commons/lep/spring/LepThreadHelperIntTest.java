@@ -23,9 +23,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.icthh.xm.commons.lep.spring.DynamicLepClassResolveIntTest.loadFile;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 @RunWith(SpringRunner.class)
@@ -74,4 +76,18 @@ public class LepThreadHelperIntTest {
         String result = testLepService.testLepMethod(Map.of("testLepService", testLepService));
         assertEquals("test", result);
     }
+
+    @Test
+    @SneakyThrows
+    public void testBackwardCompatibilityOfRunInThread() {
+        String threadUtils = loadFile("lep/Commons$$threadUtils$$around.groovy");
+        String threadBody = loadFile("lep/TestLepInBackground.groovy");
+
+        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/commons/Commons$$threadUtils$$around.groovy", threadUtils);
+        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethodWithInput$$around.groovy", threadBody);
+        AtomicBoolean lepResult = new AtomicBoolean(false);
+        testLepService.testLepMethod(Map.of("result", lepResult));
+        assertTrue(lepResult.get());
+    }
+
 }

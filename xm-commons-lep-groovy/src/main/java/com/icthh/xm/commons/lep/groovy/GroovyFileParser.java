@@ -141,8 +141,12 @@ public class GroovyFileParser {
             } else if (visit == CLOSING_VISIT) {
                 level--;
                 if (level == 0) {
-                    classNames.removeLast();
-                    levels.removeLast();
+                    if (!classNames.isEmpty()) { // TODO check with anonymous class
+                        classNames.removeLast();
+                    }
+                    if (!levels.isEmpty()) { // TODO check with anonymous class
+                        levels.removeLast();
+                    }
 
                     if (!levels.isEmpty()) {
                         level = levels.getLast();
