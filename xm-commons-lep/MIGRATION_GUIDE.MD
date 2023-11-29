@@ -124,7 +124,6 @@ Or just remove lep configuration if no customization required.
 Register LepInterceptor after TenantInterceptor in you webapp config.
 Use registerTenantInterceptorWithIgnorePathPattern method to register LepInterceptor.
 
-
 ### Simple test migration (Make test migration with minimal changes)
 If you test run ALL spring context just add next bean to **TEST** context.
 ```groovy

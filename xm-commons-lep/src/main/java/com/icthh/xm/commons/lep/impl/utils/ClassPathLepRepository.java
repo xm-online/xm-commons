@@ -11,6 +11,7 @@ import org.springframework.core.io.ResourceLoader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 public class ClassPathLepRepository {
@@ -31,7 +32,7 @@ public class ClassPathLepRepository {
 
     private Set<String> getResourceFiles(String folderName) {
         Reflections reflections = new Reflections(folderName, new ResourcesScanner());
-        return reflections.getResources(x -> true);
+        return  reflections.getResources(Pattern.compile(".*"));
     }
 
 }

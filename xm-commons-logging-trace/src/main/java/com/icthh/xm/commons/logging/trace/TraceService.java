@@ -1,32 +1,42 @@
 package com.icthh.xm.commons.logging.trace;
 
-import com.icthh.xm.commons.lep.spring.ApplicationLepProcessingEvent;
-import com.icthh.xm.lep.api.ContextScopes;
-import com.icthh.xm.lep.api.LepManager;
-import com.icthh.xm.lep.api.LepProcessingEvent;
-import com.icthh.xm.lep.api.ScopedContext;
+import com.icthh.xm.commons.lep.api.LepAdditionalContext;
+import com.icthh.xm.commons.lep.api.LepAdditionalContextField;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.sleuth.instrument.web.mvc.TracingClientHttpRequestInterceptor;
-import org.springframework.context.ApplicationListener;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.stereotype.Component;
+
+import static com.icthh.xm.commons.logging.trace.TraceService.TraceServiceField.FIELD_NAME;
 
 @Component
 @RequiredArgsConstructor
-public class TraceService implements ApplicationListener<ApplicationLepProcessingEvent> {
+public class TraceService implements LepAdditionalContext<TraceService> {
 
-    private final LepManager lepManager;
     private final TracingClientHttpRequestInterceptor tracingClientHttpRequestInterceptor;
 
-    @Override
-    public void onApplicationEvent(ApplicationLepProcessingEvent event) {
-        if (event.getLepProcessingEvent() instanceof LepProcessingEvent.BeforeExecutionEvent) {
-            ScopedContext context = this.lepManager.getContext(ContextScopes.EXECUTION);
-            context.setValue("traceService", this);
-        }
+    public TracingClientHttpRequestInterceptor getTraceInterceptor() {
+        return tracingClientHttpRequestInterceptor;
     }
 
-    public ClientHttpRequestInterceptor getTraceInterceptor() {
-        return tracingClientHttpRequestInterceptor;
+    @Override
+    public String additionalContextKey() {
+        return FIELD_NAME;
+    }
+
+    @Override
+    public TraceService additionalContextValue() {
+        return this;
+    }
+
+    @Override
+    public Class<? extends LepAdditionalContextField> fieldAccessorInterface() {
+        return TraceServiceField.class;
+    }
+
+    public interface TraceServiceField extends LepAdditionalContextField {
+        String FIELD_NAME = "traceService";
+        default TraceService getTraceService() {
+            return (TraceService)get(FIELD_NAME);
+        }
     }
 }

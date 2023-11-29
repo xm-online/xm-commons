@@ -1,19 +1,15 @@
 package com.icthh.xm.commons.domainevent.outbox.service;
 
-import com.google.common.collect.Iterables;
+import org.apache.commons.collections4.IterableUtils;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.outbox.domain.Outbox;
 import com.icthh.xm.commons.domainevent.outbox.domain.RecordStatus;
 import com.icthh.xm.commons.domainevent.outbox.repository.OutboxRepository;
 import com.icthh.xm.commons.domainevent.outbox.service.mapper.DomainEventMapper;
-import com.icthh.xm.commons.lep.spring.ApplicationLepProcessingEvent;
+import com.icthh.xm.commons.lep.api.LepAdditionalContext;
+import com.icthh.xm.commons.lep.api.LepAdditionalContextField;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
-import com.icthh.xm.lep.api.ContextScopes;
-import com.icthh.xm.lep.api.LepManager;
-import com.icthh.xm.lep.api.LepProcessingEvent;
-import com.icthh.xm.lep.api.ScopedContext;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -23,9 +19,8 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class OutboxTransportService implements ApplicationListener<ApplicationLepProcessingEvent> {
+public class OutboxTransportService implements LepAdditionalContext<OutboxTransportService> {
 
-    private final LepManager lepManager;
     private final OutboxRepository outboxRepository;
     private final DomainEventMapper domainEventMapper;
 
@@ -34,7 +29,7 @@ public class OutboxTransportService implements ApplicationListener<ApplicationLe
     }
 
     public void changeStatus(RecordStatus status, Iterable<UUID> ids) {
-        if  (ids == null || Iterables.isEmpty(ids)) {
+        if  (ids == null || IterableUtils.isEmpty(ids)) {
             return;
         }
         outboxRepository.updateStatus(status, ids);
@@ -46,10 +41,25 @@ public class OutboxTransportService implements ApplicationListener<ApplicationLe
 
     @Override
     @IgnoreLogginAspect
-    public void onApplicationEvent(ApplicationLepProcessingEvent event) {
-        if (event.getLepProcessingEvent() instanceof LepProcessingEvent.BeforeExecutionEvent) {
-            ScopedContext context = this.lepManager.getContext(ContextScopes.EXECUTION);
-            context.setValue("outboxTransportService", this);
+    public String additionalContextKey() {
+        return OutboxTransportServiceField.FIELD_NAME;
+    }
+
+    @Override
+    @IgnoreLogginAspect
+    public OutboxTransportService additionalContextValue() {
+        return this;
+    }
+
+    @Override
+    public Class<? extends LepAdditionalContextField> fieldAccessorInterface() {
+        return OutboxTransportServiceField.class;
+    }
+
+    public interface OutboxTransportServiceField extends LepAdditionalContextField {
+        String FIELD_NAME = "outboxTransportService";
+        default OutboxTransportService getOutboxTransportService() {
+            return (OutboxTransportService)get(FIELD_NAME);
         }
     }
 }

@@ -5,7 +5,6 @@ import com.icthh.xm.commons.domainevent.outbox.domain.RecordStatus;
 import com.icthh.xm.commons.domainevent.outbox.repository.OutboxRepository;
 import com.icthh.xm.commons.domainevent.outbox.service.OutboxTransportService;
 import com.icthh.xm.commons.domainevent.outbox.service.mapper.DomainEventMapper;
-import com.icthh.xm.lep.api.LepManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -28,15 +27,13 @@ public class OutboxTransportServiceTest {
     private OutboxTransportService outboxTransportService;
 
     @Mock
-    private LepManager lepManager;
-    @Mock
     private OutboxRepository outboxRepository;
     @Mock
     private DomainEventMapper domainEventMapper;
     @Before
     public void init() {
         MockitoAnnotations.initMocks(this);
-        outboxTransportService = new OutboxTransportService(lepManager, outboxRepository, domainEventMapper);
+        outboxTransportService = new OutboxTransportService(outboxRepository, domainEventMapper);
     }
 
     @Test
