@@ -134,6 +134,7 @@ public class CoreContextsHolder implements ContextsHolder {
             if (!CoreContextsHolder.isTenantContextPresent() && key.equals(THREAD_CONTEXT_KEY_TENANT_CONTEXT) && value instanceof TenantContext) {
                 TenantContext tenantContext = (TenantContext) value;
                 new DefaultTenantContextHolder().getPrivilegedContext().setTenant(tenantContext.getTenant().get());
+                getLepManagementServiceInstance().beginThreadContext();
             }
         }
 
