@@ -2,7 +2,6 @@
 ### Add commons
 
 ```groovy
-implementation "com.icthh.xm.commons:xm-commons-lep-web:${xm_commons_version}"
 implementation "com.icthh.xm.commons:xm-commons-lep-groovy:${xm_commons_version}"
 implementation "com.icthh.xm.commons:xm-commons-lep-js:${xm_commons_version}" // optional
 ```
