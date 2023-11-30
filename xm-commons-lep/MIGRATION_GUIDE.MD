@@ -119,10 +119,6 @@ lepContext.thread.runInThread(executor) {
 Replace extends from WebLepSpringConfiguration to extends from GroovyLepEngineConfiguration,
 Or just remove lep configuration if no customization required.
 
-### Make sure that _LepInterceptor_ run after TenantInterceptor.
-Register LepInterceptor after TenantInterceptor in you webapp config.
-Use registerTenantInterceptorWithIgnorePathPattern method to register LepInterceptor.
-
 ### Simple test migration (Make test migration with minimal changes)
 If you test run ALL spring context just add next bean to **TEST** context.
 ```groovy
@@ -134,7 +130,15 @@ public LepUpdateMode lepUpdateMode() {
 
 If you have separate configuration for test
 1 - Extends **TEST** configuration from `GroovyLepEngineConfiguration`
-2 - Add next beans:
+2 **AND PUT IT FIRST** example:
+```
+@SpringBootTest(classes = {
+        TestLepConfiguration.class, // <- first
+        MstemplateApp.class,
+        IntegrationTestConfiguration.class
+})
+```
+3 - Add next beans:
 
 ```groovy
     @Override
