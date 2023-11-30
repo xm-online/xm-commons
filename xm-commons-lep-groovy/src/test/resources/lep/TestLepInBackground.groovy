@@ -5,7 +5,7 @@ result = lepContext.inArgs.input.result
 
 return CompletableFuture.supplyAsync({ ->
     return threadUtils.executeInNewContext({
-        result.set(true)
+        result.set(lepContext.commons.service())
         return "SUCCESS"
     })
 }).get()

@@ -78,7 +78,9 @@ public class LepThreadHelperIntTest {
     public void testBackwardCompatibilityOfRunInThread() {
         String threadUtils = loadFile("lep/Commons$$threadUtils$$around.groovy");
         String threadBody = loadFile("lep/TestLepInBackground.groovy");
+        String code = loadFile("lep/Commons$$service$$around.groovy");
 
+        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/commons/Commons$$service$$around.groovy", code);
         resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/commons/Commons$$threadUtils$$around.groovy", threadUtils);
         resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethodWithInput$$around.groovy", threadBody);
         AtomicBoolean lepResult = new AtomicBoolean(false);
