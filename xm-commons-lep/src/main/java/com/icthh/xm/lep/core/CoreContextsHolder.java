@@ -1,13 +1,18 @@
 package com.icthh.xm.lep.core;
 
+import com.icthh.xm.commons.tenant.TenantContext;
+import com.icthh.xm.commons.tenant.internal.DefaultTenantContextHolder;
 import com.icthh.xm.lep.api.ContextScopes;
 import com.icthh.xm.lep.api.ContextsHolder;
 import com.icthh.xm.lep.api.ScopedContext;
+import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
+import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
 import static com.icthh.xm.commons.lep.impl.internal.MigrationFromCoreContextsHolderLepManagementServiceReference.getLepManagementServiceInstance;
 
 /**
@@ -24,7 +29,7 @@ public class CoreContextsHolder implements ContextsHolder {
 
     static {
         // TODO put thread local proxy that init and end context
-        contexts.put(ContextScopes.THREAD, new MigrationBridgeThreadLocalContext<>());
+        contexts.put(ContextScopes.THREAD, new MigrationBridgeThreadLocalContext());
         contexts.put(ContextScopes.EXECUTION, new ThreadLocal<>());
     }
 
@@ -63,12 +68,23 @@ public class CoreContextsHolder implements ContextsHolder {
         endContext(ContextScopes.THREAD);
     }
 
-    public static class MigrationBridgeThreadLocalContext<T> extends ThreadLocal<T> {
+    public static class MigrationBridgeThreadLocalContext extends ThreadLocal<ScopedContext> {
 
         @Override
-        public void set(T value) {
+        public void set(ScopedContext value) {
             super.set(value);
-            getLepManagementServiceInstance().beginThreadContext();
+            if (CoreContextsHolder.isTenantContextPresent()) {
+                getLepManagementServiceInstance().beginThreadContext();
+            }
+        }
+
+        public ScopedContext get() {
+            ScopedContext scopedContext = super.get();
+            if (scopedContext == null) {
+                return scopedContext;
+            }
+
+            return new MigrationScopedContextBridge(scopedContext);
         }
 
         @Override
@@ -77,5 +93,57 @@ public class CoreContextsHolder implements ContextsHolder {
             getLepManagementServiceInstance().endThreadContext();
         }
     }
+
+    private static boolean isTenantContextPresent() {
+        return new DefaultTenantContextHolder().getPrivilegedContext().getTenantKey().isPresent();
+    }
+
+    @RequiredArgsConstructor
+    public static class MigrationScopedContextBridge implements ScopedContext {
+
+        private final ScopedContext scopedContext;
+
+        @Override
+        public String getScope() {
+            return ContextScopes.THREAD;
+        }
+
+        @Override
+        public Set<String> getNames() {
+            return scopedContext.getNames();
+        }
+
+        @Override
+        public boolean contains(String name) {
+            return scopedContext.contains(name);
+        }
+
+        @Override
+        public Object getValue(String key) {
+            return scopedContext.getValue(key);
+        }
+
+        @Override
+        public <T> T getValue(String name, Class<T> castToType) {
+            return scopedContext.getValue(name, castToType);
+        }
+
+        @Override
+        public void setValue(String key, Object value) {
+            scopedContext.setValue(key, value);
+            if (!CoreContextsHolder.isTenantContextPresent() && key.equals(THREAD_CONTEXT_KEY_TENANT_CONTEXT) && value instanceof TenantContext) {
+                TenantContext tenantContext = (TenantContext) value;
+                new DefaultTenantContextHolder().getPrivilegedContext().setTenant(tenantContext.getTenant().get());
+                getLepManagementServiceInstance().beginThreadContext();
+            }
+        }
+
+        @Override
+        public Map<String, Object> getValues() {
+            return scopedContext.getValues();
+        }
+
+
+    };
 
 }
