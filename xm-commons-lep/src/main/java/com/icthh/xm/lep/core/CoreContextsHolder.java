@@ -6,6 +6,7 @@ import com.icthh.xm.lep.api.ContextScopes;
 import com.icthh.xm.lep.api.ContextsHolder;
 import com.icthh.xm.lep.api.ScopedContext;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -68,12 +69,14 @@ public class CoreContextsHolder implements ContextsHolder {
         endContext(ContextScopes.THREAD);
     }
 
+    @Slf4j
     public static class MigrationBridgeThreadLocalContext extends ThreadLocal<ScopedContext> {
 
         @Override
         public void set(ScopedContext value) {
             super.set(value);
             if (CoreContextsHolder.isTenantContextPresent()) {
+                log.warn("Begin thread context using deprecated method");
                 getLepManagementServiceInstance().beginThreadContext();
             }
         }
@@ -98,6 +101,7 @@ public class CoreContextsHolder implements ContextsHolder {
         return new DefaultTenantContextHolder().getPrivilegedContext().getTenantKey().isPresent();
     }
 
+    @Slf4j
     @RequiredArgsConstructor
     public static class MigrationScopedContextBridge implements ScopedContext {
 
@@ -133,6 +137,7 @@ public class CoreContextsHolder implements ContextsHolder {
             scopedContext.setValue(key, value);
             if (!CoreContextsHolder.isTenantContextPresent() && key.equals(THREAD_CONTEXT_KEY_TENANT_CONTEXT) && value instanceof TenantContext tenantContext) {
                 new DefaultTenantContextHolder().getPrivilegedContext().setTenant(tenantContext.getTenant().get());
+                log.warn("Begin thread context using deprecated method");
                 getLepManagementServiceInstance().beginThreadContext();
             }
         }

@@ -113,7 +113,9 @@ public class LepManagementServiceImpl implements LepManagementService {
     @Override
     public LepEngineSession beginThreadContext() {
         assertLepConfigInited();
-        log.debug("Init thread lep context");
+        if (log.isDebugEnabled()) {
+            log.debug("Init thread lep context | id: {}", System.identityHashCode(this));
+        }
         LepExecutorResolver tenantLepEngines = tenantLepEnginesThreadContext.get();
         if (tenantLepEngines == null) {
             String tenant = getTenantKeyFromThreadContext();
@@ -171,7 +173,8 @@ public class LepManagementServiceImpl implements LepManagementService {
 
     private void assertLepEngineInited() {
         if (tenantLepEnginesThreadContext.get() == null) {
-            log.error("Lep thread context not inited | thread: {}", Thread.currentThread().getId());
+            log.error("Lep thread context not inited | id: {} | thread: {}",
+                System.identityHashCode(this), Thread.currentThread().getId());
             throw new IllegalStateException("Lep thread context not inited." +
                 " Use try(var session = LepManagementService.beginThreadContext()){<you code>}");
         }

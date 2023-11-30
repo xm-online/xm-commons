@@ -1,7 +1,9 @@
 package com.icthh.xm.commons.lep.spring;
 
+import ch.qos.logback.classic.Level;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.lep.api.LepManagementService;
+import com.icthh.xm.commons.lep.impl.internal.MigrationFromCoreContextsHolderLepManagementServiceReference;
 import com.icthh.xm.commons.security.internal.XmAuthentication;
 import com.icthh.xm.commons.security.internal.XmAuthenticationDetails;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
@@ -12,6 +14,8 @@ import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -52,11 +56,12 @@ public class LepThreadHelperIntTest {
 
     @Before
     public void init() {
-        TenantContextUtils.setTenant(tenantContextHolder, "TEST");
+        TenantContextUtils.setTenant(tenantContextHolder, "test");
 
         var authorities = List.of(new SimpleGrantedAuthority("SUPER-ADMIN"));
         XmAuthentication auth = new XmAuthentication(mock(XmAuthenticationDetails.class), "", authorities);
         SecurityContextHolder.setContext(new SecurityContextImpl(auth));
+        new MigrationFromCoreContextsHolderLepManagementServiceReference(lepManager); // to avoid cache lep manager from prev test
 
         lepManager.beginThreadContext();
     }
@@ -70,12 +75,15 @@ public class LepThreadHelperIntTest {
         resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy", threadBody);
         resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethodWithInput$$around.groovy", body);
         String result = testLepService.testLepMethod(Map.of("testLepService", testLepService));
-        assertEquals("TEST", result);
+        assertEquals("test", result.toLowerCase());
     }
 
     @Test
     @SneakyThrows
     public void testBackwardCompatibilityOfRunInThread() {
+        ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("ROOT");
+        root.setLevel(Level.DEBUG);
+
         String threadUtils = loadFile("lep/Commons$$threadUtils$$around.groovy");
         String threadBody = loadFile("lep/TestLepInBackground.groovy");
         String code = loadFile("lep/Commons$$service$$around.groovy");
