@@ -1,8 +1,11 @@
 package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.lep.groovy.GroovyFileParser;
+import groovyjarjarantlr.RecognitionException;
+import groovyjarjarantlr.TokenStreamException;
 import org.junit.Test;
 
+import static com.icthh.xm.commons.lep.spring.DynamicLepClassResolveIntTest.loadFile;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -36,6 +39,13 @@ public class GroovyFileParseUnitTest {
 
         GroovyFileParser.GroovyFileMetadata classMetaData = gfp.getFileMetaData(testClasses);
         assertFalse(classMetaData.isScript());
+    }
+
+    @Test
+    public void testParseAnonymousClass() throws TokenStreamException, RecognitionException {
+        GroovyFileParser gfp = new GroovyFileParser();
+        String source = loadFile("lep/Commons$$runAfterTransaction$$around.groovy");
+        gfp.getGroovyFileMetadata(source);
     }
 
 }
