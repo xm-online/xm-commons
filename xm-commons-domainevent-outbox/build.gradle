@@ -25,8 +25,7 @@ dependencies {
 
     implementation "org.mapstruct:mapstruct:${versions.mapstruct}"
     implementation "org.springframework.boot:spring-boot-starter-data-jpa:${versions.springBoot}"
-
-    implementation "com.google.guava:guava:31.0.1-jre"
+    implementation "org.apache.commons:commons-collections4:${versions.commonsCollections4}"
 
     annotationProcessor "org.mapstruct:mapstruct-processor:${versions.mapstruct}"
 

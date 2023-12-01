@@ -1,22 +1,16 @@
 package com.icthh.xm.commons.scheduler.resolver;
 
-import com.icthh.xm.commons.lep.AppendLepKeyResolver;
 import com.icthh.xm.commons.scheduler.domain.ScheduledEvent;
-import com.icthh.xm.lep.api.LepManagerService;
+import com.icthh.xm.lep.api.LepKeyResolver;
 import com.icthh.xm.lep.api.LepMethod;
-import com.icthh.xm.lep.api.commons.SeparatorSegmentedLepKey;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
-public class SchedulerEventTypeKeyResolver extends AppendLepKeyResolver {
+public class SchedulerEventTypeKeyResolver implements LepKeyResolver {
     @Override
-    protected String[] getAppendSegments(SeparatorSegmentedLepKey baseKey,
-                                         LepMethod method,
-                                         LepManagerService managerService) {
-        ScheduledEvent scheduledEvent = getRequiredParam(method, "scheduledEvent", ScheduledEvent.class);
-        String translatedXmEntityTypeKey = translateToLepConvention(scheduledEvent.getTypeKey());
-        return new String[]{
-            translatedXmEntityTypeKey
-        };
+    public List<String> segments(LepMethod method) {
+        return List.of(method.getParameter("scheduledEvent", ScheduledEvent.class).getTypeKey());
     }
 }

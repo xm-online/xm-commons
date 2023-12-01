@@ -1,39 +1,29 @@
 package com.icthh.xm.commons.lep.spring;
 
-import com.icthh.xm.commons.security.XmAuthenticationContext;
-import com.icthh.xm.commons.security.internal.SpringSecurityXmAuthenticationContextHolder;
+import com.icthh.xm.commons.lep.api.LepExecutorResolver;
+import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.tenant.PrivilegedTenantContext;
 import com.icthh.xm.commons.tenant.Tenant;
-import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
-import com.icthh.xm.lep.api.ContextScopes;
-import com.icthh.xm.lep.api.LepManager;
-import com.icthh.xm.lep.api.LepProcessingEvent.BeforeExecutionEvent;
-import com.icthh.xm.lep.api.ScopedContext;
 import lombok.SneakyThrows;
-import org.springframework.context.ApplicationListener;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.function.Supplier;
 
-import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_AUTH_CONTEXT;
-import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
+public class LepThreadHelper {
 
-@Component
-public class LepThreadHelper implements ApplicationListener<ApplicationLepProcessingEvent> {
-
-    private static final String THREAD = "thread";
     private final TenantContextHolder tenantContextHolder;
-    private final LepManager lepManager;
+    private final LepManagementService lepManagementService;
 
     public LepThreadHelper(TenantContextHolder tenantContextHolder,
-                           LepManager lepManager) {
+                           LepManagementService lepManagementService) {
         this.tenantContextHolder = tenantContextHolder;
-        this.lepManager = lepManager;
+        this.lepManagementService = lepManagementService;
     }
 
     public <T> Future<T> runInThread(ExecutorService executorService, Callable<T> task) {
@@ -42,39 +32,31 @@ public class LepThreadHelper implements ApplicationListener<ApplicationLepProces
 
     public <T> Future<T> runInThread(ExecutorService executorService, Callable<T> task, SecurityContext securityContext) {
         return executorService.submit(new LepThreadContext<T>(
-                lepManager,
-                task,
-                tenantContextHolder,
-                securityContext
+            lepManagementService,
+            task,
+            tenantContextHolder,
+            securityContext
         ));
-    }
-
-    @Override
-    public void onApplicationEvent(ApplicationLepProcessingEvent event) {
-        if (event.getLepProcessingEvent() instanceof BeforeExecutionEvent) {
-            ScopedContext context = lepManager.getContext(ContextScopes.EXECUTION);
-            context.setValue(THREAD, this);
-        }
     }
 
     private static class LepThreadContext<T> implements Callable<T> {
 
-        private final LepManager lepManager;
+        private final LepManagementService lepManagementService;
+        private final LepExecutorResolver lepExecutorResolver;
         private final Callable<T> task;
         private final Tenant tenant;
-        private final TenantContext tenantContext;
         private final SecurityContext securityContext;
         private final PrivilegedTenantContext privilegedTenantContext;
 
-        private LepThreadContext(LepManager lepManager, Callable<T> task,
+        private LepThreadContext(LepManagementService lepManagementService, Callable<T> task,
                                  TenantContextHolder tenantContextHolder,
                                  SecurityContext securityContext) {
-            this.lepManager = lepManager;
+            this.lepManagementService = lepManagementService;
+            this.lepExecutorResolver = lepManagementService.getCurrentLepExecutorResolver();
             this.task = task;
             this.privilegedTenantContext = tenantContextHolder.getPrivilegedContext();
             this.tenant = privilegedTenantContext.getTenant()
                     .orElseThrow(() -> new IllegalStateException("Tenant context doesn't have tenant key"));
-            this.tenantContext = tenantContextHolder.getContext();
             this.securityContext = securityContext;
         }
 
@@ -85,26 +67,12 @@ public class LepThreadHelper implements ApplicationListener<ApplicationLepProces
 
         @SneakyThrows
         private T runInLepContext() {
-            try {
-                init();
+            try (var threadContext = lepManagementService.beginThreadContext(lepExecutorResolver)){
+                SecurityContextHolder.setContext(securityContext);
                 return task.call();
             } finally {
-                destroy();
+                SecurityContextHolder.clearContext();
             }
-        }
-
-        private void init() {
-            SecurityContextHolder.setContext(securityContext);
-            XmAuthenticationContext authContext = new SpringSecurityXmAuthenticationContextHolder().getContext();
-            lepManager.beginThreadContext(threadContext -> {
-                threadContext.setValue(THREAD_CONTEXT_KEY_TENANT_CONTEXT, tenantContext);
-                threadContext.setValue(THREAD_CONTEXT_KEY_AUTH_CONTEXT, authContext);
-            });
-        }
-
-        private void destroy() {
-            lepManager.endThreadContext();
-            SecurityContextHolder.clearContext();
         }
     }
 

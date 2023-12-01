@@ -1,153 +1,100 @@
 package com.icthh.xm.commons.lep.spring;
 
-import static com.icthh.xm.commons.lep.TenantScriptStorage.CLASSPATH;
-import static com.icthh.xm.commons.lep.TenantScriptStorage.FILE;
-import static com.icthh.xm.commons.lep.TenantScriptStorage.XM_MS_CONFIG;
-import static com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader.XM_MS_CONFIG_URL_PREFIX;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
-import static org.springframework.core.io.ResourceLoader.CLASSPATH_URL_PREFIX;
-
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
-import com.icthh.xm.commons.lep.CacheableLepEngine;
-import com.icthh.xm.commons.lep.FileSystemUtils;
-import com.icthh.xm.commons.lep.RouterResourceLoader;
-import com.icthh.xm.commons.lep.TenantScriptStorage;
-import com.icthh.xm.commons.lep.XmExtensionService;
-import com.icthh.xm.commons.lep.XmFileSystemResourceLoader;
-import com.icthh.xm.commons.lep.XmGroovyExecutionStrategy;
-import com.icthh.xm.commons.lep.XmGroovyScriptEngineProviderStrategy;
-import com.icthh.xm.commons.lep.XmLepResourceService;
+import com.icthh.xm.commons.lep.DefaultLepKeyResolver;
+import com.icthh.xm.commons.lep.LepPathResolver;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
-import com.icthh.xm.commons.lep.storage.ClassPathTenantScriptPathResolver;
-import com.icthh.xm.commons.lep.storage.FileTenantScriptPathResolver;
-import com.icthh.xm.commons.lep.storage.TenantScriptPathResolver;
-import com.icthh.xm.commons.lep.storage.XmMsConfigTenantScriptPathResolver;
+import com.icthh.xm.commons.lep.api.BaseLepContext;
+import com.icthh.xm.commons.lep.api.LepAdditionalContext;
+import com.icthh.xm.commons.lep.api.LepContextFactory;
+import com.icthh.xm.commons.lep.api.LepEngine;
+import com.icthh.xm.commons.lep.api.LepEngineFactory;
+import com.icthh.xm.commons.lep.api.LepManagementService;
+import com.icthh.xm.commons.lep.commons.CommonsConfiguration;
+import com.icthh.xm.commons.lep.commons.CommonsService;
+import com.icthh.xm.commons.lep.impl.LepMethodAspect;
+import com.icthh.xm.commons.lep.impl.LoggingWrapper;
+import com.icthh.xm.commons.lep.impl.LogicExtensionPointHandler;
+import com.icthh.xm.commons.lep.impl.engine.LepManagementServiceImpl;
+import com.icthh.xm.commons.lep.impl.internal.MigrationFromCoreContextsHolderLepManagementServiceReference;
+import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
+import com.icthh.xm.commons.lep.spring.lepservice.ClearServicesOnEngineDestroy;
+import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryResolver;
+import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryWithLepFactoryMethod;
+import com.icthh.xm.commons.lep.spring.web.LepInterceptor;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
-import com.icthh.xm.lep.api.ExtensionService;
-import com.icthh.xm.lep.api.LepExecutor;
+import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
+import com.icthh.xm.lep.api.LepKeyResolver;
 import com.icthh.xm.lep.api.LepManager;
-import com.icthh.xm.lep.api.LepResourceService;
-import com.icthh.xm.lep.groovy.DefaultScriptNameLepResourceKeyMapper;
-import com.icthh.xm.lep.groovy.ScriptNameLepResourceKeyMapper;
-import com.icthh.xm.lep.groovy.StrategyGroovyLepExecutor;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.icthh.xm.lep.core.CoreLepManager;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Scope;
-import org.springframework.core.io.FileSystemResourceLoader;
-import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.annotation.Order;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
-/**
- * The {@link LepSpringConfiguration} class.
- */
 @Configuration
-public abstract class LepSpringConfiguration {
-
-    private static final String FILE_URL_PREFIX = "file:";
-    private static final int RESOURCE_LOADERS_CAPACITY = 3;
+@ConditionalOnMissingBean(LepSpringConfiguration.class)
+@EnableAspectJAutoProxy
+@Import({CommonsConfiguration.class})
+public class LepSpringConfiguration {
 
     private final String appName;
-    private final ApplicationEventPublisher eventPublisher;
-    private final ResourceLoader resourceLoader;
-    @Autowired @Lazy
-    private XmLepScriptConfigServerResourceLoader xmLepScriptConfigServerResourceLoader;
 
-    @Autowired @Lazy
-    private LoggingConfigService loggingConfigService;
-
-    @Autowired @Lazy
-    private TenantAliasService tenantAliasService;
-
-    protected LepSpringConfiguration(String appName,
-                                     ApplicationEventPublisher eventPublisher,
-                                     ResourceLoader resourceLoader) {
-        this.appName = Objects.requireNonNull(appName);
-        this.eventPublisher = eventPublisher;
-        this.resourceLoader = resourceLoader;
+    public LepSpringConfiguration(@Value("${spring.application.name}") String appName) {
+        this.appName = appName;
     }
 
     @Bean
-    @Scope(SCOPE_SINGLETON)
-    public LepManager lepManager() {
-        return new SpringLepManager(extensionService(),
-            lepExecutor(),
-            applicationLepProcessingEventPublisher(),
-            lepResourceService(),
-            loggingConfigService);
+    @ConditionalOnMissingBean(LepManagementService.class)
+    public LepManagementService lepManagementService(List<LepEngineFactory> engineFactories,
+                                                     TenantContextHolder tenantContextHolder,
+                                                     List<LepEngine.DestroyCallback> destroyCallbacks) {
+        return new LepManagementServiceImpl(engineFactories, tenantContextHolder, destroyCallbacks);
     }
 
     @Bean
-    public ScriptNameLepResourceKeyMapper scriptNameLepResourceKeyMapper() {
-        return new DefaultScriptNameLepResourceKeyMapper();
+    @ConditionalOnMissingBean(ApplicationNameProvider.class)
+    public ApplicationNameProvider applicationNameProvider() {
+        return new ApplicationNameProvider(appName);
     }
 
     @Bean
-    public XmGroovyScriptEngineProviderStrategy xmGroovyScriptEngineProviderStrategy() {
-        return new XmGroovyScriptEngineProviderStrategy(scriptNameLepResourceKeyMapper(),
-                                                        appName,
-                                                        lepResourceService(),
-                                                        tenantAliasService);
+    @ConditionalOnMissingBean(LepUpdateMode.class)
+    public LepUpdateMode lepUpdateMode() {
+        return LepUpdateMode.LIVE;
     }
 
     @Bean
-    public XmGroovyExecutionStrategy xmGroovyExecutionStrategy() {
-        return new XmGroovyExecutionStrategy();
+    @ConditionalOnMissingBean(XmLepScriptConfigServerResourceLoader.class)
+    public XmLepScriptConfigServerResourceLoader cfgResourceLoader(LepPathResolver lepPathResolver,
+                                                                   LepManagementService lepManagementService,
+                                                                   LepUpdateMode lepUpdateMode,
+                                                                   TenantContextHolder tenantContextHolder) {
+        return new XmLepScriptConfigServerResourceLoader(
+            lepPathResolver,
+            lepManagementService,
+            lepUpdateMode,
+            tenantContextHolder
+        );
     }
 
     @Bean
-    public LepExecutor lepExecutor() {
-        return new StrategyGroovyLepExecutor(scriptNameLepResourceKeyMapper(),
-                                             xmGroovyScriptEngineProviderStrategy(),
-                                             xmGroovyExecutionStrategy());
+    public LepPathResolver lepPathResolver(ApplicationNameProvider applicationNameProvider,
+                                           TenantAliasService tenantAliasService) {
+        return new LepPathResolver(applicationNameProvider, tenantAliasService);
     }
 
     @Bean
-    public ExtensionService extensionService() {
-        return new XmExtensionService();
-    }
-
-    @Bean
-    public ApplicationLepProcessingEventPublisher applicationLepProcessingEventPublisher() {
-        return new ApplicationLepProcessingEventPublisher(eventPublisher);
-    }
-
-    @Bean
-    public XmLepScriptConfigServerResourceLoader cfgResourceLoader(List<CacheableLepEngine> cacheableEngines,
-                                                                   @Value("${application.lep.full-recompile-on-lep-update:false}") Boolean fullRecompileOnLepUpdate) {
-        return new XmLepScriptConfigServerResourceLoader(appName, cacheableEngines, fullRecompileOnLepUpdate);
-    }
-
-    @Bean
-    public RouterResourceLoader routerResourceLoader() {
-        Map<String, ResourceLoader> routerMap = new HashMap<>(RESOURCE_LOADERS_CAPACITY);
-        routerMap.put(CLASSPATH_URL_PREFIX, resourceLoader);
-        routerMap.put(XM_MS_CONFIG_URL_PREFIX, xmLepScriptConfigServerResourceLoader);
-        routerMap.put(FILE_URL_PREFIX, xmFileSystemResourceLoader());
-        return new RouterResourceLoader(routerMap);
-    }
-
-    protected abstract TenantScriptStorage getTenantScriptStorageType();
-
-    @Bean
-    public XmFileSystemResourceLoader xmFileSystemResourceLoader() {
-        return new XmFileSystemResourceLoader(new FileSystemResourceLoader(),
-                                              tenantAliasService,
-                                              appName);
-    }
-
-    @Bean
-    public LepResourceService lepResourceService() {
-        return new XmLepResourceService(appName,
-                                        resolveResolver(),
-                                        routerResourceLoader());
+    public ClassPathLepRepository classPathLepRepository(ApplicationContext applicationContext) {
+        return new ClassPathLepRepository(applicationContext);
     }
 
     @Bean
@@ -155,16 +102,94 @@ public abstract class LepSpringConfiguration {
         return new TenantAliasService();
     }
 
-    private TenantScriptPathResolver resolveResolver() {
-        Map<TenantScriptStorage, TenantScriptPathResolver> resolverMap = new HashMap<>();
-        resolverMap.put(CLASSPATH, new ClassPathTenantScriptPathResolver());
-        resolverMap.put(XM_MS_CONFIG, new XmMsConfigTenantScriptPathResolver());
-        resolverMap.put(FILE, new FileTenantScriptPathResolver(getFileTenantScriptPathResolverBaseDir()));
-        return resolverMap.get(getTenantScriptStorageType());
+    @Bean
+    public LepMethodAspect lepMethodAspect() {
+        return new LepMethodAspect();
     }
 
-    protected String getFileTenantScriptPathResolverBaseDir() {
-        return FileSystemUtils.getAppHomeDir();
+    @Bean
+    public LogicExtensionPointHandler logicExtensionPointHandler(List<LepKeyResolver> resolverList,
+                                                                 LepManagementService lepEngineService,
+                                                                 LepContextService lepContextService) {
+        return new LogicExtensionPointHandler(resolverList, lepEngineService, lepContextService);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(LepContextFactory.class)
+    public LepContextFactory lepContextFactory() {
+        return lepMethod -> new BaseLepContext() {};
+    }
+
+    @Bean
+    public DefaultLepKeyResolver defaultLepKeyResolver() {
+        return new DefaultLepKeyResolver();
+    }
+
+    @Bean
+    public LepServiceFactoryResolver lepServiceFactoryResolver() {
+        return new LepServiceFactoryResolver();
+    }
+
+    @Bean
+    public LepContextService lepContextService(LepContextFactory lepContextFactory,
+                                               LepServiceFactoryWithLepFactoryMethod lepServiceFactory,
+                                               LepThreadHelper lepThreadHelper,
+                                               TenantContextHolder tenantContextHolder,
+                                               XmAuthenticationContextHolder xmAuthContextHolder,
+                                               List<LepAdditionalContext<?>> additionalContexts,
+                                               CommonsService commonsService) {
+        return new LepContextService(
+            lepContextFactory,
+            lepServiceFactory,
+            lepThreadHelper,
+            tenantContextHolder,
+            xmAuthContextHolder,
+            additionalContexts,
+            commonsService
+        );
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(LepServiceFactoryWithLepFactoryMethod.class)
+    public LepServiceFactoryWithLepFactoryMethod lepServiceFactory(
+        @Value("${application.lep.service-factory-timeout:60}")
+        Integer timeout
+    ) {
+        return new LepServiceFactoryWithLepFactoryMethod(timeout);
+    }
+
+    @Bean
+    public ClearServicesOnEngineDestroy clearServicesOnEngineDestroy(LepServiceFactoryWithLepFactoryMethod factory) {
+        return new ClearServicesOnEngineDestroy(factory);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(LoggingWrapper.class)
+    public LoggingWrapper loggingWrapper(LoggingConfigService loggingConfigService) {
+        return new LoggingWrapper(loggingConfigService);
+    }
+
+    @Bean
+    public LepThreadHelper lepThreadHelper(TenantContextHolder tenantContextHolder, LepManagementService lepManagementService) {
+        return new LepThreadHelper(tenantContextHolder, lepManagementService);
+    }
+
+    @Bean
+    @Order(5) // 5 - after TenantInterceptor-s
+    public LepInterceptor lepInterceptor(@Lazy LepManagementService lepManagementService) {
+        return new LepInterceptor(lepManagementService);
+    }
+
+    @Bean
+    @Deprecated(forRemoval = true)
+    public LepManager lepManager(TenantContextHolder tenantContextHolder, LepManagementService lepManagementService) {
+        return new CoreLepManager(tenantContextHolder, lepManagementService);
+    }
+
+    @Bean
+    @Deprecated(forRemoval = true)
+    public MigrationFromCoreContextsHolderLepManagementServiceReference migrationFromCoreContextsHolderLepManagementServiceReference(LepManagementService lepManagementService) {
+        return new MigrationFromCoreContextsHolderLepManagementServiceReference(lepManagementService);
     }
 
 }

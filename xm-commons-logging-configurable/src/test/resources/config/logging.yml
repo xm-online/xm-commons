@@ -29,5 +29,11 @@ api:
       resultCollectionAware: true
 lep:
   - group: general
-    fileName: TestLep$$default.groovy
+    fileName: TestLep.groovy
     level: WARN
+  - group: general
+    fileName: TestLep$$around.groovy
+    level: ERROR
+  - group: general
+    fileName: TestLepOFFLOG$$tenant.groovy
+    level: OFF_LOG

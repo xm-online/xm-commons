@@ -5,10 +5,8 @@ import com.icthh.xm.commons.lep.spring.LepService;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
-import org.springframework.stereotype.Service;
 
 @Slf4j
-@Service
 @LepService
 @IgnoreLogginAspect
 public class CommonsService {

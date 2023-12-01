@@ -3,6 +3,7 @@ package com.icthh.xm.commons.web.spring;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
+import com.icthh.xm.commons.tenant.XmRelatedComponent;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import java.util.Objects;
@@ -12,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * The {@link TenantVerifyInterceptor} class.
  */
+@XmRelatedComponent
 public class TenantVerifyInterceptor extends HandlerInterceptorAdapter {
 
     private static final String JSON_ERROR_TENANT_SUSPENDED = "{\"error\": \"Tenant is suspended\"}";

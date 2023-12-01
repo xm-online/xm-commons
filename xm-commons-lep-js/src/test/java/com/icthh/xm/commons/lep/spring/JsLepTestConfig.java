@@ -1,0 +1,48 @@
+package com.icthh.xm.commons.lep.spring;
+
+import com.icthh.xm.commons.lep.impl.LoggingWrapper;
+import com.icthh.xm.commons.lep.js.JsLepEngineFactory;
+import com.icthh.xm.commons.logging.config.LoggingConfigService;
+import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+
+/**
+ *
+ */
+@Configuration
+@Import({LepSpringConfiguration.class})
+public class JsLepTestConfig {
+
+    public JsLepTestConfig() {
+    }
+
+    @Bean
+    public JsLepEngineFactory jsLepEngineFactory(LoggingWrapper loggingWrapper, ApplicationNameProvider applicationNameProvider) {
+        return new JsLepEngineFactory(applicationNameProvider, loggingWrapper);
+    }
+
+    @Bean
+    public LepUpdateMode lepUpdateMode() {
+        return LepUpdateMode.SYNCHRONOUS;
+    }
+
+    @Bean
+    public JsTestLepService testLepService() {
+        return new JsTestLepService();
+    }
+
+    @Bean
+    public JsTestResolver jsTestResolver() {
+        return new JsTestResolver();
+    }
+
+    @Bean
+    public LoggingConfigService LoggingConfigService() {
+        return new LoggingConfigServiceStub();
+    }
+
+
+
+}

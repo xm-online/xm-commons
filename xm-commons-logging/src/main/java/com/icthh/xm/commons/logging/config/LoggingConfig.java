@@ -39,13 +39,13 @@ public class LoggingConfig {
         return buildLogConfiguration(this.getApiLoggingConfigs());
     }
 
-    public Map<String, LepLogConfiguration> buildLepLoggingConfigs(String tenantKey) {
+    public Map<String, LepLogConfiguration> buildLepLoggingConfigs(String tenantKey, String appName) {
         List<LepLogConfiguration> lepLogConfigurations = this.getLepLogConfigurations();
         if (CollectionUtils.isEmpty(lepLogConfigurations)) {
             return Collections.emptyMap();
         }
 
-        return lepLogConfigurations.stream().collect(toMap(configuration -> configuration.buildConfigKey(tenantKey),
+        return lepLogConfigurations.stream().collect(toMap(configuration -> configuration.buildConfigKey(tenantKey, appName),
                                                            configuration -> configuration));
     }
 
@@ -65,8 +65,8 @@ public class LoggingConfig {
         private String fileName;
         private Level level;
 
-        String buildConfigKey(String tenantKey) {
-            return  "lep://" + tenantKey.toUpperCase() + "/" + this.getGroup() + "/" + this.getFileName();
+        String buildConfigKey(String tenantKey, String appName) {
+            return  "lep://" + tenantKey.toUpperCase() + "/" + appName + "/lep/" + this.getGroup() + "/" + this.getFileName();
         }
     }
 

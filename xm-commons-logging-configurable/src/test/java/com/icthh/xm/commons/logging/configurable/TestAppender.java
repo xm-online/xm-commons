@@ -5,6 +5,7 @@ import ch.qos.logback.core.AppenderBase;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class TestAppender extends AppenderBase<ILoggingEvent> {
 
@@ -24,10 +25,14 @@ public class TestAppender extends AppenderBase<ILoggingEvent> {
     }
 
     public static ILoggingEvent searchByMessage(String message) {
-        return events.stream()
-                     .filter(event -> event.getMessage().equals(message))
-                     .findFirst()
+        return findMessage(message)
                      .orElseThrow(() -> new RuntimeException("Can not find message: " + message));
+    }
+
+    public static Optional<ILoggingEvent> findMessage(String message) {
+        return events.stream()
+            .filter(event -> event.getMessage().equals(message))
+            .findFirst();
     }
 }
 

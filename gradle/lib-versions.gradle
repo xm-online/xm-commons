@@ -12,6 +12,7 @@ ext.versions = [
     commonsCodec               : '1.15',
     commonsIo                  : '2.11.0',
     commonsCollections         : '3.2.2',
+    commonsCollections4        : '4.4',
     commonsText                : '1.10.0',
     guava                      : '29.0-jre',
 
@@ -42,5 +43,7 @@ ext.versions = [
 
     mapstruct                  : '1.5.3.Final',
 
-    hibernateTypes52           : '2.4.3'
+    hibernateTypes52           : '2.4.3',
+
+    groovyAll                  : '2.5.23'
 ]
