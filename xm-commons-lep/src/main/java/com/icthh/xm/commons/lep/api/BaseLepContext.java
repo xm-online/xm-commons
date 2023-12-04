@@ -5,11 +5,15 @@ import com.icthh.xm.commons.lep.spring.LepThreadHelper;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactory;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.tenant.TenantContext;
+import lombok.Setter;
+import lombok.experimental.Delegate;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class BaseLepContext {
+import static java.util.Optional.ofNullable;
+
+public abstract class BaseLepContext implements Map<String, Object> {
 
     public Object commons;
     public Object inArgs;
@@ -22,14 +26,22 @@ public abstract class BaseLepContext {
     public Object methodResult;
     public LepServiceFactory lepServices;
 
-    private Map<String, Object> additionalContext = new HashMap<>();
+    private transient Map<String, Object> additionalContext = new HashMap<>();
+    @Setter
+    private transient LepContextMapSupport mapSupport;
+    @Delegate(excludes = ExcludedMethods.class)
+    private transient Map<String, Object> emptyMap = Map.of();
 
-    public final Object get(String additionalContextKey) {
-        return additionalContext.get(additionalContextKey);
+    public final Object get(Object fieldName) {
+        return ofNullable(mapSupport.get(String.valueOf(fieldName), this)).orElse(additionalContext.get(fieldName));
     }
 
     public final void addAdditionalContext(String additionalContextKey, Object additionalContextValue) {
         additionalContext.put(additionalContextKey, additionalContextValue);
+    }
+
+    private interface ExcludedMethods {
+        Object get(Object key);
     }
 
 }
