@@ -56,4 +56,14 @@ public class LepIntTest {
         assertEquals("STATIC_METHOD_WORKS", result);
     }
 
+
+    @Test
+    @SneakyThrows
+    public void testLepContextCastToMap() {
+        String code = loadFile("lep/TestLepContextCastToMap.groovy");
+        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethodWithInput$$around.groovy", code);
+        String result = testLepService.testLepMethod(Map.of("parameter", "testValue"));
+        assertEquals("testValue", result);
+    }
+
 }

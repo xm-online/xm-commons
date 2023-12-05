@@ -4,6 +4,7 @@ import com.icthh.xm.commons.lep.TargetProceedingLep;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepAdditionalContext;
 import com.icthh.xm.commons.lep.api.LepContextFactory;
+import com.icthh.xm.commons.lep.api.LepContextMapSupport;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.commons.CommonsExecutor;
 import com.icthh.xm.commons.lep.commons.CommonsService;
@@ -28,6 +29,7 @@ public class LepContextService {
     private final XmAuthenticationContextHolder xmAuthContextHolder;
     private final List<LepAdditionalContext<?>> additionalContexts;
     private final CommonsService commonsService;
+    private final LepContextMapSupport lepContextMapSupport;
 
     public final BaseLepContext createLepContext(LepEngine lepEngine, TargetProceedingLep lepMethod) {
         BaseLepContext baseLepContext = lepContextFactory.buildLepContext(lepMethod);
@@ -37,6 +39,7 @@ public class LepContextService {
         baseLepContext.tenantContext = tenantContextHolder.getContext();
         baseLepContext.authContext = xmAuthContextHolder.getContext();
         baseLepContext.commons = new CommonsExecutor(commonsService);
+        baseLepContext.setMapSupport(lepContextMapSupport);
         additionalContexts.forEach(context ->
             baseLepContext.addAdditionalContext(context.additionalContextKey(), context.additionalContextValue()));
         baseLepContext.lepServices = new LepServiceFactoryImpl(lepEngine.getId(), lepServiceFactory);
