@@ -1,13 +1,9 @@
 package com.icthh.xm.commons.lep.impl.utils;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.reflections.Reflections;
-import org.reflections.scanners.ResourcesScanner;
-import org.reflections.scanners.Scanner;
 import org.reflections.scanners.Scanners;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -15,7 +11,6 @@ import org.springframework.core.io.ResourceLoader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
