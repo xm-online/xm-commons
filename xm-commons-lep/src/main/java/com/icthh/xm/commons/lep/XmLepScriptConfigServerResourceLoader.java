@@ -6,6 +6,7 @@ import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import com.icthh.xm.commons.lep.spring.LepUpdateMode;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -15,7 +16,6 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.util.AntPathMatcher;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;

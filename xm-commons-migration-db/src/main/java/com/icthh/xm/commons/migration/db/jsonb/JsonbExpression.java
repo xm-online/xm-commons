@@ -1,15 +1,14 @@
 package com.icthh.xm.commons.migration.db.jsonb;
 
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Root;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Root;
-
 import static com.icthh.xm.commons.migration.db.jsonb.CustomDialect.JSON_QUERY;
-import static com.icthh.xm.commons.migration.db.jsonb.CustomPostgreSQL95Dialect.TO_JSON_B;
+import static com.icthh.xm.commons.migration.db.jsonb.CustomPostgreSQLDialect.TO_JSON_B;
 
 
 @Component

@@ -2,16 +2,16 @@ package com.icthh.xm.commons.timeline.config;
 
 import com.icthh.xm.commons.timeline.TimelineEventProducer;
 import com.icthh.xm.commons.security.internal.XmAuthentication;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +25,7 @@ import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 
 @Slf4j
 @Component
-public class TimelineInterceptor extends HandlerInterceptorAdapter {
+public class TimelineInterceptor implements HandlerInterceptor { // todo spring 3.2.0 migration
 
     private static final String HEADER_TENANT = "x-tenant";
     private static final String AUTH_TENANT_KEY = "tenant";

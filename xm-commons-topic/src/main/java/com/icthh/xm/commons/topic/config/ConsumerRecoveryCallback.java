@@ -1,10 +1,10 @@
 package com.icthh.xm.commons.topic.config;
 
+import static com.icthh.xm.commons.topic.config.RetryingMessageListenerAdapter.CONTEXT_ACKNOWLEDGMENT;
+import static com.icthh.xm.commons.topic.config.RetryingMessageListenerAdapter.CONTEXT_RECORD;
 import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.getRetryCounter;
 import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.getRid;
 import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.getTotalProcessingTime;
-import static org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter.CONTEXT_ACKNOWLEDGMENT;
-import static org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter.CONTEXT_RECORD;
 
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.topic.domain.TopicConfig;

@@ -3,20 +3,15 @@ package com.icthh.xm.commons.logging.trace;
 import com.icthh.xm.commons.lep.api.LepAdditionalContext;
 import com.icthh.xm.commons.lep.api.LepAdditionalContextField;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cloud.sleuth.instrument.web.mvc.TracingClientHttpRequestInterceptor;
 import org.springframework.stereotype.Component;
 
 import static com.icthh.xm.commons.logging.trace.TraceService.TraceServiceField.FIELD_NAME;
 
+// todo spring 3.2.0 migration
+//  Spring Cloud Sleuth not supported since Spring Boot 3.x - https://docs.spring.io/spring-cloud-sleuth/docs/current-SNAPSHOT/reference/html/
 @Component
 @RequiredArgsConstructor
 public class TraceService implements LepAdditionalContext<TraceService> {
-
-    private final TracingClientHttpRequestInterceptor tracingClientHttpRequestInterceptor;
-
-    public TracingClientHttpRequestInterceptor getTraceInterceptor() {
-        return tracingClientHttpRequestInterceptor;
-    }
 
     @Override
     public String additionalContextKey() {

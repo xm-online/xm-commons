@@ -3,6 +3,7 @@ package com.icthh.xm.commons.lep.spring;
 import com.icthh.xm.commons.lep.TenantScriptStorage;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
+import jakarta.annotation.PreDestroy;
 import lombok.SneakyThrows;
 import org.junit.rules.TemporaryFolder;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -10,8 +11,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-
-import javax.annotation.PreDestroy;
 
 @Configuration
 @ComponentScan("com.icthh.xm.commons.lep.spring")
