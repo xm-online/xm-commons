@@ -1,20 +1,20 @@
 ext.versions = [
     gradle                     : '8.5',
-    grgit                      : '2.0.0', //TODO choose correct version
-    sonarqube                  : '4.29',
-    checkstyle                 : '10.3.1',
-    spotbug                    : '5.0.9',
-    spotbugToolVersion         : '4.7.1',
-    pmd                        : '6.47.0',
+    grgit                      : '5.2.1',
+    sonarqube                  : '4.4.1.3373',
+    checkstyle                 : '10.12.5',
+    spotbug                    : '6.0.7',
+    spotbugToolVersion         : '4.8.3',
+    pmd                        : '6.48.0',
 
-    equalsverifier             : '3.10',
-    commonsLang3               : '3.12.0',
-    commonsCodec               : '1.15',
-    commonsIo                  : '2.11.0',
+    equalsverifier             : '3.10', // 3.15.6
+    commonsLang3               : '3.14.0',
+    commonsCodec               : '1.16.0',
+    commonsIo                  : '2.15.1',
     commonsCollections         : '3.2.2',
     commonsCollections4        : '4.4',
-    commonsText                : '1.10.0',
-    guava                      : '29.0-jre',
+    commonsText                : '1.11.0',
+    guava                      : '33.0.0-jre',
 
     springBoot                 : '3.2.0',
     springCloud                : '2023.0.0',
@@ -24,8 +24,8 @@ ext.versions = [
     jsr305                     : '3.0.2',
 
     jhipster                   : '8.1.0',
-    lombok                     : '1.18.30', // this
-    logstashLogbackEncoder     : '7.2',
+    lombok                     : '1.18.30',
+    logstashLogbackEncoder     : '7.4',
 
     swaggerCodegen             : '3.0.51',
     springfoxSwagger           : '3.0.0',
@@ -37,13 +37,13 @@ ext.versions = [
 
     hibernate                  : '6.4.2.Final',
 
-    jjwt                       : '0.11.2',
+    jjwt                       : '0.11.5',
 
-    mapstruct                  : '1.5.5.Final', //this
+    mapstruct                  : '1.5.5.Final',
 
     hibernateTypes60           : '2.21.1',
 
-    groovyAll                  : '2.5.23',
+    groovyAll                  : '3.0.20',
 
     micrometer                 : '1.2.2'
 ]
