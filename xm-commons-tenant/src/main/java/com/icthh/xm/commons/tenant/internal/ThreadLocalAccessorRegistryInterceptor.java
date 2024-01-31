@@ -9,6 +9,8 @@ public class ThreadLocalAccessorRegistryInterceptor {
 
     /**
      * This method registers ThreadLocalAccessor in micrometer ContextRegistry. Ignored if micrometer is missing.
+     * ContextRegistry is used for thread local transfer between threads in Project Reactor.
+     * Please read <a href="https://github.com/micrometer-metrics/context-propagation">context-propagation library</a> for details.
      *
      * @param key the key to associate with the ThreadLocal value
      * @param threadLocal the underlying ThreadLocal
