@@ -28,6 +28,10 @@ final class TenantContextDataHolder {
     private static ThreadLocal<Stack<TenantContextDataHolder>> parentHolderInstanceStack =
         ThreadLocal.withInitial(Stack::new);
 
+    static {
+        ThreadLocalAccessorRegistryInterceptor.register("holderInstance", holderInstance);
+    }
+
     /**
      * Holder for tenant instance.
      */
