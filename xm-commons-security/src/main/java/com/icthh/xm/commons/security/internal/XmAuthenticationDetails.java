@@ -5,10 +5,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.SslInfo;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static java.util.Collections.emptyList;
@@ -51,6 +54,29 @@ public class XmAuthenticationDetails {
         this.remoteAddress = request.getRemoteAddr();
         HttpSession session = request.getSession(false);
         this.sessionId = (session != null) ? session.getId() : null;
+
+        this.decodedDetails = unmodifiableMap(claims);
+    }
+
+    // todo spring 3.2.0 migration
+    public XmAuthenticationDetails(Claims claims, ServerHttpRequest request, String token) {
+        this.createTokenTime =  claims.get("createTokenTime", Long.class);
+        this.userName =  claims.get("user_name", String.class);
+        this.roleKey =  claims.get("role_key", String.class);
+        this.userKey =  claims.get("user_key", String.class);
+        this.clientId =  claims.get("client_id", String.class);
+        this.authorities = toSet(claims.get("authorities", List.class));
+        this.scope = toSet(claims.get("scope", List.class));
+
+        List<Map<String, String>> logins = nullSafe(claims.get("logins", List.class));
+        this.logins = logins.stream().map(it -> new XmLogin(it.get("typeKey"), it.get("stateKey"), it.get("login"))).toList();
+
+        this.tokenValue = token;
+        this.tokenType = "Bearer";
+
+        this.remoteAddress = Objects.requireNonNull(request.getRemoteAddress()).getAddress().getHostAddress();
+        SslInfo sslInfo = request.getSslInfo();
+        this.sessionId = (sslInfo != null) ? sslInfo.getSessionId() : null;
 
         this.decodedDetails = unmodifiableMap(claims);
     }
