@@ -5,11 +5,13 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.boot.SessionFactoryBuilder;
 import org.hibernate.boot.internal.MetadataImpl;
+import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.boot.spi.SessionFactoryBuilderFactory;
 import org.hibernate.boot.spi.SessionFactoryBuilderImplementor;
 import org.hibernate.dialect.Dialect;
-import org.hibernate.dialect.PostgreSQL95Dialect;
+import org.hibernate.dialect.PostgreSQLDialect;
+import org.hibernate.mapping.BasicValue;
 import org.hibernate.mapping.Component;
 import org.hibernate.mapping.Property;
 import org.hibernate.mapping.SimpleValue;
@@ -34,14 +36,14 @@ public class JsonbTypeRegistrator implements SessionFactoryBuilderFactory {
         final SessionFactoryBuilderImplementor defaultBuilder) {
         MetadataImpl metadataImpl = (MetadataImpl) metadata;
         Dialect dialect = metadataImpl.getDatabase().getDialect();
-        if (dialect instanceof PostgreSQL95Dialect) {
+        if (dialect instanceof PostgreSQLDialect) {
             log.info(
                 "Run on {} dialect. Metadata will be processed. "
                     + "And field marker as @Jsonb will be replaced to jsonb type.",
                 dialect);
 
             metadataImpl.getEntityBindings().forEach(mapping ->
-                updateEntityMapping(metadataImpl, mapping.getDeclaredPropertyIterator(), mapping.getMappedClass()));
+                updateEntityMapping(metadataImpl, mapping.getDeclaredProperties().iterator(), mapping.getMappedClass()));
         } else {
             log.info("Run on {} dialect. Metadata will not be processed", dialect);
         }
@@ -76,7 +78,8 @@ public class JsonbTypeRegistrator implements SessionFactoryBuilderFactory {
 
     private void updateMappingTypeToJsonb(MetadataImpl metadata, Property jsonProperty, String fieldClassName) {
         log.info("Set type for {} to jsonb", jsonProperty.getName());
-        SimpleValue simpleValue = new SimpleValue(metadata.getTypeConfiguration().getMetadataBuildingContext());
+        // todo spring 3.2.0 migration
+        SimpleValue simpleValue = new BasicValue(metadata.getTypeConfiguration().getMetadataBuildingContext());
         simpleValue.setTypeName(JsonBinaryType.class.getCanonicalName());
         if (simpleValue.getTypeParameters() == null) {
             simpleValue.setTypeParameters(new Properties());

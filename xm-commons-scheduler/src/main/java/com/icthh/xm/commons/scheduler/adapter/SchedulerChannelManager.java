@@ -30,10 +30,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.binder.ConsumerProperties;
 import org.springframework.cloud.stream.binder.HeaderMode;
-import org.springframework.cloud.stream.binder.kafka.KafkaBinderHealthIndicator;
 import org.springframework.cloud.stream.binder.kafka.KafkaMessageChannelBinder;
 import org.springframework.cloud.stream.binder.kafka.config.KafkaBinderConfiguration;
 import org.springframework.cloud.stream.binder.kafka.properties.KafkaBindingProperties;
@@ -64,7 +62,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@EnableBinding
+//@EnableBinding todo spring 3.2.0 migration - Function based (https://spring.io/blog/2019/10/14/spring-cloud-stream-demystified-and-simplified/)
 @EnableIntegration
 @Import(KafkaBinderConfiguration.class)
 @ConditionalOnProperty("application.scheduler-enabled")

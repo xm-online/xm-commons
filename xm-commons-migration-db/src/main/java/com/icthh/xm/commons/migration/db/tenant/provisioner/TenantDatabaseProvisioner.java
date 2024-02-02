@@ -16,9 +16,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
 import org.springframework.stereotype.Service;
 
+import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.Optional;
-import javax.sql.DataSource;
 
 @Slf4j
 @Service

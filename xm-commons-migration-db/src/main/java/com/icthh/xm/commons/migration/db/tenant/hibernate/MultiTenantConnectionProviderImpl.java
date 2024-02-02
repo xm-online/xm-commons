@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
-public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionProvider {
+public class MultiTenantConnectionProviderImpl implements MultiTenantConnectionProvider<String> {
 
     private static final long serialVersionUID = 1L;
 

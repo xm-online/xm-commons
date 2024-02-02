@@ -2,6 +2,10 @@ package com.icthh.xm.commons.permission.repository;
 
 import com.icthh.xm.commons.permission.service.PermissionCheckService;
 import com.icthh.xm.commons.permission.service.translator.SpelToJpqlTranslator;
+import jakarta.persistence.EntityGraph;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Subgraph;
+import jakarta.persistence.TypedQuery;
 import lombok.Value;
 import org.hibernate.jpa.QueryHints;
 import org.junit.Before;
@@ -15,10 +19,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import javax.persistence.EntityGraph;
-import javax.persistence.EntityManager;
-import javax.persistence.Subgraph;
-import javax.persistence.TypedQuery;
 import java.util.Collections;
 import java.util.List;
 

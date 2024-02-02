@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 //  Migration gide - https://github.com/micrometer-metrics/tracing/wiki/Spring-Cloud-Sleuth-3.1-Migration-Guide
 @Slf4j
 @Component
-public class SleuthWrapper {
+public class MicrometerWrapper {
 
     private static final String TIMER_NAME = "kafka.processing.timer";
     private static final String SPAN_NAME_FROM_MESSAGE = "on-message";
@@ -25,16 +25,16 @@ public class SleuthWrapper {
     private final MeterRegistry meterRegistry;
 
     @Autowired
-    public SleuthWrapper(Tracer tracer, MeterRegistry meterRegistry) {
+    public MicrometerWrapper(Tracer tracer, MeterRegistry meterRegistry) {
         this.tracer = tracer;
         this.meterRegistry = meterRegistry;
     }
 
-    public void runWithSleuth(ConsumerRecord<?, ?> record, Runnable codeToRun) {
+    public void runWithMicrometer(ConsumerRecord<?, ?> record, Runnable codeToRun) {
 //        runWithExistingSpan(kafkaSpan, codeToRun); // TODO
     }
 
-    public void runWithSleuth(Message<?> message, MessageChannel channel, Runnable codeToRun) {
+    public void runWithMicrometer(Message<?> message, MessageChannel channel, Runnable codeToRun) {
         Timer.Sample timerSample = Timer.start(meterRegistry); // TODO
         Exception exceptionFromExecution = null;
         try {

@@ -13,9 +13,13 @@ import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation
 import com.icthh.xm.commons.domainevent.service.EventPublisher;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Table;
+import jakarta.persistence.metamodel.Metamodel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.EmptyInterceptor;
+import org.hibernate.metamodel.MappingMetamodel;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.entity.EntityPersister;
@@ -23,9 +27,6 @@ import org.hibernate.type.Type;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Table;
-import javax.persistence.metamodel.Metamodel;
 import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -131,10 +132,11 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
         Metamodel metamodel = entityManager.getMetamodel();
 
         String tableName = "";
-        if (metamodel instanceof MetamodelImplementor metamodelImplementor) {
-            EntityPersister entityPersister = metamodelImplementor.locateEntityPersister(entity.getClass());
+        // todo spring 3.2.0 migration
+        if (metamodel instanceof MappingMetamodel metamodelImplementor) {
+            EntityPersister entityPersister = metamodelImplementor.locateEntityDescriptor(entity.getClass());
             if (entityPersister instanceof AbstractEntityPersister abstractEntityPersister) {
-                tableName = abstractEntityPersister.getTableName();
+                tableName = abstractEntityPersister.getIdentifierTableName();
             }
         }
         log.info("Table name by hibernate name strategy: {}", tableName);

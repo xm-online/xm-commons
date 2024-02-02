@@ -17,6 +17,7 @@ import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.security.internal.XmAuthentication;
 import com.icthh.xm.commons.security.internal.XmAuthenticationDetails;
 import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +36,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.LinkedList;
 import java.util.List;
 
