@@ -7,7 +7,6 @@ import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepAdditionalContext;
 import com.icthh.xm.commons.lep.api.LepContextFactory;
-import com.icthh.xm.commons.lep.api.LepContextMapSupport;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepEngineFactory;
 import com.icthh.xm.commons.lep.api.LepManagementService;
@@ -130,11 +129,6 @@ public class LepSpringConfiguration {
     }
 
     @Bean
-    public LepContextMapSupport lepContextMapSupport(BasePackageDetector basePackageDetector) {
-        return new LepContextMapSupport(basePackageDetector);
-    }
-
-    @Bean
     @ConditionalOnMissingBean
     public BasePackageDetector basePackageDetector(ApplicationContext applicationContext) {
         return new BasePackageDetector(applicationContext);
@@ -147,8 +141,7 @@ public class LepSpringConfiguration {
                                                TenantContextHolder tenantContextHolder,
                                                XmAuthenticationContextHolder xmAuthContextHolder,
                                                List<LepAdditionalContext<?>> additionalContexts,
-                                               CommonsService commonsService,
-                                               LepContextMapSupport lepContextMapSupport) {
+                                               CommonsService commonsService) {
         return new LepContextService(
             lepContextFactory,
             lepServiceFactory,
@@ -156,8 +149,7 @@ public class LepSpringConfiguration {
             tenantContextHolder,
             xmAuthContextHolder,
             additionalContexts,
-            commonsService,
-            lepContextMapSupport
+            commonsService
         );
     }
 
