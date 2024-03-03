@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.lep.processor;
 
+import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
@@ -81,8 +82,9 @@ public class GroovyMapWrapperProcessor extends AbstractProcessor {
 
             // Constructor
             MethodSpec.Builder constructorBuilder = MethodSpec.constructorBuilder()
-                .addParameter(baseClassName, "lepContext")
+                .addParameter(BaseLepContext.class, "baseLepContext")
                 .addModifiers(PUBLIC);
+            constructorBuilder.addStatement("$L lepContext = ($L)baseLepContext", baseClassName, baseClassName);
             fields.forEach(field -> constructorBuilder.addStatement("this.$L = lepContext.$L", field, field));
             constructorBuilder.addStatement("lepContext.setAdditionalContextTo(this)");
             MethodSpec constructor = constructorBuilder.build();

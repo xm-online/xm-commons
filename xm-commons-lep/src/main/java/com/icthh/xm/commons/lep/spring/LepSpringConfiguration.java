@@ -135,6 +135,7 @@ public class LepSpringConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public LepContextService lepContextService(LepContextFactory lepContextFactory,
                                                LepServiceFactoryWithLepFactoryMethod lepServiceFactory,
                                                LepThreadHelper lepThreadHelper,
@@ -142,7 +143,7 @@ public class LepSpringConfiguration {
                                                XmAuthenticationContextHolder xmAuthContextHolder,
                                                List<LepAdditionalContext<?>> additionalContexts,
                                                CommonsService commonsService) {
-        return new LepContextService(
+        return new LepContextServiceImpl(
             lepContextFactory,
             lepServiceFactory,
             lepThreadHelper,
