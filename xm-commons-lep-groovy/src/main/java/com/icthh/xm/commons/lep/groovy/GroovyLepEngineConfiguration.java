@@ -69,6 +69,7 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     }
 
     @Bean
+    @Override
     public LepContextService lepContextService(LepContextFactory lepContextFactory,
                                                LepServiceFactoryWithLepFactoryMethod lepServiceFactory,
                                                LepThreadHelper lepThreadHelper,
@@ -83,7 +84,7 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
             lepThreadHelper,
             tenantContextHolder,
             xmAuthContextHolder,
-            additionalContexts.orElse(List.of()),
+            additionalContexts,
             commonsService
         );
         return new GroovyMapLepWrapperFactory(lepContextService);

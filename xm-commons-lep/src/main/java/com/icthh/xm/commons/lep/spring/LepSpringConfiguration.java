@@ -37,6 +37,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 
 import java.util.List;
+import java.util.Optional;
 
 @Configuration
 @ConditionalOnMissingBean(LepSpringConfiguration.class)
@@ -141,7 +142,7 @@ public class LepSpringConfiguration {
                                                LepThreadHelper lepThreadHelper,
                                                TenantContextHolder tenantContextHolder,
                                                XmAuthenticationContextHolder xmAuthContextHolder,
-                                               List<LepAdditionalContext<?>> additionalContexts,
+                                               Optional<List<LepAdditionalContext<?>>> additionalContexts,
                                                CommonsService commonsService) {
         return new LepContextServiceImpl(
             lepContextFactory,
@@ -149,7 +150,7 @@ public class LepSpringConfiguration {
             lepThreadHelper,
             tenantContextHolder,
             xmAuthContextHolder,
-            additionalContexts,
+            additionalContexts.orElse(List.of()),
             commonsService
         );
     }
