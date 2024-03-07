@@ -5,17 +5,11 @@ import com.icthh.xm.commons.lep.spring.LepThreadHelper;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactory;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.tenant.TenantContext;
-import lombok.Setter;
-import lombok.SneakyThrows;
-import lombok.experimental.Delegate;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-import static java.util.Optional.ofNullable;
-
-public abstract class BaseLepContext implements Map<String, Object> {
+public abstract class BaseLepContext {
 
     public Object commons;
     public Object inArgs;
@@ -29,29 +23,21 @@ public abstract class BaseLepContext implements Map<String, Object> {
     public LepServiceFactory lepServices;
 
     private transient Map<String, Object> additionalContext = new HashMap<>();
-    @Setter
-    private transient LepContextMapSupport mapSupport;
-    @Delegate(excludes = ExcludedMethods.class)
-    private transient Map<String, Object> emptyMap = Map.of();
 
-    public final Object get(Object fieldName) {
-        if (mapSupport == null) { // fallback to reflection. to simplify groovy tests
-            return ofNullable(additionalContext.get(fieldName)).orElseGet(() -> getFieldValue(fieldName));
-        }
-        return ofNullable(mapSupport.get(String.valueOf(fieldName), this)).orElse(additionalContext.get(fieldName));
-    }
-
-    @SneakyThrows
-    private Object getFieldValue(Object fieldName) {
-        return this.getClass().getField(String.valueOf(fieldName)).get(this);
+    public Object get(Object additionalContextKey) {
+        return additionalContext.get(additionalContextKey);
     }
 
     public final void addAdditionalContext(String additionalContextKey, Object additionalContextValue) {
         additionalContext.put(additionalContextKey, additionalContextValue);
     }
 
-    private interface ExcludedMethods {
-        Object get(Object key);
+    public final Object getAdditionalContext(String additionalContextKey) {
+        return additionalContext.get(additionalContextKey);
+    }
+
+    public final void setAdditionalContextTo(BaseLepContext lepContext) {
+        lepContext.additionalContext = additionalContext;
     }
 
 }

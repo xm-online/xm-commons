@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.lep.TenantScriptStorage;
+import com.icthh.xm.commons.lep.api.LepContextFactory;
 import com.icthh.xm.commons.lep.groovy.GroovyLepEngineConfiguration;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
@@ -36,4 +37,8 @@ public class LepTestConfig extends GroovyLepEngineConfiguration {
         return new LoggingConfigServiceStub();
     }
 
+    @Bean
+    public LepContextFactory lepContextFactory() {
+        return lepMethod -> new TestLepContext();
+    }
 }
