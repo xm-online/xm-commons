@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.icthh.xm.commons.logging.util.LogObjectPrinter.Level;
 import static java.util.stream.Collectors.toMap;
@@ -21,6 +22,9 @@ public class LoggingConfig {
     public static final boolean DEFAULT_LOG_INPUT_COLLECTION_AWARE = false;
     public static final boolean DEFAULT_LOG_RESULT_DETAILS = true;
     public static final boolean DEFAULT_LOG_RESULT_COLLECTION_AWARE = false;
+
+    @JsonProperty("masking")
+    private MaskingLogConfiguration masking;
 
     @JsonProperty("service")
     private List<LogConfiguration> serviceLoggingConfigs;
@@ -57,6 +61,12 @@ public class LoggingConfig {
 
        return logConfigurations.stream().collect(toMap(LogConfiguration::buildConfigKey,
                                                        configuration -> configuration));
+    }
+
+    @Data
+    public static class MaskingLogConfiguration {
+        private Boolean enabled;
+        private List<String> maskPatterns;
     }
 
     @Data
