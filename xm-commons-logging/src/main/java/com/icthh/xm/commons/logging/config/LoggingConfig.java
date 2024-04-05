@@ -22,6 +22,9 @@ public class LoggingConfig {
     public static final boolean DEFAULT_LOG_RESULT_DETAILS = true;
     public static final boolean DEFAULT_LOG_RESULT_COLLECTION_AWARE = false;
 
+    @JsonProperty("masking")
+    private MaskingLogConfiguration masking;
+
     @JsonProperty("service")
     private List<LogConfiguration> serviceLoggingConfigs;
 
@@ -57,6 +60,12 @@ public class LoggingConfig {
 
        return logConfigurations.stream().collect(toMap(LogConfiguration::buildConfigKey,
                                                        configuration -> configuration));
+    }
+
+    @Data
+    public static class MaskingLogConfiguration {
+        private Boolean enabled;
+        private List<String> maskPatterns;
     }
 
     @Data
