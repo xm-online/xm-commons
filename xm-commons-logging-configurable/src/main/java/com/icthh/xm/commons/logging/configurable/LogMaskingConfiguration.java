@@ -31,7 +31,14 @@ public class LogMaskingConfiguration {
                 if (encoder instanceof LayoutWrappingEncoder) {
                     LayoutWrappingEncoder<ILoggingEvent> layoutEncoder = (LayoutWrappingEncoder<ILoggingEvent>) encoder;
                     Layout<ILoggingEvent> layout = layoutEncoder.getLayout();
-                    layoutEncoder.setLayout(new MaskingLayout(layout, loggingConfigService));
+
+                    LayoutWrappingEncoder<ILoggingEvent> maskingEncoder = new LayoutWrappingEncoder<>();
+                    maskingEncoder.setLayout(new MaskingLayout(layout, loggingConfigService));
+                    maskingEncoder.setContext(context);
+                    maskingEncoder.setCharset(layoutEncoder.getCharset());
+                    maskingEncoder.start();
+
+                    appender.setEncoder(maskingEncoder);
                 }
             }
         });

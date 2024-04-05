@@ -6,6 +6,7 @@ import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.logging.config.LoggingConfig;
 import com.icthh.xm.commons.logging.config.LoggingConfig.LepLogConfiguration;
 import com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration;
+import com.icthh.xm.commons.logging.config.LoggingConfig.MaskingLogConfiguration;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.logging.util.MaskingService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
@@ -29,7 +30,7 @@ import static com.icthh.xm.commons.tenant.TenantContextUtils.getTenantKey;
 @Primary
 public class LoggingRefreshableConfiguration implements RefreshableConfiguration, LoggingConfigService {
 
-    private final MaskingService NULL_MASKING_SERVICE = new MaskingService(new LoggingConfig.MaskingLogConfiguration(), List.of());
+    private final MaskingService NULL_MASKING_SERVICE;
 
     private final Map<String, Map<String, LogConfiguration>> serviceLoggingConfig = new ConcurrentHashMap<>();
     private final Map<String, Map<String, LogConfiguration>> apiLoggingConfig = new ConcurrentHashMap<>();
@@ -52,6 +53,9 @@ public class LoggingRefreshableConfiguration implements RefreshableConfiguration
         this.mappingPath = "/config/tenants/{tenantName}/" + appName + "/logging.yml";
         this.appName = appName;
         this.maskPatterns = maskPatterns;
+        MaskingLogConfiguration maskingLogConfiguration = new MaskingLogConfiguration();
+        maskingLogConfiguration.setEnabled(!maskPatterns.isEmpty());
+        this.NULL_MASKING_SERVICE = new MaskingService(maskingLogConfiguration, maskPatterns);
     }
 
     @Override
