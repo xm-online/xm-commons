@@ -143,6 +143,7 @@ public class LepSpringConfiguration {
                                                TenantContextHolder tenantContextHolder,
                                                XmAuthenticationContextHolder xmAuthContextHolder,
                                                Optional<List<LepAdditionalContext<?>>> additionalContexts,
+                                               Optional<List<LepContextCustomizer>> customizers,
                                                CommonsService commonsService) {
         return new LepContextServiceImpl(
             lepContextFactory,
@@ -151,6 +152,7 @@ public class LepSpringConfiguration {
             tenantContextHolder,
             xmAuthContextHolder,
             additionalContexts.orElse(List.of()),
+            customizers.orElse(List.of()),
             commonsService
         );
     }

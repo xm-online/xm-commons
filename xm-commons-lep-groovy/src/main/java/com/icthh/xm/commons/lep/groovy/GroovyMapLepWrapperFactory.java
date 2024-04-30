@@ -3,6 +3,7 @@ package com.icthh.xm.commons.lep.groovy;
 import com.icthh.xm.commons.lep.TargetProceedingLep;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepEngine;
+import com.icthh.xm.commons.lep.spring.LepContextCustomizer;
 import com.icthh.xm.commons.lep.spring.LepContextService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -14,11 +15,9 @@ import java.lang.invoke.MethodType;
 
 @Slf4j
 @RequiredArgsConstructor
-public class GroovyMapLepWrapperFactory implements LepContextService {
+public class GroovyMapLepWrapperFactory implements LepContextCustomizer {
 
     private static final MethodHandle constructorHandle;
-
-    private final LepContextService delegate;
 
     static {
         constructorHandle = buildConstructorHandle();
@@ -37,12 +36,10 @@ public class GroovyMapLepWrapperFactory implements LepContextService {
         return null;
     }
 
-
     @Override
     @SneakyThrows
-    public BaseLepContext createLepContext(LepEngine lepEngine, TargetProceedingLep lepMethod) {
-        BaseLepContext lepContext = delegate.createLepContext(lepEngine, lepMethod);
-        if (constructorHandle != null) {
+    public BaseLepContext customize(BaseLepContext lepContext, LepEngine lepEngine, TargetProceedingLep lepMethod) {
+        if (constructorHandle != null && lepEngine instanceof GroovyLepEngine) {
             return (BaseLepContext) constructorHandle.invoke(lepContext);
         } else {
             return lepContext;

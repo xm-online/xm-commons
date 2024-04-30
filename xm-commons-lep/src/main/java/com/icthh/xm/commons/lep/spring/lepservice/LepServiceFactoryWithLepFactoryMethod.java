@@ -22,6 +22,7 @@ public class LepServiceFactoryWithLepFactoryMethod {
 
     private final Integer timeout;
 
+    private final Map<String, Map<String, Class<?>>> classCache = new ConcurrentHashMap<>();
     private final Map<String, Map<Class<?>, Object>> serviceInstances = new ConcurrentHashMap<>();
     private final Map<String, Map<Class<?>, Lock>> serviceLocks = new ConcurrentHashMap<>();
 
@@ -84,7 +85,20 @@ public class LepServiceFactoryWithLepFactoryMethod {
     }
 
     public void clear(String scopeId) {
+        classCache.remove(scopeId);
         serviceInstances.remove(scopeId);
         serviceLocks.remove(scopeId);
+    }
+
+    @LogicExtensionPoint(value = "ClassForNameResolver")
+    public <T> Class<T> classForNameResolver(String className) {
+        // Exception will never happen
+        throw new RuntimeException("Error with class resolving for class with name" + className);
+    }
+
+    public <T> T getInstance(String scopeId, String lepClassName) {
+        Map<String, Class<?>> tenantClasses = classCache.computeIfAbsent(scopeId, key -> new ConcurrentHashMap<>());
+        Class<T> lepClass = (Class<T>) tenantClasses.computeIfAbsent(lepClassName, key -> self.classForNameResolver(lepClassName));
+        return getInstance(scopeId, lepClass);
     }
 }
