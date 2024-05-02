@@ -103,11 +103,24 @@ public class GroovyMapWrapperProcessor extends AbstractProcessor {
                 .endControlFlow()
                 .build());
 
+            MethodSpec.Builder containsKeyMethodBuilder = MethodSpec.methodBuilder("containsKey")
+                .addAnnotation(Override.class)
+                .returns(boolean.class)
+                .addParameter(Object.class, "key")
+                .addModifiers(PUBLIC)
+                .beginControlFlow("switch (key.toString())");
+            fields.forEach(field -> containsKeyMethodBuilder.addCode("case \"$L\": return true;\n", field));
+            classBuilder.addMethod(containsKeyMethodBuilder
+                .addCode("default: return this.getAdditionalContext(key.toString()) != null;\n")
+                .endControlFlow()
+                .build());
+
             Method[] methods = Map.class.getMethods();
             Arrays.stream(methods)
                 .filter(not(Method::isDefault))
                 .filter(it -> !isStatic(it.getModifiers()))
                 .filter(it -> !"get".equals(it.getName()))
+                .filter(it -> !"containsKey".equals(it.getName()))
                 .filter(it -> !"put".equals(it.getName()))
                 .forEach(method -> {
                     MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getName())

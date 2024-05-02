@@ -27,6 +27,7 @@ public class LepContextServiceImpl implements LepContextService {
     private final TenantContextHolder tenantContextHolder;
     private final XmAuthenticationContextHolder xmAuthContextHolder;
     private final List<LepAdditionalContext<?>> additionalContexts;
+    private final List<LepContextCustomizer> customizers;
     private final CommonsService commonsService;
 
     @Override
@@ -41,7 +42,15 @@ public class LepContextServiceImpl implements LepContextService {
         additionalContexts.forEach(context ->
             baseLepContext.addAdditionalContext(context.additionalContextKey(), context.additionalContextValue()));
         baseLepContext.lepServices = new LepServiceFactoryImpl(lepEngine.getId(), lepServiceFactory);
-        return baseLepContext;
+
+        return customize(baseLepContext, lepEngine, lepMethod);
+    }
+
+    private BaseLepContext customize(BaseLepContext lepContext, LepEngine lepEngine, TargetProceedingLep lepMethod) {
+        for (var customizer : customizers) {
+            lepContext = customizer.customize(lepContext, lepEngine, lepMethod);
+        }
+        return lepContext;
     }
 
     private void buildUpInVars(LepMethod lepMethod, BaseLepContext baseLepContext) {

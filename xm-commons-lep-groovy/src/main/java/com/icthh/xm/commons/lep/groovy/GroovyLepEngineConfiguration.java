@@ -69,25 +69,8 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     }
 
     @Bean
-    @Override
-    public LepContextService lepContextService(LepContextFactory lepContextFactory,
-                                               LepServiceFactoryWithLepFactoryMethod lepServiceFactory,
-                                               LepThreadHelper lepThreadHelper,
-                                               TenantContextHolder tenantContextHolder,
-                                               XmAuthenticationContextHolder xmAuthContextHolder,
-                                               // spring required Optional to allow empty lists
-                                               Optional<List<LepAdditionalContext<?>>> additionalContexts,
-                                               CommonsService commonsService) {
-        LepContextService lepContextService = super.lepContextService(
-            lepContextFactory,
-            lepServiceFactory,
-            lepThreadHelper,
-            tenantContextHolder,
-            xmAuthContextHolder,
-            additionalContexts,
-            commonsService
-        );
-        return new GroovyMapLepWrapperFactory(lepContextService);
+    public GroovyMapLepWrapperFactory groovyMapLepWrapperFactory() {
+        return new GroovyMapLepWrapperFactory();
     }
 
     @Bean

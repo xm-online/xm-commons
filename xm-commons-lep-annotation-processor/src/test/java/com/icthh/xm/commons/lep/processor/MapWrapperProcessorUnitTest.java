@@ -14,6 +14,8 @@ import java.util.Map;
 import static com.google.testing.compile.Compiler.javac;
 import static javax.tools.JavaFileObject.Kind.CLASS;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class MapWrapperProcessorUnitTest {
 
@@ -61,6 +63,8 @@ public class MapWrapperProcessorUnitTest {
 
         assertEquals("value", mapLepContext.get("key"));
         assertEquals("inArgsMockValue", mapLepContext.get("inArgs"));
+        assertTrue(mapLepContext.containsKey("inArgs"));
+        assertFalse(mapLepContext.containsKey("newField"));
     }
 
     static class MemoryClassLoader extends ClassLoader {
