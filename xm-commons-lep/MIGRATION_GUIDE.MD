@@ -1,9 +1,8 @@
 ## Migration to new version of LEP
-### Add commons
+### Add groovy commons
 
 ```groovy
 implementation "com.icthh.xm.commons:xm-commons-lep-groovy:${xm_commons_version}"
-implementation "com.icthh.xm.commons:xm-commons-lep-js:${xm_commons_version}" // optional
 ```
 
 ### Migrate resolvers
