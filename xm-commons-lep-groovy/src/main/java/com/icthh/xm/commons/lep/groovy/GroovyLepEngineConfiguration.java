@@ -59,6 +59,11 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     }
 
     @Bean
+    public GroovyMapLepWrapperFactory groovyMapLepWrapperFactory() {
+        return new GroovyMapLepWrapperFactory();
+    }
+
+    @Bean
     @ConditionalOnMissingBean(GroovyFileParser.class)
     public GroovyFileParser groovyFileParser() {
         return new GroovyFileParser();

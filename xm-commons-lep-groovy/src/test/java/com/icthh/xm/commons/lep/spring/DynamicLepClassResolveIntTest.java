@@ -233,6 +233,25 @@ public class DynamicLepClassResolveIntTest {
 
     @Test
     @SneakyThrows
+    public void testLepServiceFactoryResolveByName() {
+        TenantContextUtils.setTenant(tenantContextHolder, "TEST");
+        when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));
+
+        String testClassDeclarationPath = "/config/tenants/TEST/testApp/lep/commons/TestLepServiceDeclaration$$tenant.groovy";
+        String testClassBody = "package TEST.testApp.lep.commons\n\n" +
+            "class TestLepServiceDeclaration{public TestLepServiceDeclaration(def lepContext){}}\n";
+        refreshLep(testClassDeclarationPath, testClassBody);
+
+        refreshLep("/config/tenants/TEST/testApp/lep/service/TestLepMethodWithInput$$around.groovy",
+            "return lepContext.lepServices.getInstance('TEST.testApp.lep.commons.TestLepServiceDeclaration').getClass().canonicalName"
+        );
+
+        String result = testLepService.testLepMethod(Map.of());
+        assertEquals("TEST.testApp.lep.commons.TestLepServiceDeclaration", result);
+    }
+
+    @Test
+    @SneakyThrows
     public void testLepServiceFactory() {
         TenantContextUtils.setTenant(tenantContextHolder, "TEST");
         when(tenantContext.getTenantKey()).thenReturn(Optional.of(TenantKey.valueOf("TEST")));

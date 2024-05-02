@@ -13,4 +13,8 @@ public class LepServiceFactoryImpl implements LepServiceFactory {
         return lepServiceFactory.getInstance(scopeId, lepServiceClass);
     }
 
+    @Override
+    public <T> T getInstance(String lepServiceClass) {
+        return lepServiceFactory.getInstance(scopeId, lepServiceClass);
+    }
 }
