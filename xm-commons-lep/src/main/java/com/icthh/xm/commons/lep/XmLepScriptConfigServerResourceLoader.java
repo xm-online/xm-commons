@@ -167,7 +167,11 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
 
     @Override
     public void afterSingletonsInstantiated() {
-        init();
+        if (!lepManagementService.isLepEnginesInited()) {
+            log.info("Init lep engine by afterSingletonsInstantiated");
+            init();
+        }
+
     }
 
     @Getter

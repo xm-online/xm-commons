@@ -26,7 +26,7 @@ public class TenantAliasService {
 
     // tenant list repository present to ensure that ms config is up and running
     public TenantAliasService(CommonConfigRepository commonConfigRepository,
-                                           TenantListRepository tenantListRepository) {
+                              TenantListRepository tenantListRepository) {
         requireNonNull(tenantListRepository, "tenantListRepository can't be null");
 
         Map<String, Configuration> configMap = commonConfigRepository.getConfig(null, singletonList(TENANT_ALIAS_CONFIG));
