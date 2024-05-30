@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 public class LepContextServiceImpl implements LepContextService {
@@ -39,8 +40,13 @@ public class LepContextServiceImpl implements LepContextService {
         baseLepContext.tenantContext = tenantContextHolder.getContext();
         baseLepContext.authContext = xmAuthContextHolder.getContext();
         baseLepContext.commons = new CommonsExecutor(commonsService);
-        additionalContexts.forEach(context ->
-            baseLepContext.addAdditionalContext(context.additionalContextKey(), context.additionalContextValue()));
+        additionalContexts.forEach(context -> {
+                Object value = context.additionalContextValue(baseLepContext, lepEngine, lepMethod)
+                    .map(Object.class::cast)
+                    .orElse(context.additionalContextValue());
+                baseLepContext.addAdditionalContext(context.additionalContextKey(), value);
+            }
+        );
         baseLepContext.lepServices = new LepServiceFactoryImpl(lepEngine.getId(), lepServiceFactory);
 
         return customize(baseLepContext, lepEngine, lepMethod);

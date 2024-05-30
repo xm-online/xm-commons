@@ -145,6 +145,11 @@ If you have separate configuration for test
     public LoggingConfigService LoggingConfigService() {
         return new LoggingConfigServiceStub();
     }
+
+    @Bean
+    public TenantAliasService tenantAliasService() {
+        return new TenantAliasService(mock(CommonConfigRepository.class), mock(TenantListRepository.class));
+    }
 ```
 
 

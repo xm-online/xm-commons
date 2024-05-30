@@ -1,23 +1,22 @@
 package com.icthh.xm.commons.lep.file;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
+import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.spring.DynamicLepTestFileConfig;
 import com.icthh.xm.commons.lep.spring.DynamicTestLepService;
-import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
-import com.icthh.xm.lep.api.LepManager;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -28,8 +27,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.File;
 import java.io.InputStream;
 
-import static com.icthh.xm.commons.config.client.service.TenantAliasService.TENANT_ALIAS_CONFIG;
-import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_AUTH_CONTEXT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 
@@ -47,13 +44,10 @@ import static org.junit.Assert.assertEquals;
 public class DynamicLepClassFileResolveIntTest {
 
     @Autowired
-    private LepManager lepManager;
+    private LepManagementService lepManager;
 
     @Autowired
     private TenantContextHolder tenantContextHolder;
-
-    @Mock
-    private XmAuthenticationContext authContext;
 
     @Autowired
     private DynamicTestLepService testLepService;
@@ -70,11 +64,14 @@ public class DynamicLepClassFileResolveIntTest {
         MockitoAnnotations.initMocks(this);
 
         TenantContextUtils.setTenant(tenantContextHolder, "TEST");
-        lepManager.beginThreadContext(ctx -> {
-            ctx.setValue(THREAD_CONTEXT_KEY_AUTH_CONTEXT, authContext);
-        });
+        lepManager.beginThreadContext();
 
         FileUtils.cleanDirectory(folder.getRoot());
+    }
+
+    @After
+    public void destroy() {
+        lepManager.endThreadContext();
     }
 
     @Test
@@ -86,7 +83,7 @@ public class DynamicLepClassFileResolveIntTest {
     @Test
     @SneakyThrows
     public void testResolvingClassFromParentTenant() {
-        tenantAliasService.onRefresh(TENANT_ALIAS_CONFIG, loadFile("lep/TenantAlias.yml"));
+        tenantAliasService.onRefresh(loadFile("lep/TenantAlias.yml"));
         runTest("msCommons", "PARENT.testApp.lep.commons.folder", "TEST/testApp/lep/commons/folder");
     }
 
@@ -106,7 +103,7 @@ public class DynamicLepClassFileResolveIntTest {
     @Test
     @SneakyThrows
     public void testLepFromParentTenant() {
-        tenantAliasService.onRefresh(TENANT_ALIAS_CONFIG, loadFile("lep/TenantAlias.yml"));
+        tenantAliasService.onRefresh(loadFile("lep/TenantAlias.yml"));
         String testString = "Hello from parent lep";
         createFile("/config/tenants/PARENT/testApp/lep/service/TestLepMethod$$around.groovy", "return '" + testString + "'");
         // this sleep is needed because groovy has debounce time to lep update

@@ -1,5 +1,8 @@
 package com.icthh.xm.commons.domainevent.config;
 
+import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
+import com.icthh.xm.commons.config.client.repository.TenantListRepository;
+import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.domainevent.service.filter.lep.WebLepFilter;
 import com.icthh.xm.commons.domainevent.service.impl.KafkaTransactionSynchronizationAdapter;
 import com.icthh.xm.commons.domainevent.service.impl.KafkaTransactionSynchronizationAdapterService;
@@ -14,6 +17,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.support.SimpleTransactionScope;
+
+import static org.mockito.Mockito.mock;
 
 @Configuration
 @ComponentScan({"com.icthh.xm.commons.lep.spring", "com.icthh.xm.commons.domainevent", "com.icthh.xm.commons.tenant"})
@@ -48,6 +53,11 @@ public class TestLepTestConfig extends GroovyLepEngineConfiguration {
     @Override
     public LepUpdateMode lepUpdateMode() {
         return LepUpdateMode.SYNCHRONOUS;
+    }
+
+    @Bean
+    public TenantAliasService tenantAliasService() {
+        return new TenantAliasService(mock(CommonConfigRepository.class), mock(TenantListRepository.class));
     }
 
 }

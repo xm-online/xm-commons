@@ -97,11 +97,6 @@ public class LepSpringConfiguration {
     }
 
     @Bean
-    public TenantAliasService tenantAliasService() {
-        return new TenantAliasService();
-    }
-
-    @Bean
     public LepMethodAspect lepMethodAspect() {
         return new LepMethodAspect();
     }

@@ -1,10 +1,10 @@
 package com.icthh.xm.commons.config.client.config;
 
-import static com.icthh.xm.commons.config.client.config.XmRestTemplateConfiguration.XM_CONFIG_REST_TEMPLATE;
-
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.repository.TenantConfigRepository;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
+import com.icthh.xm.commons.config.client.service.TenantAliasService;
+import com.icthh.xm.commons.config.client.service.TenantAliasServiceConfiguration;
 import com.icthh.xm.commons.config.client.service.TenantConfigService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,9 +16,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.client.RestTemplate;
 
+import static com.icthh.xm.commons.config.client.config.XmRestTemplateConfiguration.XM_CONFIG_REST_TEMPLATE;
+
 @Configuration
 @Import({
-    XmRestTemplateConfiguration.class
+    XmRestTemplateConfiguration.class,
+    XmConfigConfiguration.class
 })
 @ConditionalOnExpression("${xm-config.enabled} && ${tenant.reject-suspended:true}")
 public class XmConfigTenantConfiguration {
@@ -29,6 +32,17 @@ public class XmConfigTenantConfiguration {
                                                      CommonConfigRepository commonConfigRepository,
                                                      XmConfigProperties xmConfigProperties) {
         return new TenantListRepository(restTemplate, commonConfigRepository, applicationName, xmConfigProperties);
+    }
+
+    @Bean
+    public TenantAliasServiceConfiguration tenantAliasServiceConfiguration(TenantAliasService tenantAliasService) {
+        return new TenantAliasServiceConfiguration(tenantAliasService);
+    }
+
+    @Bean
+    public TenantAliasService tenantAliasService(CommonConfigRepository commonConfigRepository,
+                                                 TenantListRepository tenantListRepository) {
+        return new TenantAliasService(commonConfigRepository, tenantListRepository);
     }
 
     @Bean

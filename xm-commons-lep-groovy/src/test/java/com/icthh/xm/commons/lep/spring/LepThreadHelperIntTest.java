@@ -1,13 +1,13 @@
 package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
-import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
+import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
-import com.icthh.xm.lep.api.LepManager;
 import lombok.SneakyThrows;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_AUTH_CONTEXT;
-import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
 import static com.icthh.xm.commons.lep.spring.DynamicLepClassResolveIntTest.loadFile;
 import static java.util.Collections.emptySet;
 import static org.junit.Assert.assertEquals;
@@ -43,13 +41,10 @@ import static org.junit.Assert.assertTrue;
 public class LepThreadHelperIntTest {
 
     @Autowired
-    private LepManager lepManager;
+    private LepManagementService lepManager;
 
     @Autowired
     private TenantContextHolder tenantContextHolder;
-
-    @Autowired
-    private XmAuthenticationContextHolder authenticationContextHolder;
 
     @Autowired
     private DynamicTestLepService testLepService;
@@ -68,10 +63,12 @@ public class LepThreadHelperIntTest {
         OAuth2Authentication auth = new OAuth2Authentication(request, token);
         SecurityContextHolder.setContext(new SecurityContextImpl(auth));
 
-        lepManager.beginThreadContext(ctx -> {
-            ctx.setValue(THREAD_CONTEXT_KEY_TENANT_CONTEXT, tenantContextHolder.getContext());
-            ctx.setValue(THREAD_CONTEXT_KEY_AUTH_CONTEXT, authenticationContextHolder.getContext());
-        });
+        lepManager.beginThreadContext();
+    }
+
+    @After
+    public void after() {
+        lepManager.endThreadContext();
     }
 
     @Test
