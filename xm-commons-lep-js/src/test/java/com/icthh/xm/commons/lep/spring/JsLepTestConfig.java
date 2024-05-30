@@ -1,5 +1,8 @@
 package com.icthh.xm.commons.lep.spring;
 
+import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
+import com.icthh.xm.commons.config.client.repository.TenantListRepository;
+import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.impl.LoggingWrapper;
 import com.icthh.xm.commons.lep.js.JsLepEngineFactory;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
@@ -7,6 +10,8 @@ import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+
+import static org.mockito.Mockito.mock;
 
 /**
  *
@@ -43,6 +48,9 @@ public class JsLepTestConfig {
         return new LoggingConfigServiceStub();
     }
 
-
+    @Bean
+    public TenantAliasService tenantAliasService() {
+        return new TenantAliasService(mock(CommonConfigRepository.class), mock(TenantListRepository.class));
+    }
 
 }

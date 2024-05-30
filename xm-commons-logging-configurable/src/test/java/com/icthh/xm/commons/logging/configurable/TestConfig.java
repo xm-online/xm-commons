@@ -1,5 +1,8 @@
 package com.icthh.xm.commons.logging.configurable;
 
+import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
+import com.icthh.xm.commons.config.client.repository.TenantListRepository;
+import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.TenantScriptStorage;
 import com.icthh.xm.commons.lep.groovy.GroovyLepEngineConfiguration;
 import com.icthh.xm.commons.lep.spring.LepUpdateMode;
@@ -9,6 +12,8 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+
+import static org.mockito.Mockito.mock;
 
 @Configuration
 @ComponentScan("com.icthh.xm.commons.lep.spring")
@@ -32,6 +37,11 @@ public class TestConfig extends GroovyLepEngineConfiguration {
     @Override
     public LepUpdateMode lepUpdateMode() {
         return LepUpdateMode.SYNCHRONOUS;
+    }
+
+    @Bean
+    public TenantAliasService tenantAliasService() {
+        return new TenantAliasService(mock(CommonConfigRepository.class), mock(TenantListRepository.class));
     }
 
 }

@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 public class LepContextServiceImpl implements LepContextService {
@@ -40,10 +41,27 @@ public class LepContextServiceImpl implements LepContextService {
         baseLepContext.authContext = xmAuthContextHolder.getContext();
         baseLepContext.commons = new CommonsExecutor(commonsService);
         additionalContexts.forEach(context ->
-            baseLepContext.addAdditionalContext(context.additionalContextKey(), context.additionalContextValue()));
+            {
+                Optional<?> additionalContextValue = context.additionalContextValue(baseLepContext, lepEngine, lepMethod);
+                Object value = calculateValue(context, additionalContextValue);
+                baseLepContext.addAdditionalContext(
+                    context.additionalContextKey(),
+                    value
+                );
+            }
+        );
         baseLepContext.lepServices = new LepServiceFactoryImpl(lepEngine.getId(), lepServiceFactory);
 
         return customize(baseLepContext, lepEngine, lepMethod);
+    }
+
+    private Object calculateValue(LepAdditionalContext<?> context, Optional<?> additionalContextValue) {
+        // this can't be inlined to lambda because of type inference (with wildcard "?" using orElse impossible)
+        if (additionalContextValue.isPresent()) {
+            return additionalContextValue.get();
+        } else {
+            return context.additionalContextValue();
+        }
     }
 
     private BaseLepContext customize(BaseLepContext lepContext, LepEngine lepEngine, TargetProceedingLep lepMethod) {

@@ -1,5 +1,8 @@
 package com.icthh.xm.commons.lep.spring;
 
+import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
+import com.icthh.xm.commons.config.client.repository.TenantListRepository;
+import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.TenantScriptStorage;
 import com.icthh.xm.commons.lep.api.LepContextFactory;
 import com.icthh.xm.commons.lep.groovy.GroovyLepEngineConfiguration;
@@ -10,6 +13,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+
+import static org.mockito.Mockito.mock;
 
 
 @Configuration
@@ -41,4 +46,10 @@ public class LepTestConfig extends GroovyLepEngineConfiguration {
     public LepContextFactory lepContextFactory() {
         return lepMethod -> new TestLepContext();
     }
+
+    @Bean
+    public TenantAliasService tenantAliasService() {
+        return new TenantAliasService(mock(CommonConfigRepository.class), mock(TenantListRepository.class));
+    }
+
 }
