@@ -47,6 +47,11 @@ public class LepTestConfig extends GroovyLepEngineConfiguration {
         return lepMethod -> new TestLepContext();
     }
 
+    @Override
+    public LepUpdateMode lepUpdateMode() {
+        return LepUpdateMode.SYNCHRONOUS;
+    }
+
     @Bean
     public TenantAliasService tenantAliasService() {
         return new TenantAliasService(mock(CommonConfigRepository.class), mock(TenantListRepository.class));

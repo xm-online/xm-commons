@@ -155,8 +155,7 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
     }
 
     @SneakyThrows
-    @PostConstruct // unit test don't throw ApplicationReadyEvent
-    public void init() {
+    private void init() {
         StopWatch stopWatch = StopWatch.createStarted();
         // in case when no lep exists we need to init lep engines to pass await
         Set<String> tenantsToUpdate = scriptsByTenant.keySet();
@@ -166,12 +165,18 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
     }
 
     @Override
-    public void afterSingletonsInstantiated() {
+    public void refreshableConfigurationInited() {
         if (!lepManagementService.isLepEnginesInited()) {
             log.info("Init lep engine by afterSingletonsInstantiated");
             init();
         }
+    }
 
+    @PostConstruct // for unit that don't init InitRefreshableConfigurationBeanPostProcessor
+    public void afterSingletonsInstantiated() {
+        if (lepUpdateMode == SYNCHRONOUS) {
+            init();
+        }
     }
 
     @Getter
