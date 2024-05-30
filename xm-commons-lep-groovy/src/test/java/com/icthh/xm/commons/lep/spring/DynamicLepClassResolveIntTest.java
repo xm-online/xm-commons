@@ -86,7 +86,7 @@ public class DynamicLepClassResolveIntTest {
     @Test
     @SneakyThrows
     public void testResolvingClassFromParentTenant() {
-        tenantAliasService.onRefresh(TENANT_ALIAS_CONFIG, loadFile("lep/TenantAlias.yml"));
+        tenantAliasService.onRefresh(loadFile("lep/TenantAlias.yml"));
         runTest("msCommons", "PARENT.testApp.lep.commons.folder", "TEST/testApp/lep/commons/folder");
     }
 
