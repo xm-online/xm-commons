@@ -25,27 +25,29 @@ public class SchedulerEventService {
         }
 
         if (handlers == null) {
-            log.warn("No handlers found. Event: {} skipper.", event);
+            log.warn("No handlers found. Event: {} skipped.", event);
             return;
         }
 
         List<SchedulerEventHandler> eventHandlers = handlers.stream()
             .filter(handler -> Objects.equals(handler.eventType(), event.getTypeKey()) || isHandlersForAll(handler))
             .collect(toList());
+
         if (eventHandlers.isEmpty()) {
-            log.warn("No handlers found. Event: {} skipper.", event);
-        } else {
-            log.warn("Fount {} handlers found. Event: {} skipper.", eventHandlers.size(), event);
+            log.warn("No handlers found. Event: {} skipped.", event);
+            return;
         }
+
+        log.debug("Found {} handlers for event: {}", eventHandlers.size(), event);
 
         try {
             eventHandlers.forEach(handler -> handler.onEvent(event, tenantKey));
         } catch (Exception e) {
-            log.error("Error process message {}", event);
+            log.error("Error process event {} error {}", event, e.getMessage());
             if (event.getEndDate() != null) {
                 throw e;
             } else {
-                log.info("End date in null. Error will be skiped");
+                log.info("End date in null. Error will be skipped.");
             }
         }
     }
