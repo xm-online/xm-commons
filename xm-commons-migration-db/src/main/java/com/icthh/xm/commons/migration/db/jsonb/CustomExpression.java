@@ -1,11 +1,9 @@
 package com.icthh.xm.commons.migration.db.jsonb;
 
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Root;
-
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Root;
 
 public interface CustomExpression {
 

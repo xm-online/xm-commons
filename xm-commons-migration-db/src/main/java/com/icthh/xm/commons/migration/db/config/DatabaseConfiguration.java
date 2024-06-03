@@ -7,7 +7,6 @@ import liquibase.integration.spring.MultiTenantSpringLiquibase;
 import liquibase.integration.spring.SpringLiquibase;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.MultiTenancyStrategy;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
@@ -29,10 +28,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.icthh.xm.commons.migration.db.Constants.CHANGE_LOG_PATH;
-import static org.hibernate.cfg.AvailableSettings.JPA_VALIDATION_FACTORY;
-import static org.hibernate.cfg.AvailableSettings.MULTI_TENANT;
 import static org.hibernate.cfg.AvailableSettings.MULTI_TENANT_CONNECTION_PROVIDER;
 import static org.hibernate.cfg.AvailableSettings.MULTI_TENANT_IDENTIFIER_RESOLVER;
+import static org.hibernate.cfg.AvailableSettings.JAKARTA_VALIDATION_FACTORY;
 
 @Slf4j
 @EnableTransactionManagement
@@ -105,10 +103,10 @@ public abstract class DatabaseConfiguration {
             List<EntityScanPackageProvider> entityScanPackageProviderList) {
 
         Map<String, Object> properties = new HashMap<>(jpaProperties.getProperties());
-        properties.put(MULTI_TENANT, MultiTenancyStrategy.SCHEMA);
+        // todo spring 3.2.0 migration (https://github.com/hibernate/hibernate-orm/blob/6.0/migration-guide.adoc#multitenancy-simplification)
         properties.put(MULTI_TENANT_CONNECTION_PROVIDER, multiTenantConnectionProviderImpl);
         properties.put(MULTI_TENANT_IDENTIFIER_RESOLVER, currentTenantIdentifierResolverImpl);
-        properties.put(JPA_VALIDATION_FACTORY, localValidatorFactoryBean);
+        properties.put(JAKARTA_VALIDATION_FACTORY, localValidatorFactoryBean);
 
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource);

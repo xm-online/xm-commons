@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
-import org.springframework.util.concurrent.ListenableFuture;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +21,7 @@ public class KafkaTemplateService {
      * @return a Future for the {@link SendResult}.
      **/
     @LoggingAspectConfig(inputExcludeParams = "data", resultDetails = false)
-    public ListenableFuture<SendResult<String, String>> send(String topic, String data) {
+    public CompletableFuture<SendResult<String, String>> send(String topic, String data) {
         return kafkaTemplate.send(topic, data);
     }
 
@@ -35,7 +35,7 @@ public class KafkaTemplateService {
      * @return a Future for the {@link SendResult}.
      */
     @LoggingAspectConfig(inputExcludeParams = "data", resultDetails = false)
-    public ListenableFuture<SendResult<String, String>> send(String topic,
+    public CompletableFuture<SendResult<String, String>> send(String topic,
                                                              Integer partition,
                                                              String key,
                                                              String data) {

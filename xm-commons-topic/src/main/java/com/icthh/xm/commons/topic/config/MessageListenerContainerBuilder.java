@@ -20,8 +20,6 @@ import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
-import org.springframework.kafka.listener.SeekToCurrentErrorHandler;
-import org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter;
 import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.Collections;
@@ -62,7 +60,7 @@ public class MessageListenerContainerBuilder {
     }
 
     private Map<String, Object> buildConsumerConfig(TopicConfig topicConfig) {
-        Map<String, Object> props = kafkaProperties.buildConsumerProperties();
+        Map<String, Object> props = kafkaProperties.buildConsumerProperties(null); // todo spring 3.2.0 migration
 
         String groupIdFromConf = topicConfig.getGroupId();
         String groupId = StringUtils.isEmpty(groupIdFromConf) ? UUID.randomUUID().toString() : groupIdFromConf;

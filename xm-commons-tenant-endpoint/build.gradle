@@ -8,7 +8,7 @@ buildscript {
     }
 
     dependencies {
-        classpath("io.swagger:swagger-codegen:${versions.swaggerCodegen}")
+        classpath("io.swagger.codegen.v3:swagger-codegen:${versions.swaggerCodegen}")
     }
 }
 
@@ -68,7 +68,8 @@ task generateApi {
             'delegatePattern': 'true',
             'apiPackage'     : 'com.icthh.xm.commons.gen.api',
             'modelPackage'   : 'com.icthh.xm.commons.gen.model',
-            'sourceFolder'   : swaggerTargetFolder
+            'sourceFolder'   : swaggerTargetFolder,
+            'jakarta'        : 'true'
         ])
         new DefaultGenerator().opts(config.toClientOptInput()).generate()
     }
@@ -82,6 +83,9 @@ compileJava {
     dependsOn generateApi
 }
 
+sourcesJar {
+    dependsOn generateApi
+}
 // disable QA for generated code project
 
 checkstyle {
