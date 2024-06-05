@@ -15,4 +15,8 @@ public interface RefreshableConfiguration {
     default void refreshFinished(Collection<String> paths) {
         //
     }
+
+    default void refreshableConfigurationInited() {
+        //
+    }
 }

@@ -41,6 +41,13 @@ public class LepContextServiceImpl implements LepContextService {
         baseLepContext.commons = new CommonsExecutor(commonsService);
         additionalContexts.forEach(context ->
             baseLepContext.addAdditionalContext(context.additionalContextKey(), context.additionalContextValue()));
+        additionalContexts.forEach(context -> {
+                Object value = context.additionalContextValue(baseLepContext, lepEngine, lepMethod)
+                    .map(Object.class::cast)
+                    .orElse(context.additionalContextValue());
+                baseLepContext.addAdditionalContext(context.additionalContextKey(), value);
+            }
+        );
         baseLepContext.lepServices = new LepServiceFactoryImpl(lepEngine.getId(), lepServiceFactory);
 
         return customize(baseLepContext, lepEngine, lepMethod);

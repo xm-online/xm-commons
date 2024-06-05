@@ -11,6 +11,7 @@ import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import lombok.SneakyThrows;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,6 +65,11 @@ public class LepThreadHelperIntTest {
         new MigrationFromCoreContextsHolderLepManagementServiceReference(lepManager); // to avoid cache lep manager from prev test
 
         lepManager.beginThreadContext();
+    }
+
+    @After
+    public void after() {
+        lepManager.endThreadContext();
     }
 
     @Test
