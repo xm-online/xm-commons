@@ -28,6 +28,7 @@ ext.versions = [
     jhipster                   : '7.8.1',
     lombok                     : '1.18.24',
     logstashLogbackEncoder     : '7.2',
+    caffeine                   : '3.1.6',
 
     swaggerCodegen             : '2.4.27',
     springfoxSwagger           : '3.0.0',

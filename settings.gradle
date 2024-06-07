@@ -1,3 +1,4 @@
+include ':xm-commons-cache'
 include ':xm-commons-config'
 include ':xm-commons-client-feign'
 include ':xm-commons-domainevent'
