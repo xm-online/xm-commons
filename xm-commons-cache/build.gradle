@@ -24,9 +24,9 @@ dependencies {
     implementation "com.icthh.xm.lep:xm-lep-groovy:${versions.lep}"
     implementation "com.github.ben-manes.caffeine:caffeine:${versions.caffeine}"
 
-    testCompile 'junit:junit'
-    testCompile 'org.mockito:mockito-core'
-    testCompile 'org.hamcrest:hamcrest-library'
-    testCompile 'org.springframework:spring-test'
-    testCompile "com.github.stefanbirkner:system-rules:${versions.systemRules}"
+    testImplementation 'junit:junit'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.hamcrest:hamcrest-library'
+    testImplementation 'org.springframework:spring-test'
+    testImplementation "com.github.stefanbirkner:system-rules:${versions.systemRules}"
 }

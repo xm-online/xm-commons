@@ -30,6 +30,11 @@ public class XmTenantLepCacheConfig {
     }
 
     @Bean
+    public DynamicCaffeineCacheManager dynamicCaffeineCacheManager(Ticker ticker) {
+        return new DynamicCaffeineCacheManager(ticker);
+    }
+
+    @Bean
     public XmCacheConfigurer xmCacheConfigurer(@Value("${spring.application.name}") String appName,
                                                ApplicationEventPublisher applicationEventPublisher) {
         return new XmCacheConfigurer(appName, applicationEventPublisher);
@@ -40,8 +45,8 @@ public class XmTenantLepCacheConfig {
     /**
      * Dynamic cache to be used in LEP services
      */
-    public TenantCacheManager tenantAwareCacheManager(Ticker ticker, TenantContextHolder tenantContextHolder) {
-        DynamicCaffeineCacheManager caffeineCacheManager = new DynamicCaffeineCacheManager(ticker);
+    public TenantCacheManager tenantAwareCacheManager(DynamicCaffeineCacheManager caffeineCacheManager,
+                                                      TenantContextHolder tenantContextHolder) {
         return new TenantAwareCacheManager(caffeineCacheManager, tenantContextHolder);
     }
 
