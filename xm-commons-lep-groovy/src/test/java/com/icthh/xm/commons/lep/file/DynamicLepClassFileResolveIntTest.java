@@ -166,6 +166,24 @@ public class DynamicLepClassFileResolveIntTest {
         assertEquals("tenantCommonsWorks", result);
     }
 
+    @Test
+    @SneakyThrows
+    public void runCreateService() {
+        createFile("/config/tenants/TEST/testApp/lep/commons/TestFileService.groovy",
+            "" +
+                "package TEST.testApp.lep.commons\n" +
+                "class TestFileService { def hello() {'fileServiceWorks'} }\n"
+        );
+        createFile("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
+            "" +
+                "import TEST.testApp.lep.commons.TestFileService\n" +
+                "return lepContext.lepServices.getInstance(TestFileService.class).hello()"
+        );
+        Thread.sleep(110);
+        String result = testLepService.testLepMethod();
+        assertEquals("fileServiceWorks", result);
+    }
+
     private void runTest(String suffix, String packageName, String path) throws InterruptedException {
         createFile("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",
                 loadFile("lep/TestClassUsage")

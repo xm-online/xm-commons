@@ -24,7 +24,7 @@ ext.versions = [
     jsr305                     : '3.0.2',
 
     jhipster                   : '3.0.7',
-    lombok                     : '1.18.10',
+    lombok                     : '1.18.24',
     logstashLogbackEncoder     : '6.2',
 
     swaggerCodegen             : '2.4.9',
