@@ -5,4 +5,8 @@ import com.icthh.xm.commons.lep.processor.GroovyMap;
 
 @GroovyMap
 public class TestLepContext extends BaseLepContext {
+
+    public String stringWithValueFirst = "First";
+    public String stringWithValueSecond = "Second";
+
 }
