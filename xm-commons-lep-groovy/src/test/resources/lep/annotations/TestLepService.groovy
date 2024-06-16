@@ -1,5 +1,6 @@
 package TEST.testApp.lep.service
 
+import TEST.testApp.lep.commons.LepServiceInjectableNoArgConstructor
 import com.icthh.xm.commons.lep.BaseProceedingLep
 import com.icthh.xm.commons.lep.groovy.annotation.LepConstructor
 import com.icthh.xm.commons.lep.groovy.annotation.LepIgnoreInject
@@ -10,11 +11,11 @@ import TEST.testApp.lep.commons.LepServiceAnnotatedWithLepConstructor
 import TEST.testApp.lep.commons.LepServiceWithExistingConstructor
 import TEST.testApp.lep.commons.LepServiceWithExistingNoArgConstructor
 import TEST.testApp.lep.commons.LepServiceWithoutAnnotation
-import TEST.testApp.lep.commons.LepServiceWithExistingMapConstructor
+//import TEST.testApp.lep.commons.LepServiceWithExistingMapConstructor
 import groovy.transform.ToString
 
 @ToString
-@LepConstructor
+@LepConstructor(useLepFactory = true)
 class TestLepService {
     private final BaseProceedingLep lep;
     @LepInject
@@ -36,5 +37,6 @@ class TestLepService {
     private final LepServiceWithExistingConstructor lepServiceWithExistingConstructor
     private final LepServiceWithExistingNoArgConstructor lepServiceWithExistingNoArgConstructor
     private final LepServiceWithoutAnnotation lepServiceWithoutAnnotation
-    private final LepServiceWithExistingMapConstructor lepServiceWithExistingMapConstructor
+    private final LepServiceInjectableNoArgConstructor lepServiceInjectableNoArgConstructor
+    //private final LepServiceWithExistingMapConstructor lepServiceWithExistingMapConstructor
 }

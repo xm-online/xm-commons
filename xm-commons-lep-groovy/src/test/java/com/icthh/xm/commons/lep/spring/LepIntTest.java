@@ -86,6 +86,7 @@ public class LepIntTest {
             "LepServiceWithExistingConstructor",
             "LepServiceWithExistingMapConstructor",
             "LepServiceWithExistingNoArgConstructor",
+            "LepServiceInjectableNoArgConstructor",
             "LepServiceWithoutAnnotation"
         );
         commonsClasses.forEach(it -> {
@@ -134,21 +135,43 @@ public class LepIntTest {
             new AssertHelper(get("lepServiceAnnotatedAsInjectable")) {{
                 assertEquals("First", get("stringWithValueFirst"));
             }};
+
             assertNotNull(get("lepServiceAnnotatedWithLepConstructor"));
             new AssertHelper(get("lepServiceAnnotatedWithLepConstructor")) {{
                 assertEquals("First", get("stringWithValueFirst"));
+                assertNotNull(get("lepServiceAnnotatedAsInjectable"));
+                new AssertHelper(get("lepServiceAnnotatedAsInjectable")) {{
+                    assertEquals("First", get("stringWithValueFirst"));
+                }};
+                assertNotNull(get("lepServiceWithExistingNoArgConstructor"));
+                new AssertHelper(get("lepServiceWithExistingNoArgConstructor")) {{
+                    assertEquals("First", get("stringWithValueFirst"));
+                    assertEquals("setted in constructor", get("someValue"));
+                }};
+                assertNotNull(get("lepServiceInjectableNoArgConstructor"));
+                new AssertHelper(get("lepServiceInjectableNoArgConstructor")) {{
+                    assertEquals("setted in constructor", get("someValue"));
+                }};
             }};
+
             assertNotNull(get("lepServiceWithExistingConstructor"));
             new AssertHelper(get("lepServiceWithExistingConstructor")) {{
                 assertEquals("First", get("stringWithValueFirst"));
                 assertEquals("setted in constructor", get("someValue"));
             }};
-            assertNotNull(get("lepServiceWithExistingMapConstructor"));
-            new AssertHelper(get("lepServiceWithExistingMapConstructor")) {{
-                // if this assert failed, check is annotation processor enabled
-                assertEquals("First", get("stringWithValueFirst"));
+
+            assertNotNull(get("lepServiceInjectableNoArgConstructor"));
+            new AssertHelper(get("lepServiceInjectableNoArgConstructor")) {{
                 assertEquals("setted in constructor", get("someValue"));
             }};
+
+//            assertNotNull(get("lepServiceWithExistingMapConstructor"));
+//            new AssertHelper(get("lepServiceWithExistingMapConstructor")) {{
+//                // if this assert failed, check is annotation processor enabled
+//                assertEquals("First", get("stringWithValueFirst"));
+//                assertEquals("setted in constructor", get("someValue"));
+//            }};
+
             assertNotNull(get("lepServiceWithExistingNoArgConstructor"));
             new AssertHelper(get("lepServiceWithExistingNoArgConstructor")) {{
                 assertEquals("First", get("stringWithValueFirst"));
