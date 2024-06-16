@@ -8,5 +8,10 @@ public class TestLepContext extends BaseLepContext {
 
     public String stringWithValueFirst = "First";
     public String stringWithValueSecond = "Second";
+    public SubClassOfLepContext subClassOfLepContext = new SubClassOfLepContext();
+
+    public static class SubClassOfLepContext {
+        public StringBuilder fieldInSubClass = new StringBuilder("valueFromLepSubClass");
+    }
 
 }

@@ -30,6 +30,7 @@ import static com.icthh.xm.commons.lep.spring.DynamicLepClassResolveIntTest.load
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {
@@ -119,6 +120,13 @@ public class LepIntTest {
         new AssertHelper(result) {{
             assertNotNull(get("lep"));
             assertNotNull(get("thread"));
+
+            assertNotNull(get("lepContext"));
+            assertNotNull(get("context"));
+            assertTrue(get("lepContext") instanceof TestLepContext);
+            assertTrue(get("context") instanceof TestLepContext);
+
+            assertEquals("valueFromLepSubClass", get("stringBuilderField").toString());
             assertEquals("First", get("stringWithValueFirst"));
             assertEquals("Second", get("stringWithValueSecond"));
             assertEquals("First", get("mustBeFirstHere"));
@@ -165,12 +173,12 @@ public class LepIntTest {
                 assertEquals("setted in constructor", get("someValue"));
             }};
 
-//            assertNotNull(get("lepServiceWithExistingMapConstructor"));
-//            new AssertHelper(get("lepServiceWithExistingMapConstructor")) {{
-//                // if this assert failed, check is annotation processor enabled
-//                assertEquals("First", get("stringWithValueFirst"));
-//                assertEquals("setted in constructor", get("someValue"));
-//            }};
+            assertNotNull(get("lepServiceWithExistingMapConstructor"));
+            new AssertHelper(get("lepServiceWithExistingMapConstructor")) {{
+                // if this assert failed, check is annotation processor enabled
+                assertEquals("First", get("stringWithValueFirst"));
+                assertEquals("setted in constructor", get("someValue"));
+            }};
 
             assertNotNull(get("lepServiceWithExistingNoArgConstructor"));
             new AssertHelper(get("lepServiceWithExistingNoArgConstructor")) {{

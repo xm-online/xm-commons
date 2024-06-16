@@ -39,9 +39,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.stream;
 import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toSet;
 import static org.codehaus.groovy.ast.expr.ArgumentListExpression.EMPTY_ARGUMENTS;
 import static org.codehaus.groovy.control.CompilePhase.CANONICALIZATION;
 
@@ -50,37 +52,49 @@ import static org.codehaus.groovy.control.CompilePhase.CANONICALIZATION;
 public class LepServiceTransformation extends AbstractASTTransformation {
 
     private volatile static Map<String, List<String>> LEP_CONTEXT_FIELDS;
-    private volatile static Set<String> LEP_CONTEXT_CLASS_HIERARCHY;
+    private volatile static Set<String> LEP_CONTEXT_TYPE_HIERARCHY; // all classes and interfaces in hierarchy
+    private volatile static Set<String> LEP_CONTEXT_CLASS_HIERARCHY; // all classes to BaseLepContext
 
     public static final String LEP_CONTEXT_NAME = "lepContext";
 
     public static void init(Class<? extends BaseLepContext> lepContextClass) {
+        Set<Class<?>> typeHierarchy = buildTypeHierarchy(lepContextClass);
+        Set<Class<?>> classHierarchy = typeHierarchy.stream()
+            .filter(BaseLepContext.class::isAssignableFrom)
+            .collect(toSet());
+
+
         Map<String, List<String>> fields = new HashMap<>();
-        fields.putAll(getFields("", BaseLepContext.class));
-        fields.putAll(getFields("", lepContextClass));
-        fields.put(BaseLepContext.class.getCanonicalName(), List.of("with{it}"));
+        classHierarchy.forEach(type -> getFields(fields, "", type));
         String canonicalName = lepContextClass.getCanonicalName();
         if (canonicalName != null) {
             fields.put(canonicalName, List.of("with{it}"));
         }
 
-        Set<String> classHierarchy = new HashSet<>();
-        Class<?> currentClass = lepContextClass;
-        while (currentClass != null) {
-            classHierarchy.add(currentClass.getCanonicalName());
-            Arrays.stream(currentClass.getInterfaces())
-                .map(Class::getCanonicalName)
-                .forEach(classHierarchy::add);
-            currentClass = currentClass.getSuperclass();
-        }
+        typeHierarchy.forEach(it -> fields.putIfAbsent(it.getCanonicalName(), List.of("with{it}")));
 
-        LEP_CONTEXT_CLASS_HIERARCHY = Set.copyOf(classHierarchy);
+        LEP_CONTEXT_CLASS_HIERARCHY = Set.copyOf(toCanonicalNames(classHierarchy));
+        LEP_CONTEXT_TYPE_HIERARCHY = Set.copyOf(toCanonicalNames(typeHierarchy));
         LEP_CONTEXT_FIELDS = Map.copyOf(fields);
     }
 
-    private static Map<String, List<String>> getFields(String basePath, Class<?> type) {
+    private static Set<String> toCanonicalNames(Set<Class<?>> typeHierarchy) {
+        return typeHierarchy.stream().map(Class::getCanonicalName).collect(Collectors.toSet());
+    }
+
+    private static Set<Class<?>> buildTypeHierarchy(Class<? extends BaseLepContext> lepContextClass) {
+        Set<Class<?>> typeHierarchy = new HashSet<>();
+        Class<?> currentClass = lepContextClass;
+        while (currentClass != null) {
+            typeHierarchy.add(currentClass);
+            typeHierarchy.addAll(Arrays.asList(currentClass.getInterfaces()));
+            currentClass = currentClass.getSuperclass();
+        }
+        return typeHierarchy;
+    }
+
+    private static void getFields(Map<String, List<String>> fields, String basePath, Class<?> type) {
         Set<Class<?>> memberClasses = new HashSet<>(List.of(type.getNestMembers()));
-        Map<String, List<String>> fields = new HashMap<>();
         stream(type.getFields())
                 .filter(field -> !field.getType().isAssignableFrom(Object.class))
                 .filter(field -> !memberClasses.contains(field.getType()))
@@ -91,9 +105,8 @@ public class LepServiceTransformation extends AbstractASTTransformation {
         stream(type.getFields())
                 .filter(field -> memberClasses.contains(field.getType()))
                 .forEach(field -> {
-                    fields.putAll(getFields(field.getName() + ".", field.getType()));
+                    getFields(fields, field.getName() + ".", field.getType());
                 });
-        return fields;
     }
 
     @Override
@@ -220,13 +233,19 @@ public class LepServiceTransformation extends AbstractASTTransformation {
     private List<Statement> generateFieldAssignment(ClassNode classNode, boolean isLepServiceFactoryEnabled) {
         List<Statement> statements = new ArrayList<>();
         classNode.getFields().forEach(field -> {
-            if (canBeInjected(field) && isInLepContext(field)) {
+            if (LEP_CONTEXT_CLASS_HIERARCHY.contains(field.getType().getName()) || lepContextConventionField(field)) {
+                statements.add(createAssignment(field.getName(), LEP_CONTEXT_NAME));
+            } else if (canBeInjected(field) && isInLepContext(field)) {
                 generateFieldFromLepContextAssigment(statements, field);
             } else if (canBeInjected(field) && isLepService(field)) {
                 generateLepServiceCreations(statements, classNode, field, isLepServiceFactoryEnabled);
             }
         });
         return statements;
+    }
+
+    private static boolean lepContextConventionField(FieldNode field) {
+        return field.getName().equals(LEP_CONTEXT_NAME) && (field.isDynamicTyped() || LEP_CONTEXT_TYPE_HIERARCHY.contains(field.getType().getName()));
     }
 
     private static boolean canBeInjected(FieldNode field) {
@@ -310,7 +329,7 @@ public class LepServiceTransformation extends AbstractASTTransformation {
         if (constructorNode.getParameters().length == 1) {
             Parameter parameter = constructorNode.getParameters()[0];
             ClassNode parameterType = parameter.getType();
-            return LEP_CONTEXT_CLASS_HIERARCHY.contains(parameterType.getName());
+            return LEP_CONTEXT_TYPE_HIERARCHY.contains(parameterType.getName());
         }
         return false;
     }
