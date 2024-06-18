@@ -19,6 +19,7 @@ dependencies {
     compile 'org.aspectj:aspectjweaver'
     compile "com.google.code.findbugs:jsr305:${versions.jsr305}"
     compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+    compile "org.apache.commons:commons-text:${versions.commonsText}"
     compile "commons-io:commons-io:${versions.commonsIo}"
     compile "org.codehaus.groovy:groovy-all:${versions.groovyAll}"
 
