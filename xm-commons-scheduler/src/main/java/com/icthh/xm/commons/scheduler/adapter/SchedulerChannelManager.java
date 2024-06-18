@@ -18,7 +18,7 @@ import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.domain.TenantState;
-import com.icthh.xm.commons.logging.trace.SleuthWrapper;
+import com.icthh.xm.commons.logging.trace.TraceWrapper;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.scheduler.domain.ScheduledEvent;
 import com.icthh.xm.commons.scheduler.service.SchedulerEventService;
@@ -83,9 +83,9 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
     private final KafkaExtendedBindingProperties kafkaExtendedBindingProperties = new KafkaExtendedBindingProperties();
     private final Map<String, SubscribableChannel> channels = new ConcurrentHashMap<>();
     private final SchedulerEventService schedulerEventService;
-    private final SleuthWrapper sleuthWrapper;
+    private final TraceWrapper traceWrapper;
 
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${spring.application.name}")
     String appName;
@@ -111,16 +111,14 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
                                    SubscribableChannelBindingTargetFactory bindingTargetFactory,
                                    BindingService bindingService,
                                    KafkaMessageChannelBinder kafkaMessageChannelBinder,
-                                   ObjectMapper objectMapper,
                                    SchedulerEventService schedulerEventService,
                                    XmConfigProperties xmConfigProperties,
-                                   SleuthWrapper sleuthWrapper) {
+                                   TraceWrapper traceWrapper) {
         this.bindingServiceProperties = bindingServiceProperties;
         this.bindingTargetFactory = bindingTargetFactory;
         this.bindingService = bindingService;
-        this.sleuthWrapper = sleuthWrapper;
+        this.traceWrapper = traceWrapper;
         this.schedulerEventService = schedulerEventService;
-        this.objectMapper = objectMapper;
         this.includedTenants = xmConfigProperties.getIncludeTenantLowercase();
         kafkaMessageChannelBinder.setExtendedBindingProperties(kafkaExtendedBindingProperties);
     }
@@ -170,7 +168,7 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
             channels.put(chanelName, channel);
 
             channel.subscribe(
-                message -> sleuthWrapper.runWithSleuth(message, channel, () -> processMessage(tenantName, message)));
+                message -> traceWrapper.runWithSpan(message, channel, () -> processMessage(tenantName, message)));
         }
     }
 

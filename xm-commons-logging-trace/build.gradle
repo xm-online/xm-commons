@@ -13,6 +13,7 @@ dependencies {
 
     implementation 'io.micrometer:micrometer-tracing'
     implementation 'io.micrometer:micrometer-core'
-    compileOnly 'org.springframework.cloud:spring-cloud-stream-binder-kafka'
+    implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+    implementation 'io.micrometer:context-propagation'
     compileOnly 'org.springframework.cloud:spring-cloud-stream'
 }

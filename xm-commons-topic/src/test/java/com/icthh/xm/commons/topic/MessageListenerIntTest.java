@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.topic;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
-import com.icthh.xm.commons.logging.trace.SleuthWrapper;
+import com.icthh.xm.commons.logging.trace.TraceWrapper;
 import com.icthh.xm.commons.topic.message.MessageHandler;
 import com.icthh.xm.commons.topic.service.DynamicConsumerConfiguration;
 import com.icthh.xm.commons.topic.service.DynamicConsumerConfigurationService;
@@ -87,7 +87,7 @@ public class MessageListenerIntTest {
     @Mock
     private TenantListRepository tenantListRepository;
 
-    private SleuthWrapper sleuthWrapper;
+    private TraceWrapper traceWrapper;
 
     private MessageHandler messageHandler;
 
@@ -97,7 +97,7 @@ public class MessageListenerIntTest {
     @Before
     public void before() {
         messageHandler = mock(MessageHandler.class);
-        sleuthWrapper = mock(SleuthWrapper.class);
+        traceWrapper = mock(TraceWrapper.class);
         dynamicConsumerConfigurationList = new ArrayList<>();
         mockSleuth();
     }
@@ -106,11 +106,11 @@ public class MessageListenerIntTest {
         doAnswer(invocation -> {
             ((Runnable) invocation.getArgument(1)).run();
             return null;
-        }).when(sleuthWrapper).runWithSleuth(any(ConsumerRecord.class), any(Runnable.class));
+        }).when(traceWrapper).runWithSpan(any(ConsumerRecord.class), any(Runnable.class));
         doAnswer(invocation -> {
             ((Runnable) invocation.getArgument(1)).run();
             return null;
-        }).when(sleuthWrapper).runWithSleuth(any(Message.class), any(MessageChannel.class), any(Runnable.class));
+        }).when(traceWrapper).runWithSpan(any(Message.class), any(MessageChannel.class), any(Runnable.class));
     }
 
     @SneakyThrows
@@ -255,7 +255,7 @@ public class MessageListenerIntTest {
     private TopicConfigurationService createTopicConfigurationService(KafkaTemplate kafkaTemplate) {
         TopicManagerService topicManagerService = new TopicManagerService(kafkaProperties,
             kafkaTemplate,
-            sleuthWrapper);
+            traceWrapper);
         DynamicConsumerConfigurationService dynamicConsumerConfigurationService =
             new DynamicConsumerConfigurationService(dynamicConsumerConfigurationList, topicManagerService, tenantListRepository);
         TopicConfigurationService topicConfigurationService = new TopicConfigurationService(APP_NAME, dynamicConsumerConfigurationService, messageHandler);

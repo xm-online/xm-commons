@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.topic.service;
 
-import com.icthh.xm.commons.logging.trace.SleuthWrapper;
+import com.icthh.xm.commons.logging.trace.TraceWrapper;
 import com.icthh.xm.commons.topic.config.MessageListenerContainerBuilder;
 import com.icthh.xm.commons.topic.domain.ConsumerHolder;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
@@ -28,7 +28,7 @@ public class TopicManagerService {
 
     private final KafkaProperties kafkaProperties;
     private final KafkaTemplate<String, String> kafkaTemplate;
-    private final SleuthWrapper sleuthWrapper;
+    private final TraceWrapper traceWrapper;
     private final Map<String, Map<String, ConsumerHolder>> topicConsumerHolders = new ConcurrentHashMap<>();
 
     public void processTopicConfig(String tenantKey,
@@ -110,7 +110,7 @@ public class TopicManagerService {
 
     protected AbstractMessageListenerContainer buildListenerContainer(String tenantKey, TopicConfig topicConfig, MessageHandler messageHandler) {
         return new MessageListenerContainerBuilder(kafkaProperties, kafkaTemplate)
-            .build(tenantKey, topicConfig, messageHandler, sleuthWrapper);
+            .build(tenantKey, topicConfig, messageHandler, traceWrapper);
     }
 
     private Map<String, ConsumerHolder> getConsumerHoldersByTenant(String tenantKey) {

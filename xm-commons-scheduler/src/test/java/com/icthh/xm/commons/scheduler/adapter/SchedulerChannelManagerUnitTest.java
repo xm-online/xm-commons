@@ -14,7 +14,7 @@ import static org.springframework.cloud.stream.binder.kafka.properties.KafkaCons
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
-import com.icthh.xm.commons.logging.trace.SleuthWrapper;
+import com.icthh.xm.commons.logging.trace.TraceWrapper;
 import com.icthh.xm.commons.scheduler.service.SchedulerEventService;
 import lombok.SneakyThrows;
 import org.junit.Before;
@@ -57,7 +57,7 @@ public class SchedulerChannelManagerUnitTest {
     @Mock
     SchedulerEventService schedulerEventService;
     @Mock
-    SleuthWrapper sleuthWrapper;
+    TraceWrapper traceWrapper;
     @Spy
     XmConfigProperties xmConfigProperties;
 
@@ -167,10 +167,9 @@ public class SchedulerChannelManagerUnitTest {
                                                                           bindingTargetFactory,
                                                                           bindingService,
                                                                           kafkaMessageChannelBinder,
-                                                                          objectMapper,
                                                                           schedulerEventService,
                                                                           xmConfigProperties,
-                                                                          sleuthWrapper));
+                                                                          traceWrapper));
 
         doNothing().when(manager).createHandler(any(), any(), any(), any());
 
