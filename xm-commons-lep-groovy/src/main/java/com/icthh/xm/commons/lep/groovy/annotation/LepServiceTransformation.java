@@ -122,7 +122,7 @@ public class LepServiceTransformation extends AbstractASTTransformation {
     private void internalVisit(ASTNode[] nodes, SourceUnit source) {
         ClassNode classNode = (ClassNode) nodes[1];
 
-        boolean isLepServiceFactoryEnabled = isLepServiceFactoryEnabled(nodes, classNode, source);
+        boolean isLepServiceFactoryEnabled = isLepServiceFactoryEnabled(nodes);
         List<Statement> statements = generateFieldAssignment(classNode, isLepServiceFactoryEnabled);
         var constructor = findExistingLepConstructor(classNode);
 
@@ -209,7 +209,7 @@ public class LepServiceTransformation extends AbstractASTTransformation {
         return result;
     }
 
-    private static boolean isLepServiceFactoryEnabled(ASTNode[] nodes, ClassNode classNode, SourceUnit source) {
+    private boolean isLepServiceFactoryEnabled(ASTNode[] nodes) {
         AnnotationNode annotationNode = null;
         for (ASTNode node : nodes) {
             if (node instanceof AnnotationNode && ((AnnotationNode) node).getClassNode().getName().equals(
