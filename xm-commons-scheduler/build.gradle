@@ -21,6 +21,7 @@ dependencies {
     api project(":xm-commons-config")
     api project(":xm-commons-lep")
     api project(":xm-commons-logging-trace")
+    api project(":xm-commons-topic")
 
     api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     api 'com.fasterxml.jackson.datatype:jackson-datatype-json-org'
@@ -29,12 +30,9 @@ dependencies {
     api "org.springframework.boot:spring-boot-starter-actuator"
     api "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
-    implementation('org.springframework.cloud:spring-cloud-stream-binder-kafka')
-
     api "io.dropwizard.metrics:metrics-core:${versions.dropwizard}"
 
     testImplementation "org.springframework.boot:spring-boot-test"
-    testImplementation "org.springframework.cloud:spring-cloud-stream-test-support"
     testImplementation "org.springframework.kafka:spring-kafka-test"
 
     testImplementation 'junit:junit'

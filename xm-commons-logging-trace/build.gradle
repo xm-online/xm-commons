@@ -15,5 +15,4 @@ dependencies {
     implementation 'io.micrometer:micrometer-core'
     implementation 'io.micrometer:micrometer-tracing-bridge-brave'
     implementation 'io.micrometer:context-propagation'
-    compileOnly 'org.springframework.cloud:spring-cloud-stream'
 }

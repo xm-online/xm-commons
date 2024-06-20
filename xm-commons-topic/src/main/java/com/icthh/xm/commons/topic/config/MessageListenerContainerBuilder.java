@@ -1,10 +1,12 @@
 package com.icthh.xm.commons.topic.config;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.ISOLATION_LEVEL_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.METADATA_MAX_AGE_CONFIG;
 import static org.springframework.kafka.listener.ContainerProperties.AckMode.MANUAL_IMMEDIATE;
 
 import com.icthh.xm.commons.logging.trace.TraceWrapper;
@@ -67,6 +69,14 @@ public class MessageListenerContainerBuilder {
         String groupId = StringUtils.isEmpty(groupIdFromConf) ? UUID.randomUUID().toString() : groupIdFromConf;
         props.put(GROUP_ID_CONFIG, groupId);
         props.put(ENABLE_AUTO_COMMIT_CONFIG, false);
+
+        if (isNotBlank(topicConfig.getAutoOffsetReset())) {
+            props.put(AUTO_OFFSET_RESET_CONFIG, topicConfig.getAutoOffsetReset());
+        }
+
+        if (isNotBlank(topicConfig.getMetadataMaxAge())) {
+            props.put(METADATA_MAX_AGE_CONFIG, topicConfig.getMetadataMaxAge());
+        }
 
         if (isNotBlank(topicConfig.getIsolationLevel())) {
             props.put(ISOLATION_LEVEL_CONFIG, topicConfig.getIsolationLevel());

@@ -1,7 +1,6 @@
 package com.icthh.xm.commons.scheduler.adapter;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
@@ -9,13 +8,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties.StartOffset.earliest;
-import static org.springframework.cloud.stream.binder.kafka.properties.KafkaConsumerProperties.StartOffset.latest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
-import com.icthh.xm.commons.logging.trace.TraceWrapper;
-import com.icthh.xm.commons.scheduler.service.SchedulerEventService;
+import com.icthh.xm.commons.topic.service.DynamicConsumerConfigurationService;
 import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,10 +22,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.cloud.stream.binder.kafka.KafkaMessageChannelBinder;
-import org.springframework.cloud.stream.binding.BindingService;
-import org.springframework.cloud.stream.binding.SubscribableChannelBindingTargetFactory;
-import org.springframework.cloud.stream.config.BindingServiceProperties;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -43,23 +34,12 @@ public class SchedulerChannelManagerUnitTest {
     @Spy
     @InjectMocks
     SchedulerChannelManager channelManager;
-
-    @Mock
-    BindingServiceProperties bindingServiceProperties;
-    @Mock
-    SubscribableChannelBindingTargetFactory bindingTargetFactory;
-    @Mock
-    BindingService bindingService;
-    @Mock
-    KafkaMessageChannelBinder kafkaMessageChannelBinder;
-    @Spy
-    ObjectMapper objectMapper;
-    @Mock
-    SchedulerEventService schedulerEventService;
-    @Mock
-    TraceWrapper traceWrapper;
     @Spy
     XmConfigProperties xmConfigProperties;
+    @Mock
+    DynamicTopicConsumerConfiguration dynamicTopicConsumerConfiguration;
+    @Mock
+    DynamicConsumerConfigurationService dynamicConsumerConfigurationService;
 
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
@@ -68,7 +48,8 @@ public class SchedulerChannelManagerUnitTest {
     public void setUp() {
 
         MockitoAnnotations.initMocks(this);
-        doNothing().when(channelManager).createHandler(any(), any(), any(), any());
+        doNothing().when(dynamicTopicConsumerConfiguration).buildDynamicConsumers(any());
+        doNothing().when(dynamicConsumerConfigurationService).refreshDynamicConsumers(any());
         channelManager.appName = "entity";
 
     }
@@ -97,7 +78,8 @@ public class SchedulerChannelManagerUnitTest {
     public void shouldNotStartAnyWhenNoTenantsInLIst() {
 
         channelManager.onInit("/config/tenants/tenants-list.json", "{}");
-        verify(channelManager, never()).createChannels(any());
+        verify(dynamicTopicConsumerConfiguration, never()).buildDynamicConsumers(any());
+        verify(dynamicConsumerConfigurationService, never()).refreshDynamicConsumers(any());
 
     }
 
@@ -109,7 +91,8 @@ public class SchedulerChannelManagerUnitTest {
 
         channelManager.onInit(key, content);
         verify(channelManager, times(1)).parseConfig(eq(key), eq(content));
-        verify(channelManager, never()).createChannels(any());
+        verify(dynamicTopicConsumerConfiguration, never()).buildDynamicConsumers(any());
+        verify(dynamicConsumerConfigurationService, never()).refreshDynamicConsumers(any());
 
     }
 
@@ -119,28 +102,24 @@ public class SchedulerChannelManagerUnitTest {
         String key = "/config/tenants/tenants-list.json";
         String content = readFile();
 
-        channelManager.onRefresh(key, content);
+        SchedulerChannelManager manager = spy(new SchedulerChannelManager(xmConfigProperties,
+            dynamicTopicConsumerConfiguration,
+            dynamicConsumerConfigurationService));
 
-        verify(channelManager).parseConfig(key, content);
+        manager.onRefresh(key, content);
 
-        verify(channelManager).startChannels();
+        verify(manager).parseConfig(key, content);
 
-        verify(channelManager, times(2)).createChannels(any());
+        verify(manager).startChannels();
 
-        verify(channelManager).createChannels(eq("xm"));
+        verify(dynamicTopicConsumerConfiguration, times(2)).buildDynamicConsumers(any());
+        verify(dynamicConsumerConfigurationService, times(2)).refreshDynamicConsumers(any());
 
-        verify(channelManager, times(4)).createHandler(anyString(), anyString(), eq("XM"), any());
-        verify(channelManager).createHandler(eq("scheduler_xm_queue"), eq("GENERALGROUP"), eq("XM"), eq(earliest));
-        verify(channelManager).createHandler(eq("scheduler_xm_topic"), anyString(), eq("XM"), eq(latest));
-        verify(channelManager).createHandler(eq("scheduler_xm_entity_queue"), eq("entity"), eq("XM"), eq(earliest));
-        verify(channelManager).createHandler(eq("scheduler_xm_entity_topic"), anyString(), eq("XM"), eq(latest));
+        verify(dynamicTopicConsumerConfiguration).buildDynamicConsumers(eq("xm"));
+        verify(dynamicConsumerConfigurationService).refreshDynamicConsumers(eq("xm"));
 
-        verify(channelManager).createChannels(eq("test"));
-        verify(channelManager, times(4)).createHandler(anyString(), anyString(), eq("TEST"), any());
-        verify(channelManager).createHandler(eq("scheduler_test_queue"), eq("GENERALGROUP"), eq("TEST"), eq(earliest));
-        verify(channelManager).createHandler(eq("scheduler_test_topic"), anyString(), eq("TEST"), eq(latest));
-        verify(channelManager).createHandler(eq("scheduler_test_entity_queue"), eq("entity"), eq("TEST"), eq(earliest));
-        verify(channelManager).createHandler(eq("scheduler_test_entity_topic"), anyString(), eq("TEST"), eq(latest));
+        verify(dynamicTopicConsumerConfiguration).buildDynamicConsumers(eq("test"));
+        verify(dynamicConsumerConfigurationService).refreshDynamicConsumers(eq("test"));
 
     }
 
@@ -163,24 +142,20 @@ public class SchedulerChannelManagerUnitTest {
 
         when(xmConfigProperties.getIncludeTenants()).thenReturn(included);
 
-        SchedulerChannelManager manager = spy(new SchedulerChannelManager(bindingServiceProperties,
-                                                                          bindingTargetFactory,
-                                                                          bindingService,
-                                                                          kafkaMessageChannelBinder,
-                                                                          schedulerEventService,
-                                                                          xmConfigProperties,
-                                                                          traceWrapper));
-
-        doNothing().when(manager).createHandler(any(), any(), any(), any());
+        SchedulerChannelManager manager = spy(new SchedulerChannelManager(xmConfigProperties,
+            dynamicTopicConsumerConfiguration,
+            dynamicConsumerConfigurationService));
 
         String key = "/config/tenants/tenants-list.json";
         String content = readFile();
 
         manager.onRefresh(key, content);
 
-        verify(manager, times(1)).createChannels(any());
+        verify(dynamicTopicConsumerConfiguration, times(1)).buildDynamicConsumers(any());
+        verify(dynamicConsumerConfigurationService, times(1)).refreshDynamicConsumers(any());
 
-        verify(manager).createChannels(eq("xm"));
+        verify(dynamicTopicConsumerConfiguration).buildDynamicConsumers(eq("xm"));
+        verify(dynamicConsumerConfigurationService).refreshDynamicConsumers(eq("xm"));
 
     }
 
