@@ -34,7 +34,6 @@ public class ApplicationReadyEventListener implements ApplicationListener<Applic
 
     private void createSystemConsumer(String name, MessageListener<String, String> consumeEvent) {
         log.info("Creating kafka consumer for topic {}", name);
-        // todo spring 3.2.0 migration (https://docs.spring.io/spring-kafka/reference/kafka/micrometer.html#observation)
         ContainerProperties containerProps = new ContainerProperties(name);
         containerProps.setObservationEnabled(true);
 
