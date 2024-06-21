@@ -25,7 +25,7 @@ import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 
 @Slf4j
 @Component
-public class TimelineInterceptor implements HandlerInterceptor { // todo spring 3.2.0 migration
+public class TimelineInterceptor implements HandlerInterceptor {
 
     private static final String HEADER_TENANT = "x-tenant";
     private static final String AUTH_TENANT_KEY = "tenant";
