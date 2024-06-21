@@ -88,6 +88,8 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
                 }
             }
         });
+
+        refreshableConfiguration.refreshableConfigurationInited();
     }
 
     public List<String> initConfigPaths(final RefreshableConfiguration refreshableConfiguration,
