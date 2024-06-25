@@ -106,12 +106,18 @@ public class ExceptionTranslator {
     public ResponseEntity<ErrorVM> processHttpServerError(HttpServerErrorException ex) {
         BodyBuilder builder;
         ErrorVM fieldErrorVM;
-        // todo spring 3.2.0 migration
         HttpStatusCode responseStatus = ex.getStatusCode();
-        builder = ResponseEntity.status(responseStatus.value());
-        fieldErrorVM = new ErrorVM(ERROR_PREFIX + responseStatus.value(),
-                        localizationErrorMessageService.getMessage(ERROR_PREFIX
-                                        + responseStatus.value()));
+        if (responseStatus.is5xxServerError()) {
+            builder = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            fieldErrorVM = new ErrorVM(ErrorConstants.ERR_INTERNAL_SERVER_ERROR,
+                localizationErrorMessageService
+                    .getMessage(ErrorConstants.ERR_INTERNAL_SERVER_ERROR));
+        } else {
+            builder = ResponseEntity.status(responseStatus.value());
+            fieldErrorVM = new ErrorVM(ERROR_PREFIX + responseStatus.value(),
+                localizationErrorMessageService.getMessage(ERROR_PREFIX
+                    + responseStatus.value()));
+        }
         return builder.body(fieldErrorVM);
     }
 
