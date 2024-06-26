@@ -1,7 +1,5 @@
 package com.icthh.xm.commons.config.client.config;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.icthh.xm.commons.config.client.exception.ConflictUpdateConfigException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +15,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
@@ -25,10 +25,30 @@ public class XmRestTemplateConfiguration {
 
     public static final String XM_CONFIG_REST_TEMPLATE = "xm-config-rest-template";
 
-    @Bean(XM_CONFIG_REST_TEMPLATE)
-    public RestTemplate restTemplate(RestTemplateCustomizer customizer) {
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnProperty(value = "spring.cloud.loadbalancer.enabled", havingValue = "true", matchIfMissing = true)
+    static class XmLoadBalancerRestTemplateConfiguration {
+
+        @Bean(XM_CONFIG_REST_TEMPLATE)
+        public RestTemplate restTemplate(RestTemplateCustomizer customizer) {
+            RestTemplate restTemplate = createRestTemplate();
+            customizer.customize(restTemplate);
+            return restTemplate;
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnProperty(value = "spring.cloud.loadbalancer.enabled", havingValue = "false")
+    static class XmPlainRestTemplateConfiguration {
+
+        @Bean(XM_CONFIG_REST_TEMPLATE)
+        public RestTemplate restTemplate() {
+            return createRestTemplate();
+        }
+    }
+
+    private static RestTemplate createRestTemplate() {
         RestTemplate restTemplate = new RestTemplate();
-        customizer.customize(restTemplate);
         restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(UTF_8));
         restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
             @Override
