@@ -16,7 +16,7 @@ import java.util.Map;
 @Builder
 public class JpaEntityContext {
     private Object entity;
-    private Serializable id;
+    private Object id;
     private Map<String, State> propertyNameToStates;
     private DefaultDomainEventOperation domainEventOperation;
 

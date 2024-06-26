@@ -18,9 +18,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.metamodel.Metamodel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.EmptyInterceptor;
+import org.hibernate.Interceptor;
 import org.hibernate.metamodel.MappingMetamodel;
-import org.hibernate.metamodel.spi.MetamodelImplementor;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.Type;
@@ -47,7 +46,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 @Service
 @RequiredArgsConstructor
 @ConditionalOnProperty(value = "application.domain-event.enabled", havingValue = "true")
-public class DatabaseSourceInterceptor extends EmptyInterceptor {
+public class DatabaseSourceInterceptor implements Interceptor, Serializable {
 
     private static final Map<Class<?>, String> TABLE_NAME_CACHE = new ConcurrentHashMap<>();
 
@@ -67,29 +66,29 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
 
     @Override
     @IgnoreLogginAspect
-    public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState,
+    public boolean onFlushDirty(Object entity, Object id, Object[] currentState, Object[] previousState,
                                 String[] propertyNames, Type[] types) {
         publishEvent(entity, id, currentState, previousState, propertyNames, UPDATE);
 
-        return super.onFlushDirty(entity, id, currentState, previousState, propertyNames, types);
+        return Interceptor.super.onFlushDirty(entity, id, currentState, previousState, propertyNames, types);
     }
 
     @Override
     @IgnoreLogginAspect
-    public boolean onSave(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
+    public boolean onSave(Object entity, Object id, Object[] state, String[] propertyNames, Type[] types) {
         publishEvent(entity, id, state, null, propertyNames, CREATE);
 
-        return super.onSave(entity, id, state, propertyNames, types);
+        return Interceptor.super.onSave(entity, id, state, propertyNames, types);
     }
 
     @Override
     @IgnoreLogginAspect
-    public void onDelete(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
+    public void onDelete(Object entity, Object id, Object[] state, String[] propertyNames, Type[] types) {
         publishEvent(entity, id, null, state, propertyNames, DELETE);
-        super.onDelete(entity, id, state, propertyNames, types);
+        Interceptor.super.onDelete(entity, id, state, propertyNames, types);
     }
 
-    private void publishEvent(Object entity, Serializable id, Object[] currentState, Object[] previousState,
+    private void publishEvent(Object entity, Object id, Object[] currentState, Object[] previousState,
                               String[] propertyNames, DefaultDomainEventOperation operation) {
         DbSourceConfig sourceConfig = xmDomainEventConfiguration.getDbSourceConfig(tenantContextHolder.getTenantKey(), DB.getCode());
         if (sourceConfig != null && sourceConfig.isEnabled() && sourceConfig.getFilter() != null) {
@@ -132,7 +131,6 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
         Metamodel metamodel = entityManager.getMetamodel();
 
         String tableName = "";
-        // todo spring 3.2.0 migration
         if (metamodel instanceof MappingMetamodel metamodelImplementor) {
             EntityPersister entityPersister = metamodelImplementor.locateEntityDescriptor(entity.getClass());
             if (entityPersister instanceof AbstractEntityPersister abstractEntityPersister) {
@@ -144,7 +142,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
     }
 
     private JpaEntityContext buildJpaEntityContext(Object entity,
-                                                   Serializable id,
+                                                   Object id,
                                                    Object[] currentState,
                                                    Object[] previousState,
                                                    String[] propertyNames,
