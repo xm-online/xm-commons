@@ -4,7 +4,6 @@ import com.icthh.xm.commons.cache.config.XmTenantLepCacheConfig;
 import lombok.experimental.UtilityClass;
 
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 @UtilityClass
 public class CacheUtilityClass {

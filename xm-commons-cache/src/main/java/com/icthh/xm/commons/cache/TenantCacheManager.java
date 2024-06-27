@@ -1,9 +1,6 @@
 package com.icthh.xm.commons.cache;
 
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-
-import java.util.Collection;
 
 public interface TenantCacheManager extends CacheManager {
 

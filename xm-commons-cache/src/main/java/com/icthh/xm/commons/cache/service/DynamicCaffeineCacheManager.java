@@ -38,7 +38,7 @@ public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements
         List<Pair<String, XmTenantLepCacheConfig.XmCacheConfiguration>> cacheConfigurationList =
             event.getCacheList().stream()
                 .map(cfg -> Pair.of(TenantCacheManager.buildKey(tenantName,cfg.getCacheName()), cfg))
-                .collect(Collectors.toList());
+                .toList();
 
         boolean isLocked = false;
         try {

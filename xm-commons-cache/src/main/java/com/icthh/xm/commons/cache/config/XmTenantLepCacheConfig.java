@@ -44,6 +44,8 @@ public class XmTenantLepCacheConfig {
     @Qualifier("lepCacheManager")
     /**
      * Dynamic cache to be used in LEP services
+     * @param DynamicCaffeineCacheManager caffeineCacheManager - manager implementation
+     * @param TenantContextHolder tenantContextHolder - tenant context
      */
     public TenantCacheManager tenantAwareCacheManager(DynamicCaffeineCacheManager caffeineCacheManager,
                                                       TenantContextHolder tenantContextHolder) {
