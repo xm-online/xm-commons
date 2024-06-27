@@ -1,0 +1,32 @@
+apply plugin: 'io.spring.dependency-management'
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
+    }
+}
+
+dependencies {
+    implementation project(':xm-commons-logging')
+    implementation project(':xm-commons-tenant')
+    implementation project(':xm-commons-config')
+
+    compileOnly 'javax.servlet:javax.servlet-api'
+
+    implementation 'org.springframework:spring-context'
+    implementation 'org.springframework:spring-context-support'
+    implementation 'org.slf4j:slf4j-api'
+    implementation 'org.aspectj:aspectjweaver'
+    implementation "com.google.code.findbugs:jsr305:${versions.jsr305}"
+    implementation "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+    implementation "commons-io:commons-io:${versions.commonsIo}"
+    implementation "com.icthh.xm.lep:xm-lep-core:${versions.lep}"
+    implementation "com.icthh.xm.lep:xm-lep-groovy:${versions.lep}"
+    implementation "com.github.ben-manes.caffeine:caffeine:${versions.caffeine}"
+
+    testImplementation 'junit:junit'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.hamcrest:hamcrest-library'
+    testImplementation 'org.springframework:spring-test'
+    testImplementation "com.github.stefanbirkner:system-rules:${versions.systemRules}"
+}
