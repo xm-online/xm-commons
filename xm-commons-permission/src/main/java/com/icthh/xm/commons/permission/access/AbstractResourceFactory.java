@@ -6,12 +6,12 @@ import java.util.Map;
 
 public abstract class AbstractResourceFactory implements ResourceFactory {
 
-        protected abstract Map<String, ? extends ResourceRepository> getRepositories();
+        protected abstract Map<String, ? extends ResourceRepository<?, ?>> getRepositories();
 
         @Override
-        public Object getResource(Object resourceId, String objectType) {
-            Object result = null;
-            ResourceRepository resourceRepository = getRepositories().get(objectType);
+        public <T, ID> T getResource(ID resourceId, String objectType) {
+            T result = null;
+            ResourceRepository<T, ID> resourceRepository = (ResourceRepository<T, ID>) getRepositories().get(objectType);
             if (resourceRepository != null) {
                 result = resourceRepository.findResourceById(resourceId);
             }
