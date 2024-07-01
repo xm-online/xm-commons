@@ -103,7 +103,6 @@ public abstract class DatabaseConfiguration {
             List<EntityScanPackageProvider> entityScanPackageProviderList) {
 
         Map<String, Object> properties = new HashMap<>(jpaProperties.getProperties());
-        // todo spring 3.2.0 migration (https://github.com/hibernate/hibernate-orm/blob/6.0/migration-guide.adoc#multitenancy-simplification)
         properties.put(MULTI_TENANT_CONNECTION_PROVIDER, multiTenantConnectionProviderImpl);
         properties.put(MULTI_TENANT_IDENTIFIER_RESOLVER, currentTenantIdentifierResolverImpl);
         properties.put(JAKARTA_VALIDATION_FACTORY, localValidatorFactoryBean);
