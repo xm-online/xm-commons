@@ -4,6 +4,7 @@ import com.icthh.xm.commons.cache.TenantCacheManager;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.lang.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -29,6 +30,7 @@ public class TenantAwareCacheManager implements TenantCacheManager {
     }
 
     @Override
+    @Nullable
     public Cache getCache(final String name) {
         String currentTenant = tenantContextHolder.getTenantKey();
         if (isTenantInvalid(currentTenant)) {
