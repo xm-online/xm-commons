@@ -265,7 +265,7 @@ Example:
 ```java
 public interface TraceServiceField extends LepAdditionalContextField {
     String FIELD_NAME = "traceService";
-    default TraceService getLepServices() { // default it's important!!!
+    default TraceService getTraceService() { // default it's important!!! and name get<FieldName> it's important
         return (TraceService)get(FIELD_NAME);
     }
 }
@@ -282,5 +282,5 @@ public class LepContext extends BaseLepContext implements TraceServiceField {
 
 And after that field traceService will be present in lepContext.
 ```groovy
-lepContext.traceService // groovy will call method getLepServices() for you
+lepContext.traceService // groovy will call method getTraceService() for you
 ```
