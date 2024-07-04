@@ -48,7 +48,7 @@ public class StepSpecService extends AbstractRefreshableConfiguration<Map<String
 
     public List<StepSpec> getSteps(StepSpec.StepType stepType) {
         return getStepsSpec().values().stream()
-            .filter(stepSpec -> stepSpec.getType() == stepType)
+            .filter(stepSpec -> stepType == null || stepSpec.getType() == stepType)
             .collect(Collectors.toList());
     }
 
