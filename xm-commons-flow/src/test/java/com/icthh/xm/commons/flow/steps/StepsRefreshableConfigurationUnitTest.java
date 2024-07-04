@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.flow.actions;
+package com.icthh.xm.commons.flow.steps;
 
 import com.icthh.xm.commons.flow.spec.step.StepSpec;
 import com.icthh.xm.commons.flow.spec.step.StepSpecService;
@@ -17,15 +17,15 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ActionRefreshableConfigurationUnitTest {
+public class StepsRefreshableConfigurationUnitTest {
 
     @Test
     public void testReadConfiguration() {
         TenantContextHolder mock = mock(TenantContextHolder.class);
         when(mock.getTenantKey()).thenReturn("UNIT_TEST");
-        var actionRefreshableConfiguration = new StepSpecService("test", mock);
-        actionRefreshableConfiguration.onRefresh("/config/tenants/UNIT_TEST/test/step-spec.yml", loadFile("actions/testreadspec.yml"));
-        StepSpec actionSpec = actionRefreshableConfiguration.getStepSpec("actionkey");
+        var service = new StepSpecService("test", mock);
+        service.onRefresh("/config/tenants/UNIT_TEST/test/step-spec.yml", loadFile("step-spec/testreadspec.yml"));
+        StepSpec actionSpec = service.getStepSpec("actionkey");
         assertThat(actionSpec, equalTo(mockAction()));
     }
 

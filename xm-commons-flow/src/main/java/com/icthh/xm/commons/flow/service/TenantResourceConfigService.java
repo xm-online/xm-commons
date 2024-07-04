@@ -1,5 +1,10 @@
 package com.icthh.xm.commons.flow.service;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.icthh.xm.commons.config.client.api.refreshable.MapRefreshableConfiguration;
 import com.icthh.xm.commons.flow.domain.TenantResource;
 import com.icthh.xm.commons.flow.service.TenantResourceConfigService.TenantResourceConfig;
@@ -109,5 +114,13 @@ public class TenantResourceConfigService extends MapRefreshableConfiguration<Ten
     @Data
     public static class TenantResourceConfig {
         private List<TenantResource> resources;
+    }
+
+    @Override
+    public ObjectMapper buildObjectMapper() {
+        return new ObjectMapper(new YAMLFactory())
+            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+            .registerModule(new JavaTimeModule());
     }
 }

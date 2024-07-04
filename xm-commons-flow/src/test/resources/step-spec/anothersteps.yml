@@ -1,0 +1,16 @@
+- key: otheraction
+  implementation: testreadspec
+  type: ACTION
+  resources:
+      - key: userDb
+        resourceType: database
+      - key: orderDb
+        resourceType: database
+- key: othercondition
+  implementation: conditionImpl
+  type: CONDITION
+  resources:
+      - key: paymentDb
+        resourceType: database
+      - key: history
+        resourceType: exel

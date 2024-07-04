@@ -28,7 +28,7 @@ public abstract class MapRefreshableConfiguration<CONFIG_ITEM extends ConfigWith
 
     @Override
     protected Map<String, CONFIG_ITEM> getConfiguration(String tenantKey) {
-        Map<String, CONFIG_ITEM> configuration = super.getConfiguration();
+        Map<String, CONFIG_ITEM> configuration = super.getConfiguration(tenantKey);
         return configuration == null ? Map.of() : configuration;
     }
 

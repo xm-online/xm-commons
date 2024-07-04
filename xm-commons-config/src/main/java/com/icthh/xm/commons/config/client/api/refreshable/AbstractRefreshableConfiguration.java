@@ -78,7 +78,8 @@ public abstract class AbstractRefreshableConfiguration<CONFIG, CONFIG_FILE> impl
     }
 
     protected Map<String, CONFIG_FILE> getConfigurationFiles() {
-        return configurationsByTenantByFile.get(tenantContextHolder.getTenantKey());
+        String tenantKey = tenantContextHolder.getTenantKey();
+        return configurationsByTenantByFile.computeIfAbsent(tenantKey, k -> new ConcurrentHashMap<>());
     }
 
     public CONFIG getConfiguration() {

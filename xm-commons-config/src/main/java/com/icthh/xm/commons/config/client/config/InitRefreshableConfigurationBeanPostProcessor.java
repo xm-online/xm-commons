@@ -1,15 +1,16 @@
 package com.icthh.xm.commons.config.client.config;
 
-import static org.apache.commons.lang3.StringUtils.length;
-
 import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.api.ConfigurationChangedListener;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.config.client.listener.ApplicationReadyEventListener;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.util.AntPathMatcher;
 
 import java.util.Collection;
@@ -18,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.apache.commons.lang3.StringUtils.length;
 
 @Slf4j
 public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostProcessor {
@@ -170,4 +173,5 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
         return StringUtils.isEmpty(configContent) ? LOG_CONFIG_EMPTY :
                DigestUtils.md5Hex(configContent);
     }
+
 }

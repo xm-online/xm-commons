@@ -8,10 +8,10 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class ResourceTypeService extends MapRefreshableConfiguration<TenantResourceType, TenantResourceTypesConfig> {
+public class TenantResourceTypeService extends MapRefreshableConfiguration<TenantResourceType, TenantResourceTypesConfig> {
 
-    public ResourceTypeService(@Value("${spring.application.name}") String appName,
-                               TenantContextHolder tenantContextHolder) {
+    public TenantResourceTypeService(@Value("${spring.application.name}") String appName,
+                                     TenantContextHolder tenantContextHolder) {
         super(appName, tenantContextHolder);
     }
 

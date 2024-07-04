@@ -9,6 +9,7 @@ dependencyManagement {
 dependencies {
     compile project(':xm-commons-tenant')
     compile project(":xm-commons-config")
+    compile project(":xm-commons-i18n")
     compile project(":xm-commons-lep")
 
     implementation("com.github.java-json-tools:json-schema-validator:2.2.8") {
@@ -21,6 +22,9 @@ dependencies {
     testImplementation "org.springframework.boot:spring-boot-test"
     testImplementation 'junit:junit'
     testImplementation 'org.mockito:mockito-core'
+    testImplementation "com.jayway.jsonpath:json-path"
     testImplementation project(':xm-commons-lep-groovy')
+    testImplementation 'org.springframework:spring-test'
+    testImplementation "org.hamcrest:hamcrest-library"
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
 }

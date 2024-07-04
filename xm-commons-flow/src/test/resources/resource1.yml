@@ -1,0 +1,10 @@
+---
+resources:
+    - key: user_database
+      resourceType: jdbc
+      name:
+          en: User Database
+      data:
+          url: jdbc:postgresql://localhost:5432/userdb
+          username: secretuser
+          password: password
