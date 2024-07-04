@@ -199,7 +199,7 @@ public class TenantConfigRepository {
     }
 
     public void updateConfigurations(final List<Configuration> configurations) {
-        HttpEntity<List<Configuration>> entity = new HttpEntity<>(configurations, createMultipartAuthHeaders());
+        HttpEntity<List<Configuration>> entity = new HttpEntity<>(configurations, createJsonAuthHeaders());
         restTemplate.exchange(xmConfigUrl + PATH_API + PATH_PROFILE + CONFIGS_UPDATE, HttpMethod.POST, entity, Void.class);
     }
 
