@@ -21,5 +21,6 @@ dependencies {
     testImplementation "org.springframework.boot:spring-boot-test"
     testImplementation 'junit:junit'
     testImplementation 'org.mockito:mockito-core'
+    testImplementation project(':xm-commons-lep-groovy')
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
 }

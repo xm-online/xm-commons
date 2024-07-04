@@ -5,20 +5,27 @@ import com.icthh.xm.commons.flow.domain.TenantResource;
 import com.icthh.xm.commons.flow.service.TenantResourceConfigService.TenantResourceConfig;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.Data;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toUnmodifiableMap;
 
 @Component
 public class TenantResourceConfigService extends MapRefreshableConfiguration<TenantResource, TenantResourceConfig> {
 
     private final String appName;
     private final TenantContextHolder tenantContextHolder;
+    @Getter
+    private volatile Map<String, Map<String, TenantResource>> resourcesByType = new HashMap<>();
 
     public TenantResourceConfigService(@Value("${spring.application.name}") String appName,
                                        TenantContextHolder tenantContextHolder) {
@@ -40,6 +47,17 @@ public class TenantResourceConfigService extends MapRefreshableConfiguration<Ten
     @Override
     public String configName() {
         return "resources";
+    }
+
+    @Override
+    public void onUpdate(Map<String, TenantResource> configuration) {
+        Map<String, List<TenantResource>> byType = configuration.values().stream()
+            .collect(groupingBy(TenantResource::getResourceType));
+        this.resourcesByType = byType.keySet().stream().collect(toUnmodifiableMap(identity(), getGroupByKey(byType)));
+    }
+
+    private Function<String, Map<String, TenantResource>> getGroupByKey(Map<String, List<TenantResource>> byType) {
+        return type -> byType.get(type).stream().collect(toUnmodifiableMap(TenantResource::getKey, identity()));
     }
 
     public List<TenantResource> resources() {
