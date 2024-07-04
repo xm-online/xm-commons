@@ -149,6 +149,9 @@ public class FlowSpecResourceIntTest {
             .andExpect(jsonPath("$.[2].key").value("word"))
             .andExpect(jsonPath("$.[*].key").value(hasSize(3)))
             .andExpect(status().isOk());
+
+        tenantResourceTypeService.onRefresh("/config/tenants/TEST/testApp/resource-types/database.yml", "");
+        tenantResourceTypeService.onRefresh("/config/tenants/TEST/testApp/resource-types/ole.yml", "");
     }
 
     @Test
@@ -244,7 +247,7 @@ public class FlowSpecResourceIntTest {
     public void testResourceFromLep() {
         tenantResourceConfigService.onRefresh("/config/tenants/TEST/testApp/resources/user_database.yml", loadFile("resource1.yml"));
 
-        lep.onRefresh("/config/tenants/TEST/testApp/lep/test/Test.groovy", "lepContext.resources.jdbc.user_database.data.username");
+        lep.onRefresh("/config/tenants/TEST/testApp/lep/test/Test.groovy", "lepContext.resources.jdbc.account_database.data.username");
 
         try (var context = lepManagementService.beginThreadContext()) {
             assertEquals("secretuser", testLepService.test());

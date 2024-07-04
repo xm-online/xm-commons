@@ -1,1 +1,1 @@
-{"key":"user-database","resourceType":"jdbc","name":{"en":"User Database"},"data":{"url":"jdbc:postgresql://localhost:5432/user_db","username":"secretuser","password":"password"}}
+{"key":"user_database","resourceType":"jdbc","name":{"en":"User Database"},"data":{"url":"jdbc:postgresql://localhost:5432/user_db","username":"secretuser","password":"password"}}

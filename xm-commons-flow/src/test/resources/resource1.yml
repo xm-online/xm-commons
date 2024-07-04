@@ -1,6 +1,6 @@
 ---
 resources:
-    - key: user_database
+    - key: account_database
       resourceType: jdbc
       name:
           en: User Database
