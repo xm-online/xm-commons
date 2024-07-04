@@ -25,7 +25,7 @@ public class XmRestTemplateConfiguration {
 
     public static final String XM_CONFIG_REST_TEMPLATE = "xm-config-rest-template";
 
-    @Configuration(proxyBeanMethods = false)
+    @Configuration
     @ConditionalOnProperty(value = "spring.cloud.loadbalancer.enabled", havingValue = "true", matchIfMissing = true)
     static class XmLoadBalancerRestTemplateConfiguration {
 
@@ -37,7 +37,7 @@ public class XmRestTemplateConfiguration {
         }
     }
 
-    @Configuration(proxyBeanMethods = false)
+    @Configuration
     @ConditionalOnProperty(value = "spring.cloud.loadbalancer.enabled", havingValue = "false")
     static class XmPlainRestTemplateConfiguration {
 

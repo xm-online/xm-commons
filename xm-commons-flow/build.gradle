@@ -1,0 +1,25 @@
+apply plugin: 'io.spring.dependency-management'
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
+    }
+}
+
+dependencies {
+    compile project(':xm-commons-tenant')
+    compile project(":xm-commons-config")
+    compile project(":xm-commons-lep")
+
+    implementation("com.github.java-json-tools:json-schema-validator:2.2.8") {
+        exclude group: 'javax.mail', module: 'mailapi'
+    }
+
+    compileOnly "org.projectlombok:lombok:${versions.lombok}"
+
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation "org.springframework.boot:spring-boot-test"
+    testImplementation 'junit:junit'
+    testImplementation 'org.mockito:mockito-core'
+    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
+}

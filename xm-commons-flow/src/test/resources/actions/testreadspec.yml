@@ -1,0 +1,6 @@
+- key: actionkey
+  implementation: testreadspec
+  type: ACTION
+  resources:
+      - key: userDb
+        resourceType: database

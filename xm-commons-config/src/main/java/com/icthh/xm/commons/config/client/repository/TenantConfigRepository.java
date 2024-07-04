@@ -39,6 +39,8 @@ public class TenantConfigRepository {
 
     private static final String PATH_API = "/api";
     private static final String PATH_CONFIG = "/config";
+    private static final String PATH_PROFILE = "/profile";
+    private static final String CONFIGS_UPDATE = "/configs_update";
 
     public static final String PATH_CONFIG_TENANT = PATH_CONFIG + "/tenants/{" + TENANT_NAME + "}/";
     public static final String PATH_API_CONFIG_TENANT = PATH_API + PATH_CONFIG_TENANT;
@@ -194,6 +196,11 @@ public class TenantConfigRepository {
 
         HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(body, createMultipartAuthHeaders());
         restTemplate.exchange(xmConfigUrl + PATH_API + PATH_CONFIG, HttpMethod.POST, entity, Void.class);
+    }
+
+    public void updateConfigurations(final List<Configuration> configurations) {
+        HttpEntity<List<Configuration>> entity = new HttpEntity<>(configurations, createMultipartAuthHeaders());
+        restTemplate.exchange(xmConfigUrl + PATH_API + PATH_PROFILE + CONFIGS_UPDATE, HttpMethod.POST, entity, Void.class);
     }
 
     private String toUrlWithOldHash(final String tenantName, final String path, final String oldConfigHash) {
