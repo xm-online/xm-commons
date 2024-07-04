@@ -24,7 +24,7 @@ public class ActionRefreshableConfigurationUnitTest {
         TenantContextHolder mock = mock(TenantContextHolder.class);
         when(mock.getTenantKey()).thenReturn("UNIT_TEST");
         var actionRefreshableConfiguration = new StepSpecService("test", mock);
-        actionRefreshableConfiguration.onRefresh("/config/tenants/UNIT_TEST/test/actions.yml", loadFile("actions/testreadspec.yml"));
+        actionRefreshableConfiguration.onRefresh("/config/tenants/UNIT_TEST/test/step-spec.yml", loadFile("actions/testreadspec.yml"));
         StepSpec actionSpec = actionRefreshableConfiguration.getStepSpec("actionkey");
         assertThat(actionSpec, equalTo(mockAction()));
     }
@@ -35,6 +35,7 @@ public class ActionRefreshableConfigurationUnitTest {
         resourceVariable.setResourceType("database");
         StepSpec value = new StepSpec();
         value.setKey("actionkey");
+        value.setType(StepSpec.StepType.ACTION);
         value.setImplementation("testreadspec");
         value.setResources(List.of(resourceVariable));
         return value;
