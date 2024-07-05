@@ -63,8 +63,9 @@ public class TenantResourceService {
         assertResourceType(resource.getResourceType());
         Map<String, TenantResourceConfig> updatedConfigs = new HashMap<>();
         resource.setUpdateDate(Instant.now());
-        var configsWhereRemovedResource = tenantResourceConfigService.removeResource(resource.getKey());
-        var configsWhereAddedResource = tenantResourceConfigService.updateFileConfiguration(resource);
+        Map<String, TenantResourceConfig> configFiles = tenantResourceConfigService.copyFilesConfig();
+        var configsWhereRemovedResource = tenantResourceConfigService.removeResource(configFiles, resource.getKey());
+        var configsWhereAddedResource = tenantResourceConfigService.updateFileConfiguration(configFiles, resource);
         updatedConfigs.putAll(configsWhereRemovedResource);
         updatedConfigs.putAll(configsWhereAddedResource);
         updateConfigurations(updatedConfigs);
@@ -79,7 +80,8 @@ public class TenantResourceService {
     public void deleteResource(String resourceKey) {
         assertExits(resourceKey);
         // TODO check flows, avoid delete used resource
-        var configsWhereRemovedResource = tenantResourceConfigService.removeResource(resourceKey);
+        Map<String, TenantResourceConfig> configFiles = tenantResourceConfigService.copyFilesConfig();
+        var configsWhereRemovedResource = tenantResourceConfigService.removeResource(configFiles, resourceKey);
         updateConfigurations(configsWhereRemovedResource);
     }
 

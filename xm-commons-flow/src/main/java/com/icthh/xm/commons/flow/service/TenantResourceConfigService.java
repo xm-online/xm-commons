@@ -14,9 +14,11 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.Function;
 
 import static java.util.function.Function.identity;
@@ -31,6 +33,8 @@ public class TenantResourceConfigService extends MapRefreshableConfiguration<Ten
     private final TenantContextHolder tenantContextHolder;
     @Getter
     private volatile Map<String, Map<String, TenantResource>> resourcesByType = new HashMap<>();
+    @Getter
+    private volatile Map<String, Map<String, Map<String, Object>>> resourcesDataByType = new HashMap<>();
 
     public TenantResourceConfigService(@Value("${spring.application.name}") String appName,
                                        TenantContextHolder tenantContextHolder) {
@@ -58,11 +62,12 @@ public class TenantResourceConfigService extends MapRefreshableConfiguration<Ten
     public void onUpdate(Map<String, TenantResource> configuration) {
         Map<String, List<TenantResource>> byType = configuration.values().stream()
             .collect(groupingBy(TenantResource::getResourceType));
-        this.resourcesByType = byType.keySet().stream().collect(toUnmodifiableMap(identity(), getGroupByKey(byType)));
+        this.resourcesByType = byType.keySet().stream().collect(toUnmodifiableMap(identity(), getGroupByKey(byType, identity())));
+        this.resourcesDataByType = byType.keySet().stream().collect(toUnmodifiableMap(identity(), getGroupByKey(byType, TenantResource::getData)));
     }
 
-    private Function<String, Map<String, TenantResource>> getGroupByKey(Map<String, List<TenantResource>> byType) {
-        return type -> byType.get(type).stream().collect(toUnmodifiableMap(TenantResource::getKey, identity()));
+    private <T> Function<String, Map<String, T>> getGroupByKey(Map<String, List<TenantResource>> byType, Function<TenantResource, T> mapper) {
+        return type -> byType.get(type).stream().collect(toUnmodifiableMap(TenantResource::getKey, mapper));
     }
 
     public List<TenantResource> resources() {
@@ -74,9 +79,10 @@ public class TenantResourceConfigService extends MapRefreshableConfiguration<Ten
         return getConfiguration().get(resourceKey);
     }
 
-    public Map<String, TenantResourceConfig> removeResource(String resourceKey) {
+    public Map<String, TenantResourceConfig> removeResource(Map<String, TenantResourceConfig> configurationFiles,
+                                                            String resourceKey) {
         Map<String, TenantResourceConfig> updateFiles = new HashMap<>();
-        getConfigurationFiles().forEach((file, config) -> {
+        configurationFiles.forEach((file, config) -> {
             List<TenantResource> resources = config.getResources();
             resources = resources == null ? List.of() : resources;
             boolean containsResource = resources.stream().anyMatch(it -> it.getKey().equals(resourceKey));
@@ -94,8 +100,8 @@ public class TenantResourceConfigService extends MapRefreshableConfiguration<Ten
             .collect(toList());
     }
 
-    public Map<String, TenantResourceConfig> updateFileConfiguration(TenantResource resource) {
-        Map<String, TenantResourceConfig> configurationFiles = getConfigurationFiles();
+    public Map<String, TenantResourceConfig> updateFileConfiguration(Map<String, TenantResourceConfig> configurationFiles,
+                                                                     TenantResource resource) {
         String filePath = buildFilePath(resource.getKey());
         TenantResourceConfig resourceFile = configurationFiles.get(filePath);
         if (resourceFile != null) {
@@ -105,6 +111,18 @@ public class TenantResourceConfigService extends MapRefreshableConfiguration<Ten
             resourceFile.setResources(List.of(resource));
         }
         return Map.of(filePath, resourceFile);
+    }
+
+    public Map<String, TenantResourceConfig>  copyFilesConfig() {
+        Map<String, TenantResourceConfig> configurationFiles = getConfigurationFiles();
+        return configurationFiles.entrySet().stream()
+            .collect(toUnmodifiableMap(Entry::getKey, entry -> liteCopyTenantResourceConfig(entry.getValue())));
+    }
+
+    private static TenantResourceConfig liteCopyTenantResourceConfig(TenantResourceConfig config) {
+        TenantResourceConfig tenantResourceConfig = new TenantResourceConfig();
+        tenantResourceConfig.setResources(new ArrayList<>(config.getResources()));
+        return tenantResourceConfig;
     }
 
     private String buildFilePath(String resourceKey) {

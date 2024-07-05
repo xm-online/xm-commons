@@ -21,7 +21,9 @@ public abstract class AbstractRefreshableConfiguration<CONFIG, CONFIG_FILE> impl
 
     private static final String TENANT_NAME = "tenantName";
 
+    /* Map with Tenant -> config, where config it`s joined configuration from files */
     protected final Map<String, CONFIG> configurationsByTenant = new ConcurrentHashMap<>();
+    /* Map with Tenant -> file path -> file content */
     protected final Map<String, Map<String, CONFIG_FILE>> configurationsByTenantByFile = new ConcurrentHashMap<>();
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
     private final ObjectMapper mapper = buildObjectMapper();

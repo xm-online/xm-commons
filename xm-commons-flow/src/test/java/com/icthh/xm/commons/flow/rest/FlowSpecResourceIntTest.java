@@ -247,7 +247,7 @@ public class FlowSpecResourceIntTest {
     public void testResourceFromLep() {
         tenantResourceConfigService.onRefresh("/config/tenants/TEST/testApp/resources/user_database.yml", loadFile("resource1.yml"));
 
-        lep.onRefresh("/config/tenants/TEST/testApp/lep/test/Test.groovy", "lepContext.resources.jdbc.account_database.data.username");
+        lep.onRefresh("/config/tenants/TEST/testApp/lep/test/Test.groovy", "lepContext.resources.jdbc.account_database.username");
 
         try (var context = lepManagementService.beginThreadContext()) {
             assertEquals("secretuser", testLepService.test());

@@ -13,7 +13,7 @@ import static com.icthh.xm.commons.flow.context.TenantResourceLepAdditionalConte
 
 @Component
 @RequiredArgsConstructor
-public class TenantResourceLepAdditionalContext implements LepAdditionalContext<Map<String, Map<String, TenantResource>>> {
+public class TenantResourceLepAdditionalContext implements LepAdditionalContext<Map<String, Map<String, Map<String, Object>>>> {
 
     private final TenantResourceConfigService resourceService;
 
@@ -23,8 +23,8 @@ public class TenantResourceLepAdditionalContext implements LepAdditionalContext<
     }
 
     @Override
-    public Map<String, Map<String, TenantResource>> additionalContextValue() {
-        return resourceService.getResourcesByType();
+    public Map<String, Map<String, Map<String, Object>>> additionalContextValue() {
+        return resourceService.getResourcesDataByType();
     }
 
     @Override
@@ -34,8 +34,8 @@ public class TenantResourceLepAdditionalContext implements LepAdditionalContext<
 
     public interface TenantResourceLepAdditionalContextField extends LepAdditionalContextField {
         String FIELD_NAME = "resources";
-        default Map<String, Map<String, TenantResource>> getResources() {
-            return (Map<String, Map<String, TenantResource>>)get(FIELD_NAME);
+        default Map<String, Map<String, Map<String, Object>>> getResources() {
+            return (Map<String, Map<String, Map<String, Object>>>)get(FIELD_NAME);
         }
     }
 }
