@@ -8,6 +8,7 @@ import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.config.domain.TenantAliasTree;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.Map;
@@ -32,7 +33,7 @@ public class TenantAliasService {
         Map<String, Configuration> configMap = commonConfigRepository.getConfig(null, singletonList(TENANT_ALIAS_CONFIG));
         configMap = firstNonNull(configMap, emptyMap());
         Configuration configuration = configMap.get(TENANT_ALIAS_CONFIG);
-        if (configuration != null) {
+        if (configuration != null && StringUtils.isNotBlank(configuration.getContent())) {
             onRefresh(configuration.getContent());
         } else {
             log.info("Tenant aliases not configured.");

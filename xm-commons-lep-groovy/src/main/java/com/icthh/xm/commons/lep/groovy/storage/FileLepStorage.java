@@ -36,10 +36,15 @@ public class FileLepStorage implements LepStorage {
                           String baseDir) {
         this.tenant = tenant;
         this.appName = appName;
-        this.defaultLeps = defaultLeps;
         this.tenantAliasService = tenantAliasService;
         this.baseDir = baseDir;
 
+        Map<String, XmLepConfigFile> classPathDefaultLeps = new HashMap<>();
+        defaultLeps.forEach((key, value) -> {
+            String path = tenant + "/" + appName + "/lep" + value.getPath();
+            classPathDefaultLeps.put(path, new XmLepConfigFile(path, value.getContentStream()));
+        });
+        this.defaultLeps = classPathDefaultLeps;
         this.baseDirs = lepPathResolver.getLepBasePaths(tenant).stream()
             .map(path -> baseDir + TENANT_PREFIX + path)
             .collect(toList());
@@ -74,13 +79,16 @@ public class FileLepStorage implements LepStorage {
 
     @Override
     public XmLepConfigFile getByPath(String path) {
+        if (defaultLeps.containsKey(path + FILE_EXTENSION)) {
+            return defaultLeps.get(path + FILE_EXTENSION);
+        }
         Optional<File> file = findFile(path + FILE_EXTENSION).filter(File::exists);
         return file.map(value -> toXmLepConfigFile(path, value)).orElse(null);
     }
 
     @Override
     public boolean isExists(String path) {
-        return findFile(path + FILE_EXTENSION).isPresent();
+        return defaultLeps.containsKey(path + FILE_EXTENSION) || findFile(path + FILE_EXTENSION).isPresent();
     }
 
     private Optional<File> findFile(String path) {
