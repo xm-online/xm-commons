@@ -10,7 +10,10 @@ import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.flow.domain.TenantResource;
 import com.icthh.xm.commons.flow.service.TenantResourceConfigService.TenantResourceConfig;
+import com.icthh.xm.commons.flow.service.resolver.TenantResourceTypeLepKeyResolver;
 import com.icthh.xm.commons.flow.spec.resource.TenantResourceTypeService;
+import com.icthh.xm.commons.lep.LogicExtensionPoint;
+import com.icthh.xm.commons.lep.spring.LepService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -27,20 +30,20 @@ import static java.util.stream.Collectors.toList;
 @Slf4j
 @RequiredArgsConstructor
 @Component
+@LepService(group = "service.resource")
 public class TenantResourceService {
 
     private final TenantResourceConfigService tenantResourceConfigService;
     private final TenantResourceTypeService resourceTypeService;
     private final TenantConfigRepository tenantConfigRepository;
-    private final ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory())
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-        .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-        .registerModule(new JavaTimeModule());
+    private final YamlConverter yamlConverter;
 
+    @LogicExtensionPoint("GetResource")
     public TenantResource getResource(String resourceKey) {
         return tenantResourceConfigService.getByKey(resourceKey);
     }
 
+    @LogicExtensionPoint("GetResources")
     public List<TenantResource> getResources(String resourceType) {
         if (StringUtils.isBlank(resourceType)) {
             return tenantResourceConfigService.resources();
@@ -49,11 +52,13 @@ public class TenantResourceService {
         }
     }
 
+    @LogicExtensionPoint(value = "CreateResource", resolver = TenantResourceTypeLepKeyResolver.class)
     public void createResource(TenantResource resource) {
         assertNotExits(resource);
         modifyTenantResource(resource);
     }
 
+    @LogicExtensionPoint(value = "UpdateResource", resolver = TenantResourceTypeLepKeyResolver.class)
     public void updateResource(TenantResource resource) {
         assertExits(resource.getKey());
         modifyTenantResource(resource);
@@ -77,6 +82,7 @@ public class TenantResourceService {
         }
     }
 
+    @LogicExtensionPoint("DeleteResource")
     public void deleteResource(String resourceKey) {
         assertExits(resourceKey);
         // TODO check flows, avoid delete used resource
@@ -89,14 +95,9 @@ public class TenantResourceService {
         log.debug("Updated configs: {}", updatedConfigs);
         log.info("Updated configs.size: {}", updatedConfigs.size());
         List<Configuration> configurations = updatedConfigs.entrySet().stream()
-            .map(entry -> new Configuration(entry.getKey(), writeConfig(entry.getValue())))
+            .map(entry -> new Configuration(entry.getKey(), yamlConverter.writeConfig(entry.getValue())))
             .collect(toList());
         tenantConfigRepository.updateConfigurations(configurations);
-    }
-
-    @SneakyThrows
-    private String writeConfig(TenantResourceConfig config) {
-        return objectMapper.writeValueAsString(config);
     }
 
     private void assertNotExits(TenantResource resource) {

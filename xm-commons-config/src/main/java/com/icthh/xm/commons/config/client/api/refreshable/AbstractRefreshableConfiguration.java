@@ -126,6 +126,10 @@ public abstract class AbstractRefreshableConfiguration<CONFIG, CONFIG_FILE> impl
             .orElseThrow(() -> new IllegalArgumentException("Unsupported configuration key: " + updatedKey));
     }
 
+    public String buildFilePath(String fileName) {
+        return "/config/tenants/" + tenantContextHolder.getTenantKey() + "/" + appName + "/" + configName() + "/" + fileName + ".yml";
+    }
+
     @Override
     public final boolean isListeningConfiguration(String updatedKey) {
         return filesPathAntPatterns().stream().anyMatch(pattern -> pathMatcher.match(pattern, updatedKey));

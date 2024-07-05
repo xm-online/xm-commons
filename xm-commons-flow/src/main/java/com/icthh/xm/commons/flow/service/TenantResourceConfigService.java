@@ -79,12 +79,17 @@ public class TenantResourceConfigService extends MapRefreshableConfiguration<Ten
         return getConfiguration().get(resourceKey);
     }
 
+    public List<TenantResource> getByResourceType(String resourceType) {
+        return getConfiguration().values().stream()
+            .filter(resource -> resource.getResourceType().equals(resourceType))
+            .collect(toList());
+    }
+
     public Map<String, TenantResourceConfig> removeResource(Map<String, TenantResourceConfig> configurationFiles,
                                                             String resourceKey) {
         Map<String, TenantResourceConfig> updateFiles = new HashMap<>();
         configurationFiles.forEach((file, config) -> {
             List<TenantResource> resources = config.getResources();
-            resources = resources == null ? List.of() : resources;
             boolean containsResource = resources.stream().anyMatch(it -> it.getKey().equals(resourceKey));
             if (containsResource) {
                 updateFiles.put(file, config);
@@ -92,12 +97,6 @@ public class TenantResourceConfigService extends MapRefreshableConfiguration<Ten
             }
         });
         return updateFiles;
-    }
-
-    public List<TenantResource> getByResourceType(String resourceType) {
-        return getConfiguration().values().stream()
-            .filter(resource -> resource.getResourceType().equals(resourceType))
-            .collect(toList());
     }
 
     public Map<String, TenantResourceConfig> updateFileConfiguration(Map<String, TenantResourceConfig> configurationFiles,
@@ -116,22 +115,7 @@ public class TenantResourceConfigService extends MapRefreshableConfiguration<Ten
     public Map<String, TenantResourceConfig>  copyFilesConfig() {
         Map<String, TenantResourceConfig> configurationFiles = getConfigurationFiles();
         return configurationFiles.entrySet().stream()
-            .collect(toUnmodifiableMap(Entry::getKey, entry -> liteCopyTenantResourceConfig(entry.getValue())));
-    }
-
-    private static TenantResourceConfig liteCopyTenantResourceConfig(TenantResourceConfig config) {
-        TenantResourceConfig tenantResourceConfig = new TenantResourceConfig();
-        tenantResourceConfig.setResources(new ArrayList<>(config.getResources()));
-        return tenantResourceConfig;
-    }
-
-    private String buildFilePath(String resourceKey) {
-        return "/config/tenants/" + tenantContextHolder.getTenantKey() + "/" + appName + "/" + configName() + "/" + resourceKey + ".yml";
-    }
-
-    @Data
-    public static class TenantResourceConfig {
-        private List<TenantResource> resources;
+            .collect(toUnmodifiableMap(Entry::getKey, entry -> entry.getValue().copy()));
     }
 
     @Override
@@ -141,4 +125,23 @@ public class TenantResourceConfigService extends MapRefreshableConfiguration<Ten
             .setSerializationInclusion(JsonInclude.Include.NON_NULL)
             .registerModule(new JavaTimeModule());
     }
+
+    @Data
+    public static class TenantResourceConfig {
+        private List<TenantResource> resources;
+
+        public List<TenantResource> getResources() {
+            if (resources == null) {
+                resources = new ArrayList<>();
+            }
+            return resources;
+        }
+
+        public TenantResourceConfig copy() {
+            TenantResourceConfig tenantResourceConfig = new TenantResourceConfig();
+            tenantResourceConfig.setResources(new ArrayList<>(getResources()));
+            return tenantResourceConfig;
+        }
+    }
+
 }
