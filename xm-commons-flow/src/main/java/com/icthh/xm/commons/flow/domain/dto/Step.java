@@ -15,14 +15,20 @@ import java.util.Map;
     property = "type"
 )
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = ActionDto.class, name = "ACTION"),
-    @JsonSubTypes.Type(value = ConditionDto.class, name = "CONDITION")
+    @JsonSubTypes.Type(value = Action.class, name = "ACTION"),
+    @JsonSubTypes.Type(value = Condition.class, name = "CONDITION")
 })
-public class StepDto {
+public class Step {
     private String key;
     private String typeKey;
     private List<String> depends;
     private Map<String, Object> parameters;
-    private Map<String, String> jsSnippets;
+    private Map<String, Snippet> snippets;
     private StepSpec.StepType type;
+
+    @Data
+    public static class Snippet {
+        private String content;
+        private String extension;
+    }
 }

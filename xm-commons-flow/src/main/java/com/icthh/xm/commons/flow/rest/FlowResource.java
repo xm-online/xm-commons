@@ -1,7 +1,6 @@
 package com.icthh.xm.commons.flow.rest;
 
-import com.icthh.xm.commons.flow.domain.TenantResource;
-import com.icthh.xm.commons.flow.domain.dto.FlowDto;
+import com.icthh.xm.commons.flow.domain.dto.Flow;
 import com.icthh.xm.commons.flow.service.FlowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,22 +22,22 @@ public class FlowResource {
     private final FlowService flowService;
 
     @GetMapping("/{flowKey}")
-    public FlowDto getFlow(@PathVariable("flowKey") String flowKey) {
+    public Flow getFlow(@PathVariable("flowKey") String flowKey) {
         return flowService.getFlow(flowKey);
     }
 
     @GetMapping()
-    public List<FlowDto> getFlows() {
+    public List<Flow> getFlows() {
         return flowService.getFlows();
     }
 
     @PostMapping()
-    public void createFlow(@RequestBody FlowDto flow) {
+    public void createFlow(@RequestBody Flow flow) {
         flowService.createFlow(flow);
     }
 
     @PutMapping()
-    public void updateFlow(@RequestBody FlowDto flow) {
+    public void updateFlow(@RequestBody Flow flow) {
         flowService.updateFlow(flow);
     }
 

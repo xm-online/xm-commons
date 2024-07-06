@@ -2,15 +2,17 @@ package com.icthh.xm.commons.flow.service;
 
 import com.icthh.xm.commons.config.client.repository.TenantConfigRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
-import com.icthh.xm.commons.flow.domain.dto.FlowDto;
+import com.icthh.xm.commons.flow.domain.dto.Flow;
+import com.icthh.xm.commons.flow.domain.dto.Step;
 import com.icthh.xm.commons.flow.service.FlowConfigService.FlowsConfig;
+import com.icthh.xm.commons.flow.service.resolver.FlowTypeLepKeyResolver;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,52 +27,73 @@ public class FlowService {
     private final FlowConfigService flowConfigService;
     private final YamlConverter yamlConverter;
     private final TenantConfigRepository tenantConfigRepository;
+    private final CodeSnippetService codeSnippetService;
 
-    public void createFlow(FlowDto flow) {
-        modifyFlow(flow);
+    @Setter(onMethod = @__(@Autowired))
+    private FlowService self;
+
+    @LogicExtensionPoint("GetFlows")
+    public List<Flow> getFlows() {
+        return flowConfigService.getFlows();
     }
 
-    public void updateFlow(FlowDto flow) {
-        modifyFlow(flow);
+    @LogicExtensionPoint("GetFlow")
+    public Flow getFlow(String flowKey) {
+        return flowConfigService.getFlow(flowKey);
     }
 
-    private void modifyFlow(FlowDto flow) {
+    @LogicExtensionPoint(value = "CreateFlow", resolver = FlowTypeLepKeyResolver.class)
+    public void createFlow(Flow flow) {
+        self.modifyFlow(flow);
+    }
+
+    @LogicExtensionPoint(value = "UpdateFlow", resolver = FlowTypeLepKeyResolver.class)
+    public void updateFlow(Flow flow) {
+        self.modifyFlow(flow);
+    }
+
+    @LogicExtensionPoint(value = "ModifyFlow")
+    public void modifyFlow(Flow flow) {
         Map<String, FlowsConfig> updatedConfigs = new HashMap<>();
         Map<String, FlowsConfig> configFiles = flowConfigService.copyFilesConfig();
         var configsWhereRemovedFlow = flowConfigService.removeFlow(configFiles, flow.getKey());
         var configsWhereAddedFlow = flowConfigService.updateFileConfiguration(configFiles, flow);
         updatedConfigs.putAll(configsWhereRemovedFlow);
         updatedConfigs.putAll(configsWhereAddedFlow);
-        updateConfigurations(updatedConfigs);
+
+        List<Configuration> configurations = convertToConfiguration(updatedConfigs);
+
+        List<Configuration> snippets = codeSnippetService.generateSnippets(flow);
+        configurations.addAll(snippets);
+
+        updateConfigurations(configurations);
     }
 
     @LogicExtensionPoint("DeleteFlow")
     public void deleteFlow(String flowKey) {
+        Flow flow = flowConfigService.getFlow(flowKey);
         Map<String, FlowsConfig> configFiles = flowConfigService.copyFilesConfig();
         Map<String, FlowsConfig> filesWithFlow = flowConfigService.removeFlow(configFiles, flowKey);
-        filesWithFlow.forEach((file, config) -> {
-            config.getFlows().removeIf(flow -> flow.getKey().equals(flowKey));
-        });
-        updateConfigurations(filesWithFlow);
+        List<Configuration> configurations = convertToConfiguration(filesWithFlow);
+        if (flow != null) {
+            List<Configuration> snippets = codeSnippetService.generateSnippets(flow);
+            snippets.forEach(snippet -> snippet.setContent(null));
+            configurations.addAll(snippets);
+        }
+
+        updateConfigurations(configurations);
     }
 
-    @LogicExtensionPoint("GetFlows")
-    public List<FlowDto> getFlows() {
-        return flowConfigService.getFlows();
+    private void updateConfigurations(List<Configuration> configurations) {
+        log.debug("Updated configs: {}", configurations);
+        log.info("Updated configs.size: {}", configurations.size());
+        tenantConfigRepository.updateConfigurations(configurations);
     }
 
-    @LogicExtensionPoint("GetFlow")
-    public FlowDto getFlow(String flowKey) {
-        return flowConfigService.getFlow(flowKey);
-    }
-
-    private void updateConfigurations(Map<String, FlowConfigService.FlowsConfig> updatedConfigs) {
-        log.debug("Updated configs: {}", updatedConfigs);
-        log.info("Updated configs.size: {}", updatedConfigs.size());
-        List<Configuration> configurations = updatedConfigs.entrySet().stream()
+    private List<Configuration> convertToConfiguration(Map<String, FlowsConfig> updatedConfigs) {
+        return updatedConfigs.entrySet().stream()
             .map(entry -> new Configuration(entry.getKey(), yamlConverter.writeConfig(entry.getValue())))
             .collect(toList());
-        tenantConfigRepository.updateConfigurations(configurations);
     }
 
 }

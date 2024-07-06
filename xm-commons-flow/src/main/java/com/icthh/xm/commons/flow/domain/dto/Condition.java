@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class ConditionDto extends StepDto {
+public class Condition extends Step {
     private List<String> nextOnConditionTrue;
     private List<String> nextOnConditionFalse;
 }

@@ -6,9 +6,9 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class FlowDto implements ConfigWithKey {
+public class Flow implements ConfigWithKey {
     private String key;
     private String version;
-    private List<StepDto> steps;
-    private TriggerDto trigger;
+    private List<Step> steps;
+    private Trigger trigger;
 }

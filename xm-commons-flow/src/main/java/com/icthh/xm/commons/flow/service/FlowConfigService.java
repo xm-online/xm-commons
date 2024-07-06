@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.flow.service;
 
 import com.icthh.xm.commons.config.client.api.refreshable.MapRefreshableConfiguration;
-import com.icthh.xm.commons.flow.domain.dto.FlowDto;
+import com.icthh.xm.commons.flow.domain.dto.Flow;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +14,7 @@ import java.util.Map.Entry;
 
 import static java.util.stream.Collectors.toUnmodifiableMap;
 
-public class FlowConfigService extends MapRefreshableConfiguration<FlowDto, FlowConfigService.FlowsConfig> {
+public class FlowConfigService extends MapRefreshableConfiguration<Flow, FlowConfigService.FlowsConfig> {
 
     public FlowConfigService(@Value("${spring.application.name}") String appName,
                              TenantContextHolder tenantContextHolder) {
@@ -22,7 +22,7 @@ public class FlowConfigService extends MapRefreshableConfiguration<FlowDto, Flow
     }
 
     @Override
-    protected List<FlowDto> toConfigItems(FlowsConfig config) {
+    protected List<Flow> toConfigItems(FlowsConfig config) {
         return config.getFlows();
     }
 
@@ -36,11 +36,11 @@ public class FlowConfigService extends MapRefreshableConfiguration<FlowDto, Flow
         return "flows";
     }
 
-    public List<FlowDto> getFlows() {
+    public List<Flow> getFlows() {
         return List.copyOf(getConfiguration().values());
     }
 
-    public FlowDto getFlow(String flowKey) {
+    public Flow getFlow(String flowKey) {
         return getConfiguration().get(flowKey);
     }
 
@@ -54,7 +54,7 @@ public class FlowConfigService extends MapRefreshableConfiguration<FlowDto, Flow
                                                String flowKey) {
         Map<String, FlowsConfig> updatedFiles = new HashMap<>();
         configurationFiles.forEach((file, config) -> {
-            List<FlowDto> flow = config.getFlows();
+            List<Flow> flow = config.getFlows();
             boolean contains = flow.stream().anyMatch(it -> it.getKey().equals(flowKey));
             if (contains) {
                 updatedFiles.put(file, config);
@@ -65,23 +65,23 @@ public class FlowConfigService extends MapRefreshableConfiguration<FlowDto, Flow
     }
 
     public Map<String, FlowsConfig> updateFileConfiguration(Map<String, FlowsConfig> configurationFiles,
-                                                            FlowDto flowDto) {
-        String filePath = buildFilePath(flowDto.getKey());
+                                                            Flow flow) {
+        String filePath = buildFilePath(flow.getKey());
         FlowsConfig resourceFile = configurationFiles.get(filePath);
         if (resourceFile != null) {
-            resourceFile.getFlows().add(flowDto);
+            resourceFile.getFlows().add(flow);
         } else {
             resourceFile = new FlowsConfig();
-            resourceFile.setFlows(List.of(flowDto));
+            resourceFile.setFlows(List.of(flow));
         }
         return Map.of(filePath, resourceFile);
     }
 
     @Data
     public static class FlowsConfig {
-        private List<FlowDto> flows;
+        private List<Flow> flows;
 
-        public List<FlowDto> getFlows() {
+        public List<Flow> getFlows() {
             if (flows == null) {
                 flows = new ArrayList<>();
             }
