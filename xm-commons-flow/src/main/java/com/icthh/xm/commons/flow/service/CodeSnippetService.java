@@ -11,16 +11,23 @@ import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-import static com.icthh.xm.commons.config.client.utils.ListUtils.nullSafeList;
+import static com.icthh.xm.commons.config.client.utils.Utils.nullSafeList;
+import static com.icthh.xm.commons.config.client.utils.Utils.nullSafeMap;
+import static com.icthh.xm.commons.flow.service.CodeSnippetExecutor.SNIPPET;
 import static java.util.stream.Collectors.toList;
 
 @Component
 @LepService(group = "flow")
 public class CodeSnippetService {
 
+    public static final String $$ = "$$";
     private final TenantContextHolder tenantContextHolder;
     private final String appName;
 
@@ -33,22 +40,27 @@ public class CodeSnippetService {
     public List<Configuration> generateSnippets(Flow flow) {
         List<Step> steps = flow.getSteps();
         return nullSafeList(steps).stream()
-            .map(Step::getSnippets)
-            .flatMap(it -> it.entrySet().stream())
-            .map(this::toConfiguration)
+            .flatMap(step -> toConfigurations(flow, step).stream())
             .collect(toList());
     }
 
-    private Configuration toConfiguration(Entry<String, Snippet> it) {
-        String content = "";
-        if (it.getValue() != null) {
-            content = it.getValue().getContent();
-        }
-        return new Configuration(buildPath(it), content);
+    private List<Configuration> toConfigurations(Flow flow, Step step) {
+        return nullSafeMap(step.getSnippets()).entrySet().stream()
+            .map((entry) ->
+                toConfiguration(flow.getKey(), step.getKey(), entry.getKey(), entry.getValue())
+            ).collect(toList());
     }
 
-    private String buildPath(Entry<String, Snippet> it) {
-        String fileName = it.getKey() + "." + it.getValue().getExtension();
+    private Configuration toConfiguration(String flowKey, String stepKey, String fileKey, Snippet snippet) {
+        String content = "";
+        if (snippet != null) {
+            content = snippet.getContent();
+        }
+        return new Configuration(buildPath(flowKey, stepKey, fileKey, snippet), content);
+    }
+
+    private String buildPath(String flowKey, String stepKey, String fileKey, Snippet snippet) {
+        String fileName = SNIPPET + $$ + flowKey + $$ + stepKey + $$ + fileKey + "." + snippet.getExtension();
         if (fileName.contains("/")) {
             throw new BusinessException("error.illegal.code.snippet.file.name", "File name can't contain '/' character");
         }

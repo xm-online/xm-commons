@@ -5,6 +5,7 @@ import com.icthh.xm.commons.flow.domain.dto.Flow;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import java.util.Map.Entry;
 
 import static java.util.stream.Collectors.toUnmodifiableMap;
 
+@Component
 public class FlowConfigService extends MapRefreshableConfiguration<Flow, FlowConfigService.FlowsConfig> {
 
     public FlowConfigService(@Value("${spring.application.name}") String appName,
@@ -33,7 +35,7 @@ public class FlowConfigService extends MapRefreshableConfiguration<Flow, FlowCon
 
     @Override
     public String configName() {
-        return "flows";
+        return "flow";
     }
 
     public List<Flow> getFlows() {

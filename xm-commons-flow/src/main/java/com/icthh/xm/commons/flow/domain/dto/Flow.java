@@ -9,6 +9,7 @@ import java.util.List;
 public class Flow implements ConfigWithKey {
     private String key;
     private String version;
+    private String description;
     private List<Step> steps;
     private Trigger trigger;
 }

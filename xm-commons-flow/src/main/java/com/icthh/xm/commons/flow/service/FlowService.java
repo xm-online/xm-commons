@@ -2,6 +2,8 @@ package com.icthh.xm.commons.flow.service;
 
 import com.icthh.xm.commons.config.client.repository.TenantConfigRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
+import com.icthh.xm.commons.exceptions.BusinessException;
+import com.icthh.xm.commons.flow.domain.TenantResource;
 import com.icthh.xm.commons.flow.domain.dto.Flow;
 import com.icthh.xm.commons.flow.domain.dto.Step;
 import com.icthh.xm.commons.flow.service.FlowConfigService.FlowsConfig;
@@ -12,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +24,7 @@ import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @RequiredArgsConstructor
+@Component
 @LepService(group = "service.flow")
 public class FlowService {
 
@@ -44,11 +48,13 @@ public class FlowService {
 
     @LogicExtensionPoint(value = "CreateFlow", resolver = FlowTypeLepKeyResolver.class)
     public void createFlow(Flow flow) {
+        assertNotExits(flow);
         self.modifyFlow(flow);
     }
 
     @LogicExtensionPoint(value = "UpdateFlow", resolver = FlowTypeLepKeyResolver.class)
     public void updateFlow(Flow flow) {
+        assertExits(flow.getKey());
         self.modifyFlow(flow);
     }
 
@@ -82,6 +88,18 @@ public class FlowService {
         }
 
         updateConfigurations(configurations);
+    }
+
+    private void assertNotExits(Flow flow) {
+        if (flowConfigService.getFlow(flow.getKey()) != null) {
+            throw new BusinessException("error.flow.already.exists", "Flow with key " + flow.getKey() + " already exists");
+        }
+    }
+
+    private void assertExits(String flowKey) {
+        if (flowConfigService.getFlow(flowKey) == null) {
+            throw new BusinessException("error.flow.not.found", "Resource with key " + flowKey + " not found");
+        }
     }
 
     private void updateConfigurations(List<Configuration> configurations) {
