@@ -41,8 +41,6 @@ public class FlowSpecResourceIntTest extends AbstractFlowIntTest {
     @Autowired
     XmLepScriptConfigServerResourceLoader lep;
 
-    @MockBean
-    TenantConfigRepository tenantConfigRepository;
     @Autowired
     TenantResourceConfigService tenantResourceConfigService;
 

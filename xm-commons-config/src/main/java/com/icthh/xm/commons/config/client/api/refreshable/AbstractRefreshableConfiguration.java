@@ -65,7 +65,6 @@ public abstract class AbstractRefreshableConfiguration<CONFIG, CONFIG_FILE> impl
         String configName = configName();
         String folder = buildFolderName();
         return List.of(
-            "/config/tenants/{tenantName}/" + appName + folder + "/" + configName + "." + fileExtension,
             "/config/tenants/{tenantName}/" + appName + folder + "/" + configName + "/*." + fileExtension
         );
     }

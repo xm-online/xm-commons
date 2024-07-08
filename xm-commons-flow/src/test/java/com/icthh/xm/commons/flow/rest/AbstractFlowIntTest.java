@@ -1,10 +1,17 @@
 package com.icthh.xm.commons.flow.rest;
 
+import com.icthh.xm.commons.config.client.repository.TenantConfigRepository;
 import com.icthh.xm.commons.flow.context.TenantResourceLepAdditionalContext;
+import com.icthh.xm.commons.flow.service.CodeSnippetService;
+import com.icthh.xm.commons.flow.service.FlowConfigService;
+import com.icthh.xm.commons.flow.service.FlowService;
 import com.icthh.xm.commons.flow.service.TenantResourceConfigService;
 import com.icthh.xm.commons.flow.service.TenantResourceService;
 import com.icthh.xm.commons.flow.service.YamlConverter;
+import com.icthh.xm.commons.flow.service.resolver.FlowTypeLepKeyResolver;
 import com.icthh.xm.commons.flow.service.resolver.TenantResourceTypeLepKeyResolver;
+import com.icthh.xm.commons.flow.service.resolver.TriggerResolver;
+import com.icthh.xm.commons.flow.service.trigger.TriggerProcessor;
 import com.icthh.xm.commons.flow.spec.resource.TenantResourceTypeService;
 import com.icthh.xm.commons.flow.spec.step.StepSpecService;
 import com.icthh.xm.commons.flow.spec.trigger.TriggerTypeSpecService;
@@ -21,6 +28,7 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -45,8 +53,15 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
         TenantResourceResource.class,
         TenantResourceService.class,
         TenantResourceTypeLepKeyResolver.class,
+        FlowResource.class,
+        FlowService.class,
+        CodeSnippetService.class,
+        TriggerProcessor.class,
+        FlowTypeLepKeyResolver.class,
+        TriggerResolver.class,
         TriggerTypeSpecService.class,
-        YamlConverter.class
+        YamlConverter.class,
+        FlowConfigService.class
     },
     properties = {"spring.application.name=testApp"}
 )
@@ -60,6 +75,8 @@ public abstract class AbstractFlowIntTest {
     LepManagementService lepManagementService;
     @Autowired
     TenantContextHolder tenantContextHolder;
+    @MockBean
+    TenantConfigRepository tenantConfigRepository;
 
     @Before
     public void setup() {

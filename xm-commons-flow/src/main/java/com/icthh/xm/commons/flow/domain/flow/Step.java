@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.flow.domain.dto;
+package com.icthh.xm.commons.flow.domain.flow;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -19,7 +19,7 @@ import java.util.Map;
     @JsonSubTypes.Type(value = Action.class, name = "ACTION"),
     @JsonSubTypes.Type(value = Condition.class, name = "CONDITION")
 })
-public class Step {
+public abstract class Step {
     private String key;
     private String typeKey;
     private List<String> depends;

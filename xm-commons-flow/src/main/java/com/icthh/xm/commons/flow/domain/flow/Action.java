@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.flow.domain.dto;
+package com.icthh.xm.commons.flow.domain.flow;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

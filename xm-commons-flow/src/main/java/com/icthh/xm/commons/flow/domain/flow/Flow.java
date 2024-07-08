@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.flow.domain.dto;
+package com.icthh.xm.commons.flow.domain.flow;
 
 import com.icthh.xm.commons.config.client.api.refreshable.ConfigWithKey;
 import lombok.Data;

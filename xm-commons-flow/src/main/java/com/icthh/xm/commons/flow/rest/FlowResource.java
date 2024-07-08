@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.flow.rest;
 
-import com.icthh.xm.commons.flow.domain.dto.Flow;
+import com.icthh.xm.commons.flow.domain.flow.Flow;
 import com.icthh.xm.commons.flow.service.FlowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;

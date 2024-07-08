@@ -2,21 +2,16 @@ package com.icthh.xm.commons.flow.service;
 
 import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.exceptions.BusinessException;
-import com.icthh.xm.commons.flow.domain.dto.Flow;
-import com.icthh.xm.commons.flow.domain.dto.Step;
-import com.icthh.xm.commons.flow.domain.dto.Step.Snippet;
+import com.icthh.xm.commons.flow.domain.flow.Flow;
+import com.icthh.xm.commons.flow.domain.flow.Step;
+import com.icthh.xm.commons.flow.domain.flow.Step.Snippet;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static com.icthh.xm.commons.config.client.utils.Utils.nullSafeList;
 import static com.icthh.xm.commons.config.client.utils.Utils.nullSafeMap;

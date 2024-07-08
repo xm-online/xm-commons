@@ -24,7 +24,7 @@ public class StepsRefreshableConfigurationUnitTest {
         TenantContextHolder mock = mock(TenantContextHolder.class);
         when(mock.getTenantKey()).thenReturn("UNIT_TEST");
         var service = new StepSpecService("test", mock);
-        service.onRefresh("/config/tenants/UNIT_TEST/test/step-spec.yml", loadFile("step-spec/testreadspec.yml"));
+        service.onRefresh("/config/tenants/UNIT_TEST/test/flow/step-spec/testreadspec.yml", loadFile("step-spec/testreadspec.yml"));
         StepSpec actionSpec = service.getStepSpec("actionkey");
         assertThat(actionSpec, equalTo(mockAction()));
     }
