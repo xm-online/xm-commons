@@ -30,6 +30,11 @@ public class TenantResourceTypeService extends MapRefreshableConfiguration<Tenan
         return "resource-types";
     }
 
+    @Override
+    public String folder() {
+        return "/flow";
+    }
+
     public List<TenantResourceType> resourceTypes() {
         return List.copyOf(getConfiguration().values());
     }

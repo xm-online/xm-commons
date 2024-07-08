@@ -28,8 +28,8 @@ public abstract class AbstractRefreshableConfiguration<CONFIG, CONFIG_FILE> impl
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
     private final ObjectMapper mapper = buildObjectMapper();
 
-    private final TenantContextHolder tenantContextHolder;
-    private final String appName;
+    protected final TenantContextHolder tenantContextHolder;
+    protected final String appName;
 
     public AbstractRefreshableConfiguration(@Value("${spring.application.name}") String appName,
                                             TenantContextHolder tenantContextHolder) {
@@ -47,8 +47,13 @@ public abstract class AbstractRefreshableConfiguration<CONFIG, CONFIG_FILE> impl
         return new ObjectMapper(new YAMLFactory());
     }
 
-    public void onUpdate(CONFIG configuration) {
+    public void onUpdate(String tenantKey, CONFIG configuration) {
         // to override
+    }
+
+    /** Folder inside microservice config folder. */
+    public String folder() {
+        return "";
     }
 
     public String configFileExtension() {
@@ -58,9 +63,10 @@ public abstract class AbstractRefreshableConfiguration<CONFIG, CONFIG_FILE> impl
     public List<String> filesPathAntPatterns() {
         String fileExtension = configFileExtension();
         String configName = configName();
+        String folder = buildFolderName();
         return List.of(
-            "/config/tenants/{tenantName}/" + appName + "/" + configName + "." + fileExtension,
-            "/config/tenants/{tenantName}/" + appName + "/" + configName + "/*." + fileExtension
+            "/config/tenants/{tenantName}/" + appName + folder + "/" + configName + "." + fileExtension,
+            "/config/tenants/{tenantName}/" + appName + folder + "/" + configName + "/*." + fileExtension
         );
     }
 
@@ -111,11 +117,23 @@ public abstract class AbstractRefreshableConfiguration<CONFIG, CONFIG_FILE> impl
             }
 
             CONFIG value = joinTenantConfiguration(List.copyOf(byFiles.values()));
-            onUpdate(value);
-            configurationsByTenant.put(tenantKey, value);
+            onUpdate(tenantKey, value);
+            if (value == null) {
+                configurationsByTenant.remove(tenantKey);
+            } else {
+                configurationsByTenant.put(tenantKey, value);
+            }
         } catch (Exception e) {
             log.error("Error update configuration by key: {}", updatedKey, e);
         }
+    }
+
+    private String buildFolderName() {
+        String folder = folder();
+        folder = folder == null ? "" : folder;
+        folder = folder.startsWith("/") ? folder : "/" + folder;
+        folder = folder.endsWith("/") ? folder.substring(0, folder.length() - 1) : folder;
+        return folder;
     }
 
     private String findPattern(String updatedKey) {
@@ -127,7 +145,7 @@ public abstract class AbstractRefreshableConfiguration<CONFIG, CONFIG_FILE> impl
     }
 
     public String buildFilePath(String fileName) {
-        return "/config/tenants/" + tenantContextHolder.getTenantKey() + "/" + appName + "/" + configName() + "/" + fileName + ".yml";
+        return "/config/tenants/" + tenantContextHolder.getTenantKey() + "/" + appName + buildFolderName() + "/" + configName() + "/" + fileName + ".yml";
     }
 
     @Override

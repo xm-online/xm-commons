@@ -10,7 +10,6 @@ import com.icthh.xm.commons.flow.domain.TenantResource;
 import com.icthh.xm.commons.flow.service.TenantResourceConfigService.TenantResourceConfig;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.Data;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import static java.util.function.Function.identity;
@@ -29,18 +29,12 @@ import static java.util.stream.Collectors.toUnmodifiableMap;
 @Component
 public class TenantResourceConfigService extends MapRefreshableConfiguration<TenantResource, TenantResourceConfig> {
 
-    private final String appName;
-    private final TenantContextHolder tenantContextHolder;
-    @Getter
-    private volatile Map<String, Map<String, TenantResource>> resourcesByType = new HashMap<>();
-    @Getter
-    private volatile Map<String, Map<String, Map<String, Object>>> resourcesDataByType = new HashMap<>();
+    // tenant -> resourceType -> resourceKey -> resourceData (Map<String, Object> it`s data)
+    private final Map<String, Map<String, Map<String, Map<String, Object>>>> resourcesDataByType = new ConcurrentHashMap<>();
 
     public TenantResourceConfigService(@Value("${spring.application.name}") String appName,
                                        TenantContextHolder tenantContextHolder) {
         super(appName, tenantContextHolder);
-        this.appName = appName;
-        this.tenantContextHolder = tenantContextHolder;
     }
 
     @Override
@@ -59,15 +53,20 @@ public class TenantResourceConfigService extends MapRefreshableConfiguration<Ten
     }
 
     @Override
-    public void onUpdate(Map<String, TenantResource> configuration) {
-        Map<String, List<TenantResource>> byType = configuration.values().stream()
-            .collect(groupingBy(TenantResource::getResourceType));
-        this.resourcesByType = byType.keySet().stream().collect(toUnmodifiableMap(identity(), getGroupByKey(byType, identity())));
-        this.resourcesDataByType = byType.keySet().stream().collect(toUnmodifiableMap(identity(), getGroupByKey(byType, TenantResource::getData)));
+    public String folder() {
+        return "/flow";
     }
 
-    private <T> Function<String, Map<String, T>> getGroupByKey(Map<String, List<TenantResource>> byType, Function<TenantResource, T> mapper) {
-        return type -> byType.get(type).stream().collect(toUnmodifiableMap(TenantResource::getKey, mapper));
+    @Override
+    public void onUpdate(String tenantKey, Map<String, TenantResource> configuration) {
+        Map<String, List<TenantResource>> byType = configuration.values().stream()
+            .collect(groupingBy(TenantResource::getResourceType));
+        var resourcesDataByType = byType.keySet().stream().collect(toUnmodifiableMap(identity(), getGroupByKey(byType)));
+        this.resourcesDataByType.put(tenantKey, resourcesDataByType);
+    }
+
+    private Function<String, Map<String, Map<String, Object>>> getGroupByKey(Map<String, List<TenantResource>> byType) {
+        return type -> byType.get(type).stream().collect(toUnmodifiableMap(TenantResource::getKey, TenantResource::getData));
     }
 
     public List<TenantResource> resources() {
@@ -124,6 +123,10 @@ public class TenantResourceConfigService extends MapRefreshableConfiguration<Ten
             .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
             .setSerializationInclusion(JsonInclude.Include.NON_NULL)
             .registerModule(new JavaTimeModule());
+    }
+
+    public Map<String, Map<String, Map<String, Object>>> getResourcesDataByType() {
+        return resourcesDataByType.get(tenantContextHolder.getTenantKey());
     }
 
     @Data

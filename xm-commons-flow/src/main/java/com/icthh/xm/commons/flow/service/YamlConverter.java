@@ -22,4 +22,9 @@ public class YamlConverter {
     public String writeConfig(Object config) {
         return objectMapper.writeValueAsString(config);
     }
+
+    @SneakyThrows
+    public <T> T readConfig(String config, Class<T> type) {
+        return objectMapper.readValue(config, type);
+    }
 }

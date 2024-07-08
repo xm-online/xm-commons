@@ -11,6 +11,7 @@ dependencies {
     compile project(":xm-commons-config")
     compile project(":xm-commons-i18n")
     compile project(":xm-commons-lep")
+    compile project(":xm-commons-topic")
 
     implementation("com.github.java-json-tools:json-schema-validator:2.2.8") {
         exclude group: 'javax.mail', module: 'mailapi'

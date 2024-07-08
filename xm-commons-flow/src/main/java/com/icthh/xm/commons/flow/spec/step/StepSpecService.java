@@ -30,6 +30,11 @@ public class StepSpecService extends AbstractRefreshableConfiguration<Map<String
     }
 
     @Override
+    public String folder() {
+        return "/flow";
+    }
+
+    @Override
     public Map<String, StepSpec> joinTenantConfiguration(List<List<StepSpec>> files) {
         return files.stream()
             .map(nullSafeList())
