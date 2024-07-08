@@ -7,6 +7,7 @@ import com.icthh.xm.commons.flow.service.YamlConverter;
 import com.icthh.xm.commons.flow.service.resolver.TenantResourceTypeLepKeyResolver;
 import com.icthh.xm.commons.flow.spec.resource.TenantResourceTypeService;
 import com.icthh.xm.commons.flow.spec.step.StepSpecService;
+import com.icthh.xm.commons.flow.spec.trigger.TriggerTypeSpecService;
 import com.icthh.xm.commons.i18n.error.web.ExceptionTranslator;
 import com.icthh.xm.commons.i18n.spring.config.LocalizationMessageProperties;
 import com.icthh.xm.commons.i18n.spring.service.LocalizationMessageService;
@@ -44,6 +45,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
         TenantResourceResource.class,
         TenantResourceService.class,
         TenantResourceTypeLepKeyResolver.class,
+        TriggerTypeSpecService.class,
         YamlConverter.class
     },
     properties = {"spring.application.name=testApp"}

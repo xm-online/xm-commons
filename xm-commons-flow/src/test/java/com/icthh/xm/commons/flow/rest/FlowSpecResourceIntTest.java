@@ -5,6 +5,7 @@ import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.flow.service.TenantResourceConfigService;
 import com.icthh.xm.commons.flow.spec.resource.TenantResourceTypeService;
 import com.icthh.xm.commons.flow.spec.step.StepSpecService;
+import com.icthh.xm.commons.flow.spec.trigger.TriggerTypeSpecService;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import lombok.SneakyThrows;
 import org.junit.Test;
@@ -31,6 +32,8 @@ public class FlowSpecResourceIntTest extends AbstractFlowIntTest {
     StepSpecService stepSpecService;
     @Autowired
     TenantResourceTypeService tenantResourceTypeService;
+    @Autowired
+    TriggerTypeSpecService triggerTypeSpecService;
 
     @Autowired
     TestLepService testLepService;
@@ -101,6 +104,24 @@ public class FlowSpecResourceIntTest extends AbstractFlowIntTest {
 
         tenantResourceTypeService.onRefresh("/config/tenants/TEST/testApp/flow/resource-types/database.yml", "");
         tenantResourceTypeService.onRefresh("/config/tenants/TEST/testApp/flow/resource-types/ole.yml", "");
+    }
+
+    @Test
+    @SneakyThrows
+    public void testTriggerTypes() {
+        triggerTypeSpecService.onRefresh("/config/tenants/TEST/testApp/flow/trigger-types/httpAndScheduler.yml", loadFile("trigger-types/httpAndScheduler.yml"));
+        triggerTypeSpecService.onRefresh("/config/tenants/TEST/testApp/flow/trigger-types/telegram-webhook.yml", loadFile("trigger-types/telegram-webhook.yml"));
+
+        mockMvc.perform(get("/api/flow/spec/trigger-types"))
+            .andDo(print())
+            .andExpect(jsonPath("$.[0].key").value("scheduler"))
+            .andExpect(jsonPath("$.[1].key").value("telegram-webhook"))
+            .andExpect(jsonPath("$.[2].key").value("http"))
+            .andExpect(jsonPath("$.[*].key").value(hasSize(3)))
+            .andExpect(status().isOk());
+
+        triggerTypeSpecService.onRefresh("/config/tenants/TEST/testApp/flow/trigger-types/httpAndScheduler.yml", "");
+        triggerTypeSpecService.onRefresh("/config/tenants/TEST/testApp/flow/trigger-types/telegram-webhook.yml", "");
     }
 
     @Test

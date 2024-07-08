@@ -3,11 +3,10 @@ package com.icthh.xm.commons.flow.service;
 import com.icthh.xm.commons.config.client.repository.TenantConfigRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.exceptions.BusinessException;
-import com.icthh.xm.commons.flow.domain.TenantResource;
 import com.icthh.xm.commons.flow.domain.dto.Flow;
-import com.icthh.xm.commons.flow.domain.dto.Step;
 import com.icthh.xm.commons.flow.service.FlowConfigService.FlowsConfig;
 import com.icthh.xm.commons.flow.service.resolver.FlowTypeLepKeyResolver;
+import com.icthh.xm.commons.flow.service.trigger.TriggerProcessor;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +31,7 @@ public class FlowService {
     private final YamlConverter yamlConverter;
     private final TenantConfigRepository tenantConfigRepository;
     private final CodeSnippetService codeSnippetService;
+    private final TriggerProcessor triggerProcessor;
 
     @Setter(onMethod = @__(@Autowired))
     private FlowService self;
@@ -71,6 +71,10 @@ public class FlowService {
 
         List<Configuration> snippets = codeSnippetService.generateSnippets(flow);
         configurations.addAll(snippets);
+        if (flow.getTrigger() != null) {
+            List<Configuration> triggers = triggerProcessor.processTriggerUpdate(flow.getTrigger());
+            configurations.addAll(triggers);
+        }
 
         updateConfigurations(configurations);
     }
@@ -85,6 +89,11 @@ public class FlowService {
             List<Configuration> snippets = codeSnippetService.generateSnippets(flow);
             snippets.forEach(snippet -> snippet.setContent(null));
             configurations.addAll(snippets);
+
+            if (flow.getTrigger() != null) {
+                List<Configuration> triggers = triggerProcessor.processTriggerDelete(flow.getTrigger());
+                configurations.addAll(triggers);
+            }
         }
 
         updateConfigurations(configurations);

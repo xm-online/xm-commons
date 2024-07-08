@@ -1,0 +1,16 @@
+triggerTypes:
+    - key: telegram-webhook
+      name:
+          en: telegram-webhook
+      configSpec: |
+          {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string"
+              },
+              "key": {
+                "type": "string"
+              }
+            }
+          }

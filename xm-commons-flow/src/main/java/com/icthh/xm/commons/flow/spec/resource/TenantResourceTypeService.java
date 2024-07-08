@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class TenantResourceTypeService extends MapRefreshableConfiguration<TenantResourceType, TenantResourceTypesConfig> {
+public class TenantResourceTypeService extends MapRefreshableConfiguration<TenantResourceType, TenantResourceTypesSpec> {
 
     public TenantResourceTypeService(@Value("${spring.application.name}") String appName,
                                      TenantContextHolder tenantContextHolder) {
@@ -16,13 +16,13 @@ public class TenantResourceTypeService extends MapRefreshableConfiguration<Tenan
     }
 
     @Override
-    protected List<TenantResourceType> toConfigItems(TenantResourceTypesConfig config) {
+    protected List<TenantResourceType> toConfigItems(TenantResourceTypesSpec config) {
         return config.getTenantResourceTypes();
     }
 
     @Override
-    public Class<TenantResourceTypesConfig> configFileClass() {
-        return TenantResourceTypesConfig.class;
+    public Class<TenantResourceTypesSpec> configFileClass() {
+        return TenantResourceTypesSpec.class;
     }
 
     @Override
