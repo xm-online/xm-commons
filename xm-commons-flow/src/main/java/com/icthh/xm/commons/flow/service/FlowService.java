@@ -32,8 +32,11 @@ public class FlowService {
     private final CodeSnippetService codeSnippetService;
     private final TriggerProcessor triggerProcessor;
 
-    @Setter(onMethod = @__(@Autowired))
     private FlowService self;
+    @Autowired
+    public void setFlowService(FlowService flowService) {
+        this.self = flowService;
+    }
 
     @LogicExtensionPoint("GetFlows")
     public List<Flow> getFlows() {
