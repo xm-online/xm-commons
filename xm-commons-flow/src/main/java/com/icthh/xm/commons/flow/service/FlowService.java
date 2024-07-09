@@ -10,7 +10,6 @@ import com.icthh.xm.commons.flow.service.trigger.TriggerProcessor;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -49,17 +48,17 @@ public class FlowService {
     @LogicExtensionPoint(value = "CreateFlow", resolver = FlowTypeLepKeyResolver.class)
     public void createFlow(Flow flow) {
         assertNotExits(flow);
-        self.modifyFlow(flow);
+        self.saveFlowInternal(flow);
     }
 
     @LogicExtensionPoint(value = "UpdateFlow", resolver = FlowTypeLepKeyResolver.class)
     public void updateFlow(Flow flow) {
         assertExits(flow.getKey());
-        self.modifyFlow(flow);
+        self.saveFlowInternal(flow);
     }
 
-    @LogicExtensionPoint(value = "ModifyFlow")
-    public void modifyFlow(Flow flow) {
+    @LogicExtensionPoint(value = "SaveFlow")
+    public void saveFlowInternal(Flow flow) {
         Map<String, FlowsConfig> updatedConfigs = new HashMap<>();
         Map<String, FlowsConfig> configFiles = flowConfigService.copyFilesConfig();
         var configsWhereRemovedFlow = flowConfigService.removeFlow(configFiles, flow.getKey());
