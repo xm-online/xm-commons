@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.flow.domain.flow;
+package com.icthh.xm.commons.flow.domain;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

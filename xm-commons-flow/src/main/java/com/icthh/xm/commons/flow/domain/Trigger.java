@@ -1,4 +1,4 @@
-package com.icthh.xm.commons.flow.domain.flow;
+package com.icthh.xm.commons.flow.domain;
 
 import lombok.Data;
 
