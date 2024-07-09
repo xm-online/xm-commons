@@ -22,7 +22,7 @@ import static java.util.stream.Collectors.toList;
 @LepService(group = "flow")
 public class CodeSnippetService {
 
-    public static final String $$ = "$$";
+    public static final String SEGMENT_SEP = "$$";
     private final TenantContextHolder tenantContextHolder;
     private final String appName;
 
@@ -55,7 +55,7 @@ public class CodeSnippetService {
     }
 
     private String buildPath(String flowKey, String stepKey, String fileKey, Snippet snippet) {
-        String fileName = SNIPPET + $$ + flowKey + $$ + stepKey + $$ + fileKey + "." + snippet.getExtension();
+        String fileName = SNIPPET + SEGMENT_SEP + flowKey + SEGMENT_SEP + stepKey + SEGMENT_SEP + fileKey + "." + snippet.getExtension();
         if (fileName.contains("/")) {
             throw new BusinessException("error.illegal.code.snippet.file.name", "File name can't contain '/' character");
         }

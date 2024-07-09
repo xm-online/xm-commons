@@ -115,7 +115,7 @@ public class FlowService {
 
     private void updateConfigurations(List<Configuration> configurations) {
         log.debug("Updated configs: {}", configurations);
-        log.info("Updated configs.size: {}", configurations.size());
+        log.info("Updated configs.count: {}", configurations.size());
         tenantConfigRepository.updateConfigurations(configurations);
     }
 

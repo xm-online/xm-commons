@@ -93,7 +93,7 @@ public class TenantResourceService {
 
     private void updateConfigurations(Map<String, TenantResourceConfig> updatedConfigs) {
         log.debug("Updated configs: {}", updatedConfigs);
-        log.info("Updated configs.size: {}", updatedConfigs.size());
+        log.info("Updated configs.count: {}", updatedConfigs.size());
         List<Configuration> configurations = updatedConfigs.entrySet().stream()
             .map(entry -> new Configuration(entry.getKey(), yamlConverter.writeConfig(entry.getValue())))
             .collect(toList());
