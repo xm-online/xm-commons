@@ -2,9 +2,9 @@ package com.icthh.xm.commons.flow.service;
 
 import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.exceptions.BusinessException;
-import com.icthh.xm.commons.flow.domain.flow.Flow;
-import com.icthh.xm.commons.flow.domain.flow.Step;
-import com.icthh.xm.commons.flow.domain.flow.Step.Snippet;
+import com.icthh.xm.commons.flow.domain.Flow;
+import com.icthh.xm.commons.flow.domain.Step;
+import com.icthh.xm.commons.flow.domain.Step.Snippet;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;

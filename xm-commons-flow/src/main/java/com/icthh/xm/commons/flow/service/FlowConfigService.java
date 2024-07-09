@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.flow.service;
 
 import com.icthh.xm.commons.config.client.api.refreshable.MapRefreshableConfiguration;
-import com.icthh.xm.commons.flow.domain.flow.Flow;
+import com.icthh.xm.commons.flow.domain.Flow;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
