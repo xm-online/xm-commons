@@ -52,7 +52,9 @@ public class FlowResourceIntTest extends AbstractFlowIntTest {
     public void testRefreshFlowConfig() {
         flowConfigService.onRefresh("/config/tenants/TEST/testApp/flow/my-flow.yml", loadFile("flow.yml"));
         Flow flow = flowConfigService.getFlow("my-flow");
-        assertThat(flow, equalTo(mockFlow()));
+        Flow expected = mockFlow();
+        expected.setDescription("Init description");
+        assertThat(expected, equalTo(flow));
     }
 
     @Test
