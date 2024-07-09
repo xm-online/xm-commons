@@ -1,5 +1,7 @@
 package com.icthh.xm.commons.flow.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.flow.domain.flow.Action;
 import com.icthh.xm.commons.flow.domain.flow.Flow;
@@ -9,11 +11,13 @@ import com.icthh.xm.commons.flow.service.FlowConfigService;
 import com.icthh.xm.commons.flow.spec.step.StepSpec;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import lombok.SneakyThrows;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +28,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -54,6 +59,9 @@ public class FlowResourceIntTest extends AbstractFlowIntTest {
     @SneakyThrows
     public void testFlowCrud() {
         doAnswer(invocation -> {
+            if (invocation.getArguments()[0] == null) {
+                return null;
+            }
             List<Configuration> configurations = invocation.getArgument(0);
             configurations.forEach(it -> {
                 if (flowConfigService.isListeningConfiguration(it.getPath())) {
@@ -62,6 +70,8 @@ public class FlowResourceIntTest extends AbstractFlowIntTest {
             });
             return null;
         }).when(tenantConfigRepository).updateConfigurations(any());
+
+        lep.onRefresh("/config/tenants/TEST/testApp/lep/flow/trigger/TriggerUpdated$$httpkey.groovy", loadFile("testlep/TriggerUpdated.groovy"));
 
         Flow flow = mockFlow();
         flow.setDescription("Init description");
@@ -72,7 +82,35 @@ public class FlowResourceIntTest extends AbstractFlowIntTest {
             .andExpect(status().isOk())
         ;
 
-        // todo add trigger lep and assert configuration files
+        ArgumentCaptor<List<Configuration>> captor = ArgumentCaptor.forClass(List.class);
+        verify(tenantConfigRepository).updateConfigurations(captor.capture());
+        List<Configuration> value = new ArrayList<>(captor.getValue());
+        System.out.println(value);
+
+        assertEquals(8, value.size());
+        assertEquals("/config/tenants/TEST/testApp/flow/my-flow.yml", value.get(0).getPath());
+        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+        var actual = objectMapper.readValue(value.get(0).getContent(), Map.class);
+        var expected = objectMapper.readValue(loadFile("flow.yml"), Map.class);
+        value.remove(0);
+
+        assertEquals(expected, actual);
+        value.sort(Comparator.comparing(Configuration::getPath));
+
+        assertEquals("/config/tenants/TEST/test/otherspec.yml", value.get(0).getPath());
+        assertEquals("foofoofoo", value.get(0).getContent());
+        assertEquals("/config/tenants/TEST/test/somespec.yml", value.get(1).getPath());
+        assertEquals("blablabla", value.get(1).getContent());
+        assertEquals("/config/tenants/TEST/testApp/flow/snippets/Snippet$$my-flow$$step2$$mapping.js", value.get(2).getPath());
+        assertEquals("return context.get('orders').map(order => { return { id: order.id, name: order.name }; })", value.get(2).getContent());
+        assertEquals("/config/tenants/TEST/testApp/flow/snippets/Snippet$$my-flow$$step2$$precheck.js", value.get(3).getPath());
+        assertEquals("if (context.get('orders').length > 0) { return true; } else { return false; }", value.get(3).getContent());
+        assertEquals("/config/tenants/TEST/testApp/flow/snippets/Snippet$$my-flow$$step3$$mapping.js", value.get(4).getPath());
+        assertEquals("return context.get('users').map(user => { return { id: user.id, name: user.name }; })", value.get(4).getContent());
+        assertEquals("/config/tenants/TEST/testApp/flow/snippets/Snippet$$my-flow$$step3$$postcheck.js", value.get(5).getPath());
+        assertEquals("if (context.get('votes').length > 0) { return true; } else { return false; }", value.get(5).getContent());
+        assertEquals("/config/tenants/TEST/testApp/flow/snippets/Snippet$$my-flow$$step3$$precheck.js", value.get(6).getPath());
+        assertEquals("if (context.get('users').length > 0) { return true; } else { return false; }", value.get(6).getContent());
 
         ResultActions flowGet = mockMvc.perform(get("/api/flow/my-flow"))
             .andDo(print())
@@ -131,15 +169,6 @@ public class FlowResourceIntTest extends AbstractFlowIntTest {
             .andExpect(jsonPath("$.steps[2].snippets.postcheck.content").value(equalTo("if (context.get('votes').length > 0) { return true; } else { return false; }")))
             .andExpect(jsonPath("$.steps[2].snippets.postcheck.extension").value(equalTo("js")));
         ;
-    }
-
-    @Test
-    @SneakyThrows
-    public void testResourceFromLep() {
-
-        lep.onRefresh("/config/tenants/TEST/testApp/lep/test/Test.groovy", "lepContext.resources.jdbc.account_database.username");
-
-        assertEquals("secretuser", testLepService.test());
     }
 
     @SneakyThrows

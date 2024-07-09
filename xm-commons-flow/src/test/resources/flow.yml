@@ -1,11 +1,7 @@
 ---
 flows:
 - key: "my-flow"
-  trigger:
-    typeKey: "httpkey"
-    parameters:
-      method: "GET"
-      url: "/api/orders"
+  description: "Init description"
   steps:
   - key: "step1"
     typeKey: "actionkey"
@@ -19,13 +15,13 @@ flows:
     parameters:
       query: "select * from users"
     snippets:
-      precheck:
-        content: "if (context.get('orders').length > 0) { return true; } else { return\
-          \ false; }"
-        extension: "js"
       mapping:
         content: "return context.get('orders').map(order => { return { id: order.id,\
           \ name: order.name }; })"
+        extension: "js"
+      precheck:
+        content: "if (context.get('orders').length > 0) { return true; } else { return\
+          \ false; }"
         extension: "js"
     type: "ACTION"
     next:
@@ -35,16 +31,21 @@ flows:
     parameters:
       query: "select * from votes"
     snippets:
-      precheck:
-        content: "if (context.get('users').length > 0) { return true; } else { return\
+      postcheck:
+        content: "if (context.get('votes').length > 0) { return true; } else { return\
           \ false; }"
         extension: "js"
       mapping:
         content: "return context.get('users').map(user => { return { id: user.id,\
           \ name: user.name }; })"
         extension: "js"
-      postcheck:
-        content: "if (context.get('votes').length > 0) { return true; } else { return\
+      precheck:
+        content: "if (context.get('users').length > 0) { return true; } else { return\
           \ false; }"
         extension: "js"
     type: "ACTION"
+  trigger:
+    typeKey: "httpkey"
+    parameters:
+      method: "GET"
+      url: "/api/orders"
