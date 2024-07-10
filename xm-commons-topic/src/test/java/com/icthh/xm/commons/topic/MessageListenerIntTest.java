@@ -171,7 +171,7 @@ public class MessageListenerIntTest {
     public void testConsumerReadUncommited() {
         initConsumers();
 
-        TopicConfigurationService topicConfigurationService = createTopicConfigurationService(null);
+        TopicConfigurationService topicConfigurationService = createTopicConfigurationService(createKafkaTemplate());
         topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(TX_CONFIG));
 
         Producer<String, String> producer = createTxProducer();
@@ -200,7 +200,7 @@ public class MessageListenerIntTest {
     public void testConsumerReadCommitted() {
         initConsumers();
 
-        TopicConfigurationService topicConfigurationService = createTopicConfigurationService(null);
+        TopicConfigurationService topicConfigurationService = createTopicConfigurationService(createKafkaTemplate());
         topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(TX_RC_CONFIG));
 
         Producer<String, String> producer = createTxProducer();
@@ -238,6 +238,14 @@ public class MessageListenerIntTest {
         consumer.close();
     }
 
+    private KafkaTemplate createKafkaTemplate() {
+        DefaultKafkaProducerFactory<String, String> kafkaProducerFactory = new DefaultKafkaProducerFactory<>(
+            producerProps(kafkaEmbedded),
+            new StringSerializer(),
+            new StringSerializer());
+
+        return new KafkaTemplate<>(kafkaProducerFactory);
+    }
 
     private Producer<String, String> createTxProducer() {
         Map<String, Object> producerProps = producerProps(kafkaEmbedded);

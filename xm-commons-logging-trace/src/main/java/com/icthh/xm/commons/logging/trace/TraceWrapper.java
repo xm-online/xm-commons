@@ -49,6 +49,7 @@ public class TraceWrapper {
             codeToRun.run();
         } catch (Exception e) {
             existingSpan.error(e);
+            throw e;
         } finally {
             log.trace("Closing span, {}", existingSpan.context().spanId());
             existingSpan.end();
