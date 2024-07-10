@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 @Component
-@ConfigurationProperties(prefix = "xm-topic.auto-create")
+@ConfigurationProperties(prefix = "xm-commons.xm-topic.auto-create")
 public class AutoCreateTopicConfiguration {
 
     private boolean enabled;

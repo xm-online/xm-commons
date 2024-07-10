@@ -3,7 +3,12 @@ package com.icthh.xm.commons.topic.service;
 import com.icthh.xm.commons.topic.config.AutoCreateTopicConfiguration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.admin.*;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.CreateTopicsResult;
+import org.apache.kafka.clients.admin.ListTopicsOptions;
+import org.apache.kafka.clients.admin.ListTopicsResult;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.stereotype.Component;
@@ -18,7 +23,7 @@ import java.util.concurrent.ExecutionException;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(value = "xm-topic.auto-create.enable", matchIfMissing = false, havingValue = "true")
+@ConditionalOnProperty(value = "xm-commons.xm-topic.auto-create.enable", matchIfMissing = false, havingValue = "true")
 public class AutoCreateTopicService {
 
     private final KafkaProperties kafkaProperties;
