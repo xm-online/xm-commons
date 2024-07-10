@@ -14,7 +14,7 @@ import java.util.Objects;
  * The {@link TenantVerifyInterceptor} class.
  */
 @XmRelatedComponent
-public class TenantVerifyInterceptor implements HandlerInterceptor { // todo spring 3.2.0 migration
+public class TenantVerifyInterceptor implements HandlerInterceptor {
 
     private static final String JSON_ERROR_TENANT_SUSPENDED = "{\"error\": \"Tenant is suspended\"}";
 

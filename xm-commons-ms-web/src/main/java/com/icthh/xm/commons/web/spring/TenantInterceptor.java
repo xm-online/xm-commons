@@ -24,7 +24,7 @@ import java.util.Optional;
  */
 // Add exclusion path to config:
 // https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/mvc.html#mvc-config-interceptors
-public class TenantInterceptor implements HandlerInterceptor { // todo spring 3.2.0 migration
+public class TenantInterceptor implements HandlerInterceptor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TenantInterceptor.class);
 
