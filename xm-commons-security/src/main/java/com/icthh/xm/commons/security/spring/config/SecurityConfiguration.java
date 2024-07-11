@@ -20,7 +20,7 @@ import static com.icthh.xm.commons.security.RoleConstant.SUPER_ADMIN;
 
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true)
-public class SecurityConfiguration { // todo spring 3.2.0 migration
+public class SecurityConfiguration {
 
     private final String contentSecurityPolicy;
 

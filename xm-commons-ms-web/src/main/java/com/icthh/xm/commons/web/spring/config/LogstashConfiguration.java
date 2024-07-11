@@ -21,7 +21,7 @@ public class LogstashConfiguration {
                                                        instanceId,
                                                        logstash.getHost(),
                                                        logstash.getPort(),
-                                                       logstash.getRingBufferSize()); // todo spring 3.2.0 migration
+                                                       logstash.getRingBufferSize());
         LogstashConfigurer.initLogstash(config);
     }
 

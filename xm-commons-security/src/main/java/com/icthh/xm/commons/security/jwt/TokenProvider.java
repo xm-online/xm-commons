@@ -58,7 +58,6 @@ public class TokenProvider {
         return new XmAuthentication(principal, token, authorities);
     }
 
-    // todo spring 3.2.0 migration
     public XmAuthentication getAuthentication(ServerHttpRequest request, String token) {
         Claims claims = this.jwtParser.parseClaimsJws(token).getBody();
         Collection<? extends GrantedAuthority> authorities = getAuthorities(claims);
