@@ -4,6 +4,7 @@ import com.icthh.xm.commons.lep.BaseProceedingLep;
 import com.icthh.xm.commons.lep.spring.LepThreadHelper;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactory;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
+import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContext;
 
 import java.util.HashMap;
@@ -16,6 +17,7 @@ public abstract class BaseLepContext {
     public BaseProceedingLep lep;
     public LepThreadHelper thread;
     public XmAuthenticationContext authContext;
+    public XmAuthenticationContextHolder authContextHolder;
     public TenantContext tenantContext;
     // just remove usage, no alternatives
     @Deprecated(forRemoval = true)

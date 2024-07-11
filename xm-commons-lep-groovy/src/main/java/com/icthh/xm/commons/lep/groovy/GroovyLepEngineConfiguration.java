@@ -4,6 +4,9 @@ import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.FileSystemUtils;
 import com.icthh.xm.commons.lep.LepPathResolver;
 import com.icthh.xm.commons.lep.TenantScriptStorage;
+import com.icthh.xm.commons.lep.spring.DefaultLepContextActualClassDetector;
+import com.icthh.xm.commons.lep.spring.LepContextActualClassDetector;
+import com.icthh.xm.commons.lep.groovy.annotation.LepServiceTransformation;
 import com.icthh.xm.commons.lep.groovy.storage.ClassPathLepStorageFactory;
 import com.icthh.xm.commons.lep.groovy.storage.FileLepStorageFactory;
 import com.icthh.xm.commons.lep.groovy.storage.LepStorageFactory;
@@ -12,6 +15,7 @@ import com.icthh.xm.commons.lep.impl.LoggingWrapper;
 import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
 import com.icthh.xm.commons.lep.spring.ApplicationNameProvider;
 import com.icthh.xm.commons.lep.spring.LepSpringConfiguration;
+import com.icthh.xm.commons.logging.util.BasePackageDetector;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -61,6 +65,13 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     @Bean
     public GroovyMapLepWrapperFactory groovyMapLepWrapperFactory() {
         return new GroovyMapLepWrapperFactory();
+    }
+
+    @Bean
+    public LepServiceTransformation lepServiceTransformation(LepContextActualClassDetector lepContextActualClassDetector) {
+        LepServiceTransformation lepServiceTransformation = new LepServiceTransformation();
+        LepServiceTransformation.init(lepContextActualClassDetector.detectActualClass());
+        return lepServiceTransformation;
     }
 
     @Bean

@@ -56,4 +56,5 @@ public class LepTestConfig extends GroovyLepEngineConfiguration {
     public TenantAliasService tenantAliasService() {
         return new TenantAliasService(mock(CommonConfigRepository.class), mock(TenantListRepository.class));
     }
+
 }
