@@ -19,4 +19,9 @@ public class DynamicTestLepService {
     public String testLepMethod(Map<String, Object> input) {
         return "Hello I am service method!";
     }
+
+    @LogicExtensionPoint("TestWithReturnMap")
+    public Map<String, Object> testWithReturnMap() {
+        return Map.of();
+    }
 }
