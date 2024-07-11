@@ -2,32 +2,15 @@ package com.icthh.xm.commons.flow.rest;
 
 import com.icthh.xm.commons.config.client.repository.TenantConfigRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
-import com.icthh.xm.commons.flow.context.TenantResourceLepAdditionalContext;
 import com.icthh.xm.commons.flow.service.TenantResourceConfigService;
-import com.icthh.xm.commons.flow.service.TenantResourceService;
 import com.icthh.xm.commons.flow.spec.resource.TenantResourceTypeService;
 import com.icthh.xm.commons.flow.spec.step.StepSpecService;
-import com.icthh.xm.commons.i18n.error.web.ExceptionTranslator;
-import com.icthh.xm.commons.i18n.spring.config.LocalizationMessageProperties;
-import com.icthh.xm.commons.i18n.spring.service.LocalizationMessageService;
+import com.icthh.xm.commons.flow.spec.trigger.TriggerTypeSpecService;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
-import com.icthh.xm.commons.lep.api.LepManagementService;
-import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
-import com.icthh.xm.commons.tenant.TenantContextHolder;
-import com.icthh.xm.commons.tenant.TenantContextUtils;
-import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import lombok.SneakyThrows;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import java.util.List;
 
@@ -43,64 +26,31 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
-@RunWith(SpringRunner.class)
-@SpringBootTest(
-    classes = {
-        LepTestConfig.class,
-        TenantContextConfiguration.class,
-        XmAuthenticationContextConfiguration.class,
-        FlowSpecResource.class,
-        StepSpecService.class,
-        ExceptionTranslator.class,
-        LocalizationMessageService.class,
-        LocalizationMessageProperties.class,
-        TenantResourceTypeService.class,
-        TenantResourceLepAdditionalContext.class,
-        TenantResourceConfigService.class,
-        TenantResourceResource.class,
-        TenantResourceService.class
-    },
-    properties = {"spring.application.name=testApp"}
-)
-@EnableWebMvc
-public class FlowSpecResourceIntTest {
+public class FlowSpecResourceIntTest extends AbstractFlowIntTest {
 
     @Autowired
-    private WebApplicationContext wac;
-    private MockMvc mockMvc;
+    StepSpecService stepSpecService;
+    @Autowired
+    TenantResourceTypeService tenantResourceTypeService;
+    @Autowired
+    TriggerTypeSpecService triggerTypeSpecService;
 
     @Autowired
-    private StepSpecService stepSpecService;
-    @Autowired
-    private TenantResourceTypeService tenantResourceTypeService;
-    @Autowired
-    private TenantContextHolder tenantContextHolder;
+    TestLepService testLepService;
 
     @Autowired
-    private TestLepService testLepService;
+    XmLepScriptConfigServerResourceLoader lep;
 
     @Autowired
-    private XmLepScriptConfigServerResourceLoader lep;
-    @Autowired
-    private LepManagementService lepManagementService;
+    TenantResourceConfigService tenantResourceConfigService;
 
-    @MockBean
-    private TenantConfigRepository tenantConfigRepository;
-    @Autowired
-    private TenantResourceConfigService tenantResourceConfigService;
 
-    @Before
-    public void setup() {
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
-        TenantContextUtils.setTenant(tenantContextHolder, "TEST");
-    }
 
     @Test
     @SneakyThrows
     public void testListOfSteps() {
-        stepSpecService.onRefresh("/config/tenants/TEST/testApp/step-spec/testreadspec.yml", loadFile("step-spec/testreadspec.yml"));
-        stepSpecService.onRefresh("/config/tenants/TEST/testApp/step-spec/anothersteps.yml", loadFile("step-spec/anothersteps.yml"));
+        stepSpecService.onRefresh("/config/tenants/TEST/testApp/flow/step-spec/testreadspec.yml", loadFile("step-spec/testreadspec.yml"));
+        stepSpecService.onRefresh("/config/tenants/TEST/testApp/flow/step-spec/anothersteps.yml", loadFile("step-spec/anothersteps.yml"));
         mockMvc.perform(get("/api/flow/spec/steps"))
             .andDo(print())
             .andExpect(jsonPath("$.[0].key").value("othercondition"))
@@ -139,8 +89,8 @@ public class FlowSpecResourceIntTest {
     @Test
     @SneakyThrows
     public void testResourceTypes() {
-        tenantResourceTypeService.onRefresh("/config/tenants/TEST/testApp/resource-types/database.yml", loadFile("resource-types/database.yml"));
-        tenantResourceTypeService.onRefresh("/config/tenants/TEST/testApp/resource-types/ole.yml", loadFile("resource-types/ole.yml"));
+        tenantResourceTypeService.onRefresh("/config/tenants/TEST/testApp/flow/resource-types/database.yml", loadFile("resource-types/database.yml"));
+        tenantResourceTypeService.onRefresh("/config/tenants/TEST/testApp/flow/resource-types/ole.yml", loadFile("resource-types/ole.yml"));
 
         mockMvc.perform(get("/api/flow/spec/resource-types"))
             .andDo(print())
@@ -150,8 +100,26 @@ public class FlowSpecResourceIntTest {
             .andExpect(jsonPath("$.[*].key").value(hasSize(3)))
             .andExpect(status().isOk());
 
-        tenantResourceTypeService.onRefresh("/config/tenants/TEST/testApp/resource-types/database.yml", "");
-        tenantResourceTypeService.onRefresh("/config/tenants/TEST/testApp/resource-types/ole.yml", "");
+        tenantResourceTypeService.onRefresh("/config/tenants/TEST/testApp/flow/resource-types/database.yml", "");
+        tenantResourceTypeService.onRefresh("/config/tenants/TEST/testApp/flow/resource-types/ole.yml", "");
+    }
+
+    @Test
+    @SneakyThrows
+    public void testTriggerTypes() {
+        triggerTypeSpecService.onRefresh("/config/tenants/TEST/testApp/flow/trigger-types/httpAndScheduler.yml", loadFile("trigger-types/httpAndScheduler.yml"));
+        triggerTypeSpecService.onRefresh("/config/tenants/TEST/testApp/flow/trigger-types/telegram-webhook.yml", loadFile("trigger-types/telegram-webhook.yml"));
+
+        mockMvc.perform(get("/api/flow/spec/trigger-types"))
+            .andDo(print())
+            .andExpect(jsonPath("$.[0].key").value("scheduler"))
+            .andExpect(jsonPath("$.[1].key").value("telegram-webhook"))
+            .andExpect(jsonPath("$.[2].key").value("http"))
+            .andExpect(jsonPath("$.[*].key").value(hasSize(3)))
+            .andExpect(status().isOk());
+
+        triggerTypeSpecService.onRefresh("/config/tenants/TEST/testApp/flow/trigger-types/httpAndScheduler.yml", "");
+        triggerTypeSpecService.onRefresh("/config/tenants/TEST/testApp/flow/trigger-types/telegram-webhook.yml", "");
     }
 
     @Test
@@ -171,8 +139,8 @@ public class FlowSpecResourceIntTest {
             .andExpect(jsonPath("$.error").value("error.resource.type.not.found"));
 
 
-        tenantResourceTypeService.onRefresh("/config/tenants/TEST/testApp/resource-types/database.yml", loadFile("resource-types/database.yml"));
-        tenantResourceTypeService.onRefresh("/config/tenants/TEST/testApp/resource-types/ole.yml", loadFile("resource-types/ole.yml"));
+        tenantResourceTypeService.onRefresh("/config/tenants/TEST/testApp/flow/resource-types/database.yml", loadFile("resource-types/database.yml"));
+        tenantResourceTypeService.onRefresh("/config/tenants/TEST/testApp/flow/resource-types/ole.yml", loadFile("resource-types/ole.yml"));
 
         mockMvc.perform(post("/api/flow/resources")
                 .contentType("application/json")
@@ -245,13 +213,11 @@ public class FlowSpecResourceIntTest {
     @Test
     @SneakyThrows
     public void testResourceFromLep() {
-        tenantResourceConfigService.onRefresh("/config/tenants/TEST/testApp/resources/user_database.yml", loadFile("resource1.yml"));
+        tenantResourceConfigService.onRefresh("/config/tenants/TEST/testApp/flow/resources/user_database.yml", loadFile("resource1.yml"));
 
         lep.onRefresh("/config/tenants/TEST/testApp/lep/test/Test.groovy", "lepContext.resources.jdbc.account_database.username");
 
-        try (var context = lepManagementService.beginThreadContext()) {
-            assertEquals("secretuser", testLepService.test());
-        }
+        assertEquals("secretuser", testLepService.test());
     }
 
 }

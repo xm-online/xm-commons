@@ -5,6 +5,8 @@ import com.icthh.xm.commons.flow.spec.resource.TenantResourceTypeService;
 import com.icthh.xm.commons.flow.spec.step.StepSpec;
 import com.icthh.xm.commons.flow.spec.step.StepSpec.StepType;
 import com.icthh.xm.commons.flow.spec.step.StepSpecService;
+import com.icthh.xm.commons.flow.spec.trigger.TriggerType;
+import com.icthh.xm.commons.flow.spec.trigger.TriggerTypeSpecService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +22,7 @@ public class FlowSpecResource {
 
     private final StepSpecService stepSpecService;
     private final TenantResourceTypeService resourceTypeService;
+    private final TriggerTypeSpecService triggerSpecService;
 
     @GetMapping("/steps")
     public List<StepSpec> getSteps(@RequestParam(name = "stepType", required = false) StepType stepType) {
@@ -29,6 +32,11 @@ public class FlowSpecResource {
     @GetMapping("/resource-types")
     public List<TenantResourceType> getResourceTypes() {
         return resourceTypeService.resourceTypes();
+    }
+
+    @GetMapping("/trigger-types")
+    public List<TriggerType> getTriggerTypes() {
+        return triggerSpecService.triggerTypes();
     }
 
 }

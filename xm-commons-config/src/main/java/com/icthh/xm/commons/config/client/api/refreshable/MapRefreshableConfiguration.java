@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 import java.util.Map;
 
-import static com.icthh.xm.commons.config.client.utils.ListUtils.nullSafeList;
+import static com.icthh.xm.commons.config.client.utils.Utils.nullSafeList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 

@@ -5,6 +5,6 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class TenantResourceTypesConfig {
+public class TenantResourceTypesSpec {
     private List<TenantResourceType> tenantResourceTypes;
 }

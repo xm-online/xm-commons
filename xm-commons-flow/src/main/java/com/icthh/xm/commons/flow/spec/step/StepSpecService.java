@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.icthh.xm.commons.config.client.utils.ListUtils.nullSafeList;
+import static com.icthh.xm.commons.config.client.utils.Utils.nullSafeList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
@@ -27,6 +27,11 @@ public class StepSpecService extends AbstractRefreshableConfiguration<Map<String
     @Override
     public String configName() {
         return "step-spec";
+    }
+
+    @Override
+    public String folder() {
+        return "/flow";
     }
 
     @Override
