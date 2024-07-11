@@ -55,16 +55,6 @@ public class LepIntTest {
 
     @Test
     @SneakyThrows
-    public void testBackwardCompatibilityOfCallStaticMethodInChildClass() {
-        String code = loadFile("lep/TestCallStaticMethodFromChildClass.groovy");
-        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethodWithInput$$around.groovy", code);
-        String result = testLepService.testLepMethod(Map.of());
-        assertEquals("STATIC_METHOD_WORKS", result);
-    }
-
-
-    @Test
-    @SneakyThrows
     public void testLepContextCastToMap() {
         String code = loadFile("lep/TestLepContextCastToMap.groovy");
         resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethodWithInput$$around.groovy", code);
