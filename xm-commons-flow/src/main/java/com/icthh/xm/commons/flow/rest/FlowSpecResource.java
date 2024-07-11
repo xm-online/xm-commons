@@ -3,7 +3,6 @@ package com.icthh.xm.commons.flow.rest;
 import com.icthh.xm.commons.flow.spec.resource.TenantResourceType;
 import com.icthh.xm.commons.flow.spec.resource.TenantResourceTypeService;
 import com.icthh.xm.commons.flow.spec.step.StepSpec;
-import com.icthh.xm.commons.flow.spec.step.StepSpec.StepType;
 import com.icthh.xm.commons.flow.spec.step.StepSpecService;
 import com.icthh.xm.commons.flow.spec.trigger.TriggerType;
 import com.icthh.xm.commons.flow.spec.trigger.TriggerTypeSpecService;
@@ -25,7 +24,7 @@ public class FlowSpecResource {
     private final TriggerTypeSpecService triggerSpecService;
 
     @GetMapping("/steps")
-    public List<StepSpec> getSteps(@RequestParam(name = "stepType", required = false) StepType stepType) {
+    public List<StepSpec> getSteps(@RequestParam(name = "stepType", required = false) StepSpec.StepType stepType) {
         return stepSpecService.getSteps(stepType);
     }
 

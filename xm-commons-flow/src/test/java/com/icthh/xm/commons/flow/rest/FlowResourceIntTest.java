@@ -184,7 +184,7 @@ public class FlowResourceIntTest extends AbstractFlowIntTest {
         step1.setTypeKey("actionkey");
         step1.setParameters(Map.of("query", "select * from orders"));
         step1.setType(StepSpec.StepType.ACTION);
-        step1.setNext(List.of("step2"));
+        step1.setNext("step2");
 
         // Snippets for Step 2
         Step.Snippet precheckSnippetStep2 = new Step.Snippet();
@@ -202,7 +202,7 @@ public class FlowResourceIntTest extends AbstractFlowIntTest {
         step2.setParameters(Map.of("query", "select * from users"));
         step2.setSnippets(Map.of("precheck", precheckSnippetStep2, "mapping", mappingSnippetStep2));
         step2.setType(StepSpec.StepType.ACTION);
-        step2.setNext(List.of("step3"));
+        step2.setNext("step3");
 
         // Snippets for Step 3
         Step.Snippet precheckSnippetStep3 = new Step.Snippet();
@@ -234,6 +234,7 @@ public class FlowResourceIntTest extends AbstractFlowIntTest {
         Flow flow = new Flow();
         flow.setKey("my-flow");
         flow.setTrigger(trigger);
+        flow.setStartStep("step1");
         flow.setSteps(List.of(step1, step2, step3));
 
         return flow;

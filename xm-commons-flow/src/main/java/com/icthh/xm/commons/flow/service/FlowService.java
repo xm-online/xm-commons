@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -51,12 +52,14 @@ public class FlowService {
     @LogicExtensionPoint(value = "CreateFlow", resolver = FlowTypeLepKeyResolver.class)
     public void createFlow(Flow flow) {
         assertNotExits(flow);
+        assertStartStepExists(flow);
         self.saveFlowInternal(flow);
     }
 
     @LogicExtensionPoint(value = "UpdateFlow", resolver = FlowTypeLepKeyResolver.class)
     public void updateFlow(Flow flow) {
         assertExits(flow.getKey());
+        assertStartStepExists(flow);
         self.saveFlowInternal(flow);
     }
 
@@ -123,6 +126,16 @@ public class FlowService {
         return updatedConfigs.entrySet().stream()
             .map(entry -> new Configuration(entry.getKey(), yamlConverter.writeConfig(entry.getValue())))
             .collect(toList());
+    }
+
+    private void assertStartStepExists(Flow flow) {
+        boolean isExists = isNotBlank(flow.getStartStep()) && flow.getSteps().stream().anyMatch(step ->
+            flow.getStartStep().equals(step.getKey())
+        );
+
+        if (!isExists) {
+            throw new BusinessException("error.flow.start.step.not.found", "Start step with key " + flow.getStartStep() + " not found");
+        }
     }
 
 }

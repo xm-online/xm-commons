@@ -27,6 +27,8 @@ public abstract class Step {
     private Map<String, Snippet> snippets;
     private StepSpec.StepType type;
 
+    public abstract String getNext(Object context);
+
     @Data
     public static class Snippet {
         private String content;

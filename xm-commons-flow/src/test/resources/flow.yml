@@ -2,14 +2,14 @@
 flows:
 - key: "my-flow"
   description: "Init description"
+  startStep: "step1"
   steps:
   - key: "step1"
     typeKey: "actionkey"
     parameters:
       query: "select * from orders"
     type: "ACTION"
-    next:
-    - "step2"
+    next: "step2"
   - key: "step2"
     typeKey: "actionkey"
     parameters:
@@ -24,8 +24,7 @@ flows:
           \ false; }"
         extension: "js"
     type: "ACTION"
-    next:
-    - "step3"
+    next: "step3"
   - key: "step3"
     typeKey: "actionkey"
     parameters:
