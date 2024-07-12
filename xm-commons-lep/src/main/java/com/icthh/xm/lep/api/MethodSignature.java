@@ -1,6 +1,8 @@
 package com.icthh.xm.lep.api;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.List;
 
 /**
@@ -116,4 +118,5 @@ public interface MethodSignature {
      */
     Method getMethod();
 
+    String getLepContextMethodParameter();
 }

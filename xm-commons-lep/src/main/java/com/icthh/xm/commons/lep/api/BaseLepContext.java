@@ -28,6 +28,10 @@ public abstract class BaseLepContext {
         return additionalContext.get(additionalContextKey);
     }
 
+    public Object get(String additionalContextKey) {
+        return additionalContext.get(additionalContextKey);
+    }
+
     public Object propertyMissing(String prop) {
         return get(prop);
     }

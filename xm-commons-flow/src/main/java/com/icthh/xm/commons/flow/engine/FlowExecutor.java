@@ -22,49 +22,51 @@ public class FlowExecutor {
 
     private final StepExecutorService stepExecutorService;
 
-    public Object execute(Flow flow, Object input) {
+    public FlowExecutionContext execute(Flow flow, Object input) {
+
+        FlowExecutionContext context = new FlowExecutionContext(flow.getKey());
+
         try {
-            return executeInternal(flow, input);
+            // to step map
+            Map<String, Step> steps = flow.getSteps().stream().collect(toMap(Step::getKey, identity()));
+            Step firstStep = steps.get(flow.getStartStep());
+            context.setInput(input);
+
+            Step currentStep = firstStep;
+            String lastActionKey = null;
+
+            while(currentStep != null) {
+                if (log.isTraceEnabled()) {
+                    log.trace("Execute step: {} with input: {}", currentStep.getKey(), input);
+                }
+                lastActionKey = currentStep instanceof Action ? currentStep.getKey() : lastActionKey;
+
+                context.getStepInput().put(currentStep.getKey(), input);
+                Object result = executeStep(input, currentStep, context);
+                context.getStepOutput().put(currentStep.getKey(), result);
+                if (log.isTraceEnabled()) {
+                    log.trace("Step: {} executed with result: {}", currentStep.getKey(), result);
+                }
+
+                input = result;
+
+                String nextStep = currentStep.getNext(result);
+                if (nextStep == null) {
+                    context.setOutput(context.getStepOutput().get(lastActionKey));
+                    return context;
+                }
+                currentStep = steps.get(nextStep);
+                if (currentStep == null && isNotBlank(nextStep)) {
+                    log.error("Step for key: {} not found", nextStep);
+                }
+            }
+
+            context.setOutput(context.getStepOutput().get(lastActionKey));
+            return context;
         } catch (Throwable e) {
-            log.error("Error execute flow with error {}", flow, e);
+            log.error("Error execute flow with error {} | executionContext: {}", flow.getKey(), context, e);
             throw e;
         }
-    }
-
-    private Object executeInternal(Flow flow, Object input) {
-        // to step map
-        Map<String, Step> steps = flow.getSteps().stream().collect(toMap(Step::getKey, identity()));
-        Step firstStep = steps.get(flow.getStartStep());
-        FlowExecutionContext context = new FlowExecutionContext();
-        context.setInput(input);
-
-        Step currentStep = firstStep;
-        String lastActionKey = null;
-
-        lastActionKey = currentStep instanceof Action ? currentStep.getKey() : lastActionKey;
-
-        while(currentStep != null) {
-            if (log.isTraceEnabled()) {
-                log.trace("Execute step: {} with input: {}", currentStep.getKey(), input);
-            }
-            context.getStepInput().put(currentStep.getKey(), input);
-            Object result = executeStep(input, currentStep, context);
-            context.getStepOutput().put(currentStep.getKey(), result);
-            if (log.isTraceEnabled()) {
-                log.trace("Step: {} executed with result: {}", currentStep.getKey(), result);
-            }
-
-            String nextStep = currentStep.getNext(result);
-            if (nextStep == null) {
-                return context.getStepOutput().get(lastActionKey);
-            }
-            currentStep = steps.get(nextStep);
-            if (currentStep == null && isNotBlank(nextStep)) {
-                log.error("Step for key: {} not found", nextStep);
-            }
-        }
-
-        return context.getStepOutput().get(lastActionKey);
     }
 
     private Object executeStep(Object input, Step currentStep, FlowExecutionContext context) {

@@ -11,6 +11,7 @@ public class Action extends Step {
     private Boolean isIterable;
     private String iterableJsonPath;
     private Boolean skipIterableJsonPathError;
+    private Boolean removeNullOutputForIterableResult;
     private String next;
 
     @Override

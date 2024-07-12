@@ -22,7 +22,6 @@ import java.util.Map;
 public abstract class Step {
     private String key;
     private String typeKey;
-    private List<String> depends;
     private Map<String, Object> parameters;
     private Map<String, Snippet> snippets;
     private StepSpec.StepType type;

@@ -60,7 +60,7 @@ public class CodeSnippetService {
             throw new BusinessException("error.illegal.code.snippet.file.name", "File name can't contain '/' character");
         }
         String tenantKey = tenantContextHolder.getTenantKey().toUpperCase();
-        String folderPath = "/config/tenants/" + tenantKey + "/" + appName + "/flow/snippets/";
+        String folderPath = "/config/tenants/" + tenantKey + "/" + appName + "/lep/flow/snippets/";
         return folderPath + fileName;
     }
 }

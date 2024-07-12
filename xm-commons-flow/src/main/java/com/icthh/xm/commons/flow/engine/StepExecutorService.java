@@ -11,32 +11,41 @@ import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static java.lang.Boolean.TRUE;
 
 @Component
-@LepService(group = "flow.step")
+@LepService(group = StepExecutorService.FLOW_STEP_GROUP)
 @RequiredArgsConstructor
 public class StepExecutorService {
+
+    public static final String ACTION = "Action";
+    public static final String CONDITION = "Condition";
+    public static final String STEP_CLASS_EXECUTOR = "StepClassExecutor";
+    public static final String FLOW_STEP_GROUP = "flow.step";
 
     private final StepSpecService stepSpecService;
 
     private StepExecutorService self;
 
-    @LogicExtensionPoint(value = "Action", resolver = StepKeyResolver.class)
+    @LogicExtensionPoint(value = ACTION, resolver = StepKeyResolver.class)
     public Object executeAction(Object input, Action step, FlowExecutionContext context) {
         return self.executeStepByClassImpl(stepSpecService.getStepSpec(step.getTypeKey()), input, step, context);
     }
 
-    @LogicExtensionPoint(value = "Condition", resolver = StepKeyResolver.class)
+    @LogicExtensionPoint(value = CONDITION, resolver = StepKeyResolver.class)
     public Boolean executeCondition(Object input, Condition step, FlowExecutionContext context) {
         return TRUE.equals(self.executeStepByClassImpl(stepSpecService.getStepSpec(step.getTypeKey()), input, step, context));
     }
 
-    @LogicExtensionPoint(value = "StepClassExecutor")
+    @LogicExtensionPoint(value = STEP_CLASS_EXECUTOR)
     public Object executeStepByClassImpl(StepSpec stepSpec, Object input, Step step, FlowExecutionContext context) {
+        if (StringUtils.isBlank(stepSpec.getImplementation())) {
+            throw new IllegalArgumentException("Step implementation is not defined for step: " + step.getTypeKey());
+        }
         throw new NotImplementedException("Error resolve step. Pls check support default groovy lep.");
     }
 

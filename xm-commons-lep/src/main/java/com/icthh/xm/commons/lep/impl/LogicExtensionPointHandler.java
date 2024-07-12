@@ -7,6 +7,7 @@ import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepExecutor;
 import com.icthh.xm.commons.lep.api.LepKey;
 import com.icthh.xm.commons.lep.api.LepManagementService;
+import com.icthh.xm.commons.lep.api.UseAsLepContext;
 import com.icthh.xm.commons.lep.spring.LepContextService;
 import com.icthh.xm.commons.lep.spring.LepService;
 import com.icthh.xm.lep.api.LepInvocationCauseException;
@@ -18,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,8 +77,17 @@ public class LogicExtensionPointHandler {
 
     private Object invokeLepMethod(LepEngine lepEngine, Object target, LepMethod lepMethod, LepKey lepKey) {
         TargetProceedingLep targetProceedingLep = new TargetProceedingLep(target, lepMethod, lepKey);
-        BaseLepContext lepContext = lepContextService.createLepContext(lepEngine, targetProceedingLep);
+        BaseLepContext lepContext = buildLepContext(lepEngine, lepMethod, targetProceedingLep);
         return lepEngine.invoke(lepKey, targetProceedingLep, lepContext);
+    }
+
+    private BaseLepContext buildLepContext(LepEngine lepEngine, LepMethod lepMethod, TargetProceedingLep targetProceedingLep) {
+        String lepContextMethodParameter = lepMethod.getMethodSignature().getLepContextMethodParameter();
+        if (lepContextMethodParameter == null) {
+            return lepContextService.createLepContext(lepEngine, targetProceedingLep);
+        } else {
+            return lepMethod.getParameter(lepContextMethodParameter, BaseLepContext.class);
+        }
     }
 
     @SneakyThrows
