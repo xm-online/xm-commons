@@ -16,6 +16,7 @@ import com.icthh.xm.commons.flow.service.FlowService;
 import com.icthh.xm.commons.flow.service.TenantResourceConfigService;
 import com.icthh.xm.commons.flow.service.TenantResourceService;
 import com.icthh.xm.commons.flow.service.YamlConverter;
+import com.icthh.xm.commons.flow.service.resolver.FlowKeyLepKeyResolver;
 import com.icthh.xm.commons.flow.service.resolver.FlowTypeLepKeyResolver;
 import com.icthh.xm.commons.flow.service.resolver.SnippetListLepKeyResolver;
 import com.icthh.xm.commons.flow.service.resolver.StepKeyResolver;
@@ -49,6 +50,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -81,6 +83,7 @@ import static org.mockito.Mockito.doAnswer;
         TriggerProcessor.class,
         FlowTypeLepKeyResolver.class,
         TriggerResolver.class,
+        FlowKeyLepKeyResolver.class,
         TriggerTypeSpecService.class,
         YamlConverter.class,
         FlowConfigService.class,
@@ -108,19 +111,28 @@ public abstract class AbstractFlowIntTest {
     @Autowired
     List<RefreshableConfiguration> configurations;
 
+    List<String> updateConfigs;
+
     @Before
     public void setup() {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
         TenantContextUtils.setTenant(tenantContextHolder, "TEST");
         lepManagementService.beginThreadContext();
+        updateConfigs = new ArrayList<>();
     }
 
     @After
     public void after() {
+        updateConfigs.forEach(c -> updateConfig(c, null));
         lepManagementService.endThreadContext();
     }
 
     public void updateConfiguration(String path, String content) {
+        updateConfigs.add(path);
+        updateConfig(path, content);
+    }
+
+    private void updateConfig(String path, String content) {
         configurations.stream().filter(c -> c.isListeningConfiguration(path)).forEach(c -> c.onRefresh(path, content));
     }
 

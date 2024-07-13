@@ -12,7 +12,6 @@ import lombok.SneakyThrows;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.Serializable;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -34,27 +33,10 @@ public class FlowExecuteIntTest extends AbstractFlowIntTest {
     @Test
     @SneakyThrows
     public void testSimpleExecution() {
-        String simpleFlow = loadFile("test-flow-execute/simple-flow.yml");
-        mockSendConfigToRefresh();
-        updateConfiguration("/config/tenants/TEST/testApp/lep/flow/step/Action$$sum.groovy",
-            "return lepContext.flow.input.b + lepContext.step.parameters.a");
-        updateConfiguration("/config/tenants/TEST/testApp/lep/flow/step/Condition$$groovyCondition.groovy",
-            "return lepContext.step.runSnippet('groovyCondition', lepContext)");
-        updateConfiguration("/config/tenants/commons/lep/flow/conditions/NotIsZeroCondition.groovy",
-            loadFile("test-flow-execute/NotIsZeroCondition.groovy"));
-        updateConfiguration("/config/tenants/commons/lep/flow/actions/DivideAction.groovy",
-            loadFile("test-flow-execute/DivideAction.groovy"));
-
-        updateConfiguration("/config/tenants/TEST/testApp/lep/flow/step/Action$$groovyAction.groovy",
-            "return lepContext.step.runSnippet('groovyAction', lepContext)");
-        updateConfiguration("/config/tenants/TEST/testApp/lep/flow/step/Action$$minus.groovy",
-            "return (int) (lepContext.step.parameters.a - lepContext.flow.input.b)");
-
-        updateConfiguration("/config/tenants/TEST/testApp/flow/step-spec/steps.yml", loadFile("test-flow-execute/steps.yml"));
+        String simpleFlow = initFlow();
 
         FlowsConfig flows = new ObjectMapper(new YAMLFactory()).readValue(simpleFlow, FlowsConfig.class);
         Flow flow = flows.getFlows().get(0);
-        flowService.createFlow(flow);
 
         FlowExecutionContext executionContext = flowExecutor.execute(flow, Map.of("b", -1));
         assertEquals(0, executionContext.getOutput());
@@ -94,14 +76,69 @@ public class FlowExecuteIntTest extends AbstractFlowIntTest {
             ),
             executionContext
         );
+
+        flowService.deleteFlow(flow.getKey());
+    }
+
+    @Test
+    public void testRunFlowFromLep() {
+        initFlow();
+
+        updateConfiguration("/config/tenants/TEST/testApp/lep/test/Test.groovy", "lepContext.flow.executeFlow('simple-flow', [b: 5])");
+
+        FlowExecutionContext result = (FlowExecutionContext) testLepService.test();
+        assertEquals(2, result.getOutput());
+        assertEquals(
+            mockContext(
+                "simple-flow",
+                Map.of("b", 5),
+                2,
+                Map.of("step1", Map.of("b", 5), "step2", 6, "step5", true),
+                Map.of("step1", 6, "step2", true, "step5", 2)
+            ),
+            result
+        );
+
+        flowService.deleteFlow("simple-flow");
+    }
+
+    @SneakyThrows
+    private String initFlow() {
+        String simpleFlow = loadFile("test-flow-execute/simple-flow.yml");
+        mockSendConfigToRefresh();
+        // test action lep
+        updateConfiguration("/config/tenants/TEST/testApp/lep/flow/step/Action$$sum.groovy",
+            "return lepContext.flow.input.b + lepContext.step.parameters.a");
+        // test condition lep and run snippet
+        updateConfiguration("/config/tenants/TEST/testApp/lep/flow/step/Condition$$groovyCondition.groovy",
+            "return lepContext.step.runSnippet('groovyCondition', lepContext)");
+        // test class condition and get previous step output
+        updateConfiguration("/config/tenants/commons/lep/flow/conditions/NotIsZeroCondition.groovy",
+            loadFile("test-flow-execute/NotIsZeroCondition.groovy"));
+        // test class action and get previous step output
+        updateConfiguration("/config/tenants/commons/lep/flow/actions/DivideAction.groovy",
+            loadFile("test-flow-execute/DivideAction.groovy"));
+        // test run snippet
+        updateConfiguration("/config/tenants/TEST/testApp/lep/flow/step/Action$$groovyAction.groovy",
+            "return lepContext.step.runSnippet('groovyAction', lepContext)");
+        // test get from step patams and flow input
+        updateConfiguration("/config/tenants/TEST/testApp/lep/flow/step/Action$$minus.groovy",
+            "return (int) (lepContext.step.parameters.a - lepContext.flow.input.b)");
+
+        updateConfiguration("/config/tenants/TEST/testApp/flow/step-spec/steps.yml", loadFile("test-flow-execute/steps.yml"));
+
+        FlowsConfig flows = new ObjectMapper(new YAMLFactory()).readValue(simpleFlow, FlowsConfig.class);
+        Flow flow = flows.getFlows().get(0);
+        flowService.createFlow(flow);
+        return simpleFlow;
     }
 
     private FlowExecutionContext mockContext(
         String key,
-                             Map<String, Object> input,
-                             Object output,
-                             Map<String, Object> stepInput,
-                             Map<String, Object> stepOutput
+        Map<String, Object> input,
+        Object output,
+        Map<String, Object> stepInput,
+        Map<String, Object> stepOutput
     ) {
         var context = new FlowExecutionContext(key);
         context.setInput(input);

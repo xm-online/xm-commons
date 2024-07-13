@@ -36,16 +36,16 @@ public class FlowExecutor {
             String lastActionKey = null;
 
             while(currentStep != null) {
-                if (log.isTraceEnabled()) {
-                    log.trace("Execute step: {} with input: {}", currentStep.getKey(), input);
+                if (log.isDebugEnabled()) {
+                    log.debug("Execute step: {} with input: {}", currentStep.getKey(), input);
                 }
                 lastActionKey = currentStep instanceof Action ? currentStep.getKey() : lastActionKey;
 
                 context.getStepInput().put(currentStep.getKey(), input);
                 Object result = executeStep(input, currentStep, context);
                 context.getStepOutput().put(currentStep.getKey(), result);
-                if (log.isTraceEnabled()) {
-                    log.trace("Step: {} executed with result: {}", currentStep.getKey(), result);
+                if (log.isDebugEnabled()) {
+                    log.debug("Step: {} executed with result: {}", currentStep.getKey(), result);
                 }
 
                 input = result;

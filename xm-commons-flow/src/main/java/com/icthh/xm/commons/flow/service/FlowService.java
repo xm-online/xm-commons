@@ -3,8 +3,12 @@ package com.icthh.xm.commons.flow.service;
 import com.icthh.xm.commons.config.client.repository.TenantConfigRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.exceptions.BusinessException;
+import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import com.icthh.xm.commons.flow.domain.Flow;
+import com.icthh.xm.commons.flow.engine.FlowExecutor;
+import com.icthh.xm.commons.flow.engine.context.FlowExecutionContext;
 import com.icthh.xm.commons.flow.service.FlowConfigService.FlowsConfig;
+import com.icthh.xm.commons.flow.service.resolver.FlowKeyLepKeyResolver;
 import com.icthh.xm.commons.flow.service.resolver.FlowTypeLepKeyResolver;
 import com.icthh.xm.commons.flow.service.trigger.TriggerProcessor;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
@@ -17,6 +21,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -32,6 +37,7 @@ public class FlowService {
     private final TenantConfigRepository tenantConfigRepository;
     private final CodeSnippetService codeSnippetService;
     private final TriggerProcessor triggerProcessor;
+    private final FlowExecutor flowExecutor;
 
     private FlowService self;
     @Autowired
@@ -136,6 +142,36 @@ public class FlowService {
         if (!isExists) {
             throw new BusinessException("error.flow.start.step.not.found", "Start step with key " + flow.getStartStep() + " not found");
         }
+    }
+
+    @LogicExtensionPoint(value = "RunFlow", resolver = FlowKeyLepKeyResolver.class)
+    public Object runFlow(String flowKey, Object input) {
+        return self.runFlowInternal(flowKey, input).getOutput();
+    }
+
+    @LogicExtensionPoint("RunFlow")
+    public FlowExecutionContext runFlowInternal(String flowKey, Object input) {
+        Flow flow = getRequiredFlow(flowKey);
+        FlowExecutionContext executionContext = self.executeFlow(flow, input);
+        if (log.isDebugEnabled()) {
+            log.debug("Flow execution context: {}", executionContext);
+        }
+        return executionContext;
+    }
+
+    @LogicExtensionPoint(value = "ExecuteFlow", resolver = FlowTypeLepKeyResolver.class)
+    public FlowExecutionContext executeFlow(Flow flow, Object input) {
+        return self.executeFlowInternal(flow, input);
+    }
+
+    @LogicExtensionPoint(value = "ExecuteFlow")
+    public FlowExecutionContext executeFlowInternal(Flow flow, Object input) {
+        return flowExecutor.execute(flow, input);
+    }
+
+    private Flow getRequiredFlow(String flowKey) {
+        return Optional.ofNullable(flowConfigService.getFlow(flowKey))
+            .orElseThrow(() -> new EntityNotFoundException("Flow with key " + flowKey + " not found"));
     }
 
 }

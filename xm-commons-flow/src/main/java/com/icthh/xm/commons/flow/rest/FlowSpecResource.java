@@ -6,7 +6,9 @@ import com.icthh.xm.commons.flow.spec.step.StepSpec;
 import com.icthh.xm.commons.flow.spec.step.StepSpecService;
 import com.icthh.xm.commons.flow.spec.trigger.TriggerType;
 import com.icthh.xm.commons.flow.spec.trigger.TriggerTypeSpecService;
+import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,16 +26,22 @@ public class FlowSpecResource {
     private final TriggerTypeSpecService triggerSpecService;
 
     @GetMapping("/steps")
+    @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'FLOW.STEP_SPEC.GET_LIST')")
+    @PrivilegeDescription("Privilege to get all step specs")
     public List<StepSpec> getSteps(@RequestParam(name = "stepType", required = false) StepSpec.StepType stepType) {
         return stepSpecService.getSteps(stepType);
     }
 
     @GetMapping("/resource-types")
+    @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'FLOW.RESOURCE_TYPE.GET_LIST')")
+    @PrivilegeDescription("Privilege to get all resource types")
     public List<TenantResourceType> getResourceTypes() {
         return resourceTypeService.resourceTypes();
     }
 
     @GetMapping("/trigger-types")
+    @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'FLOW.TRIGGER_TYPE.GET_LIST')")
+    @PrivilegeDescription("Privilege to get all trigger types")
     public List<TriggerType> getTriggerTypes() {
         return triggerSpecService.triggerTypes();
     }

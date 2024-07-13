@@ -102,15 +102,15 @@ public class FlowResourceIntTest extends AbstractFlowIntTest {
         assertEquals("foofoofoo", value.get(0).getContent());
         assertEquals("/config/tenants/TEST/test/somespec.yml", value.get(1).getPath());
         assertEquals("blablabla", value.get(1).getContent());
-        assertEquals("/config/tenants/TEST/testApp/flow/snippets/Snippet$$my-flow$$step2$$mapping.js", value.get(2).getPath());
+        assertEquals("/config/tenants/TEST/testApp/lep/flow/snippets/Snippet$$my-flow$$step2$$mapping.js", value.get(2).getPath());
         assertEquals("return context.get('orders').map(order => { return { id: order.id, name: order.name }; })", value.get(2).getContent());
-        assertEquals("/config/tenants/TEST/testApp/flow/snippets/Snippet$$my-flow$$step2$$precheck.js", value.get(3).getPath());
+        assertEquals("/config/tenants/TEST/testApp/lep/flow/snippets/Snippet$$my-flow$$step2$$precheck.js", value.get(3).getPath());
         assertEquals("if (context.get('orders').length > 0) { return true; } else { return false; }", value.get(3).getContent());
-        assertEquals("/config/tenants/TEST/testApp/flow/snippets/Snippet$$my-flow$$step3$$mapping.js", value.get(4).getPath());
+        assertEquals("/config/tenants/TEST/testApp/lep/flow/snippets/Snippet$$my-flow$$step3$$mapping.js", value.get(4).getPath());
         assertEquals("return context.get('users').map(user => { return { id: user.id, name: user.name }; })", value.get(4).getContent());
-        assertEquals("/config/tenants/TEST/testApp/flow/snippets/Snippet$$my-flow$$step3$$postcheck.js", value.get(5).getPath());
+        assertEquals("/config/tenants/TEST/testApp/lep/flow/snippets/Snippet$$my-flow$$step3$$postcheck.js", value.get(5).getPath());
         assertEquals("if (context.get('votes').length > 0) { return true; } else { return false; }", value.get(5).getContent());
-        assertEquals("/config/tenants/TEST/testApp/flow/snippets/Snippet$$my-flow$$step3$$precheck.js", value.get(6).getPath());
+        assertEquals("/config/tenants/TEST/testApp/lep/flow/snippets/Snippet$$my-flow$$step3$$precheck.js", value.get(6).getPath());
         assertEquals("if (context.get('users').length > 0) { return true; } else { return false; }", value.get(6).getContent());
 
         ResultActions flowGet = mockMvc.perform(get("/api/flow/my-flow"))

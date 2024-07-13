@@ -1,7 +1,9 @@
 package com.icthh.xm.commons.flow.context;
 
+import com.icthh.xm.commons.flow.engine.FlowExecutor;
 import com.icthh.xm.commons.flow.engine.context.FlowExecutionContext;
 import com.icthh.xm.commons.flow.context.FlowLepAdditionalContext.FlowContext;
+import com.icthh.xm.commons.flow.service.FlowService;
 import com.icthh.xm.commons.lep.TargetProceedingLep;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepAdditionalContext;
@@ -26,6 +28,8 @@ public class FlowLepAdditionalContext implements LepAdditionalContext<FlowContex
 
     private static final Set<String> STEP_LEP = Set.of(ACTION, CONDITION, STEP_CLASS_EXECUTOR);
 
+    private final FlowService flowService;
+
     @Override
     public String additionalContextKey() {
         return FLOW;
@@ -41,9 +45,9 @@ public class FlowLepAdditionalContext implements LepAdditionalContext<FlowContex
         LepBaseKey lepBaseKey = lepMethod.getLepBaseKey();
         if (FLOW_STEP_GROUP.equals(lepBaseKey.getGroup()) && STEP_LEP.contains(lepBaseKey.getBaseKey())) {
             FlowExecutionContext context = lepMethod.getParameter("context", FlowExecutionContext.class);
-            return Optional.of(new FlowContext(context.getInput()));
+            return Optional.of(new FlowContext(context.getInput(), flowService));
         } else {
-            return Optional.empty();
+            return Optional.of(new FlowContext(null, flowService));
         }
     }
 
@@ -62,10 +66,16 @@ public class FlowLepAdditionalContext implements LepAdditionalContext<FlowContex
     public static class FlowContext {
         public final Object input;
         public final Object context;
+        private final FlowService flowService;
 
-        public FlowContext(Object input) {
+        public FlowContext(Object input, FlowService flowService) {
             this.input = input;
             this.context = input;
+            this.flowService = flowService;
+        }
+
+        public FlowExecutionContext executeFlow(String flowKey, Object input) {
+            return flowService.runFlowInternal(flowKey, input);
         }
     }
 }
