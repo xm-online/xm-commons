@@ -2,14 +2,17 @@ package com.icthh.xm.commons.cache.service;
 
 import com.icthh.xm.commons.cache.TenantCacheManager;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.lang.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class TenantAwareCacheManager implements TenantCacheManager {
 
     private final CacheManager delegate;
@@ -34,6 +37,7 @@ public class TenantAwareCacheManager implements TenantCacheManager {
     public Cache getCache(final String name) {
         String currentTenant = tenantContextHolder.getTenantKey();
         if (isTenantInvalid(currentTenant)) {
+            log.warn("undefined tenant {} trying to access cache delegate", currentTenant);
             return null;
         }
         return delegate.getCache(TenantCacheManager.buildKey(currentTenant, name));
@@ -44,6 +48,7 @@ public class TenantAwareCacheManager implements TenantCacheManager {
         String currentTenant = tenantContextHolder.getTenantKey();
 
         if (isTenantInvalid(currentTenant)) {
+            log.warn("undefined tenant {} trying to access cache delegate. Return []", currentTenant);
             return List.of();
         }
 
@@ -53,11 +58,15 @@ public class TenantAwareCacheManager implements TenantCacheManager {
     @Override
     public void evictCaches() {
         String currentTenant = tenantContextHolder.getTenantKey();
-        getCacheNames(currentTenant)
-            .forEach(cacheName -> delegate
-                .getCache(TenantCacheManager.buildKey(currentTenant, cacheName))
-                .clear()
-            );
+        List<Cache> caches = getCacheNames(currentTenant)
+            .stream()
+            .map(cacheName -> delegate.getCache(TenantCacheManager.buildKey(currentTenant, cacheName)))
+            .filter(Objects::nonNull)
+            .toList();
+        for (Cache cache: caches) {
+            log.info("Cleaning cache {}", cache.getName());
+            cache.clear();
+        }
     }
 
     private static boolean isTenantInvalid(final String tenant) {

@@ -18,10 +18,6 @@ dependencies {
     implementation 'org.slf4j:slf4j-api'
     implementation 'org.aspectj:aspectjweaver'
     implementation "com.google.code.findbugs:jsr305:${versions.jsr305}"
-    implementation "org.apache.commons:commons-lang3:${versions.commonsLang3}"
-    implementation "commons-io:commons-io:${versions.commonsIo}"
-    implementation "com.icthh.xm.lep:xm-lep-core:${versions.lep}"
-    implementation "com.icthh.xm.lep:xm-lep-groovy:${versions.lep}"
     implementation "com.github.ben-manes.caffeine:caffeine:${versions.caffeine}"
 
     testImplementation 'junit:junit'
