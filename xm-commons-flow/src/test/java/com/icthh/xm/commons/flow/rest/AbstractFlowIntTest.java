@@ -7,7 +7,7 @@ import com.icthh.xm.commons.flow.context.FlowLepAdditionalContext;
 import com.icthh.xm.commons.flow.context.StepLepAdditionalContext;
 import com.icthh.xm.commons.flow.context.StepsLepAdditionalContext;
 import com.icthh.xm.commons.flow.context.TenantResourceLepAdditionalContext;
-import com.icthh.xm.commons.flow.engine.FlowExecutor;
+import com.icthh.xm.commons.flow.engine.FlowExecutorService;
 import com.icthh.xm.commons.flow.engine.StepExecutorService;
 import com.icthh.xm.commons.flow.service.CodeSnippetExecutor;
 import com.icthh.xm.commons.flow.service.CodeSnippetService;
@@ -87,7 +87,7 @@ import static org.mockito.Mockito.doAnswer;
         TriggerTypeSpecService.class,
         YamlConverter.class,
         FlowConfigService.class,
-        FlowExecutor.class,
+        FlowExecutorService.class,
         StepKeyResolver.class,
         StepExecutorService.class,
         StepLepAdditionalContext.class,

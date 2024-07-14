@@ -72,6 +72,11 @@ public class StepLepAdditionalContext implements LepAdditionalContext<StepContex
         public final Object context;
         public final Map<String, Object> parameters;
 
+        public final Integer iteration;
+        public final Object iterationItem;
+        public final List<Object> iterationsInput;
+        public final List<Object> iterationsOutput;
+
         private final String flowKey;
         private final String stepKey;
         private final CodeSnippetExecutor snippetExecutor;
@@ -80,6 +85,12 @@ public class StepLepAdditionalContext implements LepAdditionalContext<StepContex
             var input = context.getStepInput().get(step.getKey());
             this.input = input;
             this.context = input;
+
+            this.iteration = context.getIteration();
+            this.iterationItem = context.getIterationItem();
+            this.iterationsInput = context.getIterationsInput();
+            this.iterationsOutput = context.getIterationsOutput();
+
             this.flowKey = context.getFlowKey();
             this.stepKey = step.getKey();
             this.parameters = Map.copyOf(nullSafeMap(step.getParameters()));

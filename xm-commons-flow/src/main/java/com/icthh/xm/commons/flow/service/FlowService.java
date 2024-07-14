@@ -5,7 +5,7 @@ import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import com.icthh.xm.commons.flow.domain.Flow;
-import com.icthh.xm.commons.flow.engine.FlowExecutor;
+import com.icthh.xm.commons.flow.engine.FlowExecutorService;
 import com.icthh.xm.commons.flow.engine.context.FlowExecutionContext;
 import com.icthh.xm.commons.flow.service.FlowConfigService.FlowsConfig;
 import com.icthh.xm.commons.flow.service.resolver.FlowKeyLepKeyResolver;
@@ -37,7 +37,7 @@ public class FlowService {
     private final TenantConfigRepository tenantConfigRepository;
     private final CodeSnippetService codeSnippetService;
     private final TriggerProcessor triggerProcessor;
-    private final FlowExecutor flowExecutor;
+    private final FlowExecutorService flowExecutor;
 
     private FlowService self;
     @Autowired

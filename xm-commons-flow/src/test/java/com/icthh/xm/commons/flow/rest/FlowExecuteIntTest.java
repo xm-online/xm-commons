@@ -3,7 +3,7 @@ package com.icthh.xm.commons.flow.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.flow.domain.Flow;
-import com.icthh.xm.commons.flow.engine.FlowExecutor;
+import com.icthh.xm.commons.flow.engine.FlowExecutorService;
 import com.icthh.xm.commons.flow.engine.context.FlowExecutionContext;
 import com.icthh.xm.commons.flow.service.FlowConfigService;
 import com.icthh.xm.commons.flow.service.FlowConfigService.FlowsConfig;
@@ -12,6 +12,7 @@ import lombok.SneakyThrows;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -28,7 +29,7 @@ public class FlowExecuteIntTest extends AbstractFlowIntTest {
     FlowService flowService;
 
     @Autowired
-    FlowExecutor flowExecutor;
+    FlowExecutorService flowExecutor;
 
     @Test
     @SneakyThrows
@@ -102,6 +103,40 @@ public class FlowExecuteIntTest extends AbstractFlowIntTest {
         flowService.deleteFlow("simple-flow");
     }
 
+    @Test
+    @SneakyThrows
+    public void testRunIterableTaskLep() {
+        String countWordsFlow = loadFile("test-flow-execute/count-words-flow.yml");
+        mockSendConfigToRefresh();
+
+        updateConfiguration("/config/tenants/TEST/testApp/lep/flow/step/Action$$groovyAction.groovy",
+            "return lepContext.step.runSnippet('groovyAction', lepContext)");
+        updateConfiguration("/config/tenants/TEST/testApp/flow/step-spec/steps.yml", loadFile("test-flow-execute/steps.yml"));
+
+        FlowsConfig flows = new ObjectMapper(new YAMLFactory()).readValue(countWordsFlow, FlowsConfig.class);
+        Flow flow = flows.getFlows().get(0);
+        flowService.createFlow(flow);
+
+        String input = "Yes, some text words to count";
+        FlowExecutionContext result = flowExecutor.execute(flow, input);
+        assertEquals(
+            remap(mockContext(
+                "count-long-words-flow",
+                input,
+                18,
+                Map.of("sum_chars", List.of(4, 4, 5, 5), "split_words", input, "words_to_length", Map.of(
+                    "a", Map.of("b", new String[]{"Yes", "some", "text", "words", "to", "count"})
+                )),
+                Map.of("words_to_length", List.of(4, 4, 5, 5), "sum_chars", 18, "split_words", Map.of(
+                    "a", Map.of("b", new String[]{"Yes", "some", "text", "words", "to", "count"})
+                ))
+            )),
+            remap(result)
+        );
+
+        flowService.deleteFlow("count-words-flow");
+    }
+
     @SneakyThrows
     private String initFlow() {
         String simpleFlow = loadFile("test-flow-execute/simple-flow.yml");
@@ -135,13 +170,13 @@ public class FlowExecuteIntTest extends AbstractFlowIntTest {
 
     private FlowExecutionContext mockContext(
         String key,
-        Map<String, Object> input,
+        Object input,
         Object output,
         Map<String, Object> stepInput,
         Map<String, Object> stepOutput
     ) {
-        var context = new FlowExecutionContext(key);
-        context.setInput(input);
+        var context = new FlowExecutionContext(key, input);
+        context.resetIteration();
         context.setOutput(output);
         for (Map.Entry<String, Object> entry : stepInput.entrySet()) {
             context.getStepInput().put(entry.getKey(), entry.getValue());
@@ -150,6 +185,12 @@ public class FlowExecuteIntTest extends AbstractFlowIntTest {
             context.getStepOutput().put(entry.getKey(), entry.getValue());
         }
         return context;
+    }
+
+    @SneakyThrows
+    public Map<String, Object> remap(Object obj) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(objectMapper.writeValueAsString(obj), Map.class);
     }
 
 }

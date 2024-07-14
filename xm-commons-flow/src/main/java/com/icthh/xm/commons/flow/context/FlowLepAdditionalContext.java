@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.flow.context;
 
-import com.icthh.xm.commons.flow.engine.FlowExecutor;
 import com.icthh.xm.commons.flow.engine.context.FlowExecutionContext;
 import com.icthh.xm.commons.flow.context.FlowLepAdditionalContext.FlowContext;
 import com.icthh.xm.commons.flow.service.FlowService;
