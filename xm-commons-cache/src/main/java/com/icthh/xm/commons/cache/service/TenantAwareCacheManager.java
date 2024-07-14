@@ -1,6 +1,8 @@
 package com.icthh.xm.commons.cache.service;
 
 import com.icthh.xm.commons.cache.TenantCacheManager;
+import com.icthh.xm.commons.lep.api.LepAdditionalContext;
+import com.icthh.xm.commons.lep.api.LepAdditionalContextField;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
@@ -12,8 +14,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.icthh.xm.commons.cache.service.TenantAwareCacheManager.CacheManagerServiceField.FIELD_NAME;
+
 @Slf4j
-public class TenantAwareCacheManager implements TenantCacheManager {
+public class TenantAwareCacheManager implements TenantCacheManager, LepAdditionalContext<TenantAwareCacheManager> {
 
     private final CacheManager delegate;
 
@@ -81,4 +85,25 @@ public class TenantAwareCacheManager implements TenantCacheManager {
             .collect(Collectors.toList());
     }
 
+    @Override
+    public String additionalContextKey() {
+        return FIELD_NAME;
+    }
+
+    @Override
+    public TenantAwareCacheManager additionalContextValue() {
+        return this;
+    }
+
+    @Override
+    public Class<? extends LepAdditionalContextField> fieldAccessorInterface() {
+        return CacheManagerServiceField.class;
+    }
+
+    public interface CacheManagerServiceField extends LepAdditionalContextField {
+        String FIELD_NAME = "cacheManagerService";
+        default TenantAwareCacheManager getCacheManagerService() {
+            return (TenantAwareCacheManager)get(FIELD_NAME);
+        }
+    }
 }
