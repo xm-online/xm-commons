@@ -119,18 +119,20 @@ public class FlowExecuteIntTest extends AbstractFlowIntTest {
 
         String input = "Yes, some text words to count";
         FlowExecutionContext result = flowExecutor.execute(flow, input);
-        assertEquals(
-            remap(mockContext(
-                "count-long-words-flow",
-                input,
-                18,
-                Map.of("sum_chars", List.of(4, 4, 5, 5), "split_words", input, "words_to_length", Map.of(
-                    "a", Map.of("b", new String[]{"Yes", "some", "text", "words", "to", "count"})
-                )),
-                Map.of("words_to_length", List.of(4, 4, 5, 5), "sum_chars", 18, "split_words", Map.of(
-                    "a", Map.of("b", new String[]{"Yes", "some", "text", "words", "to", "count"})
-                ))
+        FlowExecutionContext mockedContext = mockContext(
+            "count-long-words-flow",
+            input,
+            18,
+            Map.of("sum_chars", List.of(4, 4, 5, 5), "split_words", input, "words_to_length", Map.of(
+                "a", Map.of("b", new String[]{"Yes", "some", "text", "words", "to", "count"})
             )),
+            Map.of("words_to_length", List.of(4, 4, 5, 5), "sum_chars", 18, "split_words", Map.of(
+                "a", Map.of("b", new String[]{"Yes", "some", "text", "words", "to", "count"})
+            ))
+        );
+        mockedContext.resetIteration();
+        assertEquals(
+            remap(mockedContext),
             remap(result)
         );
 
@@ -176,7 +178,6 @@ public class FlowExecuteIntTest extends AbstractFlowIntTest {
         Map<String, Object> stepOutput
     ) {
         var context = new FlowExecutionContext(key, input);
-        context.resetIteration();
         context.setOutput(output);
         for (Map.Entry<String, Object> entry : stepInput.entrySet()) {
             context.getStepInput().put(entry.getKey(), entry.getValue());
