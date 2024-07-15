@@ -83,7 +83,7 @@ public class FlowService {
         List<Configuration> snippets = codeSnippetService.generateSnippets(flow);
         configurations.addAll(snippets);
         if (flow.getTrigger() != null) {
-            List<Configuration> triggers = triggerProcessor.processTriggerUpdate(flow.getTrigger());
+            List<Configuration> triggers = triggerProcessor.processTriggerUpdate(flow.getTrigger(), flow);
             configurations.addAll(triggers);
         }
 
@@ -102,7 +102,7 @@ public class FlowService {
             configurations.addAll(snippets);
 
             if (flow.getTrigger() != null) {
-                List<Configuration> triggers = triggerProcessor.processTriggerDelete(flow.getTrigger());
+                List<Configuration> triggers = triggerProcessor.processTriggerDelete(flow.getTrigger(), flow);
                 configurations.addAll(triggers);
             }
         }
