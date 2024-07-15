@@ -3,6 +3,7 @@ package com.icthh.xm.commons.tenant;
 /**
  * The {@link TenantContextHolder} interface.
  */
+// DON`T use this class in LepContext, because PrivilegedTenantContext can SET or CHANGE tenant
 public interface TenantContextHolder {
 
     /**
