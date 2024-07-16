@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.icthh.xm.commons.config.client.utils.Utils.nullSafeList;
@@ -48,6 +49,11 @@ public class StepSpecService extends AbstractRefreshableConfiguration<Map<String
     }
 
     public StepSpec getStepSpec(String stepKey) {
+        return Optional.ofNullable(getStepsSpec().get(stepKey))
+            .orElseThrow(() -> new IllegalArgumentException("Step not found: " + stepKey));
+    }
+
+    public StepSpec findStepSpec(String stepKey) {
         return getStepsSpec().get(stepKey);
     }
 

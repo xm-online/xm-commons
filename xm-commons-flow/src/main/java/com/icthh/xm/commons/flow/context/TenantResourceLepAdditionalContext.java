@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-import static com.icthh.xm.commons.flow.context.TenantResourceLepAdditionalContext.TenantResourceLepAdditionalContextField.FIELD_NAME;
+import static com.icthh.xm.commons.flow.context.TenantResourceLepAdditionalContext.TenantResourceLepAdditionalContextField.TENANT_RESOURCE;
 
 @Component
 @RequiredArgsConstructor
@@ -18,7 +18,7 @@ public class TenantResourceLepAdditionalContext implements LepAdditionalContext<
 
     @Override
     public String additionalContextKey() {
-        return FIELD_NAME;
+        return TENANT_RESOURCE;
     }
 
     @Override
@@ -32,9 +32,9 @@ public class TenantResourceLepAdditionalContext implements LepAdditionalContext<
     }
 
     public interface TenantResourceLepAdditionalContextField extends LepAdditionalContextField {
-        String FIELD_NAME = "resources";
+        String TENANT_RESOURCE = "resources";
         default Map<String, Map<String, Map<String, Object>>> getResources() {
-            return (Map<String, Map<String, Map<String, Object>>>)get(FIELD_NAME);
+            return (Map<String, Map<String, Map<String, Object>>>)get(TENANT_RESOURCE);
         }
     }
 }

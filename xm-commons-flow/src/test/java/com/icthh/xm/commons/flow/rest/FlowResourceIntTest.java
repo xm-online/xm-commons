@@ -21,7 +21,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-import static com.icthh.xm.commons.flow.steps.StepsRefreshableConfigurationUnitTest.loadFile;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertEquals;
@@ -103,15 +102,15 @@ public class FlowResourceIntTest extends AbstractFlowIntTest {
         assertEquals("foofoofoo", value.get(0).getContent());
         assertEquals("/config/tenants/TEST/test/somespec.yml", value.get(1).getPath());
         assertEquals("blablabla", value.get(1).getContent());
-        assertEquals("/config/tenants/TEST/testApp/flow/snippets/Snippet$$my-flow$$step2$$mapping.js", value.get(2).getPath());
+        assertEquals("/config/tenants/TEST/testApp/lep/flow/snippets/Snippet$$my-flow$$step2$$mapping.js", value.get(2).getPath());
         assertEquals("return context.get('orders').map(order => { return { id: order.id, name: order.name }; })", value.get(2).getContent());
-        assertEquals("/config/tenants/TEST/testApp/flow/snippets/Snippet$$my-flow$$step2$$precheck.js", value.get(3).getPath());
+        assertEquals("/config/tenants/TEST/testApp/lep/flow/snippets/Snippet$$my-flow$$step2$$precheck.js", value.get(3).getPath());
         assertEquals("if (context.get('orders').length > 0) { return true; } else { return false; }", value.get(3).getContent());
-        assertEquals("/config/tenants/TEST/testApp/flow/snippets/Snippet$$my-flow$$step3$$mapping.js", value.get(4).getPath());
+        assertEquals("/config/tenants/TEST/testApp/lep/flow/snippets/Snippet$$my-flow$$step3$$mapping.js", value.get(4).getPath());
         assertEquals("return context.get('users').map(user => { return { id: user.id, name: user.name }; })", value.get(4).getContent());
-        assertEquals("/config/tenants/TEST/testApp/flow/snippets/Snippet$$my-flow$$step3$$postcheck.js", value.get(5).getPath());
+        assertEquals("/config/tenants/TEST/testApp/lep/flow/snippets/Snippet$$my-flow$$step3$$postcheck.js", value.get(5).getPath());
         assertEquals("if (context.get('votes').length > 0) { return true; } else { return false; }", value.get(5).getContent());
-        assertEquals("/config/tenants/TEST/testApp/flow/snippets/Snippet$$my-flow$$step3$$precheck.js", value.get(6).getPath());
+        assertEquals("/config/tenants/TEST/testApp/lep/flow/snippets/Snippet$$my-flow$$step3$$precheck.js", value.get(6).getPath());
         assertEquals("if (context.get('users').length > 0) { return true; } else { return false; }", value.get(6).getContent());
 
         ResultActions flowGet = mockMvc.perform(get("/api/flow/my-flow"))
@@ -184,7 +183,7 @@ public class FlowResourceIntTest extends AbstractFlowIntTest {
         step1.setTypeKey("actionkey");
         step1.setParameters(Map.of("query", "select * from orders"));
         step1.setType(StepSpec.StepType.ACTION);
-        step1.setNext(List.of("step2"));
+        step1.setNext("step2");
 
         // Snippets for Step 2
         Step.Snippet precheckSnippetStep2 = new Step.Snippet();
@@ -202,7 +201,7 @@ public class FlowResourceIntTest extends AbstractFlowIntTest {
         step2.setParameters(Map.of("query", "select * from users"));
         step2.setSnippets(Map.of("precheck", precheckSnippetStep2, "mapping", mappingSnippetStep2));
         step2.setType(StepSpec.StepType.ACTION);
-        step2.setNext(List.of("step3"));
+        step2.setNext("step3");
 
         // Snippets for Step 3
         Step.Snippet precheckSnippetStep3 = new Step.Snippet();
@@ -234,6 +233,7 @@ public class FlowResourceIntTest extends AbstractFlowIntTest {
         Flow flow = new Flow();
         flow.setKey("my-flow");
         flow.setTrigger(trigger);
+        flow.setStartStep("step1");
         flow.setSteps(List.of(step1, step2, step3));
 
         return flow;
