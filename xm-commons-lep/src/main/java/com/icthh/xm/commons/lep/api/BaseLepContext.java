@@ -51,4 +51,8 @@ public abstract class BaseLepContext {
         lepContext.additionalContext = additionalContext;
     }
 
+    @Override
+    public String toString() {
+        return "lepContext[hidden]";
+    }
 }
