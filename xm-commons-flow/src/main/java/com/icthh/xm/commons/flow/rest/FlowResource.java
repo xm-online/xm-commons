@@ -25,14 +25,14 @@ public class FlowResource {
     private final FlowService flowService;
 
     @GetMapping("/{flowKey}")
-    @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'FLOW.GET_ITEM')")
+    @PostAuthorize("hasPermission({'returnObject': returnObject}, 'FLOW.GET_ITEM')")
     @PrivilegeDescription("Privilege to get the flow by key")
     public Flow getFlow(@PathVariable("flowKey") String flowKey) {
         return flowService.getFlow(flowKey);
     }
 
     @GetMapping()
-    @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'FLOW.GET_LIST')")
+    @PostAuthorize("hasPermission({'returnObject': returnObject}, 'FLOW.GET_LIST')")
     @PrivilegeDescription("Privilege to get all flows")
     public List<Flow> getFlows() {
         return flowService.getFlows();

@@ -27,14 +27,14 @@ public class TenantResourceResource {
     private final TenantResourceService resourceService;
 
     @GetMapping("/{resourceKey}")
-    @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'FLOW.RESOURCE.GET_ITEM')")
+    @PostAuthorize("hasPermission({'returnObject': returnObject}, 'FLOW.RESOURCE.GET_ITEM')")
     @PrivilegeDescription("Privilege to get the resource by resourceKey")
     public TenantResource getResource(@PathVariable("resourceKey") String resourceKey) {
         return resourceService.getResource(resourceKey);
     }
 
     @GetMapping()
-    @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'FLOW.RESOURCE.GET_LIST')")
+    @PostAuthorize("hasPermission({'returnObject': returnObject}, 'FLOW.RESOURCE.GET_LIST')")
     @PrivilegeDescription("Privilege to get all resources")
     public List<TenantResource> getResources(@RequestParam(name = "resourceType", required = false) String resourceType) {
         return resourceService.getResources(resourceType);
