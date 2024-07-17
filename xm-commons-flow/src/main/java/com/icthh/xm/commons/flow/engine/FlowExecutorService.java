@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.flow.engine;
 
 import com.google.common.collect.Lists;
+import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.flow.domain.Action;
 import com.icthh.xm.commons.flow.domain.Condition;
 import com.icthh.xm.commons.flow.domain.Flow;
@@ -35,6 +36,7 @@ public class FlowExecutorService {
     private final StepExecutorService stepExecutorService;
 
     public FlowExecutionContext execute(Flow flow, Object input) {
+        assertStartStepExists(flow);
         FlowExecutionContext context = new FlowExecutionContext(flow.getKey(), input);
         Map<String, Step> steps = flow.getSteps().stream().collect(toMap(Step::getKey, identity()));
         String lastActionKey = null;
@@ -52,6 +54,16 @@ public class FlowExecutorService {
         } catch (Throwable e) {
             log.error("Error execute flow with error {} | executionContext: {}", flow.getKey(), context, e);
             throw e;
+        }
+    }
+
+    private void assertStartStepExists(Flow flow) {
+        boolean isExists = isNotBlank(flow.getStartStep()) && flow.getSteps().stream().anyMatch(step ->
+            flow.getStartStep().equals(step.getKey())
+        );
+
+        if (!isExists) {
+            throw new BusinessException("error.flow.start.step.not.found", "Start step with key " + flow.getStartStep() + " not found");
         }
     }
 

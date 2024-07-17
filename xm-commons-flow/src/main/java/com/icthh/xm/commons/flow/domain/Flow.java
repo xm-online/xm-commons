@@ -11,8 +11,14 @@ public class Flow implements ConfigWithKey {
     private String key;
     private String version;
     private String description;
-    @NotBlank
     private String startStep;
     private List<Step> steps;
     private Trigger trigger;
+
+    public List<Step> getSteps() {
+        if (steps == null) {
+            steps = List.of();
+        }
+        return steps;
+    }
 }
