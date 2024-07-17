@@ -66,7 +66,7 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
     @Value("${application.kafkaMetric.metricTopics:#{null}}")
     private List<String> metricTopics;
 
-    @Value("${management.metrics.export.prometheus.enabled}")
+    @Value("${management.prometheus.metrics.export.enabled}")
     private Boolean prometheusExportEnabled;
 
     public MetricsConfiguration(KafkaAdmin kafkaAdmin, CollectorRegistry collectorRegistry) {
