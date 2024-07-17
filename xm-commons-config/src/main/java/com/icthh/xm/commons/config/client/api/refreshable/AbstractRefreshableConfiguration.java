@@ -105,6 +105,7 @@ public abstract class AbstractRefreshableConfiguration<CONFIG, CONFIG_FILE> impl
             String pattern = findPattern(updatedKey);
             String tenantKey = getTenantKey(updatedKey, pattern);
             Map<String, CONFIG_FILE> byFiles = configurationsByTenantByFile.computeIfAbsent(tenantKey, k -> new ConcurrentHashMap<>());
+            log.trace("Files state {}", byFiles);
 
             if (StringUtils.isBlank(config)) {
                 byFiles.remove(updatedKey);

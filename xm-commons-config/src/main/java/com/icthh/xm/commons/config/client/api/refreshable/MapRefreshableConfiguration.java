@@ -3,6 +3,7 @@ package com.icthh.xm.commons.config.client.api.refreshable;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,10 +21,12 @@ public abstract class MapRefreshableConfiguration<CONFIG_ITEM extends ConfigWith
 
     @Override
     public final Map<String, CONFIG_ITEM> joinTenantConfiguration(List<CONFIG_FILE> files) {
-        return files.stream().map(this::toConfigItems)
+        Map<String, CONFIG_ITEM> map = new HashMap<>();
+        files.stream().map(this::toConfigItems)
             .map(nullSafeList())
             .flatMap(List::stream)
-            .collect(toMap(ConfigWithKey::getKey, identity()));
+            .forEach(it -> map.put(it.getKey(), it)); //collect throw exception on key duplication
+        return map;
     }
 
     @Override

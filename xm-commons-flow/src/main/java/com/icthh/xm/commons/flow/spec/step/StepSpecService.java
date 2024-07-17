@@ -8,6 +8,7 @@ import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,10 +38,12 @@ public class StepSpecService extends AbstractRefreshableConfiguration<Map<String
 
     @Override
     public Map<String, StepSpec> joinTenantConfiguration(List<List<StepSpec>> files) {
-        return files.stream()
+        Map<String, StepSpec> map = new HashMap<>();
+        files.stream()
             .map(nullSafeList())
             .flatMap(List::stream)
-            .collect(toMap(ConfigWithKey::getKey, identity()));
+            .forEach(it -> map.put(it.getKey(), it)); //collect throw exception on key duplication
+        return map;
     }
 
     @Override
