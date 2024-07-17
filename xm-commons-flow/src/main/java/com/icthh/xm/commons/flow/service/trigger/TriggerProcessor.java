@@ -14,12 +14,12 @@ import java.util.List;
 @LepService(group = "flow.trigger")
 public class TriggerProcessor {
     @LogicExtensionPoint(value = "TriggerUpdated", resolver = TriggerResolver.class)
-    public List<Configuration> processTriggerUpdate(Trigger trigger, Flow flow) {
+    public List<Configuration> processTriggerUpdate(Trigger trigger, Flow flow, List<Configuration> configurations) {
         return List.of();
     }
 
     @LogicExtensionPoint(value = "TriggerDeleted", resolver = TriggerResolver.class)
-    public List<Configuration> processTriggerDelete(Trigger trigger, Flow flow) {
+    public List<Configuration> processTriggerDelete(Trigger trigger, Flow flow, List<Configuration> configurations) {
         return List.of();
     }
 }

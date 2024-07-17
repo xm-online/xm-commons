@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -69,6 +68,7 @@ public class FlowService {
 
     @LogicExtensionPoint(value = "SaveFlow")
     public void saveFlowInternal(Flow flow) {
+        Flow existingFlow = flowConfigService.getFlow(flow.getKey());
         Map<String, FlowsConfig> updatedConfigs = new HashMap<>();
         Map<String, FlowsConfig> configFiles = flowConfigService.copyFilesConfig();
         var configsWhereRemovedFlow = flowConfigService.removeFlow(configFiles, flow.getKey());
@@ -80,8 +80,14 @@ public class FlowService {
 
         List<Configuration> snippets = codeSnippetService.generateSnippets(flow);
         configurations.addAll(snippets);
+        if (existingFlow != null && existingFlow.getTrigger() != null) {
+            if (flow.getTrigger() == null || !existingFlow.getTrigger().getTypeKey().equals(flow.getTrigger().getTypeKey())) {
+                List<Configuration> triggers = triggerProcessor.processTriggerDelete(existingFlow.getTrigger(), flow, configurations);
+                configurations.addAll(triggers);
+            }
+        }
         if (flow.getTrigger() != null) {
-            List<Configuration> triggers = triggerProcessor.processTriggerUpdate(flow.getTrigger(), flow);
+            List<Configuration> triggers = triggerProcessor.processTriggerUpdate(flow.getTrigger(), flow, configurations);
             configurations.addAll(triggers);
         }
 
@@ -100,7 +106,7 @@ public class FlowService {
             configurations.addAll(snippets);
 
             if (flow.getTrigger() != null) {
-                List<Configuration> triggers = triggerProcessor.processTriggerDelete(flow.getTrigger(), flow);
+                List<Configuration> triggers = triggerProcessor.processTriggerDelete(flow.getTrigger(), flow, configurations);
                 configurations.addAll(triggers);
             }
         }
