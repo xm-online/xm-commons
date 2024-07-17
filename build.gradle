@@ -173,7 +173,7 @@ subprojects {
                     if (isRelease(project)) {
                         // id: 'sonatype-nexus-staging',
                         maven {
-                            url "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+                            url artifactoryStaging
                             credentials {
                                 username ossrhUsername
                                 password ossrhPassword
@@ -182,7 +182,7 @@ subprojects {
                     } else {
                         // id: 'sonatype-nexus-snapshots'
                         maven {
-                            url "https://oss.sonatype.org/content/repositories/snapshots/"
+                            url artifactorySnapshot
                             credentials {
                                 username ossrhUsername
                                 password ossrhPassword
