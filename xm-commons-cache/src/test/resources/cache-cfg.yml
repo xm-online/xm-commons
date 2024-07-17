@@ -1,0 +1,7 @@
+---
+- cacheName: "DemoCache"
+  initialCapacity: 10
+  maximumSize: 100
+  expireAfterWrite: 60
+  expireAfterAccess: 60
+  recordStats: true

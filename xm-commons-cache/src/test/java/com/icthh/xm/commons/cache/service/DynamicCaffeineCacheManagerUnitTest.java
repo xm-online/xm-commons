@@ -14,11 +14,15 @@ public class DynamicCaffeineCacheManagerUnitTest {
 
     DynamicCaffeineCacheManager dynamicCaffeineCacheManager;
 
-    @Test(expected = IllegalStateException.class)
+    @Test()
     public void getCacheFailsIfNoCfgProvided() {
         dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker());
-        org.springframework.cache.Cache cache = dynamicCaffeineCacheManager.getCache(TenantCacheManager.buildKey("TEST", "tcache"));
-        assertNotNull(cache);
+        Exception exception = assertThrows(IllegalStateException.class, () -> {
+            dynamicCaffeineCacheManager.getCache(TenantCacheManager.buildKey("TEST", "tcache"));
+        });
+        String expectedMessage = "Cache with name TEST@tcache did not exist in cache mapping";
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage));
     }
 
     @Test
@@ -43,10 +47,15 @@ public class DynamicCaffeineCacheManagerUnitTest {
         assertEquals(cache1, cache2);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void createNativeCaffeineCacheShouldFailIfNoConfigurationPresent() {
         dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker());
-        dynamicCaffeineCacheManager.createNativeCaffeineCache("test");
+        Exception exception = assertThrows(NullPointerException.class, () -> {
+            dynamicCaffeineCacheManager.createNativeCaffeineCache("test");
+        });
+        String expectedMessage = "Cache configuration [test] not present in cache map";
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage));
     }
 
     @Test

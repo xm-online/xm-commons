@@ -5,7 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Ticker;
 import com.icthh.xm.commons.cache.TenantCacheManager;
 import com.icthh.xm.commons.cache.config.XmTenantLepCacheConfig;
-import lombok.RequiredArgsConstructor;
+import com.icthh.xm.commons.cache.service.builder.CaffeineCacheSpecBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
@@ -18,18 +18,18 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
-import static com.icthh.xm.commons.cache.config.XmTenantLepCacheConfig.CACHE_DEFAULTS;
-
-@RequiredArgsConstructor
 @Slf4j
 public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements ApplicationListener<InitCachesEvent> {
 
-    private final ConcurrentMap<String, Supplier<Caffeine>> cacheCfgMap = new ConcurrentHashMap<>(16);
+    private final ConcurrentMap<String, Supplier<Caffeine<Object, Object>>> cacheCfgMap = new ConcurrentHashMap<>(16);
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-    private final Ticker ticker;
+    private final CaffeineCacheSpecBuilder specBuilder;
+
+    public DynamicCaffeineCacheManager (Ticker ticker) {
+        this.specBuilder = new CaffeineCacheSpecBuilder(ticker);
+    }
 
     @Override
     public void onApplicationEvent(InitCachesEvent event) {
@@ -49,9 +49,10 @@ public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements
                 //remove all CFG for tenant
                 this.cacheCfgMap.entrySet().removeIf(entry -> entry.getKey().startsWith(cachePrefix));
 
-                //add suppliers for cache builders
+                //configure future cache instances
+                //no cache will be inited, before first call is made
                 for (Pair<String, XmTenantLepCacheConfig.XmCacheConfiguration> pair: cacheConfigurationList) {
-                    this.cacheCfgMap.put(pair.getKey(), () -> buildSpec(pair.getValue()));
+                    this.cacheCfgMap.put(pair.getKey(), specBuilder.buildSpec(pair.getValue()));
                 }
             }
         } catch (InterruptedException e) {
@@ -66,7 +67,7 @@ public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements
 
     @Override
     public org.springframework.cache.Cache getCache(String name) {
-        if (!cacheCfgMap.keySet().contains(name)) {
+        if (!cacheCfgMap.containsKey(name)) {
             throw new IllegalStateException("Cache with name " + name + " did not exist in cache mapping");
         }
         return super.getCache(name);
@@ -79,7 +80,7 @@ public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements
         try {
             isLocked = lock.readLock().tryLock(5, TimeUnit.SECONDS);
             if (isLocked) {
-                Supplier<Caffeine> caffeineSupplier = cacheCfgMap.get(name);
+                Supplier<Caffeine<Object, Object>> caffeineSupplier = cacheCfgMap.get(name);
                 Objects.requireNonNull(caffeineSupplier, "Cache configuration [" + name + "] not present in cache map");
                 cache = caffeineSupplier.get().build();
             }
@@ -92,49 +93,6 @@ public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements
         }
         Objects.requireNonNull(cache, "Cache [" + name + "] is locked");
         return cache;
-    }
-
-    private Caffeine buildSpec(XmTenantLepCacheConfig.XmCacheConfiguration cacheConfiguration) {
-        Caffeine c = Caffeine.newBuilder().ticker(ticker);
-
-        setMaxSize(c, cacheConfiguration);
-        setMaxWeight(c, cacheConfiguration);
-        setExpireAfterWrite(c, cacheConfiguration);
-        setExpireAfterAccess(c, cacheConfiguration);
-
-        if (cacheConfiguration.isRecordStats()) {
-            c.recordStats();
-        }
-
-        return c;
-    }
-
-    private void setMaxSize(Caffeine cache, XmTenantLepCacheConfig.XmCacheConfiguration cacheConfiguration) {
-        Integer maxItems = cacheConfiguration.getMaximumSize();
-        if (!CACHE_DEFAULTS.equals(maxItems)) {
-            cache.maximumSize(maxItems);
-        }
-    }
-
-    private void setMaxWeight(Caffeine cache, XmTenantLepCacheConfig.XmCacheConfiguration cacheConfiguration) {
-        Integer maxWeight = cacheConfiguration.getMaximumWeight();
-        if (!CACHE_DEFAULTS.equals(maxWeight)) {
-            cache.maximumWeight(maxWeight);
-        }
-    }
-
-    private void setExpireAfterWrite(Caffeine cache, XmTenantLepCacheConfig.XmCacheConfiguration cacheConfiguration) {
-        Integer ttlSeconds = cacheConfiguration.getExpireAfterWrite();
-        if (!CACHE_DEFAULTS.equals(ttlSeconds)) {
-            cache.expireAfterWrite(ttlSeconds, TimeUnit.SECONDS);
-        }
-    }
-
-    private void setExpireAfterAccess(Caffeine cache, XmTenantLepCacheConfig.XmCacheConfiguration cacheConfiguration) {
-        Integer ttlSeconds = cacheConfiguration.getExpireAfterAccess();
-        if (!CACHE_DEFAULTS.equals(ttlSeconds)) {
-            cache.expireAfterAccess(ttlSeconds, TimeUnit.SECONDS);
-        }
     }
 
 }
