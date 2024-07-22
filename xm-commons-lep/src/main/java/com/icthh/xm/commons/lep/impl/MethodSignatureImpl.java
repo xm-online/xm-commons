@@ -1,5 +1,7 @@
 package com.icthh.xm.commons.lep.impl;
 
+import com.icthh.xm.commons.lep.api.BaseLepContext;
+import com.icthh.xm.commons.lep.api.UseAsLepContext;
 import com.icthh.xm.lep.api.MethodSignature;
 
 import java.lang.reflect.Method;
@@ -9,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
@@ -23,14 +26,29 @@ public class MethodSignatureImpl implements MethodSignature {
     private final String[] parameterNamesArray;
     private final Method method;
     private final String declaringClassName;
+    private final String lepContextMethodParameter;
 
     public MethodSignatureImpl(Method method, Class<?> targetType) {
         this.method = method;
+        this.lepContextMethodParameter = calculateLepContextMethodParameter(method);
         this.parameterNames = calculateParametersNames(method);
         this.parameterIndexes = calculateParametersIndexes(this.parameterNames);
         this.parameterNamesArray = this.parameterNames.toArray(STRINGS_EMPTY_ARRAY);
         this.declaringClass = targetType;
         this.declaringClassName = (declaringClass != null) ? declaringClass.getName() : null;
+    }
+
+    private String calculateLepContextMethodParameter(Method method) {
+        Parameter[] parameters = method.getParameters();
+        if (parameters != null) {
+            return stream(parameters)
+                .filter(p -> BaseLepContext.class.isAssignableFrom(p.getType()))
+                .filter(p -> p.getAnnotation(UseAsLepContext.class) != null)
+                .findAny()
+                .map(Parameter::getName)
+                .orElse(null);
+        }
+        return null;
     }
 
     private Map<String, Integer> calculateParametersIndexes(List<String> parameterNames) {
@@ -109,5 +127,9 @@ public class MethodSignatureImpl implements MethodSignature {
         return method;
     }
 
+    @Override
+    public String getLepContextMethodParameter() {
+        return lepContextMethodParameter;
+    }
 
 }

@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.tenant.internal;
 
+import com.icthh.xm.commons.tenant.PlainTenant;
 import com.icthh.xm.commons.tenant.PrivilegedTenantContext;
 import com.icthh.xm.commons.tenant.Tenant;
 import com.icthh.xm.commons.tenant.TenantContext;
@@ -9,6 +10,8 @@ import com.icthh.xm.commons.tenant.XmJvmSecurityUtils;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+import static com.icthh.xm.commons.tenant.TenantContextUtils.buildTenant;
 
 /**
  * The {@link ThreadLocalPrivilegedTenantContext} class.
@@ -65,6 +68,11 @@ final class ThreadLocalPrivilegedTenantContext implements PrivilegedTenantContex
     @Override
     public void execute(Tenant tenant, Runnable runnable) {
         TenantContextDataHolder.execute(tenant, runnable);
+    }
+
+    @Override
+    public void execute(String tenant, Runnable runnable) {
+        execute(buildTenant(tenant.toUpperCase()), runnable);
     }
 
     /**

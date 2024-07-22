@@ -43,6 +43,8 @@ public interface PrivilegedTenantContext extends TenantContext {
      */
     void execute(Tenant tenant, Runnable runnable);
 
+    void execute(String tenant, Runnable runnable);
+
     /**
      * This method will execute {@code consumer.accept(T value)} method on behalf of the specified tenant.
      *

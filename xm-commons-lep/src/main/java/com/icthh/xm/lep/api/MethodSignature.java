@@ -116,4 +116,5 @@ public interface MethodSignature {
      */
     Method getMethod();
 
+    String getLepContextMethodParameter();
 }
