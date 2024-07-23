@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import static com.icthh.xm.commons.migration.db.jsonb.CustomDialect.JSON_QUERY;
 import static com.icthh.xm.commons.migration.db.jsonb.CustomPostgreSQLDialect.TO_JSON_B;
+import static com.icthh.xm.commons.migration.db.jsonb.CustomPostgreSQLDialect.TO_JSON_B_TEXT;
 
 
 @Component
@@ -48,6 +49,26 @@ public class JsonbExpression implements CustomExpression {
     @Override
     public <T> Expression<T> toJsonB(CriteriaBuilder cb, Expression<?> expression, Class<T> type) {
         return cb.function(TO_JSON_B, type, expression);
+    }
+
+    @Override
+    public Expression<?> toJsonbText(CriteriaBuilder cb, Object object) {
+        return toJsonbText(cb, object, JsonJdbcType.class);
+    }
+
+    @Override
+    public <T> Expression<T> toJsonbText(CriteriaBuilder cb, Object object, Class<T> type) {
+        return toJsonbText(cb, cb.literal(object), type);
+    }
+
+    @Override
+    public Expression<JsonJdbcType> toJsonbText(CriteriaBuilder cb, Expression<?> expression) {
+        return toJsonbText(cb, expression, JsonJdbcType.class);
+    }
+
+    @Override
+    public <T> Expression<T> toJsonbText(CriteriaBuilder cb, Expression<?> expression, Class<T> type) {
+        return cb.function(TO_JSON_B_TEXT, type, expression);
     }
 
 }

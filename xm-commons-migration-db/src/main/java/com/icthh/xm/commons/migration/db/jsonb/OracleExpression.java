@@ -49,4 +49,24 @@ public class OracleExpression implements CustomExpression {
         throw new NotImplementedException("Not implemented yet");
     }
 
+    @Override
+    public Expression<?> toJsonbText(CriteriaBuilder cb, Object object) {
+        throw new NotImplementedException("Not implemented yet");
+    }
+
+    @Override
+    public <T> Expression<T> toJsonbText(CriteriaBuilder cb, Object object, Class<T> type) {
+        throw new NotImplementedException("Not implemented yet");
+    }
+
+    @Override
+    public Expression<JsonJdbcType> toJsonbText(CriteriaBuilder cb, Expression<?> expression) {
+        throw new NotImplementedException("Not implemented yet");
+    }
+
+    @Override
+    public <T> Expression<T> toJsonbText(CriteriaBuilder cb, Expression<?> expression, Class<T> type) {
+        throw new NotImplementedException("Not implemented yet");
+    }
+
 }

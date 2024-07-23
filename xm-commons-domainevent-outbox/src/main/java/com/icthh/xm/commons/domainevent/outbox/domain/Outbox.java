@@ -17,6 +17,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.domain.Persistable;
 
 import java.io.Serializable;
@@ -82,12 +84,12 @@ public class Outbox implements Serializable, Persistable<UUID> {
     })
     private ValidFor validFor;
 
-    @Jsonb
+    @JdbcTypeCode(SqlTypes.JSON)
     @Convert(converter = MapToStringConverter.class)
     @Column(name = "meta")
     private Map<String, Object> meta;
 
-    @Jsonb
+    @JdbcTypeCode(SqlTypes.JSON)
     @Convert(converter = MapToStringConverter.class)
     @Column(name = "payload")
     private Map<String, Object> payload;

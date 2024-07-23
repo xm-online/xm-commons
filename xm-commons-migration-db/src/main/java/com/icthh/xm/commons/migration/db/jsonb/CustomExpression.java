@@ -21,4 +21,12 @@ public interface CustomExpression {
 
     <T> Expression<T> toJsonB(CriteriaBuilder cb, Expression<?> expression, Class<T> type);
 
+    Expression<?> toJsonbText(CriteriaBuilder cb, Object object);
+
+    <T> Expression<T> toJsonbText(CriteriaBuilder cb, Object object, Class<T> type);
+
+    Expression<JsonJdbcType> toJsonbText(CriteriaBuilder cb, Expression<?> expression);
+
+    <T> Expression<T> toJsonbText(CriteriaBuilder cb, Expression<?> expression, Class<T> type);
+
 }
