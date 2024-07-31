@@ -4,18 +4,17 @@ import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.FileSystemUtils;
 import com.icthh.xm.commons.lep.LepPathResolver;
 import com.icthh.xm.commons.lep.TenantScriptStorage;
-import com.icthh.xm.commons.lep.spring.DefaultLepContextActualClassDetector;
-import com.icthh.xm.commons.lep.spring.LepContextActualClassDetector;
 import com.icthh.xm.commons.lep.groovy.annotation.LepServiceTransformation;
 import com.icthh.xm.commons.lep.groovy.storage.ClassPathLepStorageFactory;
+import com.icthh.xm.commons.lep.groovy.storage.DirtyClassPathConfigLepStorageFactory;
 import com.icthh.xm.commons.lep.groovy.storage.FileLepStorageFactory;
 import com.icthh.xm.commons.lep.groovy.storage.LepStorageFactory;
 import com.icthh.xm.commons.lep.groovy.storage.XmConfigLepStorageFactory;
 import com.icthh.xm.commons.lep.impl.LoggingWrapper;
 import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
 import com.icthh.xm.commons.lep.spring.ApplicationNameProvider;
+import com.icthh.xm.commons.lep.spring.LepContextActualClassDetector;
 import com.icthh.xm.commons.lep.spring.LepSpringConfiguration;
-import com.icthh.xm.commons.logging.util.BasePackageDetector;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -26,17 +25,24 @@ import java.util.Set;
 import static com.icthh.xm.commons.lep.TenantScriptStorage.CLASSPATH;
 import static com.icthh.xm.commons.lep.TenantScriptStorage.FILE;
 import static com.icthh.xm.commons.lep.TenantScriptStorage.XM_MS_CONFIG;
+import static com.icthh.xm.commons.lep.TenantScriptStorage.XM_MS_CONFIG_DIRTY_CLASSPATH;
 import static java.util.Collections.emptySet;
 
 @Configuration
 @ConditionalOnMissingBean(GroovyLepEngineConfiguration.class)
 public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
 
-    @Value("${application.lep.tenant-script-storage:#{T(com.icthh.xm.commons.lep.TenantScriptStorage).XM_MS_CONFIG}}")
+    @Value("${application.lep.tenant-script-storage:#{null}}")
     private TenantScriptStorage tenantScriptStorageType;
 
     @Value("${application.lep.warmup-scripts:true}")
     private boolean warmupScripts;
+
+    @Value("${application.lep.warmup-scripts-for-all-tenant:true}")
+    private boolean warmupScriptsForAllTenant;
+
+    @Value("${application.lep.recreate-groovy-engine-on-refresh:true}")
+    private boolean recreateGroovyEngineOnRefresh;
 
     @Value("${application.lep.tenants-with-lep-warmup:#{T(java.util.Set).of('XM')}}")
     private Set<String> tenantsWithLepWarmup;
@@ -48,6 +54,7 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     @Bean
     public GroovyLepEngineFactory groovyLepEngineFactory(ApplicationNameProvider applicationNameProvider,
                                                          LepStorageFactory lepStorageFactory,
+                                                         GroovyEngineCreationStrategy groovyEngineCreationStrategy,
                                                          LoggingWrapper loggingWrapper,
                                                          LepPathResolver lepPathResolver,
                                                          GroovyFileParser groovyFileParser) {
@@ -55,10 +62,12 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
         return new GroovyLepEngineFactory(
             appName,
             lepStorageFactory,
+            groovyEngineCreationStrategy,
             loggingWrapper,
             lepPathResolver,
             groovyFileParser,
-            warmupScripts ? tenantsWithLepWarmup : emptySet()
+            warmupScripts ? tenantsWithLepWarmup : emptySet(),
+            warmupScriptsForAllTenant
         );
     }
 
@@ -93,10 +102,21 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
             return new ClassPathLepStorageFactory(appName, classPathLepRepository, tenantAliasService);
         } else if (storageType.equals(FILE)) {
             return new FileLepStorageFactory(appName, classPathLepRepository, tenantAliasService, lepPathResolver, getFileTenantScriptPathResolverBaseDir());
+        } else if (storageType.equals(XM_MS_CONFIG_DIRTY_CLASSPATH)) {
+            return new DirtyClassPathConfigLepStorageFactory(new XmConfigLepStorageFactory(appName, classPathLepRepository));
         } else {
             throw new RuntimeException("Unsupported storage type");
         }
 
+    }
+
+    @Bean
+    protected GroovyEngineCreationStrategy groovyEngineCreationStrategy() {
+        if (recreateGroovyEngineOnRefresh) {
+            return new RecreateGroovyLepEngineOnRefresh();
+        } else {
+            return new CachedGroovyLepEngineCreationStrategy();
+        }
     }
 
     protected String getFileTenantScriptPathResolverBaseDir() {
@@ -104,6 +124,13 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     }
 
     protected TenantScriptStorage getTenantScriptStorageType() {
+        if (tenantScriptStorageType == null) {
+            if (recreateGroovyEngineOnRefresh) {
+                this.tenantScriptStorageType = XM_MS_CONFIG;
+            } else {
+                this.tenantScriptStorageType = XM_MS_CONFIG_DIRTY_CLASSPATH;
+            }
+        }
         return tenantScriptStorageType;
     }
 
