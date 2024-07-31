@@ -38,7 +38,7 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     @Value("${application.lep.warmup-scripts:true}")
     private boolean warmupScripts;
 
-    @Value("${application.lep.warmup-scripts-for-all-tenant:true}")
+    @Value("${application.lep.warmup-scripts-for-all-tenant:false}")
     private boolean warmupScriptsForAllTenant;
 
     @Value("${application.lep.recreate-groovy-engine-on-refresh:true}")
@@ -130,6 +130,10 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
             } else {
                 this.tenantScriptStorageType = XM_MS_CONFIG_DIRTY_CLASSPATH;
             }
+        }
+
+        if (tenantScriptStorageType == XM_MS_CONFIG && !recreateGroovyEngineOnRefresh) {
+            throw new IllegalArgumentException("XM_MS_CONFIG storage type is not supported with recreateGroovyEngineOnRefresh=false");
         }
         return tenantScriptStorageType;
     }
