@@ -38,9 +38,8 @@ public class LepContextServiceImpl implements LepContextService {
         baseLepContext.thread = lepThreadHelper;
         baseLepContext.tenantContext = tenantContextHolder.getContext();
         baseLepContext.authContext = xmAuthContextHolder.getContext();
+        baseLepContext.authContextHolder = xmAuthContextHolder;
         baseLepContext.commons = new CommonsExecutor(commonsService);
-        additionalContexts.forEach(context ->
-            baseLepContext.addAdditionalContext(context.additionalContextKey(), context.additionalContextValue()));
         additionalContexts.forEach(context -> {
                 Object value = context.additionalContextValue(baseLepContext, lepEngine, lepMethod)
                     .map(Object.class::cast)

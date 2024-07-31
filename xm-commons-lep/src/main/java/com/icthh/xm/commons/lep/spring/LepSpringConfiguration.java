@@ -114,7 +114,7 @@ public class LepSpringConfiguration {
     @Bean
     @ConditionalOnMissingBean(LepContextFactory.class)
     public LepContextFactory lepContextFactory() {
-        return lepMethod -> new BaseLepContext() {};
+        return lepMethod -> new DefaultLepContext();
     }
 
     @Bean
@@ -131,6 +131,12 @@ public class LepSpringConfiguration {
     @ConditionalOnMissingBean
     public BasePackageDetector basePackageDetector(ApplicationContext applicationContext) {
         return new BasePackageDetector(applicationContext);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(LepContextActualClassDetector.class)
+    public LepContextActualClassDetector lepContextActualClassDetector(BasePackageDetector basePackageDetector) {
+        return new DefaultLepContextActualClassDetector(basePackageDetector);
     }
 
     @Bean
