@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.lang.Boolean.TRUE;
+
 @Slf4j
 public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClassLoaderAware {
 
@@ -23,21 +25,27 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
     private final GroovyFileParser groovyFileParser;
     private final LepPathResolver lepPathResolver;
     private final Set<String> tenantWithWarmup;
+    private final Boolean warmupScriptsForAllTenants;
+    private final GroovyEngineCreationStrategy groovyEngineCreationStrategy;
 
     private volatile ClassLoader classLoader;
 
     public GroovyLepEngineFactory(String appName,
                                   LepStorageFactory lepStorageFactory,
+                                  GroovyEngineCreationStrategy groovyEngineCreationStrategy,
                                   LoggingWrapper loggingWrapper,
                                   LepPathResolver lepPathResolver,
                                   GroovyFileParser groovyFileParser,
-                                  Set<String> tenantWithWarmup) {
+                                  Set<String> tenantWithWarmup,
+                                  Boolean warmupScriptsForAllTenants) {
         super(appName);
         this.lepPathResolver = lepPathResolver;
         this.lepStorageFactory = lepStorageFactory;
+        this.groovyEngineCreationStrategy = groovyEngineCreationStrategy;
         this.loggingWrapper = loggingWrapper;
         this.groovyFileParser = groovyFileParser;
         this.tenantWithWarmup = tenantWithWarmup;
+        this.warmupScriptsForAllTenants = warmupScriptsForAllTenants;
     }
 
     @Override
@@ -59,7 +67,9 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
             lepMetadata,
             groovyFileParser
         );
-        return new GroovyLepEngine(
+
+        boolean isWarmupEnabled = TRUE.equals(warmupScriptsForAllTenants) || tenantWithWarmup.contains(tenant);
+        return groovyEngineCreationStrategy.createEngine(
             tenant,
             lepConfigStorage,
             loggingWrapper,
@@ -67,7 +77,7 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
             lepMetadata,
             lepResourceConnector,
             lepPathResolver,
-            tenantWithWarmup.contains(tenant)
+            isWarmupEnabled
         );
     }
 }
