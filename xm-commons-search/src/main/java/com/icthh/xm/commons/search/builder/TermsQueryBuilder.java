@@ -48,7 +48,7 @@ public class TermsQueryBuilder extends AbstractQueryBuilder<TermsQueryBuilder> {
 
     public TermsQueryBuilder(String fieldName, float... values) {
         this(fieldName, values != null ? IntStream.range(0, values.length)
-                           .mapToObj(i -> values[i]).collect(Collectors.toList()) : null);
+            .mapToObj(i -> values[i]).collect(Collectors.toList()) : null);
     }
 
     public TermsQueryBuilder(String fieldName, double... values) {

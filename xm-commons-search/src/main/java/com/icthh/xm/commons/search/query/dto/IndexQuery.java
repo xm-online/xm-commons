@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class IndexQuery {
     private String id;
-    private String type;
-    private String indexName;
     private Object object;
+    private String indexName;
+    private String type;
+    private String source;
+    private String parentId;
 }
