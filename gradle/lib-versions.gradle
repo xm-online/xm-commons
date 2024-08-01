@@ -47,5 +47,7 @@ ext.versions = [
     groovyAll                  : '3.0.20',
 
     micrometer                 : '1.2.2',
-    dropwizard                 : '4.2.25'
+    dropwizard                 : '4.2.25',
+
+    lucene                     : '9.11.1'
 ]
