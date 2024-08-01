@@ -19,5 +19,4 @@ public interface LepAdditionalContext<T> {
         return Optional.empty();
     }
     Class<? extends LepAdditionalContextField> fieldAccessorInterface();
-
 }

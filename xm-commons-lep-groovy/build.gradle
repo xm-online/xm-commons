@@ -19,6 +19,7 @@ dependencies {
     api 'org.aspectj:aspectjweaver'
     api "com.google.code.findbugs:jsr305:${versions.jsr305}"
     api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+    api "org.apache.commons:commons-text:${versions.commonsText}"
     api "commons-io:commons-io:${versions.commonsIo}"
     api "org.codehaus.groovy:groovy-all:${versions.groovyAll}"
 

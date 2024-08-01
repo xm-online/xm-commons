@@ -20,7 +20,7 @@ import static org.mockito.Mockito.mock;
 @Configuration
 @ComponentScan("com.icthh.xm.commons.lep.spring")
 @EnableAutoConfiguration
-@Profile({"!resolveclasstest && !resolvefiletest"})
+@Profile({"!resolveclasstest && !resolvefiletest && !resolvedirtytest"})
 public class LepTestConfig extends GroovyLepEngineConfiguration {
 
     public LepTestConfig() {
@@ -56,4 +56,5 @@ public class LepTestConfig extends GroovyLepEngineConfiguration {
     public TenantAliasService tenantAliasService() {
         return new TenantAliasService(mock(CommonConfigRepository.class), mock(TenantListRepository.class));
     }
+
 }
