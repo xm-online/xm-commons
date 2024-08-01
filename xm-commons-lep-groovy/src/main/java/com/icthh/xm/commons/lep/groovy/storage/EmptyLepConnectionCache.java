@@ -4,12 +4,8 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.NotImplementedException;
 
 import java.net.URLConnection;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class EmptyLepConnectionCache implements LepConnectionCache {
-
-    private final Map<String, LepConnectionProvider> resolvedConnections = new ConcurrentHashMap<>();
 
     @Override
     @SneakyThrows
