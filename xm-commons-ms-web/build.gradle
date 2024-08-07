@@ -17,6 +17,7 @@ dependencies {
         exclude module: 'spring-boot-starter-tomcat'
     }
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+    //FIXME VK: migration: check and remove OLD version
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate5"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate6"
     implementation "org.springframework.cloud:spring-cloud-commons"
