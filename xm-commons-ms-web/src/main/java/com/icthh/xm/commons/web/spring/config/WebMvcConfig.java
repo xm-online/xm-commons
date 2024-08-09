@@ -4,7 +4,6 @@ import com.icthh.xm.commons.tenant.XmRelatedComponent;
 import com.icthh.xm.commons.web.spring.TenantInterceptor;
 import com.icthh.xm.commons.web.spring.XmLoggingInterceptor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.AsyncHandlerInterceptor;
@@ -17,7 +16,6 @@ import java.util.List;
 @Import({
     XmMsWebConfiguration.class
 })
-@ConditionalOnMissingBean(XmWebMvcConfigurerAdapter.class)
 public class WebMvcConfig extends XmWebMvcConfigurerAdapter {
 
     private final List<AsyncHandlerInterceptor> interceptors;
