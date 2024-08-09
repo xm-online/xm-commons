@@ -1,13 +1,13 @@
 package com.icthh.xm.commons.timeline.config;
 
 import com.icthh.xm.commons.timeline.TimelineEventProducer;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.List;
 

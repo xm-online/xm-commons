@@ -12,16 +12,17 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.impl.DefaultClock;
 import io.jsonwebtoken.security.SignatureException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.http.HttpServletRequest;
 import java.security.Key;
 import java.util.Arrays;
 import java.util.Collection;
@@ -51,16 +52,27 @@ public class TokenProvider {
 
     public XmAuthentication getAuthentication(HttpServletRequest request, String token) {
         Claims claims = jwtParser.parseClaimsJws(token).getBody();
-
-        List<String> authoritiesList = claims.get(AUTHORITIES_KEY, List.class);
-        Collection<? extends GrantedAuthority> authorities = authoritiesList
-            .stream()
-            .filter(auth -> !auth.trim().isEmpty())
-            .map(SimpleGrantedAuthority::new)
-            .collect(Collectors.toList());
+        Collection<? extends GrantedAuthority> authorities = getAuthorities(claims);
 
         XmAuthenticationDetails principal = new XmAuthenticationDetails(claims, request, token);
         return new XmAuthentication(principal, token, authorities);
+    }
+
+    public XmAuthentication getAuthentication(ServerHttpRequest request, String token) {
+        Claims claims = this.jwtParser.parseClaimsJws(token).getBody();
+        Collection<? extends GrantedAuthority> authorities = getAuthorities(claims);
+
+        XmAuthenticationDetails principal = new XmAuthenticationDetails(claims, request, token);
+        return new XmAuthentication(principal, token, authorities);
+    }
+
+    private Collection<? extends GrantedAuthority> getAuthorities(Claims claims) {
+        List<String> authoritiesList = claims.get(AUTHORITIES_KEY, List.class);
+
+        return authoritiesList.stream()
+            .filter(auth -> !auth.trim().isEmpty())
+            .map(SimpleGrantedAuthority::new)
+            .collect(Collectors.toList());
     }
 
     public boolean validateToken(String authToken) {

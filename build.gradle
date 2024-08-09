@@ -85,7 +85,7 @@ subprojects {
         // uncomment if the tests reports are not generated
         // see https://github.com/jhipster/generator-jhipster/pull/2771 and https://github.com/jhipster/generator-jhipster/pull/4484
         // ignoreFailures true
-        reports.html.enabled = true
+        reports.html.required = true
         testLogging {
             exceptionFormat = 'full'
             events "passed", "skipped", "failed", "standardOut", "standardError"
@@ -173,7 +173,7 @@ subprojects {
                     if (isRelease(project)) {
                         // id: 'sonatype-nexus-staging',
                         maven {
-                            url "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+                            url artifactoryStaging
                             credentials {
                                 username ossrhUsername
                                 password ossrhPassword
@@ -182,7 +182,7 @@ subprojects {
                     } else {
                         // id: 'sonatype-nexus-snapshots'
                         maven {
-                            url "https://oss.sonatype.org/content/repositories/snapshots/"
+                            url artifactorySnapshot
                             credentials {
                                 username ossrhUsername
                                 password ossrhPassword

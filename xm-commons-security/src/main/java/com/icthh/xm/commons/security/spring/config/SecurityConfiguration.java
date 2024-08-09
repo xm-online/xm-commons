@@ -5,11 +5,13 @@ import com.icthh.xm.commons.security.jwt.TokenProvider;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
@@ -17,7 +19,7 @@ import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWrite
 import static com.icthh.xm.commons.security.RoleConstant.SUPER_ADMIN;
 
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
+@EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfiguration {
 
     private final String contentSecurityPolicy;
@@ -35,46 +37,49 @@ public class SecurityConfiguration {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring().antMatchers("/h2-console/**");
+        return web -> web.ignoring().requestMatchers("/h2-console/**");
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // @formatter:off
         http
-            .csrf()
-            .disable()
-            .headers()
-            .contentSecurityPolicy(contentSecurityPolicy)
-        .and()
-            .referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
-        .and()
-            .frameOptions()
-            .deny()
-        .and()
-            .sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+            .csrf(AbstractHttpConfigurer::disable)
+            .headers(headers -> headers
+                .contentSecurityPolicy(csp -> csp.policyDirectives(contentSecurityPolicy))
+                .referrerPolicy(referrer -> referrer
+                    .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                )
+                .frameOptions(HeadersConfigurer.FrameOptionsConfig::deny)
+            )
+            .sessionManagement((session) -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            );
+
         applyUrlSecurity(http);
-        http.apply(securityConfigurerAdapter());
-        http.exceptionHandling().authenticationEntryPoint(new UnauthorizedEntryPoint());
+        http.with(securityConfigurerAdapter(), Customizer.withDefaults());
+        http.exceptionHandling(exceptionHandler ->
+            exceptionHandler.authenticationEntryPoint(new UnauthorizedEntryPoint())
+        );
         return http.build();
         // @formatter:on
     }
 
     @SneakyThrows
-    protected ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry applyUrlSecurity(HttpSecurity http) {
+    protected HttpSecurity applyUrlSecurity(HttpSecurity http) {
         // @formatter:off
         return http
-                   .authorizeRequests()
-                   .antMatchers("/api/profile-info").permitAll()
-                   .antMatchers("/api/**").authenticated()
-                   .antMatchers("/api/admin/**").hasAuthority(SUPER_ADMIN)
-                   .antMatchers("/management/health").permitAll()
-                   .antMatchers("/management/info").permitAll()
-                   .antMatchers("/management/prometheus").permitAll()
-                   .antMatchers("/management/prometheus/**").permitAll()
-                   .antMatchers("/management/**").hasAuthority(SUPER_ADMIN)
-                   .antMatchers("/swagger-resources/configuration/ui").permitAll();
+            .authorizeHttpRequests(auth ->
+                auth.requestMatchers("/api/profile-info").permitAll()
+                    .requestMatchers("/api/**").authenticated()
+                    .requestMatchers("/api/admin/**").hasAuthority(SUPER_ADMIN)
+                    .requestMatchers("/management/health").permitAll()
+                    .requestMatchers("/management/info").permitAll()
+                    .requestMatchers("/management/prometheus").permitAll()
+                    .requestMatchers("/management/prometheus/**").permitAll()
+                    .requestMatchers("/management/**").hasAuthority(SUPER_ADMIN)
+                    .requestMatchers("/swagger-resources/configuration/ui").permitAll()
+            );
         // @formatter:on
     }
 

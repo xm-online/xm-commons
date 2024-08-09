@@ -15,9 +15,7 @@ dependencies {
     api 'org.liquibase:liquibase-core'
     api 'org.springframework:spring-context'
     api 'org.springframework:spring-orm'
-    api 'org.hibernate:hibernate-core'
-
-    implementation "com.vladmihalcea:hibernate-types-52:${versions.hibernateTypes52}"
+    api "org.hibernate.orm:hibernate-core:${versions.hibernate}"
 
     testImplementation 'junit:junit'
     testImplementation 'org.mockito:mockito-core'

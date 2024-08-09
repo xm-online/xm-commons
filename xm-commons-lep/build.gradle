@@ -13,7 +13,7 @@ dependencies {
     api project(':xm-commons-tenant')
     api project(':xm-commons-config')
 
-    compileOnly 'javax.servlet:javax.servlet-api'
+    api "jakarta.servlet:jakarta.servlet-api"
 
     api 'org.springframework:spring-context'
     api 'org.slf4j:slf4j-api'

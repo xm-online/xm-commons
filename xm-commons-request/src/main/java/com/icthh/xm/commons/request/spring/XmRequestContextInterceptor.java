@@ -2,18 +2,18 @@ package com.icthh.xm.commons.request.spring;
 
 import com.icthh.xm.commons.request.XmPrivilegedRequestContext;
 import com.icthh.xm.commons.request.XmRequestContextHolder;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.io.IOException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * The {@link XmRequestContextInterceptor} class.
  */
-public class XmRequestContextInterceptor extends HandlerInterceptorAdapter {
+public class XmRequestContextInterceptor implements HandlerInterceptor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(XmRequestContextInterceptor.class);
 

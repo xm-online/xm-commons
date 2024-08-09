@@ -2,23 +2,25 @@ package com.icthh.xm.commons.domainevent.outbox.domain;
 
 import com.icthh.xm.commons.domainevent.outbox.domain.converter.MapToStringConverter;
 import com.icthh.xm.commons.migration.db.jsonb.Jsonb;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.domain.Persistable;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Map;
@@ -82,12 +84,12 @@ public class Outbox implements Serializable, Persistable<UUID> {
     })
     private ValidFor validFor;
 
-    @Jsonb
+    @JdbcTypeCode(SqlTypes.JSON)
     @Convert(converter = MapToStringConverter.class)
     @Column(name = "meta")
     private Map<String, Object> meta;
 
-    @Jsonb
+    @JdbcTypeCode(SqlTypes.JSON)
     @Convert(converter = MapToStringConverter.class)
     @Column(name = "payload")
     private Map<String, Object> payload;

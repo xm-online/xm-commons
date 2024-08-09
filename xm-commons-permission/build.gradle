@@ -12,7 +12,7 @@ dependencies {
     api project(":xm-commons-exceptions")
     api project(":xm-commons-messaging")
 
-    compileOnly 'javax.servlet:javax.servlet-api'
+    api "jakarta.servlet:jakarta.servlet-api"
     compileOnly "tech.jhipster:jhipster-framework:${versions.jhipster}"
 
     api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
@@ -29,10 +29,10 @@ dependencies {
     api 'com.fasterxml.jackson.core:jackson-databind'
     api "org.aspectj:aspectjweaver"
 
-    api "org.hibernate:hibernate-core"
+    api "org.hibernate.orm:hibernate-core:${versions.hibernate}"
     api "org.springframework.data:spring-data-commons"
 
-    testImplementation 'javax.servlet:javax.servlet-api'
+    testImplementation "jakarta.servlet:jakarta.servlet-api"
     testImplementation 'junit:junit'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.assertj:assertj-core'

@@ -1,0 +1,7 @@
+apply plugin: 'io.spring.dependency-management'
+
+dependencies {
+    implementation "org.springframework.data:spring-data-commons:${versions.springBoot}"
+    implementation "org.apache.lucene:lucene-core:${versions.lucene}"
+}
+

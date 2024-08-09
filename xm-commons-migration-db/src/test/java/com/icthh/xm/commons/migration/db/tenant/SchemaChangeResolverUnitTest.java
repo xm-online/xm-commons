@@ -65,7 +65,7 @@ public class SchemaChangeResolverUnitTest {
     public void testH2SchemaResolver() {
         when(environment.getProperty(JPA_VENDOR)).thenReturn("H2");
         resolver = new SchemaChangeResolver(environment);
-        assertEquals("USE %s", resolver.getSchemaSwitchCommand());
+        assertEquals("SET SCHEMA %s", resolver.getSchemaSwitchCommand());
     }
 
     @Test
@@ -73,7 +73,7 @@ public class SchemaChangeResolverUnitTest {
         when(environment.getProperty(JPA_VENDOR)).thenReturn("H2");
         when(environment.getProperty(eq(Constants.DB_SCHEMA_SUFFIX), eq(""))).thenReturn("_suffix");
         resolver = new SchemaChangeResolver(environment);
-        assertEquals("USE %s_suffix", resolver.getSchemaSwitchCommand());
+        assertEquals("SET SCHEMA %s_suffix", resolver.getSchemaSwitchCommand());
     }
 
 }

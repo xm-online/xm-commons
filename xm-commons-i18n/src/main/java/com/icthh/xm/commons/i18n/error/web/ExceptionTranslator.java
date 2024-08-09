@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -105,17 +106,17 @@ public class ExceptionTranslator {
     public ResponseEntity<ErrorVM> processHttpServerError(HttpServerErrorException ex) {
         BodyBuilder builder;
         ErrorVM fieldErrorVM;
-        HttpStatus responseStatus = ex.getStatusCode();
-        if (responseStatus != null) {
-            builder = ResponseEntity.status(responseStatus.value());
-            fieldErrorVM = new ErrorVM(ERROR_PREFIX + responseStatus.value(),
-                            localizationErrorMessageService.getMessage(ERROR_PREFIX
-                                            + responseStatus.value()));
-        } else {
+        HttpStatusCode responseStatus = ex.getStatusCode();
+        if (responseStatus.is5xxServerError()) {
             builder = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR);
             fieldErrorVM = new ErrorVM(ErrorConstants.ERR_INTERNAL_SERVER_ERROR,
-                            localizationErrorMessageService
-                                            .getMessage(ErrorConstants.ERR_INTERNAL_SERVER_ERROR));
+                localizationErrorMessageService
+                    .getMessage(ErrorConstants.ERR_INTERNAL_SERVER_ERROR));
+        } else {
+            builder = ResponseEntity.status(responseStatus.value());
+            fieldErrorVM = new ErrorVM(ERROR_PREFIX + responseStatus.value(),
+                localizationErrorMessageService.getMessage(ERROR_PREFIX
+                    + responseStatus.value()));
         }
         return builder.body(fieldErrorVM);
     }
