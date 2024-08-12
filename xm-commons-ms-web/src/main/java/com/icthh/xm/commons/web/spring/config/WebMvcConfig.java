@@ -3,6 +3,7 @@ package com.icthh.xm.commons.web.spring.config;
 import com.icthh.xm.commons.tenant.XmRelatedComponent;
 import com.icthh.xm.commons.web.spring.TenantInterceptor;
 import com.icthh.xm.commons.web.spring.XmLoggingInterceptor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +18,7 @@ import java.util.List;
 @Import({
     XmMsWebConfiguration.class
 })
+@Slf4j
 public class WebMvcConfig extends XmWebMvcConfigurerAdapter {
 
     private final List<String> tenantIgnoredPathList;
@@ -35,6 +37,7 @@ public class WebMvcConfig extends XmWebMvcConfigurerAdapter {
 
     @Override
     protected void xmAddInterceptors(InterceptorRegistry registry) {
+        log.info(">> TEST log for new version");
         applicationContext.getBeansWithAnnotation(XmRelatedComponent.class).values().stream()
             .filter(it -> it instanceof AsyncHandlerInterceptor)
             .map(it -> (AsyncHandlerInterceptor) it)
