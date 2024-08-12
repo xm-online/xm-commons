@@ -4,6 +4,7 @@ import com.icthh.xm.commons.tenant.XmRelatedComponent;
 import com.icthh.xm.commons.web.spring.TenantInterceptor;
 import com.icthh.xm.commons.web.spring.XmLoggingInterceptor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.AsyncHandlerInterceptor;
@@ -18,23 +19,26 @@ import java.util.List;
 })
 public class WebMvcConfig extends XmWebMvcConfigurerAdapter {
 
-    private final List<AsyncHandlerInterceptor> interceptors;
     private final List<String> tenantIgnoredPathList;
+    private final ApplicationContext applicationContext;
 
     public WebMvcConfig(
         @Value("${application.tenant-ignored-path-list}")
         List<String> tenantIgnoredPathList,
         TenantInterceptor tenantInterceptor,
         XmLoggingInterceptor xmLoggingInterceptor,
-        List<AsyncHandlerInterceptor> interceptors) {
+        ApplicationContext applicationContext) {
         super(tenantInterceptor, xmLoggingInterceptor);
-        this.interceptors = interceptors.stream().filter(it -> it.getClass().isAnnotationPresent(XmRelatedComponent.class)).toList();
+        this.applicationContext = applicationContext;
         this.tenantIgnoredPathList = tenantIgnoredPathList;
     }
 
     @Override
     protected void xmAddInterceptors(InterceptorRegistry registry) {
-        interceptors.forEach(interceptor -> registerTenantInterceptorWithIgnorePathPattern(registry, interceptor));
+        applicationContext.getBeansWithAnnotation(XmRelatedComponent.class).values().stream()
+            .filter(it -> it instanceof AsyncHandlerInterceptor)
+            .map(it -> (AsyncHandlerInterceptor) it)
+            .forEach(interceptor -> registerTenantInterceptorWithIgnorePathPattern(registry, interceptor));
     }
 
     @Override
