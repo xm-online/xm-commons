@@ -37,7 +37,6 @@ public class WebMvcConfig extends XmWebMvcConfigurerAdapter {
 
     @Override
     protected void xmAddInterceptors(InterceptorRegistry registry) {
-        log.info(">> TEST log for new version");
         applicationContext.getBeansWithAnnotation(XmRelatedComponent.class).values().stream()
             .filter(it -> it instanceof AsyncHandlerInterceptor)
             .map(it -> (AsyncHandlerInterceptor) it)
