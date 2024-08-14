@@ -81,7 +81,7 @@ public class TenantKey {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(value);
+        return Objects.hash(StringUtils.upperCase(value));
     }
 
 }

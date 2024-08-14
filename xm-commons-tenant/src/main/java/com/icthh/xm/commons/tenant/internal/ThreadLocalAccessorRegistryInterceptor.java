@@ -26,6 +26,8 @@ public class ThreadLocalAccessorRegistryInterceptor {
             log.info("Successfully registered ThreadLocal in micrometer ContextRegistry by key '{}'", key);
 
         } catch (ClassNotFoundException | NoSuchMethodException | LinkageError ignored) {
+            log.error("Unexpected reflective exception while registering ThreadLocal in micrometer " +
+                "ContextRegistry:", ignored);
         } catch (Throwable err) {
             log.error("Unexpected exception while registering ThreadLocal in micrometer ContextRegistry. " +
                 "The feature is considered disabled due to this:", err);

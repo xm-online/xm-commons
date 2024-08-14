@@ -21,9 +21,9 @@ import java.util.Optional;
 
 /**
  * The {@link TenantInterceptor} class.
+ * Add exclusion path to config:
+ * <a href="https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/mvc.html#mvc-config-interceptors">mvc-config-interceptors</a>
  */
-// Add exclusion path to config:
-// https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/mvc.html#mvc-config-interceptors
 public class TenantInterceptor implements HandlerInterceptor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TenantInterceptor.class);
