@@ -38,7 +38,7 @@ public abstract class TermsAggregator {
             this.minDocCount = minDocCount;
             this.shardMinDocCount = shardMinDocCount;
             this.requiredSize = requiredSize;
-            this.shardSize = shardSize; // TODO: ask about shard size
+            this.shardSize = shardSize;
         }
 
         public BucketCountThresholds(BucketCountThresholds bucketCountThresholds) {
