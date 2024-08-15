@@ -34,9 +34,6 @@ public class SchedulerEventHandlerFacade implements MessageHandler {
             String payloadString = unwrap(message);
             log.debug("start processing message for tenant: [{}], raw body in base64 = {}", tenant, payloadString);
             String eventBody = new String(Base64.getDecoder().decode(payloadString), UTF_8);
-            if (!eventBody.contains("TEST_2")) {
-                return;
-            }
             log.info("start processing message for tenant: [{}], body = {}", tenant, eventBody);
 
             schedulerEventService.processSchedulerEvent(mapToEvent(eventBody), tenant);

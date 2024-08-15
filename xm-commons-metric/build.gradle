@@ -16,9 +16,9 @@ dependencies {
     compileOnly "tech.jhipster:jhipster-framework:${versions.jhipster}"
     api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
 
-    api 'io.prometheus:simpleclient_dropwizard:0.16.0'
+    api "io.prometheus:simpleclient_dropwizard:${versions.dropwizardSimpleclient}"
     api "io.micrometer:micrometer-registry-prometheus"
-    implementation 'io.micrometer:micrometer-registry-prometheus-simpleclient:1.13.0'
+    implementation "io.micrometer:micrometer-registry-prometheus-simpleclient:${versions.micrometerSimpleclient}"
     api "io.micrometer:micrometer-registry-jmx"
 
     testImplementation 'junit:junit'
