@@ -46,7 +46,7 @@ public class FilterConverter {
         Stream.Builder<Expression> expressions = Stream.builder();
 
         Filter<?> filter = entry.getValue();
-        String fieldName = preProcessForeignKeyFieldToJpql(entry.getKey()); // fixme: to check
+        String fieldName = preProcessForeignKeyFieldToJpql(entry.getKey());
 
         if (filter.getEquals() != null) {
             expressions.add(new Expression(fieldName, Operation.EQUALS, filter.getEquals()));
