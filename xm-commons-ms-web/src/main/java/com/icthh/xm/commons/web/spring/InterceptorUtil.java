@@ -1,11 +1,11 @@
 package com.icthh.xm.commons.web.spring;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.experimental.UtilityClass;
 import org.springframework.http.MediaType;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import javax.servlet.http.HttpServletResponse;
 
 @UtilityClass
 public class InterceptorUtil {

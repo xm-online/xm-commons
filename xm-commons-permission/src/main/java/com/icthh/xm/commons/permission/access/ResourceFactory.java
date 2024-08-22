@@ -2,5 +2,5 @@ package com.icthh.xm.commons.permission.access;
 
 public interface ResourceFactory {
 
-    Object getResource(Object resourceId, String objectType);
+    <T, ID> T getResource(ID resourceId, String objectType);
 }

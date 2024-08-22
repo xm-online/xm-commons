@@ -5,16 +5,16 @@ import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantKey;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.util.Optional;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * The {@link XmLoggingInterceptor} class.
  */
-public class XmLoggingInterceptor extends HandlerInterceptorAdapter {
+public class XmLoggingInterceptor implements HandlerInterceptor {
 
     private final XmAuthenticationContextHolder authenticationContextHolder;
     private final TenantContextHolder tenantContextHolder;

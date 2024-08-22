@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.web.spring.config;
 
-import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
+import com.fasterxml.jackson.datatype.hibernate6.Hibernate6Module;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -29,9 +29,10 @@ public class JacksonConfiguration {
     /*
      * Support for Hibernate types in Jackson.
      */
+
     @Bean
-    public Hibernate5Module hibernate5Module() {
-        return new Hibernate5Module();
+    public Hibernate6Module hibernate6Module() {
+        return new Hibernate6Module();
     }
 
     @Bean

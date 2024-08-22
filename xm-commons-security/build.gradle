@@ -6,7 +6,7 @@ dependencyManagement {
 }
 
 dependencies {
-    api "javax.servlet:javax.servlet-api"
+    api "jakarta.servlet:jakarta.servlet-api"
 
     api project(":xm-commons-logging-web")
     api 'org.springframework.security:spring-security-config'

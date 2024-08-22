@@ -44,7 +44,7 @@ public class SchemaChangeResolver {
 
         DB_COMMANDS.put("POSTGRESQL", "SET search_path TO %s" + schemaSuffix);
         DB_COMMANDS.put("ORACLE", "ALTER SESSION SET CURRENT_SCHEMA = %s" + schemaSuffix);
-        DB_COMMANDS.put("H2", DEFAULT_COMMAND + schemaSuffix);
+        DB_COMMANDS.put("H2", "SET SCHEMA %s" + schemaSuffix);
     }
 
 }

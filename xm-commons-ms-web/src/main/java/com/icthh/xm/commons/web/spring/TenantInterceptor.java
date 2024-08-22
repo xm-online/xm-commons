@@ -8,23 +8,23 @@ import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.TenantKey;
 import com.icthh.xm.commons.tenant.XmTenantConstants;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * The {@link TenantInterceptor} class.
+ * Add exclusion path to config:
+ * <a href="https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/mvc.html#mvc-config-interceptors">mvc-config-interceptors</a>
  */
-// Add exclusion path to config:
-// https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/mvc.html#mvc-config-interceptors
-public class TenantInterceptor extends HandlerInterceptorAdapter {
+public class TenantInterceptor implements HandlerInterceptor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TenantInterceptor.class);
 
