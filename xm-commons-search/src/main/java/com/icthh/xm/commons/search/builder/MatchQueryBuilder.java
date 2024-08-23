@@ -73,6 +73,11 @@ public class MatchQueryBuilder extends AbstractQueryBuilder<MatchQueryBuilder> {
         return this.operator;
     }
 
+    public MatchQueryBuilder operator(Operator operator) {
+        this.operator = operator;
+        return this;
+    }
+
     public int getPrefixLength() {
         return prefixLength;
     }
