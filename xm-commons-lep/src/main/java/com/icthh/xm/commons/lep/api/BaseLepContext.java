@@ -6,7 +6,6 @@ import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactory;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContext;
-import com.icthh.xm.commons.tenant.TenantContextHolder;
 
 import java.util.HashMap;
 import java.util.Map;
