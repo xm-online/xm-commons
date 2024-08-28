@@ -1,7 +1,5 @@
 package com.icthh.xm.commons.config.client.config;
 
-import static org.apache.commons.lang3.StringUtils.length;
-
 import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.api.ConfigurationChangedListener;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
@@ -18,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.apache.commons.lang3.StringUtils.length;
 
 @Slf4j
 public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostProcessor {
@@ -170,4 +170,5 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
         return StringUtils.isEmpty(configContent) ? LOG_CONFIG_EMPTY :
                DigestUtils.md5Hex(configContent);
     }
+
 }
