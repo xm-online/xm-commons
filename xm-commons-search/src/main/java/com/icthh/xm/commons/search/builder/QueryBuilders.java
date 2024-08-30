@@ -118,4 +118,8 @@ public final class QueryBuilders {
     public static PrefixQueryBuilder prefixQuery(String name, String prefix) {
         return new PrefixQueryBuilder(name, prefix);
     }
+
+    public static ExistsQueryBuilder existsQuery(String name) {
+        return new ExistsQueryBuilder(name);
+    }
 }
