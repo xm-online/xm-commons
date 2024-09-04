@@ -122,4 +122,12 @@ public final class QueryBuilders {
     public static ExistsQueryBuilder existsQuery(String name) {
         return new ExistsQueryBuilder(name);
     }
+
+    public static RangeQueryBuilder rangeQuery(String name) {
+        return new RangeQueryBuilder(name);
+    }
+
+    public static MatchPhrasePrefixQueryBuilder matchPhrasePrefixQuery(String name, Object text) {
+        return new MatchPhrasePrefixQueryBuilder(name, text);
+    }
 }

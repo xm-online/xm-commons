@@ -21,6 +21,7 @@ package com.icthh.xm.commons.search.query;
 
 import com.icthh.xm.commons.search.builder.QueryBuilder;
 import com.icthh.xm.commons.search.builder.aggregation.AbstractAggregationBuilder;
+import com.icthh.xm.commons.search.sort.SortBuilder;
 
 import java.util.List;
 
@@ -29,6 +30,8 @@ public interface SearchQuery extends Query {
     QueryBuilder getQuery();
 
     QueryBuilder getFilter();
+
+    List<SortBuilder> getElasticsearchSorts();
 
     List<AbstractAggregationBuilder> getAggregations();
 }

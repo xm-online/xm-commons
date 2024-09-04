@@ -23,6 +23,7 @@ import com.icthh.xm.commons.search.builder.QueryBuilder;
 import com.icthh.xm.commons.search.builder.aggregation.AbstractAggregationBuilder;
 import com.icthh.xm.commons.search.query.AbstractQuery;
 import com.icthh.xm.commons.search.query.SearchQuery;
+import com.icthh.xm.commons.search.sort.SortBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,7 @@ public class NativeSearchQuery extends AbstractQuery implements SearchQuery {
 
     private QueryBuilder query;
     private QueryBuilder filter;
+    private List<SortBuilder> sorts;
     private List<AbstractAggregationBuilder> aggregations;
 
     public NativeSearchQuery(QueryBuilder query) {
@@ -52,6 +54,10 @@ public class NativeSearchQuery extends AbstractQuery implements SearchQuery {
         return filter;
     }
 
+    public List<SortBuilder> getElasticsearchSorts() {
+        return sorts;
+    }
+
     @Override
     public List<AbstractAggregationBuilder> getAggregations() {
         return aggregations;
@@ -66,5 +72,9 @@ public class NativeSearchQuery extends AbstractQuery implements SearchQuery {
             aggregations = new ArrayList<>();
         }
         aggregations.add(aggregationBuilder);
+    }
+
+    public void setSorts(List<SortBuilder> sortBuilders) {
+        this.sorts = sortBuilders;
     }
 }
