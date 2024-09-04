@@ -24,7 +24,7 @@ package com.icthh.xm.commons.search.sort;
 
 import java.util.Objects;
 
-public class SortBuilder<T extends SortBuilder<T>> {
+public abstract class SortBuilder<T extends SortBuilder<T>> {
 
     protected SortOrder order = SortOrder.ASC;
 
