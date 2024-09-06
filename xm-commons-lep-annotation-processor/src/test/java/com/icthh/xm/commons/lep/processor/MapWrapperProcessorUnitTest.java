@@ -65,6 +65,7 @@ public class MapWrapperProcessorUnitTest {
         assertEquals("inArgsMockValue", mapLepContext.get("inArgs"));
         assertTrue(mapLepContext.containsKey("inArgs"));
         assertFalse(mapLepContext.containsKey("newField"));
+        wrapper.toString();
     }
 
     static class MemoryClassLoader extends ClassLoader {

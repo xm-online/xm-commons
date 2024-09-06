@@ -75,8 +75,17 @@ public class LogicExtensionPointHandler {
 
     private Object invokeLepMethod(LepEngine lepEngine, Object target, LepMethod lepMethod, LepKey lepKey) {
         TargetProceedingLep targetProceedingLep = new TargetProceedingLep(target, lepMethod, lepKey);
-        BaseLepContext lepContext = lepContextService.createLepContext(lepEngine, targetProceedingLep);
+        BaseLepContext lepContext = buildLepContext(lepEngine, lepMethod, targetProceedingLep);
         return lepEngine.invoke(lepKey, targetProceedingLep, lepContext);
+    }
+
+    private BaseLepContext buildLepContext(LepEngine lepEngine, LepMethod lepMethod, TargetProceedingLep targetProceedingLep) {
+        String lepContextMethodParameter = lepMethod.getMethodSignature().getLepContextMethodParameter();
+        if (lepContextMethodParameter == null) {
+            return lepContextService.createLepContext(lepEngine, targetProceedingLep);
+        } else {
+            return lepMethod.getParameter(lepContextMethodParameter, BaseLepContext.class);
+        }
     }
 
     @SneakyThrows
