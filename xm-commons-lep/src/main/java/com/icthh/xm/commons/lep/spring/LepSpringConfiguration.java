@@ -4,7 +4,6 @@ import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.DefaultLepKeyResolver;
 import com.icthh.xm.commons.lep.LepPathResolver;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
-import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepAdditionalContext;
 import com.icthh.xm.commons.lep.api.LepContextFactory;
 import com.icthh.xm.commons.lep.api.LepEngine;
@@ -37,6 +36,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
 import java.util.List;
@@ -75,6 +75,7 @@ public class LepSpringConfiguration {
     }
 
     @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
     @ConditionalOnMissingBean(XmLepScriptConfigServerResourceLoader.class)
     public XmLepScriptConfigServerResourceLoader cfgResourceLoader(LepPathResolver lepPathResolver,
                                                                    LepManagementService lepManagementService,

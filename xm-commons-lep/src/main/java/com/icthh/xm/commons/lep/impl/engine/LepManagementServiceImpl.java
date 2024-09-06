@@ -60,7 +60,7 @@ public class LepManagementServiceImpl implements LepManagementService {
             String tenant = tenantKey.toUpperCase();
             List<XmLepConfigFile> tenantConfigs = configInLepFolder.getOrDefault(tenantKey, emptyList());
             log.info("START | Create lep engines for tenant: {} | configInLepFolder.size: {}", tenant, tenantConfigs.size());
-            log.debug("START | Create lep engines for tenant: {} | configInLepFolder.size: {}", tenant, tenantConfigs);
+            log.trace("START | Create lep engines for tenant: {} | configInLepFolder.size: {}", tenant, tenantConfigs);
 
             List<LepEngine> engines = createEngines(tenantKey, tenantConfigs);
             engines.forEach(engine -> destroyCallbacks.forEach(engine::addDestroyCallback));
