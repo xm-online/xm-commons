@@ -26,6 +26,9 @@ package com.icthh.xm.commons.search.builder;
 import com.icthh.xm.commons.search.query.Operator;
 import org.apache.lucene.search.FuzzyQuery;
 
+import java.util.Map;
+import java.util.TreeMap;
+
 public class QueryStringQueryBuilder extends AbstractQueryBuilder<QueryStringQueryBuilder> {
 
     public static final String NAME = "query_string";
@@ -34,6 +37,8 @@ public class QueryStringQueryBuilder extends AbstractQueryBuilder<QueryStringQue
     public static final int DEFAULT_FUZZY_PREFIX_LENGTH = FuzzyQuery.defaultPrefixLength;
     public static final int DEFAULT_FUZZY_MAX_EXPANSIONS = FuzzyQuery.defaultMaxExpansions;
     public static final boolean DEFAULT_FUZZY_TRANSPOSITIONS = FuzzyQuery.defaultTranspositions;
+
+    private final Map<String, Float> fieldsAndWeights = new TreeMap<>();
 
     private final String queryString;
 
@@ -81,5 +86,14 @@ public class QueryStringQueryBuilder extends AbstractQueryBuilder<QueryStringQue
 
     public String getWriteableName() {
         return NAME;
+    }
+
+    public QueryStringQueryBuilder field(String field) {
+        this.fieldsAndWeights.put(field, AbstractQueryBuilder.DEFAULT_BOOST);
+        return this;
+    }
+
+    public Map<String, Float> fields() {
+        return this.fieldsAndWeights;
     }
 }

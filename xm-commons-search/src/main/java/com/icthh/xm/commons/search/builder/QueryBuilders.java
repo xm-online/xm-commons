@@ -118,4 +118,16 @@ public final class QueryBuilders {
     public static PrefixQueryBuilder prefixQuery(String name, String prefix) {
         return new PrefixQueryBuilder(name, prefix);
     }
+
+    public static ExistsQueryBuilder existsQuery(String name) {
+        return new ExistsQueryBuilder(name);
+    }
+
+    public static RangeQueryBuilder rangeQuery(String name) {
+        return new RangeQueryBuilder(name);
+    }
+
+    public static MatchPhrasePrefixQueryBuilder matchPhrasePrefixQuery(String name, Object text) {
+        return new MatchPhrasePrefixQueryBuilder(name, text);
+    }
 }

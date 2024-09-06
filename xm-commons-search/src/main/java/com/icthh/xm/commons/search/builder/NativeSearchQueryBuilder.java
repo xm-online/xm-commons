@@ -21,7 +21,9 @@ package com.icthh.xm.commons.search.builder;
 import com.icthh.xm.commons.search.builder.aggregation.AbstractAggregationBuilder;
 import com.icthh.xm.commons.search.filter.SourceFilter;
 import com.icthh.xm.commons.search.query.dto.NativeSearchQuery;
+import com.icthh.xm.commons.search.sort.SortBuilder;
 import org.springframework.data.domain.Pageable;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +35,7 @@ public class NativeSearchQueryBuilder {
     private QueryBuilder queryBuilder;
     private Pageable pageable = Pageable.unpaged();
     private SourceFilter sourceFilter;
+    private List<SortBuilder> sortBuilders = new ArrayList<>();
     private List<AbstractAggregationBuilder> aggregationBuilders = new ArrayList<>();
     private String[] indices;
     private String[] types;
@@ -49,6 +52,11 @@ public class NativeSearchQueryBuilder {
 
     public NativeSearchQueryBuilder withPageable(Pageable pageable) {
         this.pageable = pageable;
+        return this;
+    }
+
+    public NativeSearchQueryBuilder withSort(SortBuilder sortBuilder) {
+        this.sortBuilders.add(sortBuilder);
         return this;
     }
 
@@ -70,6 +78,10 @@ public class NativeSearchQueryBuilder {
     public NativeSearchQuery build() {
         NativeSearchQuery nativeSearchQuery = new NativeSearchQuery(queryBuilder);
         nativeSearchQuery.setPageable(pageable);
+
+        if (!CollectionUtils.isEmpty(sortBuilders)) {
+            nativeSearchQuery.setSorts(sortBuilders);
+        }
 
         if (indices != null) {
             nativeSearchQuery.addIndices(indices);
