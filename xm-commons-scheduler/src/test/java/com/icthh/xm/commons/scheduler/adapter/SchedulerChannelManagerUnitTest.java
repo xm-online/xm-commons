@@ -10,7 +10,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
-import com.icthh.xm.commons.topic.service.DynamicConsumerConfigurationService;
 import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Rule;
@@ -38,8 +37,6 @@ public class SchedulerChannelManagerUnitTest {
     XmConfigProperties xmConfigProperties;
     @Mock
     DynamicTopicConsumerConfiguration dynamicTopicConsumerConfiguration;
-    @Mock
-    DynamicConsumerConfigurationService dynamicConsumerConfigurationService;
 
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
@@ -49,7 +46,7 @@ public class SchedulerChannelManagerUnitTest {
 
         MockitoAnnotations.initMocks(this);
         doNothing().when(dynamicTopicConsumerConfiguration).buildDynamicConsumers(any());
-        doNothing().when(dynamicConsumerConfigurationService).refreshDynamicConsumers(any());
+        doNothing().when(dynamicTopicConsumerConfiguration).sendRefreshDynamicConsumersEvent(any());
         channelManager.appName = "entity";
 
     }
@@ -79,7 +76,7 @@ public class SchedulerChannelManagerUnitTest {
 
         channelManager.onInit("/config/tenants/tenants-list.json", "{}");
         verify(dynamicTopicConsumerConfiguration, never()).buildDynamicConsumers(any());
-        verify(dynamicConsumerConfigurationService, never()).refreshDynamicConsumers(any());
+        verify(dynamicTopicConsumerConfiguration, never()).sendRefreshDynamicConsumersEvent(any());
 
     }
 
@@ -92,7 +89,7 @@ public class SchedulerChannelManagerUnitTest {
         channelManager.onInit(key, content);
         verify(channelManager, times(1)).parseConfig(eq(key), eq(content));
         verify(dynamicTopicConsumerConfiguration, never()).buildDynamicConsumers(any());
-        verify(dynamicConsumerConfigurationService, never()).refreshDynamicConsumers(any());
+        verify(dynamicTopicConsumerConfiguration, never()).sendRefreshDynamicConsumersEvent(any());
 
     }
 
@@ -103,8 +100,7 @@ public class SchedulerChannelManagerUnitTest {
         String content = readFile();
 
         SchedulerChannelManager manager = spy(new SchedulerChannelManager(xmConfigProperties,
-            dynamicTopicConsumerConfiguration,
-            dynamicConsumerConfigurationService));
+            dynamicTopicConsumerConfiguration));
 
         manager.onRefresh(key, content);
 
@@ -113,13 +109,13 @@ public class SchedulerChannelManagerUnitTest {
         verify(manager).startChannels();
 
         verify(dynamicTopicConsumerConfiguration, times(2)).buildDynamicConsumers(any());
-        verify(dynamicConsumerConfigurationService, times(2)).refreshDynamicConsumers(any());
+        verify(dynamicTopicConsumerConfiguration, times(2)).sendRefreshDynamicConsumersEvent(any());
 
         verify(dynamicTopicConsumerConfiguration).buildDynamicConsumers(eq("xm"));
-        verify(dynamicConsumerConfigurationService).refreshDynamicConsumers(eq("xm"));
+        verify(dynamicTopicConsumerConfiguration).sendRefreshDynamicConsumersEvent(eq("xm"));
 
         verify(dynamicTopicConsumerConfiguration).buildDynamicConsumers(eq("test"));
-        verify(dynamicConsumerConfigurationService).refreshDynamicConsumers(eq("test"));
+        verify(dynamicTopicConsumerConfiguration).sendRefreshDynamicConsumersEvent(eq("test"));
 
     }
 
@@ -143,8 +139,7 @@ public class SchedulerChannelManagerUnitTest {
         when(xmConfigProperties.getIncludeTenants()).thenReturn(included);
 
         SchedulerChannelManager manager = spy(new SchedulerChannelManager(xmConfigProperties,
-            dynamicTopicConsumerConfiguration,
-            dynamicConsumerConfigurationService));
+            dynamicTopicConsumerConfiguration));
 
         String key = "/config/tenants/tenants-list.json";
         String content = readFile();
@@ -152,10 +147,10 @@ public class SchedulerChannelManagerUnitTest {
         manager.onRefresh(key, content);
 
         verify(dynamicTopicConsumerConfiguration, times(1)).buildDynamicConsumers(any());
-        verify(dynamicConsumerConfigurationService, times(1)).refreshDynamicConsumers(any());
+        verify(dynamicTopicConsumerConfiguration, times(1)).sendRefreshDynamicConsumersEvent(any());
 
         verify(dynamicTopicConsumerConfiguration).buildDynamicConsumers(eq("xm"));
-        verify(dynamicConsumerConfigurationService).refreshDynamicConsumers(eq("xm"));
+        verify(dynamicTopicConsumerConfiguration).sendRefreshDynamicConsumersEvent(eq("xm"));
 
     }
 
