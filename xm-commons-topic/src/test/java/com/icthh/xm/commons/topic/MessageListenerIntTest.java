@@ -56,7 +56,6 @@ import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
                 classes = {KafkaAutoConfiguration.class})
 @EmbeddedKafka(topics = "kafka-queue", partitions = 1, controlledShutdown = true,
     brokerProperties = {
-//    "log.dir=out/embedded-kafka",
     "transaction.state.log.replication.factor=1",
     "offsets.topic.replication.facto=1",
     "transaction.state.log.min.isr=1"
