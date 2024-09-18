@@ -4,9 +4,10 @@ import com.icthh.xm.commons.scheduler.service.SchedulerEventHandlerFacade;
 import com.icthh.xm.commons.scheduler.service.SchedulerEventService;
 import com.icthh.xm.commons.topic.domain.DynamicConsumer;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
-import com.icthh.xm.commons.topic.service.DynamicConsumerConfiguration;
+import com.icthh.xm.commons.topic.service.AbstractDynamicConsumerConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,7 @@ import static org.apache.commons.lang3.StringUtils.lowerCase;
 import static org.apache.commons.lang3.StringUtils.upperCase;
 
 @Slf4j
-public class DynamicTopicConsumerConfiguration implements DynamicConsumerConfiguration {
+public class DynamicTopicConsumerConfiguration extends AbstractDynamicConsumerConfiguration {
 
     private static final String PREFIX = "scheduler_";
     private static final String DELIMITER = "_";
@@ -43,7 +44,9 @@ public class DynamicTopicConsumerConfiguration implements DynamicConsumerConfigu
     private final Map<String, List<DynamicConsumer>> dynamicConsumersByTenant;
     private final SchedulerEventHandlerFacade schedulerEventHandlerFacade;
 
-    public DynamicTopicConsumerConfiguration(SchedulerEventService schedulerEventService) {
+    public DynamicTopicConsumerConfiguration(SchedulerEventService schedulerEventService,
+                                             ApplicationEventPublisher applicationEventPublisher) {
+        super(applicationEventPublisher);
         this.dynamicConsumersByTenant = new ConcurrentHashMap<>();
         this.schedulerEventHandlerFacade = new SchedulerEventHandlerFacade(schedulerEventService);
     }

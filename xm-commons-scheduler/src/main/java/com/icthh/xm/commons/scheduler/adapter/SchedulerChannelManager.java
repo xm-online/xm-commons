@@ -5,7 +5,6 @@ import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.domain.TenantState;
-import com.icthh.xm.commons.topic.service.DynamicConsumerConfigurationService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -26,7 +25,6 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
     private static final String SCHEDULER_APP_DEFAULT = "scheduler";
 
     private final DynamicTopicConsumerConfiguration dynamicTopicConsumerConfiguration;
-    private final DynamicConsumerConfigurationService dynamicConsumerConfigurationService;
     private final ObjectMapper objectMapper;
 
     @Value("${spring.application.name}")
@@ -40,11 +38,9 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
     private Set<String> tenantToStart;
 
     public SchedulerChannelManager(XmConfigProperties xmConfigProperties,
-                                   DynamicTopicConsumerConfiguration dynamicTopicConsumerConfiguration,
-                                   DynamicConsumerConfigurationService dynamicConsumerConfigurationService) {
+                                   DynamicTopicConsumerConfiguration dynamicTopicConsumerConfiguration) {
         this.includedTenants = xmConfigProperties.getIncludeTenantLowercase();
         this.dynamicTopicConsumerConfiguration = dynamicTopicConsumerConfiguration;
-        this.dynamicConsumerConfigurationService = dynamicConsumerConfigurationService;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -90,7 +86,7 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
         log.info("Start channels for tenants: {}", tenantToStart);
         tenantToStart.forEach(tenantKey -> {
             dynamicTopicConsumerConfiguration.buildDynamicConsumers(tenantKey);
-            dynamicConsumerConfigurationService.refreshDynamicConsumers(tenantKey);
+            dynamicTopicConsumerConfiguration.sendRefreshDynamicConsumersEvent(tenantKey);
         });
     }
 

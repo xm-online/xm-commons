@@ -4,26 +4,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.topic.domain.DynamicConsumer;
-import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.domain.TopicConsumersSpec;
-import com.icthh.xm.commons.topic.message.MessageHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.util.StringUtils;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-public class TopicConfigurationService implements RefreshableConfiguration, DynamicConsumerConfiguration {
+public class TopicConfigurationService implements RefreshableConfiguration {
 
     private static final String TENANT_NAME = "tenant";
 
@@ -32,18 +26,12 @@ public class TopicConfigurationService implements RefreshableConfiguration, Dyna
 
     private final String configPath;
 
-    private final MessageHandler messageHandler;
-
-    private final DynamicConsumerConfigurationService dynamicConsumerConfigurationService;
-
-    private Map<String, List<DynamicConsumer>> tenantTopicConsumers = new ConcurrentHashMap<>();
+    private final TopicDynamicConsumerConfiguration topicDynamicConsumerConfiguration;
 
     public TopicConfigurationService(@Value("${spring.application.name}") String appName,
-                                     @Lazy DynamicConsumerConfigurationService dynamicConsumerConfigurationService,
-                                     MessageHandler messageHandler) {
+                                     TopicDynamicConsumerConfiguration topicDynamicConsumerConfiguration) {
         this.configPath = "/config/tenants/{tenant}/" + appName + "/topic-consumers.yml";
-        this.dynamicConsumerConfigurationService = dynamicConsumerConfigurationService;
-        this.messageHandler = messageHandler;
+        this.topicDynamicConsumerConfiguration = topicDynamicConsumerConfiguration;
     }
 
     @Override
@@ -56,35 +44,22 @@ public class TopicConfigurationService implements RefreshableConfiguration, Dyna
         return matcher.match(configPath, updatedKey);
     }
 
-    @Override
-    public List<DynamicConsumer> getDynamicConsumers(String tenantKey) {
-        if (tenantTopicConsumers.containsKey(tenantKey)) {
-            return tenantTopicConsumers.get(tenantKey);
-        }
-
-        return List.of();
-    }
-
     public Map<String, List<DynamicConsumer>> getTenantTopicConsumers() {
-        return Collections.unmodifiableMap(tenantTopicConsumers);
+        return topicDynamicConsumerConfiguration.getTenantTopicConsumers();
     }
 
     private void refreshConfig(String updatedKey, String config) {
         String tenantKey = extractTenant(updatedKey);
 
         if (StringUtils.isEmpty(config)) {
-            tenantTopicConsumers.remove(tenantKey);
+            topicDynamicConsumerConfiguration.remove(tenantKey);
         } else {
             readSpec(updatedKey, config).ifPresentOrElse(spec -> {
-                List<TopicConfig> forUpdate = spec.getTopics();
-                List<DynamicConsumer> dynamicConsumers = forUpdate.stream()
-                        .map(this::createDynamicConsumer)
-                        .collect(Collectors.toList());
-                tenantTopicConsumers.put(tenantKey, dynamicConsumers);
+                topicDynamicConsumerConfiguration.refreshConfig(spec.getTopics(), tenantKey);
             }, () -> log.warn("Skip processing of configuration: [{}]. Specification is null", updatedKey));
         }
 
-        dynamicConsumerConfigurationService.refreshDynamicConsumers(tenantKey);
+        topicDynamicConsumerConfiguration.sendRefreshDynamicConsumersEvent(tenantKey);
     }
 
     private String extractTenant(final String updatedKey) {
@@ -99,13 +74,5 @@ public class TopicConfigurationService implements RefreshableConfiguration, Dyna
         }
 
         return Optional.empty();
-    }
-
-    private DynamicConsumer createDynamicConsumer(TopicConfig topicConfig) {
-        DynamicConsumer dynamicConsumer = new DynamicConsumer();
-        dynamicConsumer.setConfig(topicConfig);
-        dynamicConsumer.setMessageHandler(messageHandler);
-
-        return dynamicConsumer;
     }
 }

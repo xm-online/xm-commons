@@ -2,12 +2,9 @@ package com.icthh.xm.commons.topic;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.logging.trace.TraceWrapper;
+import com.icthh.xm.commons.topic.config.TestBeanConfiguration;
 import com.icthh.xm.commons.topic.message.MessageHandler;
-import com.icthh.xm.commons.topic.service.DynamicConsumerConfiguration;
-import com.icthh.xm.commons.topic.service.DynamicConsumerConfigurationService;
 import com.icthh.xm.commons.topic.service.TopicConfigurationService;
-import com.icthh.xm.commons.topic.service.TopicManagerService;
-import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -17,25 +14,23 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import static java.lang.Thread.sleep;
@@ -46,8 +41,8 @@ import static org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.after;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -61,18 +56,17 @@ import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
                 classes = {KafkaAutoConfiguration.class})
 @EmbeddedKafka(topics = "kafka-queue", partitions = 1, controlledShutdown = true,
     brokerProperties = {
-    "log.dir=out/embedded-kafka",
     "transaction.state.log.replication.factor=1",
     "offsets.topic.replication.facto=1",
     "transaction.state.log.min.isr=1"
     })
+@ContextConfiguration(classes = TestBeanConfiguration.class)
 public class MessageListenerIntTest {
 
     private static final String TOPIC = "kafka-test-queue";
     private static final String GROUP = "test";
     private static final String UPDATE_KEY = "/config/tenants/test/some-ms/topic-consumers.yml";
     private static final String TENANT_KEY = "test";
-    private static final String APP_NAME = "some-ms";
     private static final String CONFIG = "topic-consumers-4.yml";
     private static final String TX_CONFIG = "topic-consumers-without-isolation.yml";
     private static final String TX_RC_CONFIG = "topic-consumers-with-isolation-read_committed.yml";
@@ -84,25 +78,18 @@ public class MessageListenerIntTest {
     @Autowired
     private KafkaProperties kafkaProperties;
 
-    @Mock
-    private TenantListRepository tenantListRepository;
-
+    @Autowired
     private TraceWrapper traceWrapper;
 
+    @Autowired
     private MessageHandler messageHandler;
 
-    private List<DynamicConsumerConfiguration> dynamicConsumerConfigurationList;
+    @Autowired
+    private TopicConfigurationService topicConfigurationService;
 
 
     @Before
     public void before() {
-        messageHandler = mock(MessageHandler.class);
-        traceWrapper = mock(TraceWrapper.class);
-        dynamicConsumerConfigurationList = new ArrayList<>();
-        mockSleuth();
-    }
-
-    private void mockSleuth() {
         doAnswer(invocation -> {
             ((Runnable) invocation.getArgument(1)).run();
             return null;
@@ -111,6 +98,11 @@ public class MessageListenerIntTest {
             ((Runnable) invocation.getArgument(1)).run();
             return null;
         }).when(traceWrapper).runWithSpan(any(Message.class), any(MessageChannel.class), any(Runnable.class));
+    }
+
+    @Before
+    public void clearMessageHandlerInvocations() {
+        clearInvocations(messageHandler);
     }
 
     @SneakyThrows
@@ -127,7 +119,6 @@ public class MessageListenerIntTest {
         Producer<String, String> producer = kafkaProducerFactory.createProducer();
         kafkaProperties.getProperties().put("max.poll.interval.ms", "1000");
 
-        TopicConfigurationService topicConfigurationService = createTopicConfigurationService(new KafkaTemplate<>(kafkaProducerFactory));
         topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(CONFIG));
         log.info("TRYFIXTEST Thread.sleep(50);");
         Thread.sleep(50); // for rebalance cluster, and avoid message will be consumed by other consumer
@@ -171,7 +162,6 @@ public class MessageListenerIntTest {
     public void testConsumerReadUncommited() {
         initConsumers();
 
-        TopicConfigurationService topicConfigurationService = createTopicConfigurationService(createKafkaTemplate());
         topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(TX_CONFIG));
 
         Producer<String, String> producer = createTxProducer();
@@ -200,7 +190,6 @@ public class MessageListenerIntTest {
     public void testConsumerReadCommitted() {
         initConsumers();
 
-        TopicConfigurationService topicConfigurationService = createTopicConfigurationService(createKafkaTemplate());
         topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(TX_RC_CONFIG));
 
         Producer<String, String> producer = createTxProducer();
@@ -238,15 +227,6 @@ public class MessageListenerIntTest {
         consumer.close();
     }
 
-    private KafkaTemplate createKafkaTemplate() {
-        DefaultKafkaProducerFactory<String, String> kafkaProducerFactory = new DefaultKafkaProducerFactory<>(
-            producerProps(kafkaEmbedded),
-            new StringSerializer(),
-            new StringSerializer());
-
-        return new KafkaTemplate<>(kafkaProducerFactory);
-    }
-
     private Producer<String, String> createTxProducer() {
         Map<String, Object> producerProps = producerProps(kafkaEmbedded);
         producerProps.put(TRANSACTIONAL_ID_CONFIG, "txId" + System.currentTimeMillis());
@@ -258,17 +238,5 @@ public class MessageListenerIntTest {
             new StringSerializer());
 
         return kafkaProducerFactory.createProducer();
-    }
-
-    private TopicConfigurationService createTopicConfigurationService(KafkaTemplate kafkaTemplate) {
-        TopicManagerService topicManagerService = new TopicManagerService(kafkaProperties,
-            kafkaTemplate,
-            traceWrapper);
-        DynamicConsumerConfigurationService dynamicConsumerConfigurationService =
-            new DynamicConsumerConfigurationService(dynamicConsumerConfigurationList, topicManagerService, tenantListRepository);
-        TopicConfigurationService topicConfigurationService = new TopicConfigurationService(APP_NAME, dynamicConsumerConfigurationService, messageHandler);
-        dynamicConsumerConfigurationList.add(topicConfigurationService);
-
-        return topicConfigurationService;
     }
 }
