@@ -6,6 +6,7 @@ import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.scheduler.domain.ScheduledEvent;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
@@ -27,7 +28,7 @@ public class SchedulerEventHandlerFacade implements MessageHandler {
 
     public SchedulerEventHandlerFacade(SchedulerEventService schedulerEventService) {
         this.schedulerEventService = schedulerEventService;
-        this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+        this.objectMapper = initObjectMapper();
     }
 
     @Override
@@ -49,6 +50,10 @@ public class SchedulerEventHandlerFacade implements MessageHandler {
         } finally {
             MdcUtils.clear();
         }
+    }
+
+    private ObjectMapper initObjectMapper() {
+        return new ObjectMapper().registerModule(new JavaTimeModule());
     }
 
     @SneakyThrows
