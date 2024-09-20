@@ -1,11 +1,11 @@
 package com.icthh.xm.commons.scheduler.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.scheduler.domain.ScheduledEvent;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
@@ -18,13 +18,17 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.startsWith;
 
 @Slf4j
-@RequiredArgsConstructor
 public class SchedulerEventHandlerFacade implements MessageHandler {
 
     private static final String WRAP_TOKEN = "\"";
 
     private final SchedulerEventService schedulerEventService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    public SchedulerEventHandlerFacade(SchedulerEventService schedulerEventService) {
+        this.schedulerEventService = schedulerEventService;
+        this.objectMapper = initObjectMapper();
+    }
 
     @Override
     public void onMessage(String message, String tenant, TopicConfig topicConfig) {
@@ -45,6 +49,10 @@ public class SchedulerEventHandlerFacade implements MessageHandler {
         } finally {
             MdcUtils.clear();
         }
+    }
+
+    private ObjectMapper initObjectMapper() {
+        return new ObjectMapper().registerModule(new JavaTimeModule());
     }
 
     @SneakyThrows
