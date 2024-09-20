@@ -6,7 +6,6 @@ import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.scheduler.domain.ScheduledEvent;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
@@ -19,13 +18,17 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.startsWith;
 
 @Slf4j
-@RequiredArgsConstructor
 public class SchedulerEventHandlerFacade implements MessageHandler {
 
     private static final String WRAP_TOKEN = "\"";
 
     private final SchedulerEventService schedulerEventService;
-    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    private final ObjectMapper objectMapper;
+
+    public SchedulerEventHandlerFacade(SchedulerEventService schedulerEventService) {
+        this.schedulerEventService = schedulerEventService;
+        this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    }
 
     @Override
     public void onMessage(String message, String tenant, TopicConfig topicConfig) {
