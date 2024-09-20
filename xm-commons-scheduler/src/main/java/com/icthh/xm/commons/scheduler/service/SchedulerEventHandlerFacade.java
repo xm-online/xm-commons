@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.scheduler.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.scheduler.domain.ScheduledEvent;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
@@ -24,7 +25,7 @@ public class SchedulerEventHandlerFacade implements MessageHandler {
     private static final String WRAP_TOKEN = "\"";
 
     private final SchedulerEventService schedulerEventService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     @Override
     public void onMessage(String message, String tenant, TopicConfig topicConfig) {
