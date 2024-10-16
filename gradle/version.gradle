@@ -1,7 +1,7 @@
 import java.util.regex.Pattern
 
 
-version = "4.0.14"//detectSemVersion()
+version = "4.0.15"//detectSemVersion()
 logger.lifecycle("Project  version: $version")
 
 String detectSemVersion() {
