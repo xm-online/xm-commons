@@ -152,7 +152,7 @@ If you have separate configuration for test
 
     @Bean
     public TenantAliasService tenantAliasService() {
-        return new TenantAliasService(mock(CommonConfigRepository.class), mock(TenantListRepository.class));
+        return new TenantAliasServiceImpl(mock(CommonConfigRepository.class), mock(TenantListRepository.class));
     }
 ```
 
