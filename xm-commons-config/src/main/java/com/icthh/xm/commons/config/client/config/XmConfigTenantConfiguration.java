@@ -5,6 +5,7 @@ import com.icthh.xm.commons.config.client.repository.TenantConfigRepository;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.config.client.service.TenantAliasServiceConfiguration;
+import com.icthh.xm.commons.config.client.service.TenantAliasServiceImpl;
 import com.icthh.xm.commons.config.client.service.TenantConfigService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -42,7 +43,7 @@ public class XmConfigTenantConfiguration {
     @Bean
     public TenantAliasService tenantAliasService(CommonConfigRepository commonConfigRepository,
                                                  TenantListRepository tenantListRepository) {
-        return new TenantAliasService(commonConfigRepository, tenantListRepository);
+        return new TenantAliasServiceImpl(commonConfigRepository, tenantListRepository);
     }
 
     @Bean
