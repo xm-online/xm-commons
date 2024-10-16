@@ -3,6 +3,7 @@ package com.icthh.xm.commons.lep.spring;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
+import com.icthh.xm.commons.config.client.service.TenantAliasServiceImpl;
 import com.icthh.xm.commons.lep.impl.LoggingWrapper;
 import com.icthh.xm.commons.lep.js.JsLepEngineFactory;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
@@ -50,7 +51,7 @@ public class JsLepTestConfig {
 
     @Bean
     public TenantAliasService tenantAliasService() {
-        return new TenantAliasService(mock(CommonConfigRepository.class), mock(TenantListRepository.class));
+        return new TenantAliasServiceImpl(mock(CommonConfigRepository.class), mock(TenantListRepository.class));
     }
 
 }
