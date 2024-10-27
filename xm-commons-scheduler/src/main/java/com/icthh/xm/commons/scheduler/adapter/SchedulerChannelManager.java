@@ -5,6 +5,7 @@ import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.domain.TenantState;
+import java.util.Objects;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +36,7 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
 
     private final Set<String> includedTenants;
 
-    private Set<String> tenantToStart;
+    private volatile Set<String> tenantToStart;
 
     public SchedulerChannelManager(XmConfigProperties xmConfigProperties,
                                    DynamicTopicConsumerConfiguration dynamicTopicConsumerConfiguration) {
@@ -45,7 +46,7 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
     }
 
     @SneakyThrows
-    void parseConfig(String key, String config) {
+    boolean parseConfig(String key, String config) {
 
         log.info("Tenants list was updated, start to parse config");
 
@@ -68,14 +69,20 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
             log.warn("Tenant list was overridden by property 'xm-config.include-tenants' to: {}", includedTenants);
         }
 
-        tenantToStart = tenantKeys.stream()
+        var tenantToStart = tenantKeys.stream()
                                   .filter(TenantListRepository.isIncluded(includedTenants)
                                                               .and(isSuspended().negate()))
                                   .map(TenantState::getName)
                                   .collect(Collectors.toSet());
 
-        log.info("scheduler will be turned on for tenants: {}", tenantToStart);
+        if (Objects.equals(this.tenantToStart, tenantToStart)) {
+            log.info("Tenants list was not changed old: {}, new: {}, skip update", this.tenantToStart, tenantToStart);
+            return false;
+        }
 
+        this.tenantToStart = Set.copyOf(tenantToStart);
+        log.info("scheduler will be turned on for tenants: {}", tenantToStart);
+        return true;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -92,8 +99,9 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
 
     @Override
     public void onRefresh(String key, String config) {
-        parseConfig(key, config);
-        startChannels();
+        if (parseConfig(key, config)) {
+            startChannels();
+        }
     }
 
     @Override

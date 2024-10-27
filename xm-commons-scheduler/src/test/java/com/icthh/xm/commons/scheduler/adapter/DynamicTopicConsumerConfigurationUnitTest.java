@@ -44,6 +44,8 @@ public class DynamicTopicConsumerConfigurationUnitTest {
         ReflectionTestUtils.setField(dynamicTopicConsumerConfiguration, "backOffInitialInterval", 11111);
         ReflectionTestUtils.setField(dynamicTopicConsumerConfiguration, "backOffMaxInterval", 22222);
         ReflectionTestUtils.setField(dynamicTopicConsumerConfiguration, "kafkaMetadataMaxAge", 33333);
+        ReflectionTestUtils.setField(dynamicTopicConsumerConfiguration, "buildTopicConsumers", true);
+        ReflectionTestUtils.setField(dynamicTopicConsumerConfiguration, "buildMultiMicroserviceConsumers", true);
 
         String tenantName = "XM";
 
@@ -55,10 +57,30 @@ public class DynamicTopicConsumerConfigurationUnitTest {
 
         assertThat(result.size()).isEqualTo(4);
 
-        assertThatTopicConfigEqual(result.get(0), "scheduler_xm_queue", "GENERALGROUP", "earliest");
-        assertThatTopicConfigEqual(result.get(1), "scheduler_xm_topic", null, "latest");
-        assertThatTopicConfigEqual(result.get(2), "scheduler_xm_entity_queue", "entity", "earliest");
+        assertThatTopicConfigEqual(result.get(0), "scheduler_xm_entity_queue", "entity", "earliest");
+        assertThatTopicConfigEqual(result.get(1), "scheduler_xm_queue", "GENERALGROUP", "earliest");
+        assertThatTopicConfigEqual(result.get(2), "scheduler_xm_topic", null, "latest");
         assertThatTopicConfigEqual(result.get(3), "scheduler_xm_entity_topic", null, "latest");
+    }
+
+    @Test
+    public void shouldBuildDynamicConsumerForActiveTenantByDefault() {
+        ReflectionTestUtils.setField(dynamicTopicConsumerConfiguration, "appName", "entity");
+        ReflectionTestUtils.setField(dynamicTopicConsumerConfiguration, "backOffInitialInterval", 11111);
+        ReflectionTestUtils.setField(dynamicTopicConsumerConfiguration, "backOffMaxInterval", 22222);
+        ReflectionTestUtils.setField(dynamicTopicConsumerConfiguration, "kafkaMetadataMaxAge", 33333);
+
+        String tenantName = "XM";
+
+        assertThat(dynamicTopicConsumerConfiguration.getDynamicConsumers(tenantName).size()).isZero();
+
+        dynamicTopicConsumerConfiguration.buildDynamicConsumers(tenantName);
+
+        List<DynamicConsumer> result = dynamicTopicConsumerConfiguration.getDynamicConsumers(tenantName);
+
+        assertThat(result.size()).isEqualTo(1);
+
+        assertThatTopicConfigEqual(result.get(0), "scheduler_xm_entity_queue", "entity", "earliest");
     }
 
     private void assertThatTopicConfigEqual(DynamicConsumer resultConsumer, String topicName, String group, String offset) {
