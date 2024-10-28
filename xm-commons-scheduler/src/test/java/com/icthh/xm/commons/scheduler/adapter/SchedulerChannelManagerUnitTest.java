@@ -103,8 +103,9 @@ public class SchedulerChannelManagerUnitTest {
             dynamicTopicConsumerConfiguration));
 
         manager.onRefresh(key, content);
+        manager.onRefresh(key, content); // test multiply refresh with same content
 
-        verify(manager).parseConfig(key, content);
+        verify(manager, times(2)).parseConfig(key, content);
 
         verify(manager).startChannels();
 
