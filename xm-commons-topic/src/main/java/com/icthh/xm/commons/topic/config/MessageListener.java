@@ -11,7 +11,6 @@ import com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.MessageRetryDeta
 import java.math.BigInteger;
 import java.util.StringJoiner;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -19,13 +18,20 @@ import org.springframework.kafka.listener.AcknowledgingMessageListener;
 import org.springframework.kafka.support.Acknowledgment;
 
 @Slf4j
-@RequiredArgsConstructor
 public class MessageListener implements AcknowledgingMessageListener<String, String> {
 
     private final TopicConfig topicConfig;
     private final MessageHandler messageHandler;
     private final String tenantKey;
     private final TraceWrapper traceWrapper;
+
+    public MessageListener(TopicConfig topicConfig, MessageHandler messageHandler, String tenantKey,
+                           TraceWrapper traceWrapper) {
+        this.topicConfig = topicConfig;
+        this.messageHandler = messageHandler;
+        this.tenantKey = tenantKey.toUpperCase();
+        this.traceWrapper = traceWrapper;
+    }
 
     @Override
     public void onMessage(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) {
