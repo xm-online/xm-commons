@@ -49,7 +49,7 @@ public class TenantConfigService implements RefreshableConfiguration {
     }
 
     private Map<String, Object> getTenantConfig() {
-        return tenantConfig.getOrDefault(getTenantKeyValue(), Collections.emptyMap());
+        return tenantConfig.getOrDefault(getTenantKeyValue().toUpperCase(), Collections.emptyMap());
     }
 
     private String getTenantKeyValue() {
