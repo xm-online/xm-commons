@@ -14,6 +14,7 @@ import org.springframework.util.AntPathMatcher;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -49,7 +50,8 @@ public class TenantConfigService implements RefreshableConfiguration {
     }
 
     private Map<String, Object> getTenantConfig() {
-        return tenantConfig.getOrDefault(getTenantKeyValue(), Collections.emptyMap());
+        return Optional.ofNullable(tenantConfig.get(getTenantKeyValue()))
+            .orElseGet(() -> tenantConfig.getOrDefault(getTenantKeyValue().toUpperCase(), Collections.emptyMap()));
     }
 
     private String getTenantKeyValue() {
