@@ -21,6 +21,7 @@ public class XmConfigProperties {
     private String xmConfigUrl;
     private String tenantConfigPattern;
     private String kafkaConfigTopic;
+    private String kafkaConfigQueue = "config_queue";
     private Set<String> includeTenants;
 
     public Set<String> getIncludeTenantLowercase() {
