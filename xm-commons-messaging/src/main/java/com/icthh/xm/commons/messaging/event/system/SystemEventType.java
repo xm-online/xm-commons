@@ -59,6 +59,7 @@ public final class SystemEventType {
     // TODO refactor event name and constant name
     public static final String DELETE_COMMAND = "DELETE";
 
+
     private SystemEventType() {
         throw new UnsupportedOperationException();
     }
