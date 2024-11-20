@@ -83,7 +83,7 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
     @Override
     public void updateConfigFullPath(Configuration configuration, String oldConfigHash) {
         String tenantKey = getValidatedTenantKey(configuration.getPath());
-        String topicName = String.format(xmConfigProperties.getKafkaConfigQueue(), tenantKey);
+        String topicName = xmConfigProperties.getKafkaConfigQueue();
         ConfigurationUpdateMessage message = new ConfigurationUpdateMessage(configuration, oldConfigHash);
 
         log.info("Sending update configuration message event to kafka-topic = '{}', data = '{}'", topicName, message);
