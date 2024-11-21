@@ -119,6 +119,17 @@ public class CommonConfigRepositoryUnitTest {
         verifyNoInteractions(kafkaTemplate);
     }
 
+    @Test
+    public void updateConfig_updateRootFile() {
+        assertThrows("Updating files beyond tenant is forbidden", BusinessException.class, () -> {
+            Configuration config = new Configuration("/config/tenants/file.yml", "content");
+            configRepository.updateConfigFullPath(config, "hash");
+        });
+
+        verifyNoInteractions(tenantContextHolder);
+        verifyNoInteractions(kafkaTemplate);
+    }
+
     private ArgumentMatcher<String> isMessageWith(String path, String content, String hash, String tenantKey) {
         return jsonEvent -> {
             try {

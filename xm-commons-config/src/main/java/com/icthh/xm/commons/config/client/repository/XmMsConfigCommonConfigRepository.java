@@ -48,7 +48,7 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
     private static final String VERSION = "version";
 
     private static final String TENANT_NAME = "tenantName";
-    private static final String TENANT_PATH = "/config/tenants/{" + TENANT_NAME + "}/**";
+    private static final String TENANT_PATH = "/config/tenants/{" + TENANT_NAME + "}/*/**";
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
     private final RestTemplate restTemplate;
@@ -91,6 +91,9 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
     }
 
     private String getValidatedTenantKey(String configurationPath) {
+        if (!pathMatcher.match(TENANT_PATH, configurationPath)) {
+            throw new BusinessException("Updating files beyond tenant is forbidden");
+        }
         String contextTenantKey = tenantContextHolder.getTenantKey();
         String pathTenantKey = pathMatcher.extractUriTemplateVariables(TENANT_PATH, configurationPath).get(TENANT_NAME);
 
