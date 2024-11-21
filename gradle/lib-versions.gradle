@@ -50,7 +50,5 @@ ext.versions = [
     dropwizard                 : '4.2.25',
     dropwizardSimpleclient     : '0.16.0',
 
-    lucene                     : '9.11.1',
-
-    springTest                 : '6.2.0'
+    lucene                     : '9.11.1'
 ]

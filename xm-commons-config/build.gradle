@@ -39,7 +39,7 @@ dependencies {
     testImplementation 'junit:junit'
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.mockito:mockito-core'
-    testImplementation "org.springframework:spring-test:${versions.springTest}"
+    testImplementation "org.springframework:spring-test"
 }
 
 compileJava.dependsOn(processResources)
