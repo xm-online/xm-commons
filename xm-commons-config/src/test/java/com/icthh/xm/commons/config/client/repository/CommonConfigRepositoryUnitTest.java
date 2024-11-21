@@ -115,6 +115,12 @@ public class CommonConfigRepositoryUnitTest {
         configRepository.updateConfigFullPath(config, "hash");
     }
 
+    @Test(expected = BusinessException.class)
+    public void updateConfig_updateRootFile() {
+        Configuration config = new Configuration("/config/tenants/file.yml", "content");
+        configRepository.updateConfigFullPath(config, "hash");
+    }
+
     private ArgumentMatcher<String> isMessageWith(String path, String content, String hash, String tenantKey) {
         return jsonEvent -> {
             try {
