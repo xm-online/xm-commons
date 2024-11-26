@@ -50,5 +50,7 @@ ext.versions = [
     dropwizard                 : '4.2.25',
     dropwizardSimpleclient     : '0.16.0',
 
-    lucene                     : '9.11.1'
+    lucene                     : '9.11.1',
+
+    jsonSchemaValidatorVersion : '1.5.2'
 ]

@@ -1,0 +1,28 @@
+apply plugin: 'io.spring.dependency-management'
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}")
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
+    }
+}
+
+dependencies {
+
+    api project(':xm-commons-permission')
+
+    compileOnly "org.projectlombok:lombok:${versions.lombok}"
+
+    implementation "com.networknt:json-schema-validator:${versions.jsonSchemaValidatorVersion}"
+    implementation 'com.codahale.metrics:metrics-annotation:3.0.2'
+    implementation('org.springframework.boot:spring-boot-starter-web') {
+        exclude module: 'spring-boot-starter-tomcat'
+    }
+    api 'org.springframework.security:spring-security-core'
+    api 'com.fasterxml.jackson.core:jackson-databind'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+compileJava.dependsOn(processResources)
