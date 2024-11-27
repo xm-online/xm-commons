@@ -10,6 +10,7 @@ import com.icthh.xm.commons.config.client.repository.XmMsConfigCommonConfigRepos
 import com.icthh.xm.commons.config.client.repository.file.FileUpdateWatcher;
 import com.icthh.xm.commons.config.client.repository.kafka.ConfigTopicConsumer;
 import com.icthh.xm.commons.config.client.service.CommonConfigService;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -17,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
@@ -30,8 +32,10 @@ public class XmConfigConfiguration {
     @ConditionalOnProperty(value = "xm-config.configMode", havingValue = "XM_MS_CONFIG", matchIfMissing = true)
     public CommonConfigRepository commonConfigRepository(
         @Qualifier(XM_CONFIG_REST_TEMPLATE) RestTemplate restTemplate,
-        XmConfigProperties xmConfigProperties) {
-        return new XmMsConfigCommonConfigRepository(restTemplate, xmConfigProperties);
+        XmConfigProperties xmConfigProperties,
+        KafkaTemplate<String, String> kafkaTemplate,
+        TenantContextHolder tenantContextHolder) {
+        return new XmMsConfigCommonConfigRepository(restTemplate, xmConfigProperties, kafkaTemplate, tenantContextHolder);
     }
     @Bean
     @ConditionalOnProperty(value = "xm-config.configMode", havingValue = "FILE")
