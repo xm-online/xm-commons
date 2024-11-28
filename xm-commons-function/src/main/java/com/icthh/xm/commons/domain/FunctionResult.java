@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.domain;
 
+import com.icthh.xm.commons.logging.util.MdcUtils;
 import org.springframework.web.servlet.ModelAndView;
 
 public interface FunctionResult {
@@ -24,7 +25,9 @@ public interface FunctionResult {
     /**
      * Get function execution rid
      */
-    String getRid();
+    default String getRid() {
+        return MdcUtils.getRid();
+    }
 
     /**
      * Get function execution result // todo: explain the diff with data (!!!!)
