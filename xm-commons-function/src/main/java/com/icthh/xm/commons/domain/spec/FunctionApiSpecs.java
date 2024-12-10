@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({"dynamicPermissionCheckEnabled", "validateFunctionInput", "functions", "definitions", "forms"})
+@JsonPropertyOrder({"validateFunctionInput", "functions", "definitions", "forms"})
 @Data
 public class FunctionApiSpecs implements SpecWithDefinitionAndForm {
 
