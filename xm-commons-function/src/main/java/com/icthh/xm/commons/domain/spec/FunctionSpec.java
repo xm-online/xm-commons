@@ -3,22 +3,21 @@ package com.icthh.xm.commons.domain.spec;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.icthh.xm.commons.domain.SpecWithInputDataAndForm;
 import com.icthh.xm.commons.domain.enums.FunctionTxTypes;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The {@link FunctionApiSpec} class.
+ * The {@link FunctionSpec} class.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({"key", "path", "inputSpec", "inputForm", "wrapResult", "onlyData", "anonymous", "txType",
+@JsonPropertyOrder({"key", "path", "inputSpec", "inputForm", "wrapResult", "anonymous", "txType",
     "tags", "httpMethods"})
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class FunctionApiSpec extends IFunctionSpec {
+public class FunctionSpec implements IFunctionSpec, SpecWithInputDataAndForm {
 
     /**
      * Unique in tenant function key.
@@ -53,12 +52,6 @@ public class FunctionApiSpec extends IFunctionSpec {
     private boolean wrapResult;
 
     /**
-     * Get real function result data if true, or else get binary data
-     */
-    @JsonProperty("onlyData")
-    private Boolean onlyData;
-
-    /**
      * Is function accessible by anonymous user
      */
     @JsonProperty("anonymous")
@@ -83,20 +76,37 @@ public class FunctionApiSpec extends IFunctionSpec {
     private List<String> httpMethods = new ArrayList<>();
 
     /**
-     * Parameter to allow dynamic permission checking when function executed
-     */
-    private boolean dynamicPermissionCheckEnabled;
-
-    /**
      * Parameter to allow function input data validation
      */
-    private boolean validateFunctionInput;
-
-    public Boolean getOnlyData() {
-        return onlyData == null || onlyData;
-    }
+    @JsonProperty("validateFunctionInput")
+    private Boolean validateFunctionInput;
 
     public Boolean getAnonymous() {
         return anonymous != null && anonymous;
+    }
+
+    @Override
+    public Boolean getWrapResult() {
+        return this.wrapResult;
+    }
+
+    @Override
+    public String getInputDataSpec() {
+        return this.getInputSpec();
+    }
+
+    @Override
+    public void setInputDataSpec(String spec) {
+        this.setInputSpec(spec);
+    }
+
+    @Override
+    public String getInputFormSpec() {
+        return this.getInputForm();
+    }
+
+    @Override
+    public void setInputFormSpec(String spec) {
+        this.setInputForm(spec);
     }
 }

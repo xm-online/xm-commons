@@ -2,7 +2,7 @@ package com.icthh.xm.commons.service.impl;
 
 import com.icthh.xm.commons.config.FunctionApiSpecConfiguration;
 import com.icthh.xm.commons.domain.enums.FunctionFeatureContext;
-import com.icthh.xm.commons.domain.spec.FunctionApiSpec;
+import com.icthh.xm.commons.domain.spec.FunctionSpec;
 import com.icthh.xm.commons.permission.domain.enums.IFeatureContext;
 import com.icthh.xm.commons.permission.service.DynamicPermissionCheckService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
@@ -79,7 +79,7 @@ public class FunctionServiceImplUnitTest {
 
     @Test
     void enrichInputFromPathParams() {
-        FunctionApiSpec functionSpec = mock(FunctionApiSpec.class);
+        FunctionSpec functionSpec = mock(FunctionSpec.class);
         when(functionSpec.getPath()).thenReturn("call/function/by-path/{id}");
 
         String functionKey = "call/function/by-path/FUNCTION";
@@ -94,7 +94,7 @@ public class FunctionServiceImplUnitTest {
 
     @Test
     void enrichInputFromPathParams_withNonMatchingPath() {
-        FunctionApiSpec functionSpec = mock(FunctionApiSpec.class);
+        FunctionSpec functionSpec = mock(FunctionSpec.class);
         when(functionSpec.getPath()).thenReturn("call/function/by-path/{id}");
 
         String functionKey = "/different/path";
@@ -107,7 +107,7 @@ public class FunctionServiceImplUnitTest {
 
     @Test
     void enrichInputFromPathParams_withNullPath() {
-        FunctionApiSpec functionSpec = mock(FunctionApiSpec.class);
+        FunctionSpec functionSpec = mock(FunctionSpec.class);
         when(functionSpec.getPath()).thenReturn(null);
 
         String functionKey = "call/function/by-path/FUNCTION";
@@ -120,12 +120,12 @@ public class FunctionServiceImplUnitTest {
 
     @Test
     void findFunctionSpec() {
-        FunctionApiSpec functionSpec = mock(FunctionApiSpec.class);
+        FunctionSpec functionSpec = mock(FunctionSpec.class);
 
         when(tenantContextHolder.getTenantKey()).thenReturn(TEST_TENANT);
-        when(functionApiSpecConfiguration.getSpecByTenant(TEST_TENANT)).thenReturn(Optional.of(functionSpec));
+        when(functionApiSpecConfiguration.getSpecByKeyAndTenant(FUNCTION_KEY_TEST, TEST_TENANT)).thenReturn(Optional.of(functionSpec));
 
-        FunctionApiSpec result = functionService.findFunctionSpec("functionKey", GET.name());
+        FunctionSpec result = functionService.findFunctionSpec(FUNCTION_KEY_TEST, GET.name());
 
         assertEquals(functionSpec, result);
     }
@@ -133,20 +133,20 @@ public class FunctionServiceImplUnitTest {
     @Test
     void findFunctionSpec_missingTenant() {
         when(tenantContextHolder.getTenantKey()).thenReturn(TEST_TENANT);
-        when(functionApiSpecConfiguration.getSpecByTenant(TEST_TENANT)).thenReturn(Optional.empty());
+        when(functionApiSpecConfiguration.getSpecByKeyAndTenant(FUNCTION_KEY_TEST, TEST_TENANT)).thenReturn(Optional.empty());
 
         assertThrows(IllegalStateException.class,
-            () -> functionService.findFunctionSpec("functionKey", GET.name()),
+            () -> functionService.findFunctionSpec(FUNCTION_KEY_TEST, GET.name()),
             "Function by key: key and tenant: tenant1 not found");
     }
 
     @Test
     void getValidFunctionInput_validJson() {
-        FunctionApiSpec functionSpec = mock(FunctionApiSpec.class);
+        FunctionSpec functionSpec = mock(FunctionSpec.class);
         Map<String, Object> functionInput = Map.of("key", "value");
         String validJsonSchema = "{\"type\":\"object\",\"properties\":{\"key\":{\"type\":\"string\"}},\"required\":[\"key\"]}";
 
-        when(functionSpec.isValidateFunctionInput()).thenReturn(true);
+        when(functionSpec.getValidateFunctionInput()).thenReturn(true);
         when(functionSpec.getInputSpec()).thenReturn(validJsonSchema);
 
         Map<String, Object> result = functionService.getValidFunctionInput(functionSpec, functionInput);
@@ -156,11 +156,11 @@ public class FunctionServiceImplUnitTest {
 
     @Test
     void getValidFunctionInput_invalidJson() {
-        FunctionApiSpec functionSpec = mock(FunctionApiSpec.class);
+        FunctionSpec functionSpec = mock(FunctionSpec.class);
         Map<String, Object> functionInput = Map.of("key", 123); // Invalid type
         String invalidJsonSchema = "{\"type\":\"object\",\"properties\":{\"key\":{\"type\":\"string\"}},\"required\":[\"key\"]}";
 
-        when(functionSpec.isValidateFunctionInput()).thenReturn(true);
+        when(functionSpec.getValidateFunctionInput()).thenReturn(true);
         when(functionSpec.getInputSpec()).thenReturn(invalidJsonSchema);
 
         assertThrows(JsonValidationUtils.InvalidJsonException.class,
@@ -170,11 +170,11 @@ public class FunctionServiceImplUnitTest {
 
     @Test
     void getValidFunctionInput_skipValidation() {
-        FunctionApiSpec functionSpec = mock(FunctionApiSpec.class);
+        FunctionSpec functionSpec = mock(FunctionSpec.class);
         Map<String, Object> functionInput = Map.of("key", 123); // Invalid type
         String invalidJsonSchema = "{\"type\":\"object\",\"properties\":{\"key\":{\"type\":\"string\"}},\"required\":[\"key\"]}";
 
-        when(functionSpec.isValidateFunctionInput()).thenReturn(false);
+        when(functionSpec.getValidateFunctionInput()).thenReturn(false);
         when(functionSpec.getInputSpec()).thenReturn(invalidJsonSchema);
 
         Map<String, Object> result = functionService.getValidFunctionInput(functionSpec, functionInput);
@@ -184,9 +184,9 @@ public class FunctionServiceImplUnitTest {
 
     @Test
     void getValidFunctionInput_inputNull() {
-        FunctionApiSpec functionSpec = mock(FunctionApiSpec.class);
+        FunctionSpec functionSpec = mock(FunctionSpec.class);
 
-        when(functionSpec.isValidateFunctionInput()).thenReturn(false);
+        when(functionSpec.getValidateFunctionInput()).thenReturn(false);
 
         Map<String, Object> result = functionService.getValidFunctionInput(functionSpec, null);
 

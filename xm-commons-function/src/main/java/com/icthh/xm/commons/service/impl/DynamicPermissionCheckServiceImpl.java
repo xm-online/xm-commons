@@ -1,35 +1,42 @@
 package com.icthh.xm.commons.service.impl;
 
-import com.icthh.xm.commons.config.FunctionApiSpecConfiguration;
-import com.icthh.xm.commons.domain.spec.FunctionApiSpec;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.icthh.xm.commons.config.client.service.TenantConfigService;
 import com.icthh.xm.commons.permission.service.AbstractDynamicPermissionCheckService;
 import com.icthh.xm.commons.permission.service.DynamicPermissionCheckService;
 import com.icthh.xm.commons.permission.service.PermissionCheckService;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
-import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
+import java.util.Optional;
+
+import static com.icthh.xm.commons.utils.Constants.FUNCTIONS;
+import static com.icthh.xm.commons.utils.Constants.TENANT_CONFIG_DYNAMIC_CHECK_ENABLED;
 
 @Component
 @ConditionalOnMissingBean(DynamicPermissionCheckService.class)
 public class DynamicPermissionCheckServiceImpl extends AbstractDynamicPermissionCheckService {
 
-    private final TenantContextHolder tenantContextHolder;
-    private final FunctionApiSpecConfiguration functionApiSpecConfiguration;
+    private final TenantConfigService tenantConfigService;
+    private final ObjectMapper mapper;
 
     public DynamicPermissionCheckServiceImpl(PermissionCheckService permissionCheckService,
                                              XmAuthenticationContextHolder xmAuthenticationContextHolder,
-                                             TenantContextHolder tenantContextHolder,
-                                             FunctionApiSpecConfiguration functionApiSpecConfiguration) {
+                                             TenantConfigService tenantConfigService) {
         super(permissionCheckService, xmAuthenticationContextHolder);
-        this.tenantContextHolder = tenantContextHolder;
-        this.functionApiSpecConfiguration = functionApiSpecConfiguration;
+        this.tenantConfigService = tenantConfigService;
+        this.mapper = new ObjectMapper();
     }
 
+
     public Boolean isDynamicFunctionPermissionEnabled() {
-        String tenantKey = tenantContextHolder.getTenantKey();
-        return functionApiSpecConfiguration.getSpecByTenant(tenantKey)
-            .map(FunctionApiSpec::isDynamicPermissionCheckEnabled)
+        return Optional.ofNullable(tenantConfigService.getConfig())
+            .map(c -> c.get(FUNCTIONS))
+            .map(c -> mapper.convertValue(c, new TypeReference<Map<String, Object>>() {}))
+            .map(f -> Boolean.valueOf(f.get(TENANT_CONFIG_DYNAMIC_CHECK_ENABLED).toString()))
             .orElse(Boolean.FALSE);
     }
 }

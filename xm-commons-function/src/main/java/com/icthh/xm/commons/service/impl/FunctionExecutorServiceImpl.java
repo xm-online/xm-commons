@@ -21,7 +21,7 @@ public class FunctionExecutorServiceImpl implements FunctionExecutorService {
      */
     @Override
     @LogicExtensionPoint(value = "Function", resolver = FunctionLepKeyResolver.class)
-    public Map<String, Object> execute(String functionKey, Map<String, Object> functionInput, String httpMethod) {
+    public Object execute(String functionKey, Map<String, Object> functionInput, String httpMethod) {
         throw new IllegalStateException("Function " + functionKey + " not found");
     }
 
@@ -34,7 +34,7 @@ public class FunctionExecutorServiceImpl implements FunctionExecutorService {
      */
     @Override
     @LogicExtensionPoint(value = "AnonymousFunction", resolver = FunctionLepKeyResolver.class)
-    public Map<String, Object> executeAnonymousFunction(String functionKey, Map<String, Object> functionInput, String httpMethod) {
+    public Object executeAnonymousFunction(String functionKey, Map<String, Object> functionInput, String httpMethod) {
         throw new IllegalStateException("AnonymousFunction " + functionKey + " not found");
     }
 }

@@ -9,6 +9,7 @@ dependencyManagement {
 
 dependencies {
 
+    api project(':xm-commons-data-spec')
     api project(':xm-commons-permission')
     api project(':xm-commons-i18n')
 

@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.service.impl;
 
 import com.icthh.xm.commons.config.FunctionApiSpecConfiguration;
-import com.icthh.xm.commons.domain.spec.FunctionApiSpec;
+import com.icthh.xm.commons.domain.spec.FunctionSpec;
 import com.icthh.xm.commons.permission.service.DynamicPermissionCheckService;
 import com.icthh.xm.commons.service.FunctionService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
@@ -12,10 +12,11 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 import static com.icthh.xm.commons.utils.JsonValidationUtils.assertJson;
+import static java.lang.Boolean.TRUE;
 
 @Service
 @ConditionalOnMissingBean(FunctionService.class)
-public class FunctionServiceImpl extends AbstractFunctionService<FunctionApiSpec> {
+public class FunctionServiceImpl extends AbstractFunctionService<FunctionSpec> {
 
     private final TenantContextHolder tenantContextHolder;
     private final FunctionApiSpecConfiguration functionApiSpecConfiguration;
@@ -29,17 +30,17 @@ public class FunctionServiceImpl extends AbstractFunctionService<FunctionApiSpec
     }
 
     @Override
-    public FunctionApiSpec findFunctionSpec(String functionKey, String httpMethod) {
+    public FunctionSpec findFunctionSpec(String functionKey, String httpMethod) {
         String tenantKey = tenantContextHolder.getTenantKey();
-        return functionApiSpecConfiguration.getSpecByTenant(tenantKey)
+        return functionApiSpecConfiguration.getSpecByKeyAndTenant(functionKey, tenantKey)
             .orElseThrow(() -> new IllegalStateException(
                 String.format("Function by key: %s and tenant: %s not found", functionKey, tenantKey)));
     }
 
     @Override
-    public Map<String, Object> getValidFunctionInput(FunctionApiSpec functionSpec, Map<String, Object> functionInput) {
+    public Map<String, Object> getValidFunctionInput(FunctionSpec functionSpec, Map<String, Object> functionInput) {
         Map<String, Object> input = CollectionsUtils.getOrEmpty(functionInput);
-        if (functionSpec.isValidateFunctionInput()) {
+        if (TRUE.equals(functionSpec.getValidateFunctionInput())) {
             assertJson(functionInput, functionSpec.getInputSpec());
         }
         return input;

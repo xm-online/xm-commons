@@ -40,7 +40,7 @@ public class FunctionServiceFacadeImpl<FS extends IFunctionSpec> implements Func
 
         return callLepExecutor(functionSpec.getTxType(), () -> {
             var lepHttpMethod = convertToCanonicalHttpMethod(httpMethod);
-            Map<String, Object> data = functionExecutorService.execute(functionSpec.getKey(), input, lepHttpMethod);
+            Object data = functionExecutorService.execute(functionSpec.getKey(), input, lepHttpMethod);
             return processFunctionResult(functionKey, data, functionSpec);
         });
     }
@@ -58,7 +58,7 @@ public class FunctionServiceFacadeImpl<FS extends IFunctionSpec> implements Func
 
         return callLepExecutor(functionSpec.getTxType(), () -> {
             var lepHttpMethod = convertToCanonicalHttpMethod(httpMethod);
-            Map<String, Object> data = functionExecutorService.executeAnonymousFunction(functionSpec.getKey(), input, lepHttpMethod);
+            Object data = functionExecutorService.executeAnonymousFunction(functionSpec.getKey(), input, lepHttpMethod);
             return processFunctionResult(functionKey, data, functionSpec);
         });
     }
@@ -78,7 +78,7 @@ public class FunctionServiceFacadeImpl<FS extends IFunctionSpec> implements Func
         };
     }
 
-    private FunctionResult processFunctionResult(String functionKey, Map<String, Object> data, FS functionSpec) {
+    private FunctionResult processFunctionResult(String functionKey, Object data, FS functionSpec) {
         return functionResultProcessor.processFunctionResult(functionKey, data, functionSpec);
     }
 }

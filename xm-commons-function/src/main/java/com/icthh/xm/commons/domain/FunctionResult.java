@@ -15,7 +15,7 @@ public interface FunctionResult {
     /**
      * Get function execution related data
      */
-    Object getData(); // todo: do we need this method ??
+    Object getData();
 
     /**
      * Get function execution time
@@ -30,7 +30,7 @@ public interface FunctionResult {
     }
 
     /**
-     * Get function execution result // todo: explain the diff with data (!!!!)
+     * Get function execution result
      */
     Object functionResult();
 

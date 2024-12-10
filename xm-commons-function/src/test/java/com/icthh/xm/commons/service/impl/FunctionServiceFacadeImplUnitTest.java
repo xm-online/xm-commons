@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.service.impl;
 
 import com.icthh.xm.commons.domain.FunctionResult;
-import com.icthh.xm.commons.domain.spec.FunctionApiSpec;
+import com.icthh.xm.commons.domain.spec.FunctionSpec;
 import com.icthh.xm.commons.service.FunctionExecutorService;
 import com.icthh.xm.commons.service.FunctionResultProcessor;
 import com.icthh.xm.commons.service.FunctionService;
@@ -34,7 +34,7 @@ public class FunctionServiceFacadeImplUnitTest {
     private static final String FUNCTION_KEY_TEST = "FUNCTION.PACKAGE-TEST";
 
     @Mock
-    private FunctionService<FunctionApiSpec> functionService;
+    private FunctionService<FunctionSpec> functionService;
 
     @Mock
     private FunctionTxControl functionTxControl;
@@ -43,10 +43,10 @@ public class FunctionServiceFacadeImplUnitTest {
     private FunctionExecutorService functionExecutorService;
 
     @Mock
-    private FunctionResultProcessor<FunctionApiSpec> functionResultProcessor;
+    private FunctionResultProcessor<FunctionSpec> functionResultProcessor;
 
     @InjectMocks
-    private FunctionServiceFacadeImpl<FunctionApiSpec> functionServiceFacade;
+    private FunctionServiceFacadeImpl<FunctionSpec> functionServiceFacade;
 
     @BeforeEach
     void setUp() {
@@ -57,7 +57,7 @@ public class FunctionServiceFacadeImplUnitTest {
     void execute() {
         String functionSpecKey = "functionSpecKey";
 
-        FunctionApiSpec mockFunctionSpec = mock(FunctionApiSpec.class);
+        FunctionSpec mockFunctionSpec = mock(FunctionSpec.class);
         when(mockFunctionSpec.getTxType()).thenReturn(TX); // to execute in default transaction
         when(mockFunctionSpec.getKey()).thenReturn(functionSpecKey);
 
@@ -85,7 +85,7 @@ public class FunctionServiceFacadeImplUnitTest {
 
     @Test
     void executeAnonymous_accessDenied() {
-        FunctionApiSpec mockFunctionSpec = mock(FunctionApiSpec.class);
+        FunctionSpec mockFunctionSpec = mock(FunctionSpec.class);
         when(mockFunctionSpec.getAnonymous()).thenReturn(false);
 
         when(functionService.findFunctionSpec(FUNCTION_KEY_TEST, POST.name())).thenReturn(mockFunctionSpec);

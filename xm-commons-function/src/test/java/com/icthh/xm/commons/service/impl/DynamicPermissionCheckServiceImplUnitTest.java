@@ -1,7 +1,6 @@
 package com.icthh.xm.commons.service.impl;
 
-import com.icthh.xm.commons.config.FunctionApiSpecConfiguration;
-import com.icthh.xm.commons.domain.spec.FunctionApiSpec;
+import com.icthh.xm.commons.config.client.service.TenantConfigService;
 import com.icthh.xm.commons.permission.service.PermissionCheckService;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
@@ -11,10 +10,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Optional;
+import java.util.Map;
 
+import static com.icthh.xm.commons.utils.Constants.FUNCTIONS;
+import static com.icthh.xm.commons.utils.Constants.TENANT_CONFIG_DYNAMIC_CHECK_ENABLED;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class DynamicPermissionCheckServiceImplUnitTest {
@@ -31,7 +31,7 @@ public class DynamicPermissionCheckServiceImplUnitTest {
     private TenantContextHolder tenantContextHolder;
 
     @Mock
-    private FunctionApiSpecConfiguration functionApiSpecConfiguration;
+    private TenantConfigService tenantConfigService;
 
     @InjectMocks
     private DynamicPermissionCheckServiceImpl dynamicPermissionCheckService;
@@ -45,10 +45,8 @@ public class DynamicPermissionCheckServiceImplUnitTest {
     void isDynamicFunctionPermissionEnabled() {
         when(tenantContextHolder.getTenantKey()).thenReturn(TENANT);
 
-        FunctionApiSpec mockFunctionApiSpec = mock(FunctionApiSpec.class);
-        when(mockFunctionApiSpec.isDynamicPermissionCheckEnabled()).thenReturn(true);
-
-        when(functionApiSpecConfiguration.getSpecByTenant(TENANT)).thenReturn(Optional.of(mockFunctionApiSpec));
+        Map<String, Object> tenantConfig = Map.of(FUNCTIONS, Map.of(TENANT_CONFIG_DYNAMIC_CHECK_ENABLED, true));
+        when(tenantConfigService.getConfig()).thenReturn(tenantConfig);
 
         Boolean result = dynamicPermissionCheckService.isDynamicFunctionPermissionEnabled();
         assertTrue(result);

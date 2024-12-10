@@ -7,6 +7,10 @@ import java.util.Set;
 @UtilityClass
 public class Constants {
 
+    // configuration
+    public static final String FUNCTIONS = "functions";
+    public static final String TENANT_CONFIG_DYNAMIC_CHECK_ENABLED = "dynamicPermissionCheckEnabled";
+
     // web constants
     public static final String POST_URLENCODED = "POST_URLENCODED";
     public static final String UPLOAD = "/upload";
