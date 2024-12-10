@@ -136,6 +136,9 @@ public class IdpPublicConfig {
             @JsonProperty(value = "stateful")
             private boolean stateful;
 
+            @JsonProperty(value = "jwkTtl")
+            private Integer jwkTtl;
+
             @JsonProperty("idpAccessTokenInclusion")
             private IdpAccessTokenInclusion idpAccessTokenInclusion = new IdpAccessTokenInclusion();
 
