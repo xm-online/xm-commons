@@ -13,7 +13,6 @@ public class Constants {
 
     // web constants
     public static final String POST_URLENCODED = "POST_URLENCODED";
-    public static final String UPLOAD = "/upload";
     public static final String FUNCTION_CONTEXT = "functionContext";
     public static final String FUNCTION_CONTEXT_PATH = "/api/function-contexts/";
 
