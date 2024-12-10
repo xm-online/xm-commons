@@ -1,0 +1,32 @@
+apply plugin: 'io.spring.dependency-management'
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}")
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
+    }
+}
+
+
+dependencies {
+    api project(':xm-commons-config')
+
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+    compileOnly "org.projectlombok:lombok:${versions.lombok}"
+
+    api 'org.springframework.security:spring-security-core'
+    api 'org.springframework:spring-context'
+    api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+    api 'org.slf4j:slf4j-api'
+    api "com.google.guava:guava:${versions.guava}"
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+compileJava.dependsOn(processResources)
+
+test {
+    useJUnitPlatform()
+}
