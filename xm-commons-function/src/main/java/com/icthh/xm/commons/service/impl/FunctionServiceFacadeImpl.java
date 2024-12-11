@@ -21,7 +21,7 @@ import static com.icthh.xm.commons.utils.HttpRequestUtils.convertToCanonicalHttp
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnMissingBean(FunctionServiceFacade.class)
+@ConditionalOnMissingBean(name = "functionServiceFacade")
 public class FunctionServiceFacadeImpl<FS extends IFunctionSpec> implements FunctionServiceFacade {
 
     private final FunctionService<FS> functionService;
