@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.config;
 
-smallimport com.icthh.xm.commons.domain.comparator.FunctionSpecPathComparator;
+import com.icthh.xm.commons.domain.comparator.FunctionSpecPathComparator;
 import com.icthh.xm.commons.domain.spec.FunctionApiSpecs;
 import com.icthh.xm.commons.domain.spec.FunctionSpec;
 import com.icthh.xm.commons.listener.JsonListenerService;
