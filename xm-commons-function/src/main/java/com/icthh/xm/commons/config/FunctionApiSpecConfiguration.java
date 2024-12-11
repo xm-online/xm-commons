@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.config;
 
+smallimport com.icthh.xm.commons.domain.comparator.FunctionSpecPathComparator;
 import com.icthh.xm.commons.domain.spec.FunctionApiSpecs;
 import com.icthh.xm.commons.domain.spec.FunctionSpec;
 import com.icthh.xm.commons.listener.JsonListenerService;
@@ -45,6 +46,15 @@ public class FunctionApiSpecConfiguration extends DataSpecificationService<Funct
             .flatMap(Collection::stream)
             .filter(f -> functionKey.equals(f.getKey()))
             .findFirst();
+    }
+
+    public Collection<FunctionSpec> getOrderedSpecByTenant(String tenantKey) {
+        return getTenantSpecifications(tenantKey).values().stream()
+            .map(FunctionApiSpecs::getFunctions)
+            .filter(Objects::nonNull)
+            .flatMap(Collection::stream)
+            .sorted(FunctionSpecPathComparator.of())
+            .toList();
     }
 }
 

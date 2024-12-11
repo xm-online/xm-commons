@@ -42,8 +42,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
-@WebMvcTest(controllers = FunctionResource.class)
-@ContextConfiguration(classes = {FunctionResource.class, ExceptionTranslator.class})
+@WebMvcTest
+@ContextConfiguration(classes = {
+    FunctionResource.class,
+    FunctionApiDocsResource.class,
+    FunctionMvcResource.class,
+    FunctionUploadResource.class,
+    ExceptionTranslator.class
+})
 public class FunctionResourceMvcIntTest {
 
     @Autowired
@@ -213,8 +219,7 @@ public class FunctionResourceMvcIntTest {
         when(functionService.executeAnonymous("SOME-ANONYMOUS-FUNCTION_KEY.TROLOLO", of("var1", "val1", "var2", "val2"), "GET"))
             .thenReturn(new FunctionResultTest().data( of(MVC_FUNC_RESULT, new ModelAndView("redirect:https://google.com"))));
         mockMvc.perform(get("/api/functions/anonymous/mvc/SOME-ANONYMOUS-FUNCTION_KEY.TROLOLO?var1=val1&var2=val2")
-                .contentType(MediaType.APPLICATION_JSON)
-            )
+                .contentType(MediaType.APPLICATION_JSON))
             .andDo(print())
             .andExpect(header().string("Location", "https://google.com"))
             .andExpect(status().isFound());
