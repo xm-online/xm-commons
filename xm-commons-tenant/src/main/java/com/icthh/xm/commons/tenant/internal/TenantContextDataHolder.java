@@ -29,6 +29,14 @@ final class TenantContextDataHolder {
         ThreadLocal.withInitial(Stack::new);
 
     /**
+     * Registers ThreadLocal<TenantContextDataHolder> holderInstance in micrometer ContextRegistry.
+     * ContextRegistry is used for thread local transfer between threads in Project Reactor.
+     */
+    static {
+        ThreadLocalAccessorRegistryInterceptor.register("holderInstance", holderInstance);
+    }
+
+    /**
      * Holder for tenant instance.
      */
     private ValueHolder<Tenant> tenant = ValueHolder.empty();

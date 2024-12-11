@@ -5,11 +5,14 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.exceptions.BusinessNotFoundException;
+import jakarta.validation.Constraint;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
+import jakarta.validation.Payload;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.dao.ConcurrencyFailureException;
-import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.mock.http.MockHttpInputMessage;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,12 +25,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.HashMap;
 import java.util.Map;
-import javax.validation.Constraint;
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
-import javax.validation.Payload;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 @RestController
 public class ExceptionTranslatorTestController {

@@ -3,16 +3,21 @@ package com.icthh.xm.commons.topic.service;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.topic.domain.DynamicConsumer;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
+import com.icthh.xm.commons.topic.service.dto.RefreshDynamicConsumersEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class DynamicConsumerConfigurationService {
+public class DynamicConsumerConfigurationService implements ApplicationListener<RefreshDynamicConsumersEvent> {
+
     private final List<DynamicConsumerConfiguration> dynamicConsumerConfigurations;
     private final TopicManagerService topicManagerService;
     private final TenantListRepository tenantListRepository;
@@ -52,4 +57,9 @@ public class DynamicConsumerConfigurationService {
         topicManagerService.processTopicConfig(tenantKey, updatedDynamicConsumer.getConfig(), updatedDynamicConsumer.getMessageHandler());
     }
 
+    @Override
+    public void onApplicationEvent(RefreshDynamicConsumersEvent event) {
+        log.debug("OnApplicationEvent with event = {}", event);
+        refreshDynamicConsumers(event.getTenantKey());
+    }
 }

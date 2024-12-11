@@ -1,9 +1,8 @@
 package com.icthh.xm.commons.domainevent.service.filter;
 
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public interface DomainEventProvider {
 

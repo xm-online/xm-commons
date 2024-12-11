@@ -28,5 +28,8 @@ include ':xm-commons-metric'
 include ':xm-commons-mail'
 include ':xm-commons-logging-configurable'
 include ':xm-commons-idp'
+include 'xm-commons-search'
 
 rootProject.name = String.valueOf(getProperty("app.name"))
+
+

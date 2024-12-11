@@ -21,7 +21,7 @@ public class LogstashConfiguration {
                                                        instanceId,
                                                        logstash.getHost(),
                                                        logstash.getPort(),
-                                                       logstash.getQueueSize());
+                                                       logstash.getRingBufferSize());
         LogstashConfigurer.initLogstash(config);
     }
 

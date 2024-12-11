@@ -13,19 +13,19 @@ import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation
 import com.icthh.xm.commons.domainevent.service.EventPublisher;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Table;
+import jakarta.persistence.metamodel.Metamodel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.EmptyInterceptor;
-import org.hibernate.metamodel.spi.MetamodelImplementor;
+import org.hibernate.Interceptor;
+import org.hibernate.metamodel.MappingMetamodel;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.Type;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Table;
-import javax.persistence.metamodel.Metamodel;
 import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -46,7 +46,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 @Service
 @RequiredArgsConstructor
 @ConditionalOnProperty(value = "application.domain-event.enabled", havingValue = "true")
-public class DatabaseSourceInterceptor extends EmptyInterceptor {
+public class DatabaseSourceInterceptor implements Interceptor, Serializable {
 
     private static final Map<Class<?>, String> TABLE_NAME_CACHE = new ConcurrentHashMap<>();
 
@@ -66,29 +66,29 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
 
     @Override
     @IgnoreLogginAspect
-    public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState,
+    public boolean onFlushDirty(Object entity, Object id, Object[] currentState, Object[] previousState,
                                 String[] propertyNames, Type[] types) {
         publishEvent(entity, id, currentState, previousState, propertyNames, UPDATE);
 
-        return super.onFlushDirty(entity, id, currentState, previousState, propertyNames, types);
+        return Interceptor.super.onFlushDirty(entity, id, currentState, previousState, propertyNames, types);
     }
 
     @Override
     @IgnoreLogginAspect
-    public boolean onSave(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
+    public boolean onSave(Object entity, Object id, Object[] state, String[] propertyNames, Type[] types) {
         publishEvent(entity, id, state, null, propertyNames, CREATE);
 
-        return super.onSave(entity, id, state, propertyNames, types);
+        return Interceptor.super.onSave(entity, id, state, propertyNames, types);
     }
 
     @Override
     @IgnoreLogginAspect
-    public void onDelete(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
+    public void onDelete(Object entity, Object id, Object[] state, String[] propertyNames, Type[] types) {
         publishEvent(entity, id, null, state, propertyNames, DELETE);
-        super.onDelete(entity, id, state, propertyNames, types);
+        Interceptor.super.onDelete(entity, id, state, propertyNames, types);
     }
 
-    private void publishEvent(Object entity, Serializable id, Object[] currentState, Object[] previousState,
+    private void publishEvent(Object entity, Object id, Object[] currentState, Object[] previousState,
                               String[] propertyNames, DefaultDomainEventOperation operation) {
         DbSourceConfig sourceConfig = xmDomainEventConfiguration.getDbSourceConfig(tenantContextHolder.getTenantKey(), DB.getCode());
         if (sourceConfig != null && sourceConfig.isEnabled() && sourceConfig.getFilter() != null) {
@@ -131,10 +131,10 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
         Metamodel metamodel = entityManager.getMetamodel();
 
         String tableName = "";
-        if (metamodel instanceof MetamodelImplementor metamodelImplementor) {
-            EntityPersister entityPersister = metamodelImplementor.locateEntityPersister(entity.getClass());
+        if (metamodel instanceof MappingMetamodel metamodelImplementor) {
+            EntityPersister entityPersister = metamodelImplementor.locateEntityDescriptor(entity.getClass());
             if (entityPersister instanceof AbstractEntityPersister abstractEntityPersister) {
-                tableName = abstractEntityPersister.getTableName();
+                tableName = abstractEntityPersister.getIdentifierTableName();
             }
         }
         log.info("Table name by hibernate name strategy: {}", tableName);
@@ -142,7 +142,7 @@ public class DatabaseSourceInterceptor extends EmptyInterceptor {
     }
 
     private JpaEntityContext buildJpaEntityContext(Object entity,
-                                                   Serializable id,
+                                                   Object id,
                                                    Object[] currentState,
                                                    Object[] previousState,
                                                    String[] propertyNames,

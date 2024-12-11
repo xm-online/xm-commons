@@ -20,7 +20,7 @@ dependencies {
 
     api project(":xm-commons-logging")
     api project(":xm-commons-security")
-    compileOnly 'javax.servlet:javax.servlet-api'
+    api "jakarta.servlet:jakarta.servlet-api"
 
     api 'org.slf4j:slf4j-api'
     api "commons-collections:commons-collections:${versions.commonsCollections}"
@@ -34,7 +34,7 @@ dependencies {
 
     testImplementation 'junit:junit'
     testImplementation 'org.mockito:mockito-core'
-    testImplementation 'javax.servlet:javax.servlet-api'
+    testImplementation "jakarta.servlet:jakarta.servlet-api"
 }
 
 compileJava.dependsOn(processResources)

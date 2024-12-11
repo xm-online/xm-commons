@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.nio.charset.Charset;
 import java.util.List;
@@ -34,15 +35,19 @@ public class TopicConfigurationServiceUnitTest {
     private static final String CONFIG_1 = "topic-consumers-1.yml";
 
     private TopicConfigurationService topicConfigurationService;
+    private TopicDynamicConsumerConfiguration topicDynamicConsumerConfiguration;
 
     @Mock
     private DynamicConsumerConfigurationService dynamicConsumerConfigurationService;
     @Mock
     private MessageHandler messageHandler;
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @Before
     public void setUp() {
-        topicConfigurationService = spy(new TopicConfigurationService(APP_NAME, dynamicConsumerConfigurationService, messageHandler));
+        topicDynamicConsumerConfiguration = spy(new TopicDynamicConsumerConfiguration(applicationEventPublisher, messageHandler));
+        topicConfigurationService = spy(new TopicConfigurationService(APP_NAME, topicDynamicConsumerConfiguration));
     }
 
     @Test
@@ -56,7 +61,7 @@ public class TopicConfigurationServiceUnitTest {
         List<DynamicConsumer> dynamicConsumers = topicConsumers.get(TENANT_KEY);
         dynamicConsumers.forEach(dynamicConsumer -> assertTrue(topicConsumerSpec.getTopics().stream().anyMatch(topicConfig -> topicConfig.getKey().equals(dynamicConsumer.getConfig().getKey()))));
 
-        verify(dynamicConsumerConfigurationService).refreshDynamicConsumers(eq(TENANT_KEY));
+        verify(topicDynamicConsumerConfiguration).sendRefreshDynamicConsumersEvent(eq(TENANT_KEY));
         verifyNoMoreInteractions(dynamicConsumerConfigurationService);
     }
 
@@ -68,7 +73,7 @@ public class TopicConfigurationServiceUnitTest {
         Map<String, List<DynamicConsumer>> topicConsumers = topicConfigurationService.getTenantTopicConsumers();
         assertTrue(topicConsumers.isEmpty());
 
-        verify(dynamicConsumerConfigurationService, times(2)).refreshDynamicConsumers(eq(TENANT_KEY));
+        verify(topicDynamicConsumerConfiguration, times(2)).sendRefreshDynamicConsumersEvent(eq(TENANT_KEY));
         verifyNoMoreInteractions(dynamicConsumerConfigurationService);
     }
 
@@ -81,7 +86,7 @@ public class TopicConfigurationServiceUnitTest {
 
         assertEquals(sizeBeforeRefresh, topicConsumers.size());
 
-        verify(dynamicConsumerConfigurationService).refreshDynamicConsumers(eq(TENANT_KEY));
+        verify(topicDynamicConsumerConfiguration).sendRefreshDynamicConsumersEvent(eq(TENANT_KEY));
         verifyNoMoreInteractions(dynamicConsumerConfigurationService);
     }
 

@@ -24,6 +24,7 @@ public class XmConfigProperties {
     private String xmConfigUrl = "http://config";
     private String tenantConfigPattern;
     private String kafkaConfigTopic = "config_topic";
+    private String kafkaConfigQueue = "config_queue";
     // XM_MS_CONFIG | FILE
     private String configMode = "XM_MS_CONFIG";
     private String configDirPath;

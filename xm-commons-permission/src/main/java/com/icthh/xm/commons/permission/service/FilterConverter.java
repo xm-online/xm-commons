@@ -46,7 +46,7 @@ public class FilterConverter {
         Stream.Builder<Expression> expressions = Stream.builder();
 
         Filter<?> filter = entry.getValue();
-        String fieldName = preProcessForeignKeyField(entry.getKey());
+        String fieldName = preProcessForeignKeyFieldToJpql(entry.getKey());
 
         if (filter.getEquals() != null) {
             expressions.add(new Expression(fieldName, Operation.EQUALS, filter.getEquals()));
@@ -116,6 +116,21 @@ public class FilterConverter {
         return fieldName;
     }
 
+    /**
+     * Pre-processes foreign key field name from camelCase to jpql recognizable format.
+     *
+     * The reason to preprocess is that jpql accesses joined table`s fields with dot (e.g. entity.id, entity.name)
+     *
+     * @param fieldName field name
+     * @return preprocessed field name if field ends with 'Id'
+     */
+    private static String preProcessForeignKeyFieldToJpql(String fieldName) {
+        if (fieldName.endsWith("Id")) {
+            return fieldName.substring(0, fieldName.length() - 2) + ".id";
+        }
+        return fieldName;
+    }
+
     @Getter
     @ToString
     public static class QueryPart {
@@ -141,7 +156,7 @@ public class FilterConverter {
         private static void accumulateExpression(final QueryPart qp,
                                                  final Expression expression) {
 
-            String paramAlias = qp.getNextAliasName(expression.getFieldName());
+            String paramAlias = cleanAliasName(qp.getNextAliasName(expression.getFieldName())); // fixme: to check
 
             if (qp.isEmpty()) {
                 qp.getQuery().append(expression.toJpql(paramAlias));
@@ -152,6 +167,10 @@ public class FilterConverter {
             if (expression.isOperationParamRequired()) {
                 qp.getParams().put(paramAlias, expression.getValue());
             }
+        }
+
+        private static String cleanAliasName(String alias) {
+            return alias.replaceAll("\\.", "_");
         }
 
         private static QueryPart combineQueryParts(final QueryPart qp1,

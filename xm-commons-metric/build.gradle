@@ -8,9 +8,7 @@ dependencyManagement {
 
 dependencies {
     api "org.springframework:spring-context"
-    api "io.dropwizard.metrics:metrics-core"
-    api "io.dropwizard.metrics:metrics-jvm"
-    api "io.dropwizard.metrics:metrics-jmx"
+    api "io.dropwizard.metrics:metrics-jvm:${versions.dropwizard}"
     api "com.ryantenney.metrics:metrics-spring:${versions.springMetrics}"
     api 'org.springframework.kafka:spring-kafka'
     implementation "org.springframework.boot:spring-boot-starter-actuator"
@@ -18,8 +16,10 @@ dependencies {
     compileOnly "tech.jhipster:jhipster-framework:${versions.jhipster}"
     api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
 
-    api "io.prometheus:simpleclient_dropwizard:0.8.1"
+    api "io.prometheus:simpleclient_dropwizard:${versions.dropwizardSimpleclient}"
     api "io.micrometer:micrometer-registry-prometheus"
+    implementation "io.micrometer:micrometer-registry-prometheus-simpleclient:${versions.micrometerSimpleclient}"
+    api "io.micrometer:micrometer-registry-jmx"
 
     testImplementation 'junit:junit'
     testImplementation 'org.mockito:mockito-core'

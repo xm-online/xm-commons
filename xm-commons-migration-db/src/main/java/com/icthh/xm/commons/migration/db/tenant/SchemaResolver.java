@@ -9,6 +9,7 @@ import com.icthh.xm.commons.migration.db.util.DatabaseUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
@@ -23,14 +24,21 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SchemaResolver {
 
+    private static final Set<String> SCHEMA_CREATION_EXCLUDE_SET = Set.of("ORACLE");
+
     private final Environment env;
     private final TenantListRepository tenantListRepository;
 
     public void createSchemas(DataSource dataSource) {
         Boolean schemaCreationEnabled = env.getProperty(DB_SCHEMA_CREATION_ENABLED, Boolean.class, Boolean.TRUE);
+        String jpaVendor = env.getProperty(JPA_VENDOR);
 
         if (!schemaCreationEnabled) {
-            log.info("Schema creation for {} jpa provider is disabled", env.getProperty(JPA_VENDOR));
+            log.info("Schema creation for {} jpa provider is disabled", jpaVendor);
+            return;
+        }
+        if (SCHEMA_CREATION_EXCLUDE_SET.contains(jpaVendor)) {
+            log.info("Schema creation for {} jpa provider is not supported", jpaVendor);
             return;
         }
         List<String> schemas = getSchemas();

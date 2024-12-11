@@ -3,7 +3,7 @@ package com.icthh.xm.commons.topic.config;
 import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.delete;
 import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.getUpdatedOrGenerateRetryDetails;
 
-import com.icthh.xm.commons.logging.trace.SleuthWrapper;
+import com.icthh.xm.commons.logging.trace.TraceWrapper;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
@@ -11,7 +11,6 @@ import com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.MessageRetryDeta
 import java.math.BigInteger;
 import java.util.StringJoiner;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -19,17 +18,24 @@ import org.springframework.kafka.listener.AcknowledgingMessageListener;
 import org.springframework.kafka.support.Acknowledgment;
 
 @Slf4j
-@RequiredArgsConstructor
 public class MessageListener implements AcknowledgingMessageListener<String, String> {
 
     private final TopicConfig topicConfig;
     private final MessageHandler messageHandler;
     private final String tenantKey;
-    private final SleuthWrapper sleuthWrapper;
+    private final TraceWrapper traceWrapper;
+
+    public MessageListener(TopicConfig topicConfig, MessageHandler messageHandler, String tenantKey,
+                           TraceWrapper traceWrapper) {
+        this.topicConfig = topicConfig;
+        this.messageHandler = messageHandler;
+        this.tenantKey = tenantKey.toUpperCase();
+        this.traceWrapper = traceWrapper;
+    }
 
     @Override
     public void onMessage(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) {
-        sleuthWrapper.runWithSleuth(record, () -> processMessage(record, acknowledgment));
+        traceWrapper.runWithSpan(record, () -> processMessage(record, acknowledgment));
     }
 
     private void processMessage(ConsumerRecord<String, String> record,

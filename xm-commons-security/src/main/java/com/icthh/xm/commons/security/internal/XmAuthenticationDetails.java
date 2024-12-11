@@ -1,14 +1,15 @@
 package com.icthh.xm.commons.security.internal;
 
 import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static java.util.Collections.emptyList;
@@ -33,7 +34,7 @@ public class XmAuthenticationDetails {
     private final String tokenType;
     private final Map<String, Object> decodedDetails;
 
-    public XmAuthenticationDetails(Claims claims, HttpServletRequest request, String token) {
+    public XmAuthenticationDetails(Claims claims, String remoteAddress, String sessionId, String token) {
         this.createTokenTime =  claims.get("createTokenTime", Long.class);
         this.userName =  claims.get("user_name", String.class);
         this.roleKey =  claims.get("role_key", String.class);
@@ -48,11 +49,28 @@ public class XmAuthenticationDetails {
         this.tokenValue = token;
         this.tokenType = "Bearer";
 
-        this.remoteAddress = request.getRemoteAddr();
-        HttpSession session = request.getSession(false);
-        this.sessionId = (session != null) ? session.getId() : null;
+        this.remoteAddress = remoteAddress;
+        this.sessionId = sessionId;
 
         this.decodedDetails = unmodifiableMap(claims);
+    }
+
+    public XmAuthenticationDetails(Claims claims, HttpServletRequest request, String token) {
+        this(
+            claims,
+            request.getRemoteAddr(),
+            (request.getSession(false) != null) ? request.getSession(false).getId() : null,
+            token
+        );
+    }
+
+    public XmAuthenticationDetails(Claims claims, ServerHttpRequest request, String token) {
+        this(
+            claims,
+            Objects.requireNonNull(request.getRemoteAddress()).getAddress().getHostAddress(),
+            (request.getSslInfo() != null) ? request.getSslInfo().getSessionId() : null,
+            token
+        );
     }
 
     private Set<String> toSet(List<String> list) {

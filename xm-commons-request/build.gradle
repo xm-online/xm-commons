@@ -9,5 +9,5 @@ dependencyManagement {
 dependencies {
     api 'org.slf4j:slf4j-api'
     api 'org.springframework:spring-webmvc'
-    compileOnly 'javax.servlet:javax.servlet-api'
+    api "jakarta.servlet:jakarta.servlet-api"
 }
