@@ -19,9 +19,8 @@ import java.util.function.Supplier;
 import static com.icthh.xm.commons.utils.Constants.FUNCTION_CALL_PRIVILEGE;
 import static com.icthh.xm.commons.utils.HttpRequestUtils.convertToCanonicalHttpMethod;
 
-@Service
 @RequiredArgsConstructor
-@ConditionalOnMissingBean(name = "functionServiceFacade")
+@Service("functionServiceFacade")
 public class FunctionServiceFacadeImpl<FS extends IFunctionSpec> implements FunctionServiceFacade {
 
     private final FunctionService<FS> functionService;
