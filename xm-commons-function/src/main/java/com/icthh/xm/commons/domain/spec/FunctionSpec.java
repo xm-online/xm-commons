@@ -3,7 +3,7 @@ package com.icthh.xm.commons.domain.spec;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.icthh.xm.commons.domain.SpecWithInputDataAndForm;
+import com.icthh.xm.commons.domain.SpecificationItem;
 import com.icthh.xm.commons.domain.enums.FunctionTxTypes;
 import lombok.Data;
 
@@ -15,9 +15,9 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({"key", "path", "inputSpec", "inputForm", "wrapResult", "anonymous", "txType",
-    "tags", "httpMethods"})
+    "tags", "httpMethods", "validateFunctionInput"})
 @Data
-public class FunctionSpec implements IFunctionSpec, SpecWithInputDataAndForm {
+public class FunctionSpec implements IFunctionSpec, SpecificationItem {
 
     /**
      * Unique in tenant function key.

@@ -41,7 +41,7 @@ public class FunctionApiSpecConfiguration extends DataSpecificationService<Funct
 
     public Optional<FunctionSpec> getSpecByKeyAndTenant(String functionKey, String tenantKey) {
         return getTenantSpecifications(tenantKey).values().stream()
-            .map(FunctionApiSpecs::getFunctions)
+            .map(FunctionApiSpecs::getItems)
             .filter(Objects::nonNull)
             .flatMap(Collection::stream)
             .filter(f -> functionKey.equals(f.getKey()))
@@ -50,7 +50,7 @@ public class FunctionApiSpecConfiguration extends DataSpecificationService<Funct
 
     public Collection<FunctionSpec> getOrderedSpecByTenant(String tenantKey) {
         return getTenantSpecifications(tenantKey).values().stream()
-            .map(FunctionApiSpecs::getFunctions)
+            .map(FunctionApiSpecs::getItems)
             .filter(Objects::nonNull)
             .flatMap(Collection::stream)
             .sorted(FunctionSpecPathComparator.of())

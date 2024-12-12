@@ -8,7 +8,6 @@ import com.icthh.xm.commons.service.FunctionService;
 import com.icthh.xm.commons.service.FunctionTxControl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.access.AccessDeniedException;
@@ -45,12 +44,14 @@ public class FunctionServiceFacadeImplUnitTest {
     @Mock
     private FunctionResultProcessor<FunctionSpec> functionResultProcessor;
 
-    @InjectMocks
-    private FunctionServiceFacadeImpl<FunctionSpec> functionServiceFacade;
+    private AbstractFunctionServiceFacade<FunctionSpec> functionServiceFacade;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        functionServiceFacade = new AbstractFunctionServiceFacade<>(
+            functionService, functionTxControl, functionExecutorService, functionResultProcessor
+        ) {};
     }
 
     @Test

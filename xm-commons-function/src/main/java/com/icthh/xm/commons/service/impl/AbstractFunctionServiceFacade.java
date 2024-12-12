@@ -9,9 +9,7 @@ import com.icthh.xm.commons.service.FunctionService;
 import com.icthh.xm.commons.service.FunctionServiceFacade;
 import com.icthh.xm.commons.service.FunctionTxControl;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.function.Supplier;
@@ -20,8 +18,7 @@ import static com.icthh.xm.commons.utils.Constants.FUNCTION_CALL_PRIVILEGE;
 import static com.icthh.xm.commons.utils.HttpRequestUtils.convertToCanonicalHttpMethod;
 
 @RequiredArgsConstructor
-@Service("functionServiceFacade")
-public class FunctionServiceFacadeImpl<FS extends IFunctionSpec> implements FunctionServiceFacade {
+public abstract class AbstractFunctionServiceFacade<FS extends IFunctionSpec> implements FunctionServiceFacade {
 
     private final FunctionService<FS> functionService;
     private final FunctionTxControl functionTxControl;
