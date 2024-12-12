@@ -4,10 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.config.client.service.TenantConfigService;
 import com.icthh.xm.commons.permission.service.AbstractDynamicPermissionCheckService;
-import com.icthh.xm.commons.permission.service.DynamicPermissionCheckService;
 import com.icthh.xm.commons.permission.service.PermissionCheckService;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -16,8 +14,7 @@ import java.util.Optional;
 import static com.icthh.xm.commons.utils.Constants.FUNCTIONS;
 import static com.icthh.xm.commons.utils.Constants.TENANT_CONFIG_DYNAMIC_CHECK_ENABLED;
 
-@Component
-@ConditionalOnMissingBean(DynamicPermissionCheckService.class)
+@Component("dynamicPermissionCheckService")
 public class DynamicPermissionCheckServiceImpl extends AbstractDynamicPermissionCheckService {
 
     private final TenantConfigService tenantConfigService;

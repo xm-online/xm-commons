@@ -3,10 +3,9 @@ package com.icthh.xm.commons.service.impl;
 import com.icthh.xm.commons.config.FunctionApiSpecConfiguration;
 import com.icthh.xm.commons.domain.spec.FunctionSpec;
 import com.icthh.xm.commons.permission.service.DynamicPermissionCheckService;
-import com.icthh.xm.commons.service.FunctionService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.utils.CollectionsUtils;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.AntPathMatcher;
 
@@ -18,15 +17,14 @@ import static com.icthh.xm.commons.utils.FunctionSpecUtils.filterByHttpMethod;
 import static com.icthh.xm.commons.utils.JsonValidationUtils.assertJson;
 import static java.lang.Boolean.TRUE;
 
-@Service
-@ConditionalOnMissingBean(FunctionService.class)
+@Service("functionService")
 public class FunctionServiceImpl extends AbstractFunctionService<FunctionSpec> {
 
     private final TenantContextHolder tenantContextHolder;
     private final FunctionApiSpecConfiguration functionApiSpecConfiguration;
     private final AntPathMatcher matcher;
 
-    public FunctionServiceImpl(DynamicPermissionCheckService dynamicPermissionCheckService,
+    public FunctionServiceImpl(@Qualifier("dynamicPermissionCheckService") DynamicPermissionCheckService dynamicPermissionCheckService,
                                TenantContextHolder tenantContextHolder,
                                FunctionApiSpecConfiguration functionApiSpecConfiguration) {
         super(dynamicPermissionCheckService);

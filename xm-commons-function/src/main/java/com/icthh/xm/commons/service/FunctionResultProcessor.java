@@ -4,7 +4,6 @@ import com.icthh.xm.commons.domain.FunctionResult;
 import com.icthh.xm.commons.domain.spec.IFunctionSpec;
 
 import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
 
 /**
  * Interface to process executed function result

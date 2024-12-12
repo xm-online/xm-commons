@@ -24,7 +24,7 @@ public class FunctionApiSpecsProcessor extends DefaultSpecProcessingService<Func
 
     @Override
     public FunctionApiSpecs processSpecification(String tenant, String dataSpecKey, FunctionApiSpecs specification) {
-        specification.getSpecifications().forEach(f -> {
+        specification.getItems().forEach(f -> {
             processValidateInputParameter(specification.isValidateFunctionInput(), f);
             definitionSpecProcessor.processDataSpec(tenant, dataSpecKey, f::setInputSpec, f::getInputSpec);
             formSpecProcessor.processDataSpec(tenant, dataSpecKey, f::setInputForm, f::getInputForm);
