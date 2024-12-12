@@ -67,7 +67,7 @@ public class FunctionSpec implements IFunctionSpec, SpecificationItem {
      * Function api tags
      */
     @JsonProperty("tags")
-    private List<String> tags = new ArrayList<>();
+    private List<TagSpec> tags = new ArrayList<>();
 
     /**
      * Function api http methods
