@@ -35,14 +35,14 @@ public enum SpecPathPatternEnum {
     }
 
     public String getTenantName(String path, String folder) {
-        return matcher.extractUriTemplateVariables(this.pathPattern, prepare(path, folder)).get(TENANT_NAME);
+        return matcher.extractUriTemplateVariables(prepare(this.pathPattern, folder), path).get(TENANT_NAME);
     }
 
     public boolean match(String path, String folder) {
-        return matcher.match(this.pathPattern, prepare(path, folder));
+        return matcher.match(prepare(this.pathPattern, folder), path);
     }
 
-    private static String prepare(String path, String folder) {
-        return path.replace(FOLDER_REPLACE_KEY, folder);
+    private static String prepare(String pathPattern, String folder) {
+        return pathPattern.replace(FOLDER_REPLACE_KEY, folder);
     }
 }

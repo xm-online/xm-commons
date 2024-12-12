@@ -1,11 +1,11 @@
 package com.icthh.xm.commons.service;
 
-import com.icthh.xm.commons.domain.SpecWithInputDataAndForm;
-import com.icthh.xm.commons.domain.SpecWithDefinitionAndForm;
+import com.icthh.xm.commons.domain.BaseSpecification;
+import com.icthh.xm.commons.domain.SpecificationItem;
 
 import java.util.Collection;
 
-public interface SpecificationProcessingService<S extends SpecWithDefinitionAndForm> {
+public interface SpecificationProcessingService<S extends BaseSpecification> {
 
     /**
      * Method to process specification data
@@ -15,7 +15,7 @@ public interface SpecificationProcessingService<S extends SpecWithDefinitionAndF
      * @return                  processed specification
      */
     default S processSpecification(String tenant, String dataSpecKey, S specification) {
-        processDataSpecification(tenant, dataSpecKey, specification.getSpecifications());
+        processDataSpecification(tenant, dataSpecKey, specification.getItems());
         return specification;
     }
 
@@ -26,7 +26,7 @@ public interface SpecificationProcessingService<S extends SpecWithDefinitionAndF
      * @param specifications    specifications with data input spec
      * @return                  processed specifications
      */
-    <I extends SpecWithInputDataAndForm> Collection<I> processDataSpecification(String tenant, String dataSpecKey, Collection<I> specifications);
+    <I extends SpecificationItem> Collection<I> processDataSpecification(String tenant, String dataSpecKey, Collection<I> specifications);
 
     /**
      * Update all related specifications by tenant

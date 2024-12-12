@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
-import com.icthh.xm.commons.domain.SpecWithDefinitionAndForm;
+import com.icthh.xm.commons.domain.BaseSpecification;
 import com.icthh.xm.commons.enums.SpecPathPatternEnum;
 import com.icthh.xm.commons.listener.JsonListenerService;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
@@ -26,12 +26,12 @@ import static com.icthh.xm.commons.enums.SpecPathPatternEnum.JSON_CONFIG_PATH_PA
 /**
  * This an abstraction for specification files processing located directly in .../{spec}.yml, .../{spec}/*.yml
  * and .../{spec}/**\/*.json
- * Processing specification should extend {@link SpecWithDefinitionAndForm} interface.
+ * Processing specification should extend {@link BaseSpecification} interface.
  * @param <S> specification to process
  */
 @Slf4j
 @IgnoreLogginAspect
-public abstract class DataSpecificationService<S extends SpecWithDefinitionAndForm> implements RefreshableConfiguration {
+public abstract class DataSpecificationService<S extends BaseSpecification> implements RefreshableConfiguration {
 
     private final Class<S> specType;
     private final ObjectMapper objectMapper;

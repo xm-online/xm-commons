@@ -9,13 +9,13 @@ import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
-public class TestSpecification implements SpecWithDefinitionAndForm {
+public class TestSpecification implements BaseSpecification {
 
     /**
      * Collection of service spi function specifications
      */
     @JsonProperty("functions")
-    private Collection<TestInputDataSpec> specifications;
+    private Collection<TestInputDataSpec> items;
 
     /**
      * Collection of data specification definitions

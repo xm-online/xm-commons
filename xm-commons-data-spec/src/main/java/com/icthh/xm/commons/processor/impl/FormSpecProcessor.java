@@ -12,7 +12,6 @@ import com.icthh.xm.commons.processor.SpecProcessor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -35,8 +34,7 @@ import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @Slf4j
-@Service
-@ConditionalOnMissingBean(name = "formSpecProcessor")
+@Service("formSpecProcessor")
 public class FormSpecProcessor extends SpecProcessor<FormSpec> {
 
     // tenantName -> specKey -> definitionKey -> DefinitionsSpec

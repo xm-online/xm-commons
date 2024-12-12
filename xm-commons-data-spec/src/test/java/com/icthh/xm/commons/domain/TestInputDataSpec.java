@@ -9,7 +9,7 @@ import lombok.Data;
 @JsonPropertyOrder({"key", "path", "inputSpec", "inputForm", "wrapResult", "anonymous", "txType",
     "tags", "httpMethods"})
 @Data
-public class TestInputDataSpec implements SpecWithInputDataAndForm {
+public class TestInputDataSpec implements SpecificationItem {
 
     @JsonProperty("key")
     private String key;

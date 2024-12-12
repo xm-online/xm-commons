@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.Mutable;
 import org.apache.commons.lang3.mutable.MutableObject;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -22,8 +21,7 @@ import static com.icthh.xm.commons.utils.DataSpecConstants.XM_DEFINITION;
 import static java.util.Optional.ofNullable;
 
 @Slf4j
-@Service
-@ConditionalOnMissingBean(name = "definitionSpecProcessor")
+@Service("definitionSpecProcessor")
 public class DefinitionSpecProcessor extends DataSpecProcessor<DefinitionSpec> {
 
     // tenantName -> specKey -> definitionKey -> DefinitionsSpec

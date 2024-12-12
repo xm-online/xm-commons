@@ -1,13 +1,13 @@
 package com.icthh.xm.commons.service;
 
-import com.icthh.xm.commons.domain.SpecWithInputDataAndForm;
-import com.icthh.xm.commons.domain.SpecWithDefinitionAndForm;
+import com.icthh.xm.commons.domain.BaseSpecification;
+import com.icthh.xm.commons.domain.SpecificationItem;
 import com.icthh.xm.commons.processor.impl.DefinitionSpecProcessor;
 import com.icthh.xm.commons.processor.impl.FormSpecProcessor;
 import org.springframework.stereotype.Service;
 
 @Service
-public class DefaultSpecProcessingService<S extends SpecWithDefinitionAndForm> extends AbstractSpecProcessingService<S> {
+public class DefaultSpecProcessingService<S extends BaseSpecification> extends AbstractSpecProcessingService<S> {
 
     private final DefinitionSpecProcessor definitionSpecProcessor;
     private final FormSpecProcessor formSpecProcessor;
@@ -20,7 +20,7 @@ public class DefaultSpecProcessingService<S extends SpecWithDefinitionAndForm> e
     }
 
     @Override
-    public <I extends SpecWithInputDataAndForm> void processDataSpecification(String tenant, String dataSpecKey, I spec) {
+    public <I extends SpecificationItem> void processDataSpecification(String tenant, String dataSpecKey, I spec) {
         definitionSpecProcessor.processDataSpec(tenant, dataSpecKey, spec::setInputDataSpec, spec::getInputDataSpec);
         formSpecProcessor.processDataSpec(tenant, dataSpecKey, spec::setInputFormSpec, spec::getInputFormSpec);
     }
