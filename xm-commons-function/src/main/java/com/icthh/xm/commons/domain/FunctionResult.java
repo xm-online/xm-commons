@@ -15,7 +15,9 @@ public interface FunctionResult {
     /**
      * Get function execution related data
      */
-    Object getData();
+    default Object getData() {
+        return functionResult();
+    }
 
     /**
      * Get function execution time

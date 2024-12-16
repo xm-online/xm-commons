@@ -8,6 +8,9 @@ import com.icthh.xm.commons.service.DefaultSpecProcessingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Optional;
+
 @Slf4j
 @Service
 public class FunctionApiSpecsProcessor extends DefaultSpecProcessingService<FunctionApiSpecs> {
@@ -23,13 +26,15 @@ public class FunctionApiSpecsProcessor extends DefaultSpecProcessingService<Func
     }
 
     @Override
-    public FunctionApiSpecs processSpecification(String tenant, String dataSpecKey, FunctionApiSpecs specification) {
-        specification.getItems().forEach(f -> {
-            processValidateInputParameter(specification.isValidateFunctionInput(), f);
-            definitionSpecProcessor.processDataSpec(tenant, dataSpecKey, f::setInputSpec, f::getInputSpec);
-            formSpecProcessor.processDataSpec(tenant, dataSpecKey, f::setInputForm, f::getInputForm);
-        });
-        definitionSpecProcessor.processDefinitionsItSelf(tenant, dataSpecKey);
+    public FunctionApiSpecs processSpecification(String tenant, String baseSpecKey, FunctionApiSpecs specification) {
+        Optional.ofNullable(specification.getItems())
+            .orElseGet(List::of)
+            .forEach(f -> {
+                processValidateInputParameter(specification.isValidateFunctionInput(), f);
+                definitionSpecProcessor.processDataSpec(tenant, baseSpecKey, f::setInputDataSpec, f::getInputDataSpec);
+                formSpecProcessor.processDataSpec(tenant, baseSpecKey, f::setInputFormSpec, f::getInputFormSpec);
+            });
+        definitionSpecProcessor.processDefinitionsItSelf(tenant, baseSpecKey);
         return specification;
     }
 
