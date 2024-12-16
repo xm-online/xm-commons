@@ -20,14 +20,14 @@ public class DefaultSpecProcessingService<S extends BaseSpecification> extends A
     }
 
     @Override
-    public <I extends SpecificationItem> void processDataSpecification(String tenant, String dataSpecKey, I spec) {
-        definitionSpecProcessor.processDataSpec(tenant, dataSpecKey, spec::setInputDataSpec, spec::getInputDataSpec);
-        formSpecProcessor.processDataSpec(tenant, dataSpecKey, spec::setInputFormSpec, spec::getInputFormSpec);
+    public <I extends SpecificationItem> void processDataSpecification(String tenant, String baseSpecKey, I spec) {
+        definitionSpecProcessor.processDataSpec(tenant, baseSpecKey, spec::setInputDataSpec, spec::getInputDataSpec);
+        formSpecProcessor.processDataSpec(tenant, baseSpecKey, spec::setInputFormSpec, spec::getInputFormSpec);
     }
 
     @Override
-    public void updateByTenantState(String tenant, String dataSpecKey, S spec) {
-        definitionSpecProcessor.updateStateByTenant(tenant, dataSpecKey, spec.getDefinitions());
-        formSpecProcessor.updateStateByTenant(tenant, dataSpecKey, spec.getForms());
+    public void updateByTenantState(String tenant, String baseSpecKey, S spec) {
+        definitionSpecProcessor.updateStateByTenant(tenant, baseSpecKey, spec.getDefinitions());
+        formSpecProcessor.updateStateByTenant(tenant, baseSpecKey, spec.getForms());
     }
 }

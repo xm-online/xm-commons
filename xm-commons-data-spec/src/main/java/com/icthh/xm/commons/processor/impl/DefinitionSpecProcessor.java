@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.icthh.xm.commons.utils.DataSpecConstants.XM_DEFINITION;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toMap;
 
 @Slf4j
 @Service("definitionSpecProcessor")
@@ -48,23 +49,29 @@ public class DefinitionSpecProcessor extends DataSpecProcessor<DefinitionSpec> {
         return "#/" + getSectionName() + "/{" + KEY + "}/**";
     }
 
+    /**
+     *
+     * @param tenant            specification tenant
+     * @param baseSpecKey       base specification key
+     * @param definitionSpecs   data specifications to be updated in storage
+     */
     @Override
-    public void updateStateByTenant(String tenant, String dataSpecKey, Collection<DefinitionSpec> definitionSpecs) {
+    public void updateStateByTenant(String tenant, String baseSpecKey, Collection<DefinitionSpec> definitionSpecs) {
         Map<String, DefinitionSpec> addedDefinitions = toKeyMapOverrideDuplicates(definitionSpecs);
         if (!addedDefinitions.isEmpty()) {
             log.info("added {} definition specs to tenant: {}", addedDefinitions.size(), tenant);
             definitionsByTenant
                 .computeIfAbsent(tenant, s -> new HashMap<>())
-                .computeIfAbsent(dataSpecKey, s -> new HashMap<>())
+                .computeIfAbsent(baseSpecKey, s -> new HashMap<>())
                 .putAll(addedDefinitions);
         }
     }
 
     @Override
-    public void processDataSpecReferences(String tenant, String dataSpecKey, String spec, Map<String, Map<String, Object>> tenantDataSpecs) {
+    public void processDataSpecReferences(String tenant, String baseSpecKey, String spec, Map<String, Map<String, Object>> tenantDataSpecs) {
         findDataSpecReferencesByPattern(spec, getReferencePattern()).forEach(ref ->
             processDefinition(
-                tenant, dataSpecKey, tenantDataSpecs, ref,
+                tenant, baseSpecKey, tenantDataSpecs, ref,
                 definitionsByTenant,
                 definitionSpec -> getDefinitionSpecificationByFile(tenant, definitionSpec)
             )
@@ -76,8 +83,8 @@ public class DefinitionSpecProcessor extends DataSpecProcessor<DefinitionSpec> {
      * @param tenant    tenant key name
      * @return          processed definitions copy
      */
-    public Collection<DefinitionSpec> getProcessedSpecsCopy(String tenant, String dataSpecKey) {
-        return List.copyOf(processedDefinitionsByTenant.getOrDefault(tenant, Map.of()).getOrDefault(dataSpecKey, Map.of()).values());
+    public Collection<DefinitionSpec> getProcessedSpecsCopy(String tenant, String baseSpecKey) {
+        return List.copyOf(processedDefinitionsByTenant.getOrDefault(tenant, Map.of()).getOrDefault(baseSpecKey, Map.of()).values());
     }
 
     public String getDefinitionSpecificationByFile(String tenant, DefinitionSpec definitionSpec) {
@@ -89,22 +96,30 @@ public class DefinitionSpecProcessor extends DataSpecProcessor<DefinitionSpec> {
      * This method is used for processing inner definitions
      * @param tenant    tenant key name
      */
-    public void processDefinitionsItSelf(String tenant, String dataSpecKey) {
-        Map<String, DefinitionSpec> processed = new LinkedHashMap<>();
+    public void processDefinitionsItSelf(String tenant, String baseSpecKey) {
+        var processed = definitionsByTenant
+            .getOrDefault(tenant, Map.of())
+            .getOrDefault(baseSpecKey, Map.of())
+            .entrySet()
+            .stream()
+            .map(e -> Map.entry(e.getKey(), getProcessedInputDataSpec(tenant, baseSpecKey, e.getValue())))
+            .filter(e -> e.getValue().isPresent())
+            .collect(toMap(Map.Entry::getKey, entry -> entry.getValue().get(), (e1, e2) -> e1, LinkedHashMap::new));
 
-        definitionsByTenant.getOrDefault(tenant, Map.of()).getOrDefault(dataSpecKey, Map.of())
-            .forEach((key, value) ->
-                Optional.ofNullable(getDefinitionSpecificationByFile(tenant, value))
-                    .filter(StringUtils::isNotBlank)
-                    .map(file -> processInnerDataSpec(tenant, dataSpecKey, value.getKey(), file))
-                    .ifPresent(spec -> processed.put(key, spec))
-            );
-        processedDefinitionsByTenant.put(tenant, Map.of(dataSpecKey, Map.copyOf(processed)));
+        var byTenant = processedDefinitionsByTenant.computeIfAbsent(tenant, s -> new HashMap<>());
+        byTenant.put(baseSpecKey, Map.copyOf(processed));
+        processedDefinitionsByTenant.put(tenant, byTenant);
     }
 
-    private DefinitionSpec processInnerDataSpec(String tenant, String dataSpecKey, String specKey, String definitionSpecFile) {
+    private Optional<DefinitionSpec> getProcessedInputDataSpec(String tenant, String baseSpecKey, DefinitionSpec specToProcess) {
+        return Optional.ofNullable(getDefinitionSpecificationByFile(tenant, specToProcess))
+            .filter(StringUtils::isNotBlank)
+            .map(file -> processInnerDataSpec(tenant, baseSpecKey, specToProcess.getKey(), file));
+    }
+
+    private DefinitionSpec processInnerDataSpec(String tenant, String baseSpecKey, String specKey, String definitionSpecFile) {
         Mutable<String> definition = new MutableObject<>(definitionSpecFile);
-        processDataSpec(tenant, dataSpecKey, definition::setValue, definition::getValue);
+        processDataSpec(tenant, baseSpecKey, definition::setValue, definition::getValue);
         DefinitionSpec spec = new DefinitionSpec();
         spec.setKey(specKey);
         spec.setValue(definition.getValue());

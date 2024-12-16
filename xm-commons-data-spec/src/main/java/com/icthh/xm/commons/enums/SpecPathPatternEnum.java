@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import static com.icthh.xm.commons.utils.DataSpecConstants.TENANT_NAME;
 
+@Getter
 @AllArgsConstructor
 public enum SpecPathPatternEnum {
 
@@ -16,7 +17,6 @@ public enum SpecPathPatternEnum {
     SPEC_FOLDER_PATH_PATTERN("/config/tenants/{tenantName}/{folder}/*.yml"),
     JSON_CONFIG_PATH_PATTERN("/config/tenants/{tenantName}/{folder}/**/*.json");
 
-    @Getter
     private final String pathPattern;
     private static final String FOLDER_REPLACE_KEY = "{folder}";
     private static final AntPathMatcher matcher = new AntPathMatcher();
@@ -24,7 +24,7 @@ public enum SpecPathPatternEnum {
     public static String findTenantName(String path, String folder) {
         return getByPath(path, folder)
             .map(SpecPathPatternEnum::getPathPattern)
-            .map(pattern -> matcher.extractUriTemplateVariables(pattern, path).get(TENANT_NAME))
+            .map(pattern -> getTenantName(pattern, path, folder))
             .orElseThrow(() -> new IllegalArgumentException("Could not execute tenantName from path: " + path));
     }
 
@@ -35,7 +35,7 @@ public enum SpecPathPatternEnum {
     }
 
     public String getTenantName(String path, String folder) {
-        return matcher.extractUriTemplateVariables(prepare(this.pathPattern, folder), path).get(TENANT_NAME);
+        return getTenantName(this.pathPattern, path, folder);
     }
 
     public boolean match(String path, String folder) {
@@ -44,5 +44,9 @@ public enum SpecPathPatternEnum {
 
     private static String prepare(String pathPattern, String folder) {
         return pathPattern.replace(FOLDER_REPLACE_KEY, folder);
+    }
+
+    private static String getTenantName(String pattern, String path, String folder) {
+        return matcher.extractUriTemplateVariables(prepare(pattern, folder), path).get(TENANT_NAME);
     }
 }

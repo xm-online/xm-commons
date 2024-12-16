@@ -65,19 +65,19 @@ public class FormSpecProcessor extends SpecProcessor<FormSpec> {
     }
 
     @Override
-    public void updateStateByTenant(String tenant, String dataSpecKey, Collection<FormSpec> formSpecs) {
+    public void updateStateByTenant(String tenant, String baseSpecKey, Collection<FormSpec> formSpecs) {
         Map<String, FormSpec> addedForms = toKeyMapOverrideDuplicates(formSpecs);
         if (!addedForms.isEmpty()) {
             log.info("added {} form specs to tenant: {}", addedForms.size(), tenant);
             formsByTenant
                 .computeIfAbsent(tenant, s -> new HashMap<>())
-                .computeIfAbsent(dataSpecKey, s -> new HashMap<>())
+                .computeIfAbsent(baseSpecKey, s -> new HashMap<>())
                 .putAll(addedForms);
         }
     }
 
     @Override
-    public void processDataSpec(String tenant, String dataSpecKey, Consumer<String> setter, Supplier<String> getter) {
+    public void processDataSpec(String tenant, String baseSpecKey, Consumer<String> setter, Supplier<String> getter) {
         String typeSpecForm = getter.get();
         if (isBlank(typeSpecForm) || formsByTenant.getOrDefault(tenant, Map.of()).isEmpty()) {
             return;
@@ -91,13 +91,13 @@ public class FormSpecProcessor extends SpecProcessor<FormSpec> {
                 setter.accept(updatedSpecForm);
                 return;
             }
-            Map<String, String> specifications = collectTenantSpecifications(existingReferences, tenant, dataSpecKey);
+            Map<String, String> specifications = collectTenantSpecifications(existingReferences, tenant, baseSpecKey);
             updatedSpecForm = resolveReferences(specifications, updatedSpecForm);
         }
         log.warn("Max iteration limit reached: {}. Skip current form processing", PROCESSING_ITERATION_LIMIT);
     }
 
-    private Map<String, String> collectTenantSpecifications(Set<String> existingReferences, String tenant, String dataSpecKey) {
+    private Map<String, String> collectTenantSpecifications(Set<String> existingReferences, String tenant, String baseSpecKey) {
         Map<String, String> specificationsByRelativePath = new LinkedHashMap<>();
 
         for (String formPath : existingReferences) {
@@ -105,7 +105,7 @@ public class FormSpecProcessor extends SpecProcessor<FormSpec> {
             if (formKey.isBlank()) {
                 continue;
             }
-            ofNullable(formsByTenant.getOrDefault(tenant, Map.of()).get(dataSpecKey))
+            ofNullable(formsByTenant.getOrDefault(tenant, Map.of()).get(baseSpecKey))
                 .map(formMap -> formMap.get(formKey))
                 .map(formSpec -> getFormSpecificationByFile(tenant, formSpec))
                 .filter(StringUtils::isNotBlank)

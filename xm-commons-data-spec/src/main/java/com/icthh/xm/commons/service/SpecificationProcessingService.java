@@ -10,30 +10,30 @@ public interface SpecificationProcessingService<S extends BaseSpecification> {
     /**
      * Method to process specification data
      * @param tenant            specification tenant
-     * @param dataSpecKey       specification with definition and forms key
-     * @param specification     specification with definition and forms
+     * @param baseSpecKey       base specification key
+     * @param specification     base specification with definition and forms
      * @return                  processed specification
      */
-    default S processSpecification(String tenant, String dataSpecKey, S specification) {
-        processDataSpecification(tenant, dataSpecKey, specification.getItems());
+    default S processSpecification(String tenant, String baseSpecKey, S specification) {
+        processDataSpecification(tenant, baseSpecKey, specification.getItems());
         return specification;
     }
 
     /**
      * Method to process specification data
      * @param tenant            specification tenant
-     * @param dataSpecKey       specification with definition and forms key
-     * @param specifications    specifications with data input spec
+     * @param baseSpecKey       base specification key
+     * @param specifications    base specifications with data input spec
      * @return                  processed specifications
      */
-    <I extends SpecificationItem> Collection<I> processDataSpecification(String tenant, String dataSpecKey, Collection<I> specifications);
+    <I extends SpecificationItem> Collection<I> processDataSpecification(String tenant, String baseSpecKey, Collection<I> specifications);
 
     /**
      * Update all related specifications by tenant
      * @param tenant            tenant name
-     * @param dataSpecKey       specification with definition and forms key
-     * @param specifications    specification with definition and forms
+     * @param baseSpecKey       base specification key
+     * @param specifications    base specification with definition and forms
      */
-    void updateByTenantState(String tenant, String dataSpecKey, Collection<S> specifications);
+    void updateByTenantState(String tenant, String baseSpecKey, Collection<S> specifications);
 
 }

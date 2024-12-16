@@ -12,7 +12,6 @@ import com.icthh.xm.commons.service.SpecificationProcessingService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -21,7 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static com.icthh.xm.commons.ObjectMapperUtils.readSpecYml;
-import static com.icthh.xm.commons.enums.SpecPathPatternEnum.JSON_CONFIG_PATH_PATTERN;
 
 /**
  * This an abstraction for specification files processing located directly in .../{spec}.yml, .../{spec}/*.yml
@@ -63,6 +61,7 @@ public abstract class DataSpecificationService<S extends BaseSpecification> impl
                     processJsonSpec(tenant, updatedKey, config);
                     break;
             }
+            log.info("Updated spec by tenant {} and file {}", tenant, updatedKey);
         } catch (Exception e) {
             log.error("Error when update spec by path {} ", updatedKey, e);
         }
@@ -76,28 +75,32 @@ public abstract class DataSpecificationService<S extends BaseSpecification> impl
 
         } else {
             specFilesByTenant.computeIfAbsent(tenant, key -> new LinkedHashMap<>()).put(updatedKey, config);
-            S specification = (S) specProcessingService.processSpecification(tenant, specKey(), objectMapper.readValue(config, specType));
-            specsByTenant.computeIfAbsent(tenant, key -> new LinkedHashMap<>()).put(updatedKey, specification);
-            log.info("Updated spec by tenant {} and file {}", tenant, updatedKey);
+            S specification = objectMapper.readValue(config, specType);
+            this.updateByTenantState(tenant, Map.of(updatedKey, specification));
+//            specProcessingService.updateByTenantState(tenant, specKey(), Set.of(specification));
+//            specsByTenant.computeIfAbsent(tenant, key -> new LinkedHashMap<>()).put(updatedKey, specification);
         }
     }
 
     private void processJsonSpec(String tenant, String updatedKey, String config) {
         String relativePath = updatedKey.substring(updatedKey.indexOf(specKey()));
         jsonListenerService.processTenantSpecification(tenant, relativePath, config);
+        this.updateByTenantState(tenant, Map.of());
+//        Map<String, S> specificationsMap = getSpecificationsMapFromFiles(tenant);
+//        specProcessingService.updateByTenantState(tenant, specKey(), specificationsMap.values());
+//        this.specsByTenant.put(tenant, specificationsMap);
+    }
+
+    private void updateByTenantState(String tenant, Map<String, S> newSpecifications) {
+        Map<String, S> specificationsMap = getSpecificationsMapFromFiles(tenant);
+        specificationsMap.putAll(newSpecifications);
+        specProcessingService.updateByTenantState(tenant, specKey(), specificationsMap.values());
+        this.specsByTenant.put(tenant, specificationsMap);
     }
 
     @Override
     public boolean isListeningConfiguration(String updatedKey) {
         return SpecPathPatternEnum.getByPath(updatedKey, folder()).isPresent();
-    }
-
-    @Override
-    public void refreshFinished(Collection<String> paths) {
-        paths.stream()
-            .filter(p -> JSON_CONFIG_PATH_PATTERN.match(p, folder()))
-            .map(p -> JSON_CONFIG_PATH_PATTERN.getTenantName(p, folder()))
-            .forEach(t -> specProcessingService.updateByTenantState(t, specKey(), getSpecificationsFromFiles(t)));
     }
 
     public Map<String, S> getTenantSpecifications(String tenant) {
@@ -111,6 +114,16 @@ public abstract class DataSpecificationService<S extends BaseSpecification> impl
             .map(Optional::get)
             .collect(Collectors.toSet());
     }
+
+    private Map<String, S> getSpecificationsMapFromFiles(String tenantKey) {
+        return specFilesByTenant.getOrDefault(tenantKey, Map.of())
+            .entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, e -> readSpecYml(tenantKey, e.getValue(), specType)))
+            .entrySet().stream()
+            .filter(e -> e.getValue().isPresent())
+            .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
+    }
+
     /**
      * Define the specification key {spec} (e.g. myspec)
      * @return  specification key

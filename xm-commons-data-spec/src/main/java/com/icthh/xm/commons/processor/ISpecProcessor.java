@@ -15,17 +15,17 @@ public interface ISpecProcessor<S extends DataSpec> {
     /**
      * Method to update data spec configuration storage per tenant per spec
      * @param tenant            specification tenant
-     * @param dataSpecKey       specification with definition and forms key
+     * @param baseSpecKey       base specification key
      * @param configs           data specifications to be updated in storage
      */
-    void updateStateByTenant(String tenant, String dataSpecKey, Collection<S> configs);
+    void updateStateByTenant(String tenant, String baseSpecKey, Collection<S> configs);
 
     /**
      * Method to process data spec
      * @param tenant            specification tenant
-     * @param dataSpecKey       specification with definition and forms key
+     * @param baseSpecKey       base specification key
      * @param setter            input data spec object setter
      * @param getter            input data spec object getter
      */
-    void processDataSpec(String tenant, String dataSpecKey, Consumer<String> setter, Supplier<String> getter);
+    void processDataSpec(String tenant, String baseSpecKey, Consumer<String> setter, Supplier<String> getter);
 }
