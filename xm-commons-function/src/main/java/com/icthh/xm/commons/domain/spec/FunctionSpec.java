@@ -46,6 +46,18 @@ public class FunctionSpec implements IFunctionSpec, SpecificationItem {
     private String inputForm;
 
     /**
+     * Json schema for function output context specification
+     */
+    @JsonProperty("outputSpec")
+    private String outputSpec;
+
+    /**
+     * Form layout for function output context specification
+     */
+    @JsonProperty("outputForm")
+    private String outputForm;
+
+    /**
      * Return FunctionResult if true, otherwise return real function data (only data)
      */
     @JsonProperty("wrapResult")
