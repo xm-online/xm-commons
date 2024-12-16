@@ -65,8 +65,8 @@ public class MessageListenerIntTest {
 
     private static final String TOPIC = "kafka-test-queue";
     private static final String GROUP = "test";
-    private static final String UPDATE_KEY = "/config/tenants/test/some-ms/topic-consumers.yml";
-    private static final String TENANT_KEY = "test";
+    private static final String TENANT_KEY = "TEST";
+    private static final String UPDATE_KEY = "/config/tenants/" + TENANT_KEY + "/some-ms/topic-consumers.yml";
     private static final String CONFIG = "topic-consumers-4.yml";
     private static final String TX_CONFIG = "topic-consumers-without-isolation.yml";
     private static final String TX_RC_CONFIG = "topic-consumers-with-isolation-read_committed.yml";
