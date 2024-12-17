@@ -15,7 +15,7 @@ public interface SpecificationProcessingService<S extends BaseSpecification> {
      * @return                  processed specification
      */
     default S processSpecification(String tenant, String baseSpecKey, S specification) {
-        processDataSpecification(tenant, baseSpecKey, specification.getItems());
+        processDataSpecifications(tenant, baseSpecKey, specification.getItems());
         return specification;
     }
 
@@ -26,7 +26,7 @@ public interface SpecificationProcessingService<S extends BaseSpecification> {
      * @param specifications    base specifications with data input spec
      * @return                  processed specifications
      */
-    <I extends SpecificationItem> Collection<I> processDataSpecification(String tenant, String baseSpecKey, Collection<I> specifications);
+    <I extends SpecificationItem> Collection<I> processDataSpecifications(String tenant, String baseSpecKey, Collection<I> specifications);
 
     /**
      * Update all related specifications by tenant

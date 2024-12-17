@@ -77,8 +77,6 @@ public abstract class DataSpecificationService<S extends BaseSpecification> impl
             specFilesByTenant.computeIfAbsent(tenant, key -> new LinkedHashMap<>()).put(updatedKey, config);
             S specification = objectMapper.readValue(config, specType);
             this.updateByTenantState(tenant, Map.of(updatedKey, specification));
-//            specProcessingService.updateByTenantState(tenant, specKey(), Set.of(specification));
-//            specsByTenant.computeIfAbsent(tenant, key -> new LinkedHashMap<>()).put(updatedKey, specification);
         }
     }
 
@@ -86,9 +84,6 @@ public abstract class DataSpecificationService<S extends BaseSpecification> impl
         String relativePath = updatedKey.substring(updatedKey.indexOf(specKey()));
         jsonListenerService.processTenantSpecification(tenant, relativePath, config);
         this.updateByTenantState(tenant, Map.of());
-//        Map<String, S> specificationsMap = getSpecificationsMapFromFiles(tenant);
-//        specProcessingService.updateByTenantState(tenant, specKey(), specificationsMap.values());
-//        this.specsByTenant.put(tenant, specificationsMap);
     }
 
     private void updateByTenantState(String tenant, Map<String, S> newSpecifications) {

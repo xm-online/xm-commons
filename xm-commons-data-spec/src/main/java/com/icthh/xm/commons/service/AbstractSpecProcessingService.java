@@ -16,7 +16,7 @@ public abstract class AbstractSpecProcessingService<S extends BaseSpecification>
     private final DefinitionSpecProcessor definitionSpecProcessor;
 
     @Override
-    public <I extends SpecificationItem> Collection<I> processDataSpecification(String tenant, String baseSpecKey, Collection<I> specifications) {
+    public <I extends SpecificationItem> Collection<I> processDataSpecifications(String tenant, String baseSpecKey, Collection<I> specifications) {
         Optional.ofNullable(specifications)
             .orElseGet(List::of)
             .stream()

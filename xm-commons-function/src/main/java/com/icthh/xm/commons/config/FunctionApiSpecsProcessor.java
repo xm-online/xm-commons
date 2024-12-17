@@ -32,7 +32,9 @@ public class FunctionApiSpecsProcessor extends DefaultSpecProcessingService<Func
             .forEach(f -> {
                 processValidateInputParameter(specification.isValidateFunctionInput(), f);
                 definitionSpecProcessor.processDataSpec(tenant, baseSpecKey, f::setInputDataSpec, f::getInputDataSpec);
+                definitionSpecProcessor.processDataSpec(tenant, baseSpecKey, f::setOutputDataSpec, f::getOutputDataSpec);
                 formSpecProcessor.processDataSpec(tenant, baseSpecKey, f::setInputFormSpec, f::getInputFormSpec);
+                formSpecProcessor.processDataSpec(tenant, baseSpecKey, f::setOutputFormSpec, f::getOutputFormSpec);
             });
         definitionSpecProcessor.processDefinitionsItSelf(tenant, baseSpecKey);
         return specification;

@@ -21,8 +21,10 @@ dependencies {
     api 'org.slf4j:slf4j-api'
     api "com.google.guava:guava:${versions.guava}"
 
-    testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 compileJava.dependsOn(processResources)
