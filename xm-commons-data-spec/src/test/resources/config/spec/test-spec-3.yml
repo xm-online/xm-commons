@@ -1,0 +1,24 @@
+---
+forms:
+    - key: singleArrayForm
+      value: |-
+          [
+            { "name": "testName", "key": "fieldName" }
+          ]
+    - key: formWithSubForm
+      value: |-
+          [
+            { "key": "formWithSubFormField", "type": "string" },
+            { "$ref": "#/xmForm/subForm" }
+          ]
+    - key: formWithSubFormWithKey
+      value: |-
+          [
+            { "key": "formWithSubFormField", "type": "string" },
+            { "$ref": "#/xmForm/subForm", "key": "formWithSubFormKey" }
+          ]
+    - key: subForm
+      value: |-
+          [
+            { "key": "subForm", "type": "string" }
+          ]

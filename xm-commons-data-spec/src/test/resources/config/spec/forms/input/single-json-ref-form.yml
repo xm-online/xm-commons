@@ -1,0 +1,17 @@
+test-items:
+    - key: team/CREATE_EMPLOYEE
+      inputForm: |
+          {
+            "form": [
+              {
+                "$ref": "#/xmForm/employeeForm"
+              }
+            ],
+            "prop": {
+              "hideNameAndDescription": true
+            }
+          }
+
+forms:
+    - key: employeeForm
+      ref: json-forms/employeeForm.json

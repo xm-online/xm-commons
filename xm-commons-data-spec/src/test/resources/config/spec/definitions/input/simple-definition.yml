@@ -1,0 +1,17 @@
+---
+test-items:
+    - key: BOOKING
+      inputSpec: |
+          {
+            "type": "object",
+            "properties": {
+              "startDate": { "type": "string" },
+              "endDate": { "type": "string" },
+              "jobId": { "type": "number" },
+              "campaignId": { "type": "number" },
+              "locationId": { "type": "number" },
+              "userId": { "type": "number" },
+              "subcategoryId": { "type": "number" }
+            },
+            "required": ["jobId", "campaignId", "userId"]
+          }

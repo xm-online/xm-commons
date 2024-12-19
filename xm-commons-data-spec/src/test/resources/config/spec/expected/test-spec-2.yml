@@ -1,0 +1,151 @@
+test-items:
+    - key: GET-PRODUCT
+      inputSpec: |
+          {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "$ref": "#/xmDefinition/productData",
+            "xmDefinition": {
+              "productData": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "properties": {
+                  "productId": {
+                    "type": "number"
+                  },
+                  "startDate": {
+                    "type": "string"
+                  },
+                  "endDate": {
+                    "type": "string"
+                  },
+                  "budget": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "paymentMode": {
+                    "type": "string",
+                    "enum": [
+                      "online",
+                      "offline"
+                    ],
+                    "default": "online"
+                  },
+                  "balances": {
+                    "$ref": "#/xmDefinition/balances"
+                  }
+                },
+                "required": [
+                  "productId",
+                  "budget",
+                  "paymentMode"
+                ]
+              },
+              "balances": {
+                "type": "object",
+                "properties": {
+                  "budgetBalance": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+      inputForm: |
+          {
+            "form": [
+              {
+                "form": [
+                  {
+                    "key": "budget",
+                    "title": {
+                      "en": "Budget"
+                    },
+                    "type": "number"
+                  },
+                  {
+                    "type": "flex",
+                    "flex-flow": "row wrap",
+                    "fxLayoutAlign": "space-between center",
+                    "fxLayout": "row wrap",
+                    "justify-content": "space-between",
+                    "items": [
+                      {
+                        "key": "codeExpirationTime",
+                        "title": {
+                          "en": "Verification Code Expiration Time",
+                          "uk": "Час дії коду підтвердження"
+                        },
+                        "type": "datetime-picker",
+                        "formatString": "DD-MM-YYYY HH:mm",
+                        "readonly": true,
+                        "flex": "0 0 32%"
+                      },
+                      {
+                        "key": "acceptanceTimeOfPrivacyPolicy",
+                        "title": {
+                          "en": "Private policy accepted at",
+                          "uk": "Політика конфіденційності прийнята о"
+                        },
+                        "type": "datetime-picker",
+                        "formatString": "DD-MM-YYYY HH:mm",
+                        "readonly": true,
+                        "flex": "0 0 32%"
+                      },
+                      {
+                        "key": "acceptanceTimeOfContactDetailProcessing",
+                        "title": {
+                          "en": "Processing of contact details agreed at",
+                          "uk": "Обробка контактних даних погоджена о"
+                        },
+                        "type": "datetime-picker",
+                        "formatString": "DD-MM-YYYY HH:mm",
+                        "readonly": true,
+                        "flex": "0 0 32%"
+                      }
+                    ]
+                  },
+                  {
+                    "key": "paymentMode",
+                    "title": {
+                      "en": "Payment mode"
+                    },
+                    "type": "string"
+                  }
+                ]
+              }
+            ]
+          }
+definitions:
+    - key: balances
+      ref: test-spec/json-definitions/balances.json
+    - key: productData
+      value: |-
+          {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "properties": {
+              "productId": { "type": "number" },
+              "startDate": { "type": "string" },
+              "endDate": { "type": "string" },
+              "budget": { "type": "number", "minimum": 0 },
+              "paymentMode": { "type": "string", "enum": ["online", "offline"], "default": "online" },
+              "balances": {
+                "$ref": "#/xmDefinition/balances"
+              }
+            },
+            "required": [
+              "productId", "budget", "paymentMode"
+            ]
+          }
+
+forms:
+    - key: productForm
+      value: |-
+          {
+            "form": [
+              { "key": "budget", "title": { "en": "Budget" }, "type": "number" },
+              { "$ref": "#/xmForm/datesForm" },
+              { "key": "paymentMode", "title": { "en": "Payment mode" }, "type": "string" }
+            ]
+          }

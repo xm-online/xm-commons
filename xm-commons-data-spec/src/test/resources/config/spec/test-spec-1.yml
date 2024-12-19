@@ -1,0 +1,28 @@
+---
+test-items:
+    - key: PRODUCT
+      inputSpec: |-
+          {
+            "type": "object",
+            "properties": {},
+            "$ref": "#/xmDefinition/productData",
+            "orderedBy": { "$ref": "#/xmDefinition/employeeInfo" }
+          }
+      inputForm: |-
+          {
+            "form": [
+              {
+                "$ref": "#/xmForm/productForm",
+                "employee": {
+                  "items": [
+                    { "index": 1 },
+                    { "$ref": "#/xmForm/singleArrayForm", "key": "userKey[]" },
+                    { "index": 2 }
+                  ]
+                }
+              },
+              { "$ref": "#/xmForm/formWithSubForm", "key": "prefix1" },
+              { "$ref": "#/xmForm/formWithSubFormWithKey", "key": "prefix2" },
+              { "lastKey": "lastValue" }
+            ]
+          }

@@ -1,0 +1,22 @@
+test-items:
+    - key: team/CREATE_EMPLOYEE
+      inputForm: |
+          {
+            "form": [
+              {
+                "$ref": "#/xmForm/employeeForm"
+              }
+            ],
+            "prop": {
+              "hideNameAndDescription": true
+            }
+          }
+
+forms:
+    - key: employeeForm
+      value: |-
+          [
+              { "key": "firstName", "title": { "en": "First name" }, "type": "string" },
+              { "key": "lastName", "title": { "en": "Last name" }, "type": "string" },
+              { "key": "email", "title": {"en": "Email" }, "type": "string" }
+          ]

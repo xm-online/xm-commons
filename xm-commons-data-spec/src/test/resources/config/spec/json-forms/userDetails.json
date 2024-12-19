@@ -1,0 +1,4 @@
+{
+    "keyDetails": "userDetailsKey",
+    "$ref": "#/xmForm/testKey"
+}

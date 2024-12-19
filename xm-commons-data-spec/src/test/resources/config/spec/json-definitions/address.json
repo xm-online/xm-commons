@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "properties": {
+    "address": {
+      "type": "string"
+    },
+    "geoAddress": {
+      "$ref": "#/xmDefinition/geoAddress"
+    },
+    "formattedAddress": {
+      "type": "string"
+    }
+  }
+}

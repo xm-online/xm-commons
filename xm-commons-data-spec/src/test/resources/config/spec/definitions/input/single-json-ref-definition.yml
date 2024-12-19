@@ -1,0 +1,15 @@
+test-items:
+    - key: store/GET-GEO-ADDRESS
+      inputSpec: |
+          {
+            "type": "object",
+            "properties": {
+              "uaa": {
+                "$ref": "#/xmDefinition/geoAddress"
+              }
+            }
+          }
+
+definitions:
+    - key: geoAddress
+      ref: json-definitions/geoAddress.json
