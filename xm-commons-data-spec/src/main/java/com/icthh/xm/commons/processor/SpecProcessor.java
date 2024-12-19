@@ -6,13 +6,13 @@ import com.icthh.xm.commons.domain.DataSpec;
 import com.icthh.xm.commons.listener.JsonListenerService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import org.springframework.util.AntPathMatcher;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toMap;
 
 @Slf4j
-@Service
 public abstract class SpecProcessor<S extends DataSpec> implements ISpecProcessor<S> {
 
     protected static final String REF = "$ref";
@@ -56,6 +55,7 @@ public abstract class SpecProcessor<S extends DataSpec> implements ISpecProcesso
         return Optional.ofNullable(definitionSpecs)
             .orElseGet(List::of)
             .stream()
+            .filter(Objects::nonNull)
             .collect(Collectors.toMap(S::getKey, Function.identity(), (key1, key2) -> key1, LinkedHashMap::new));
     }
 

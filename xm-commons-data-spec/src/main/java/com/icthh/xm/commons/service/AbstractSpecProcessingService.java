@@ -28,7 +28,11 @@ public abstract class AbstractSpecProcessingService<S extends BaseSpecification>
 
     @Override
     public void updateByTenantState(String tenant, String baseSpecKey, Collection<S> specifications) {
-        List<S> filtered = specifications.stream().filter(Objects::nonNull).toList();
+        List<S> filtered = Optional.ofNullable(specifications)
+            .orElseGet(List::of)
+            .stream()
+            .filter(Objects::nonNull)
+            .toList();
         filtered.forEach(spec -> updateByTenantState(tenant, baseSpecKey, spec));
         filtered.forEach(spec -> processSpecification(tenant, baseSpecKey, spec));
     }

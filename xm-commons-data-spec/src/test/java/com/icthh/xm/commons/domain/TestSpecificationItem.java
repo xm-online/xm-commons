@@ -9,7 +9,7 @@ import lombok.Data;
 @JsonPropertyOrder({"key", "path", "inputSpec", "inputForm", "wrapResult", "anonymous", "txType",
     "tags", "httpMethods"})
 @Data
-public class TestInputDataSpec implements SpecificationItem {
+public class TestSpecificationItem implements BaseSpecificationItem {
 
     @JsonProperty("key")
     private String key;
@@ -19,6 +19,12 @@ public class TestInputDataSpec implements SpecificationItem {
 
     @JsonProperty("inputForm")
     private String inputForm;
+
+    @JsonProperty("outputSpec")
+    private String outputSpec;
+
+    @JsonProperty("outputForm")
+    private String outputForm;
 
     // TODO test, that this field are ignored in json
     @Override
@@ -40,4 +46,25 @@ public class TestInputDataSpec implements SpecificationItem {
     public void setInputFormSpec(String spec) {
         this.setInputForm(spec);
     }
+
+    @Override
+    public String getOutputFormSpec() {
+        return this.getOutputForm();
+    }
+
+    @Override
+    public void setOutputFormSpec(String spec) {
+        this.setOutputForm(spec);
+    }
+
+    @Override
+    public String getOutputDataSpec() {
+        return this.getOutputSpec();
+    }
+
+    @Override
+    public void setOutputDataSpec(String spec) {
+        this.setOutputSpec(spec);
+    }
+
 }

@@ -16,12 +16,13 @@ public class JsonListenerService {
     private final Map<String, Map<String, String>> tenantsSpecificationsByPath = new LinkedHashMap<>();
 
     public void processTenantSpecification(String tenantName, String relativePath, String config) {
+        Map<String, String> relativePathSpecMap = tenantsSpecificationsByPath
+            .computeIfAbsent(tenantName, t -> new ConcurrentHashMap<>());
+
         if (isBlank(config)) {
-            tenantsSpecificationsByPath.remove(tenantName);
+            relativePathSpecMap.remove(relativePath);
         } else {
-            tenantsSpecificationsByPath
-                .computeIfAbsent(tenantName, t -> new ConcurrentHashMap<>())
-                .put(relativePath, config);
+            relativePathSpecMap.put(relativePath, config);
         }
     }
 

@@ -27,11 +27,12 @@ public class DefinitionSpecProcessor extends DataSpecProcessor<DefinitionSpec> {
 
     // tenantName -> specKey -> definitionKey -> DefinitionsSpec
     private final Map<String, Map<String, Map<String, DefinitionSpec>>> definitionsByTenant;
-    private final Map<String, Map<String, Map<String, DefinitionSpec>>> processedDefinitionsByTenant = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, Map<String, DefinitionSpec>>> processedDefinitionsByTenant;
 
     public DefinitionSpecProcessor(JsonListenerService jsonListenerService) {
         super(jsonListenerService);
         this.definitionsByTenant = new ConcurrentHashMap<>();
+        this.processedDefinitionsByTenant = new ConcurrentHashMap<>();
     }
 
     @Override
