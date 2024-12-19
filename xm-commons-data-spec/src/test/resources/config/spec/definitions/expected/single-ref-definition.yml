@@ -1,0 +1,37 @@
+test-items:
+    - key: team/CREATE_EMPLOYEE
+      inputSpec: |
+          {
+            "type": "object",
+            "properties": {
+              "uaa": {
+                "$ref": "#/xmDefinition/create/Employee"
+              }
+            },
+            "xmDefinition": {
+              "create": {
+                "Employee": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+definitions:
+    - key: create
+      value: |-
+          {
+            "Employee": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }

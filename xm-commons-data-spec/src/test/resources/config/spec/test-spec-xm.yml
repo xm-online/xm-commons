@@ -1,0 +1,429 @@
+---
+test-items:
+    - key: ACCOUNT.REDEEM-VOUCHER
+      outputSpec: |
+          {
+              "type": "object",
+              "properties": {
+                  "attemptedDate": {
+                      "title": "Attempted Date",
+                      "type": "string"
+                  },
+                  "isSuccess": {
+                      "title": "Is Success",
+                      "type": "boolean"
+                  },
+                  "voucherSerial": {
+                      "title": "Voucher Serial",
+                      "type": "string"
+                  },
+                  "enteredSecret": {
+                      "title": "Entered Secret",
+                      "type": "string"
+                  }
+              }
+          }
+    - key: ACCOUNT.EXTRACT-LINKEDIN-PROFILE
+      inputSpec: |
+          {
+              "type": "object",
+              "title": "functionContext",
+              "properties": {
+                  "linkedInProfileUrl": { "type": "string", "title": "LinkedIn profile URL" }
+              }
+          }
+      outputSpec: |
+          {
+              "type": "object",
+              "properties": {
+                  "memberConnections": { "type": "string", "title": "Member connections" },
+                  "fullName": { "type": "string", "title": "Full name" },
+                  "location": { "type": "string", "title": "Location" },
+                  "current": { "type": "string", "title": "Current" },
+                  "pictureUrl": { "type": "string", "format": "uri", "title": "Picture URL" },
+                  "summary": { "type": "string", "title": "Summary" },
+                  "skills": { "type": "array", "items": { "type": "string" }, "title": "Skills" },
+                  "languages": { "type": "array", "items": { "type": "string" }, "title": "Languages" },
+                  "experience": {
+                      "type": "object",
+                      "title": "Experience",
+                      "properties": {
+                          "current": {
+                              "type": "array",
+                              "title": "Current experiences",
+                              "items": {
+                                  "type": "object",
+                                  "properties": {
+                                      "title": { "type": "string", "title": "Title" },
+                                      "org": { "type": "string", "title": "Org" },
+                                      "dateRange": { "type": "string", "title": "Date range" },
+                                      "location": { "type": "string", "title": "Location" },
+                                      "description": { "type": "string", "title": "Description" },
+                                      "logoUrl": { "type": "string", "format": "uri", "title": "Logo" }
+                                  }
+                              }
+                          },
+                          "past": {
+                              "type": "array",
+                              "title": "Past experiences",
+                              "items": {
+                                  "type": "object",
+                                  "properties": {
+                                      "title": { "type": "string", "title": "Title" },
+                                      "org": { "type": "string", "title": "Org" },
+                                      "dateRange": { "type": "string", "title": "Date range" },
+                                      "location": { "type": "string", "title": "Location" },
+                                      "description": { "type": "string", "title": "Description" },
+                                      "logoUrl": { "type": "string", "format": "uri", "title": "Logo" }
+                                  }
+                              }
+                          }
+                      }
+                  },
+                  "education": {
+                      "type": "array",
+                      "title": "Educations",
+                      "items": {
+                          "type": "object",
+                          "properties": {
+                              "title": { "type": "string", "title": "Title" },
+                              "org": { "type": "string", "title": "Org" },
+                              "dateRange": { "type": "string", "title": "Date range" },
+                              "description": { "type": "string", "title": "Description" },
+                              "logoUrl": { "type": "string", "format": "uri", "title": "Logo" }
+                          }
+                      }
+                  },
+                  "recommendations": { "type": "array", "items": { "type": "string" }, "title": "Recommendations" },
+                  "volunteering": {
+                      "type": "array",
+                      "title": "Volunteering",
+                      "items": {
+                          "type": "object",
+                          "properties": {
+                              "title": { "type": "string", "title": "Title" },
+                              "org": { "type": "string", "title": "Org" },
+                              "dateRange": { "type": "string", "title": "Date range" },
+                              "description": { "type": "string", "title": "Description" },
+                              "cause": { "type": "string", "title": "Cause" }
+                          }
+                      }
+                  }
+              }
+          }
+      outputForm: |
+          {
+              "layout": [
+                  {
+                      "key": "summary",
+                      "title": "<h3>Summary</h3>",
+                      "type": "textarea",
+                      "readonly": true
+                  },
+                  {
+                      "key": "education",
+                      "title": "<h3>Education</h3>",
+                      "type": "array",
+                      "readonly": true
+                  }
+              ]
+          }
+    - key: RESOURCE.CAR
+      inputSpec: |
+          {
+              "type": "object",
+              "properties": {
+                  "vin": {
+                      "title": "VIN",
+                      "type": "string"
+                  },
+                  "registrationNumber": {
+                      "title": "Registration Number",
+                      "type": "string"
+                  },
+                  "isMoving": {
+                      "title": "Is Moving",
+                      "type": "boolean"
+                  },
+                  "isDoorClosed": {
+                      "title": "Is Door Closed",
+                      "type": "boolean"
+                  },
+                  "isCharging": {
+                      "title": "Is Charging",
+                      "type": "boolean"
+                  },
+                  "batteryLevel": {
+                      "title": "Battery Level",
+                      "type": "number"
+                  },
+                  "modificationDate": {
+                      "title": "Modification Date",
+                      "type": "string"
+                  }
+              },
+              "required": ["vin", "registrationNumber"]
+          }
+      inputForm: |
+          [
+              "vin",
+              "registrationNumber",
+              {
+                  "type": "flex",
+                  "flex-flow": "row wrap",
+                  "fxLayoutGap": "12px",
+                  "items": [ "isMoving", "isDoorClosed", "isCharging" ]
+              },
+              "batteryLevel",
+              "modificationDate",
+              {
+                  "type": "submit",
+                  "style": "btn-primary",
+                  "title": "SAVE"
+              }
+          ]
+    -   key: RESOURCE.XM-TENANT
+        inputSpec: |
+            {
+              "type": "object",
+              "title": "Data",
+              "properties": {
+                "uaa": {
+                  "title": "Uaa",
+                  "type": "object",
+                  "properties": {
+                    "create": {
+                      "title": "Create",
+                      "type": "object",
+                      "properties": {
+                        "success": { "title": "Success", "type": "boolean" },
+                        "errorMessage": { "title": "Error message", "type": ["string", "null"] }
+                      }
+                    },
+                    "delete": {
+                      "title": "Delete",
+                      "type": "object",
+                      "properties": {
+                        "success": { "title": "Success", "type": "boolean" },
+                        "errorMessage": { "title": "Error message", "type": ["string", "null"] }
+                      }
+                    }
+                  }
+                },
+                "entity": {
+                  "title": "Entity",
+                  "type": "object",
+                  "properties": {
+                    "create": {
+                      "title": "Create",
+                      "type": "object",
+                      "properties": {
+                        "success": { "title": "Success", "type": "boolean" },
+                        "errorMessage": { "title": "Error message", "type": ["string", "null"] }
+                      }
+                    },
+                    "delete": {
+                      "title": "Delete",
+                      "type": "object",
+                      "properties": {
+                        "success": { "title": "Success", "type": "boolean" },
+                        "errorMessage": { "title": "Error message", "type": ["string", "null"] }
+                      }
+                    }
+                  }
+                },
+                "gate": {
+                  "title": "Gate",
+                  "type": "object",
+                  "properties": {
+                    "create": {
+                      "title": "Create",
+                      "type": "object",
+                      "properties": {
+                        "success": { "title": "Success", "type": "boolean" },
+                        "errorMessage": { "title": "Error message", "type": ["string", "null"] }
+                      }
+                    },
+                    "delete": {
+                      "title": "Delete",
+                      "type": "object",
+                      "properties": {
+                        "success": { "title": "Success", "type": "boolean" },
+                        "errorMessage": { "title": "Error message", "type": ["string", "null"] }
+                      }
+                    }
+                  }
+                },
+                "dashboard": {
+                  "title": "Dashboard",
+                  "type": "object",
+                  "properties": {
+                    "create": {
+                      "title": "Create",
+                      "type": "object",
+                      "properties": {
+                        "success": { "title": "Success", "type": "boolean" },
+                        "errorMessage": { "title": "Error message", "type": ["string", "null"] }
+                      }
+                    },
+                    "delete": {
+                      "title": "Delete",
+                      "type": "object",
+                      "properties": {
+                        "success": { "title": "Success", "type": "boolean" },
+                        "errorMessage": { "title": "Error message", "type": ["string", "null"] }
+                      }
+                    }
+                  }
+                },
+                "timeline": {
+                  "title": "Timeline",
+                  "type": "object",
+                  "properties": {
+                    "create": {
+                      "title": "Create",
+                      "type": "object",
+                      "properties": {
+                        "success": { "title": "Success", "type": "boolean" },
+                        "errorMessage": { "title": "Error message", "type": ["string", "null"] }
+                      }
+                    },
+                    "delete": {
+                      "title": "Delete",
+                      "type": "object",
+                      "properties": {
+                        "success": { "title": "Success", "type": "boolean" },
+                        "errorMessage": { "title": "Error message", "type": ["string", "null"] }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+    -   key: RESOURCE.VOUCHER
+        inputSpec: |
+            {
+              "type": "object",
+              "properties": {
+                "serial": { "title": "Serial Number", "type": "string" },
+                "secret": { "title": "Secret", "type": "string" },
+                "value": { "title": "Value", "type": "number" },
+                "usedBy": { "title": "Used By", "type": "string" },
+                "usedDate": { "title": "Used Date", "type": "string" },
+                "expirationDate": { "title": "Expiration Date", "type": "boolean" }
+              },
+              "required": [ "serial", "secret", "value" ]
+            }
+        inputForm: |
+            [
+              "serial",
+              "secret",
+              "value",
+              "usedBy",
+              "usedDate",
+              "expirationDate",
+              {
+                "type": "submit",
+                "style": "btn-primary",
+                "title": "SAVE"
+              }
+            ]
+    -   key: RESOURCE.VOUCHER
+        inputSpec: |
+            {
+              "type": "object",
+              "title": "Data",
+              "properties": {
+                "birthday": {
+                  "title": "Birthday",
+                  "type": "string"
+                },
+                "city": {
+                  "title": "City",
+                  "type": "string"
+                },
+                "address": {
+                  "title": "Address",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "birthday",
+                "city",
+                "address"
+              ]
+            }
+
+    -   key: AREA.SQUARE
+        outputSpec: |
+            {
+              "type": "object",
+              "properties": {
+                "polygons": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "fillColor": {
+                        "title": "The fillColor schema",
+                        "type": "string"
+                      },
+                      "fillOpacity": {
+                        "title": "The fillOpacity schema",
+                        "type": "number"
+                      },
+                      "paths": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "lat": {
+                              "title": "The lat schema",
+                              "type": "number"
+                            },
+                            "lng": {
+                              "title": "The lng schema",
+                              "type": "number"
+                            }
+                          }
+                        }
+                      },
+                      "strokeColor": {
+                        "title": "The strokeColor schema",
+                        "type": "string"
+                      },
+                      "strokeOpacity": {
+                        "title": "The strokeOpacity schema",
+                        "type": "number"
+                      },
+                      "strokeWeight": {
+                        "title": "The strokeWeight schema",
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+    -   key: TEST_UNIQUE_FIELD
+        inputSpec: |
+            {
+              "type": "object",
+              "properties": {
+                "uniqueField": {
+                  "unique": true,
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "uniqueField2": {
+                  "unique": true,
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }

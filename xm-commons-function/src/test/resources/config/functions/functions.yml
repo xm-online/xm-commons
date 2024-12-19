@@ -1,0 +1,79 @@
+---
+validateFunctionInput: true
+functions:
+  - key: store/STORE-INFO
+    path: store/STORE-INFO
+    txType: READ_ONLY
+    validateFunctionInput: false
+    inputSpec: |
+      {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "location": {
+          "$ref": "#/xmDefinition/address"
+        }
+      },
+      "required": ["name"]
+      }
+  - key: store/GET-EMPLOYEES-AGE
+    path: any/path/TO-GO
+    httpMethods:
+      - "POST"
+    inputSpec: |
+      {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "employeesInfo": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "employeeInfo": {
+                  "$ref": "#/xmDefinition/employeeInfo"
+                }
+              }
+            }
+          },
+          "location": {
+            "$ref": "#/xmDefinition/address"
+          }
+        },
+        "required": ["employeesInfo"]
+      }
+definitions:
+  - key: address
+    ref: functions/definitions/address.json
+  - key: employeeInfo
+    value: |-
+      {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "storeName": {
+            "type": "string"
+          },
+          "info": {
+            "$ref": "#/xmDefinition/userInfo"
+          }
+        }
+      }
+  - key: userInfo
+    value: |-
+      {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "age": {
+            "type": "number"
+          }
+        }
+      }

@@ -1,0 +1,55 @@
+test-items:
+    - key: store/GET-FULL-ADDRESS
+      inputSpec: |
+          {
+              "type":"object",
+              "properties":{
+                "uaa":{
+                  "$ref":"#/xmDefinition/address"
+                }
+              },
+              "xmDefinition":{
+                "address":{
+                  "type":"object",
+                  "properties":{
+                    "address":{
+                      "type":"string"
+                    },
+                    "geoAddress":{
+                      "$ref":"#/xmDefinition/geoAddress"
+                    },
+                    "formattedAddress":{
+                      "type":"string"
+                    }
+                  }
+                },
+                "geoAddress":{
+                  "type":"object",
+                  "properties":{
+                    "location":{
+                      "lat":{
+                        "type":"number"
+                      },
+                      "lng":{
+                        "type":"number"
+                      }
+                    },
+                    "place_id":{
+                      "type":"string"
+                    },
+                    "utcOffset":{
+                      "type":"integer"
+                    },
+                    "components":{
+                      "type":"object"
+                    }
+                  }
+                }
+              }
+            }
+
+definitions:
+    - key: address
+      ref: json-definitions/address.json
+    - key: geoAddress
+      ref: json-definitions/geoAddress.json
