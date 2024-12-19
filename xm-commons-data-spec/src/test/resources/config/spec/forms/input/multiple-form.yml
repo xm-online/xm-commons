@@ -1,0 +1,63 @@
+---
+test-items:
+    - key: MULTIPLE
+      inputForm: |
+       {
+          "form": [
+              {
+                  "user": {
+                      "key": "userKey",
+                      "value": "userValue",
+                      "items": [
+                         {"index": 1},
+                         {"$ref": "#/xmForm/singleArrayFormNotExists"},
+                         {"index": 2},
+                         {"$ref": "#/xmForm/singleArrayForm", "key": "userKey[]"},
+                         {"index": 3},
+                         {"$ref": "#/xmForm/multiplyArrayForm"},
+                         {"index": 4}
+                      ],
+                      "$ref": "#/xmForm/userDetails"
+                  },
+                  "$ref": "#/xmForm/multiplyArrayForm"
+              },
+              {"$ref": "#/xmForm/singleArrayForm"},
+              {"$ref": "#/xmForm/userDetails"},
+              {"$ref": "#/xmForm/formWithSubForm", "key": "prefix1"},
+              {"$ref": "#/xmForm/formWithSubFormWithKey", "key": "prefix2"},
+              {"lastKey": "lastValue"}
+          ]
+       }
+forms:
+    - key: testKey
+      ref: json-forms/testKey.json
+    - key: userDetails
+      ref: json-forms/userDetails.json
+    - key: singleArrayForm
+      value: |
+        [
+         {"name": "testName", "key": "fieldName"}
+        ]
+    - key: multiplyArrayForm
+      value: |
+          [
+            {"key1": "value1"},
+            {"key2": "value2"}
+          ]
+    - key: formWithSubForm
+      value: |
+        [
+            {"key": "formWithSubFormField", "type": "string"},
+            { "$ref": "#/xmForm/subForm" }
+        ]
+    - key: formWithSubFormWithKey
+      value: |
+        [
+            {"key": "formWithSubFormField", "type": "string"},
+            { "$ref": "#/xmForm/subForm", "key": "formWithSubFormKey" }
+        ]
+    - key: subForm
+      value: |
+        [
+            {"key": "subForm", "type": "string"}
+        ]

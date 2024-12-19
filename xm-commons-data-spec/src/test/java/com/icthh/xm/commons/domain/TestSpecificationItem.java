@@ -26,7 +26,6 @@ public class TestSpecificationItem implements BaseSpecificationItem {
     @JsonProperty("outputForm")
     private String outputForm;
 
-    // TODO test, that this field are ignored in json
     @Override
     public String getInputDataSpec() {
         return this.getInputSpec();

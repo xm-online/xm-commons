@@ -1,0 +1,80 @@
+---
+test-items:
+    - key: MULTIPLE
+      inputForm: |
+       {
+          "form": [
+              {
+                  "user": {
+                      "key": "userKey",
+                      "value": "userValue",
+                      "items" : [
+                        {"index": 1},
+                        {"index": 2},
+                        {"name": "testName", "key": "userKey[].fieldName"},
+                        {"index": 3},
+                        {"key1":"value1"},
+                        {"key2":"value2"},
+                        {"index": 4}
+                      ],
+                      "keyDetails": "userDetailsKey",
+                      "name": "testKey",
+                      "description": "testDescription"
+                  }
+              },
+              {"key1": "value1"},
+              {"key2": "value2"},
+              {"name": "testName", "key": "fieldName"},
+              {
+                 "keyDetails": "userDetailsKey",
+                 "name": "testKey",
+                 "description": "testDescription"
+              }, {
+                "key" : "prefix1.formWithSubFormField",
+                "type" : "string"
+              }, {
+                "key" : "prefix1.subForm",
+                "type" : "string"
+              }, {
+                "key" : "prefix2.formWithSubFormField",
+                "type" : "string"
+              }, {
+                "key" : "prefix2.formWithSubFormKey.subForm",
+                "type" : "string"
+              },
+              {"lastKey": "lastValue"}
+             ]
+       }
+forms:
+    - key: testKey
+      ref: json-forms/testKey.json
+    - key: userDetails
+      ref: json-forms/userDetails.json
+    - key: singleArrayForm
+      value: |
+          [
+           {"name": "testName", "key": "fieldName"}
+          ]
+    - key: multiplyArrayForm
+      value: |
+          [
+            {"key1": "value1"},
+            {"key2": "value2"}
+          ]
+    - key: formWithSubForm
+      value: |
+        [
+            {"key": "formWithSubFormField", "type": "string"},
+            { "$ref": "#/xmForm/subForm" }
+        ]
+    - key: formWithSubFormWithKey
+      value: |
+        [
+            {"key": "formWithSubFormField", "type": "string"},
+            { "$ref": "#/xmForm/subForm", "key": "formWithSubFormKey" }
+        ]
+    - key: subForm
+      value: |
+        [
+            {"key": "subForm", "type": "string"}
+        ]

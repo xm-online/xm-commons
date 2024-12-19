@@ -23,7 +23,7 @@ public class JsonListenerServiceUnitTest {
     @Test
     void processTenantSpecification_addNewSpecification() {
         String relativePath = "/json-definitions/address.json";
-        String config = loadJsonSpecFileByName("address");
+        String config = loadJsonSpecFileByName("json-definitions/address");
 
         jsonListenerService.processTenantSpecification(TEST_TENANT, relativePath, config);
 
@@ -40,10 +40,10 @@ public class JsonListenerServiceUnitTest {
         String relativePath = "/json-definitions/address.json";
 
         // add spec
-        jsonListenerService.processTenantSpecification(TEST_TENANT, relativePath, loadJsonSpecFileByName("address"));
+        jsonListenerService.processTenantSpecification(TEST_TENANT, relativePath, loadJsonSpecFileByName("json-definitions/address"));
 
         // update spec
-        String config2 = loadJsonSpecFileByName("userInfo");
+        String config2 = loadJsonSpecFileByName("json-definitions/userInfo");
         jsonListenerService.processTenantSpecification(TEST_TENANT, relativePath, config2);
 
         // assert
@@ -58,7 +58,7 @@ public class JsonListenerServiceUnitTest {
     @Test
     void processTenantSpecification_removeSpecification_whenConfigIsBlank() {
         String relativePath = "/json-definitions/address.json";
-        String config = loadJsonSpecFileByName("address");
+        String config = loadJsonSpecFileByName("json-definitions/address");
 
         // add spec
         jsonListenerService.processTenantSpecification(TEST_TENANT, relativePath, config);
@@ -77,7 +77,7 @@ public class JsonListenerServiceUnitTest {
     @Test
     void getSpecificationByTenantRelativePath_existingPath() {
         String relativePath = "/definitions/userInfo.json";
-        String config = loadJsonSpecFileByName("userInfo");
+        String config = loadJsonSpecFileByName("json-definitions/userInfo");
         jsonListenerService.processTenantSpecification(TEST_TENANT, relativePath, config);
 
         assertEquals(config, jsonListenerService.getSpecificationByTenantRelativePath(TEST_TENANT, relativePath));
@@ -86,7 +86,7 @@ public class JsonListenerServiceUnitTest {
     @Test
     void getSpecificationByTenantRelativePath_nonExistingPath() {
         String relativePath = "/definitions/userInfo.json";
-        String config = loadJsonSpecFileByName("userInfo");
+        String config = loadJsonSpecFileByName("json-definitions/userInfo");
         jsonListenerService.processTenantSpecification(TEST_TENANT, relativePath, config);
         String nonExistingRelativePath = RandomStringUtils.randomAlphanumeric(15);
 
@@ -101,7 +101,7 @@ public class JsonListenerServiceUnitTest {
     @Test
     void getSpecificationByTenant_nonExistingTenant() {
         String relativePath = "/json-definitions/address.json";
-        String config = loadJsonSpecFileByName("address");
+        String config = loadJsonSpecFileByName("json-definitions/address");
         jsonListenerService.processTenantSpecification(TEST_TENANT, relativePath, config);
 
         Map<String, String> result = jsonListenerService.getSpecificationByTenant(TEST_TENANT);

@@ -1,0 +1,49 @@
+---
+test-items:
+    - key: GET-PRODUCT
+      inputSpec: |
+          {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "$ref": "#/xmDefinition/productData"
+          }
+      inputForm: |
+          {
+            "form": [
+              { "$ref": "#/xmForm/productForm" }
+            ]
+          }
+
+definitions:
+    - key: balances
+      ref: test-spec/json-definitions/balances.json
+    - key: productData
+      value: |-
+          {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "properties": {
+              "productId": { "type": "number" },
+              "startDate": { "type": "string" },
+              "endDate": { "type": "string" },
+              "budget": { "type": "number", "minimum": 0 },
+              "paymentMode": { "type": "string", "enum": ["online", "offline"], "default": "online" },
+              "balances": {
+                "$ref": "#/xmDefinition/balances"
+              }
+            },
+            "required": [
+              "productId", "budget", "paymentMode"
+            ]
+          }
+
+forms:
+    - key: productForm
+      value: |-
+          {
+            "form": [
+              { "key": "budget", "title": { "en": "Budget" }, "type": "number" },
+              { "$ref": "#/xmForm/datesForm" },
+              { "key": "paymentMode", "title": { "en": "Payment mode" }, "type": "string" }
+            ]
+          }

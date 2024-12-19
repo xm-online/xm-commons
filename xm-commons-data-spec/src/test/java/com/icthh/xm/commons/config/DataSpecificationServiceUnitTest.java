@@ -154,7 +154,7 @@ public class DataSpecificationServiceUnitTest {
 
     @Test
     void onRefresh_JsonSpec() {
-        String specFileName = "address";
+        String specFileName = "json-definitions/address";
         String relativePath = "/json-definitions/address.json";
         String updatedKey = CONFIG_KEY_PREFIX + relativePath;
 

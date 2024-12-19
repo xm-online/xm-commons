@@ -1,0 +1,37 @@
+---
+test-items:
+    - key: CATEGORY
+      inputForm: |
+          {
+            "form":[
+              { "key": "name", "title": { "en": "Name" }},
+              { "key": "bookingType", "title": { "en": "Booking type" }, "type": "string" },
+              {
+                "key": "budgetTable",
+                "title": "Budgets",
+                "type": "array",
+                "items":[
+                  {
+                    "type": "flex",
+                    "flex-flow": "row wrap",
+                    "fxLayoutGap": "12px",
+                    "items": [
+                      { "key": "budgetTable[].budget", "title": { "en": "Budget" }, "type": "number", "flex": "1 1 0" },
+                      { "key": "budgetTable[].minGuaranteedPosts", "title": { "en": "Min guaranteed posts" }, "type": "number", "flex": "1 1 0" }
+                    ]
+                  }
+                ]
+              },
+              { "key": "autoBooking", "title": { "en": "Auto booking" }, "type": "checkbox" },
+              {
+                "key": "textTemplate", "title": { "en": "Text template" }, "type": "textarea",
+                "placeholder": "Available variables: firstName, lastName, locationName, brandName, referralUrl"
+              }
+            ],
+            "entity": {
+              "formHeaderTitle": {
+                "en": "Add category"
+              },
+              "hideNameAndDescription": true
+            }
+          }

@@ -1,39 +1,38 @@
 package com.icthh.xm.commons.processor.impl;
 
+import com.icthh.xm.commons.domain.DataSpec;
 import com.icthh.xm.commons.domain.DefinitionSpec;
 import com.icthh.xm.commons.domain.TestBaseSpecification;
 import com.icthh.xm.commons.domain.TestSpecificationItem;
 import com.icthh.xm.commons.listener.JsonListenerService;
 import com.icthh.xm.commons.processor.ISpecProcessor;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 
 import static com.icthh.xm.commons.utils.AssertionUtils.assertEqualsSpec;
+import static com.icthh.xm.commons.utils.SpecUtils.addJsonToListener;
+import static com.icthh.xm.commons.utils.SpecUtils.getSpecByKey;
+import static com.icthh.xm.commons.utils.SpecUtils.getSpecItemByKey;
 import static com.icthh.xm.commons.utils.ReflectionUtils.getField;
 import static com.icthh.xm.commons.utils.TestConstants.BASE_SPEC_KEY;
 import static com.icthh.xm.commons.utils.TestConstants.TEST_TENANT;
 import static com.icthh.xm.commons.utils.TestReadSpecUtils.loadBaseSpecByFileName;
-import static com.icthh.xm.commons.utils.TestReadSpecUtils.loadJsonSpecFileByName;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class DefinitionSpecProcessorUnitTest {
 
     private JsonListenerService jsonListenerService = new JsonListenerService();
     private ISpecProcessor<DefinitionSpec> definitionSpecProcessor;
 
-    @BeforeAll
+    @BeforeEach
     void setUp() {
         jsonListenerService = new JsonListenerService();
         definitionSpecProcessor = new DefinitionSpecProcessor(jsonListenerService);
@@ -41,10 +40,10 @@ public class DefinitionSpecProcessorUnitTest {
     }
 
     private void setUpJsonListenerService() {
-        jsonListenerService.processTenantSpecification(TEST_TENANT, "json-definitions/address.json", loadJsonSpecFileByName("address"));
-        jsonListenerService.processTenantSpecification(TEST_TENANT, "json-definitions/geoAddress.json", loadJsonSpecFileByName("geoAddress"));
-        jsonListenerService.processTenantSpecification(TEST_TENANT, "json-definitions/userInfo.json", loadJsonSpecFileByName("userInfo"));
-        jsonListenerService.processTenantSpecification(TEST_TENANT, "json-definitions/employee.json", loadJsonSpecFileByName("employee"));
+        addJsonToListener(jsonListenerService, "json-definitions/address");
+        addJsonToListener(jsonListenerService, "json-definitions/geoAddress");
+        addJsonToListener(jsonListenerService, "json-definitions/userInfo");
+        addJsonToListener(jsonListenerService, "json-definitions/employee");
     }
 
     @Test
@@ -67,9 +66,9 @@ public class DefinitionSpecProcessorUnitTest {
 
         definitionSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, definitions);
 
-        DefinitionSpec userInfoSpec = getSpecByKey(definitions, "userInfo");
-        DefinitionSpec employeeInfoSpec = getSpecByKey(definitions, "employeeInfo");
-        DefinitionSpec addressSpec = getSpecByKey(definitions, "address");
+        DataSpec userInfoSpec = getSpecByKey(definitions, "userInfo");
+        DataSpec employeeInfoSpec = getSpecByKey(definitions, "employeeInfo");
+        DataSpec addressSpec = getSpecByKey(definitions, "address");
 
         var updatedDefinitionsMap = getDefinitionsByTenantMap();
 
@@ -110,7 +109,7 @@ public class DefinitionSpecProcessorUnitTest {
     public void processDataSpec_singleJsonReference() {
         TestBaseSpecification expectedBaseSpec = loadBaseSpecByFileName("definitions/expected/single-json-ref-definition");
         TestBaseSpecification inputBaseSpec = loadBaseSpecByFileName("definitions/input/single-json-ref-definition");
-        TestSpecificationItem itemSpec = getSpecItemByKey(inputBaseSpec, "store/GET-FULL-ADDRESS");
+        TestSpecificationItem itemSpec = getSpecItemByKey(inputBaseSpec, "store/GET-GEO-ADDRESS");
 
         definitionSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
         definitionSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setInputDataSpec, itemSpec::getInputDataSpec);
@@ -130,18 +129,16 @@ public class DefinitionSpecProcessorUnitTest {
         assertEqualsSpec(expectedBaseSpec, inputBaseSpec);
     }
 
-    private TestSpecificationItem getSpecItemByKey(TestBaseSpecification spec, String key) {
-        return spec.getItems().stream()
-            .filter(d -> key.equals(d.getKey()))
-            .findFirst()
-            .orElseThrow(() -> new NoSuchElementException("No TestSpecificationItem found with key: " + key));
-    }
+    @Test
+    public void processDataSpec_multipleDefinitions() {
+        TestBaseSpecification expectedBaseSpec = loadBaseSpecByFileName("definitions/expected/multiple-definition");
+        TestBaseSpecification inputBaseSpec = loadBaseSpecByFileName("definitions/input/multiple-definition");
+        TestSpecificationItem itemSpec = getSpecItemByKey(inputBaseSpec, "store/GET-EMPLOYEES-AGE");
 
-    private DefinitionSpec getSpecByKey(Collection<DefinitionSpec> definitions, String key) {
-        return definitions.stream()
-            .filter(d -> key.equals(d.getKey()))
-            .findFirst()
-            .orElseThrow(() -> new NoSuchElementException("No DefinitionSpec found with key: " + key));
+        definitionSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
+        definitionSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setInputDataSpec, itemSpec::getInputDataSpec);
+
+        assertEqualsSpec(expectedBaseSpec, inputBaseSpec);
     }
 
     @SneakyThrows

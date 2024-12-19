@@ -7,6 +7,8 @@ import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,10 +20,14 @@ public class AssertionUtils {
 
     @SneakyThrows
     public static void assertEqualsSpec(TestBaseSpecification expectedBaseSpec, TestBaseSpecification actualBaseSpec) {
-        Map<String, TestSpecificationItem> actualItems = actualBaseSpec.getItems().stream()
+        Map<String, TestSpecificationItem> actualItems = Optional.ofNullable(actualBaseSpec.getItems())
+            .orElse(Set.of())
+            .stream()
             .collect(Collectors.toMap(TestSpecificationItem::getKey, d -> d));
 
-        expectedBaseSpec.getItems().forEach(expected -> {
+        Optional.ofNullable(expectedBaseSpec.getItems())
+            .orElse(Set.of())
+            .forEach(expected -> {
                 assertTrue(actualItems.containsKey(expected.getKey()));
                 assertJsonEquals(expected.getInputDataSpec(), actualItems.get(expected.getKey()).getInputDataSpec());
                 assertJsonEquals(expected.getOutputDataSpec(), actualItems.get(expected.getKey()).getOutputDataSpec());

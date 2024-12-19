@@ -31,7 +31,7 @@ public class TestReadSpecUtils {
 
     @SneakyThrows
     public static String loadJsonSpecFileByName(String name) {
-        return loadFile("config/spec/json-definitions/" + name + ".json");
+        return loadFile("config/spec/" + name + ".json");
     }
 
     @SneakyThrows

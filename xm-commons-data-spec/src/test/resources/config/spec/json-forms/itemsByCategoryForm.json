@@ -1,0 +1,19 @@
+{
+    "form": [
+        {
+            "$ref": "#/xmForm/itemsByStoreForm"
+        },
+        {
+            "key": "name"
+        }
+    ],
+    "dataFieldExpressions": {
+        "categoryId": "$.dto?.id"
+    },
+    "props": {
+        "hideNameAndDescription": true,
+        "formHeaderTitle": {
+            "en": "Add new"
+        }
+    }
+}
