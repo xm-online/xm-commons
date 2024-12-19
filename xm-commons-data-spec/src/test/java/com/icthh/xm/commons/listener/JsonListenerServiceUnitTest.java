@@ -13,6 +13,7 @@ import static com.icthh.xm.commons.utils.TestReadSpecUtils.loadJsonSpecFileByNam
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.spy;
 
@@ -109,6 +110,14 @@ public class JsonListenerServiceUnitTest {
         assertNotNull(result);
         assertTrue(result.containsKey(relativePath));
         assertEquals(config, result.get(relativePath));
+    }
+
+    @Test
+    void getSpecificationByTenant_nullRelativePath() {
+        jsonListenerService.processTenantSpecification(TEST_TENANT, null, null);
+        Map<String, String> result = jsonListenerService.getSpecificationByTenant(TEST_TENANT);
+
+        assertNull(result);
     }
 
     @SneakyThrows
