@@ -1,0 +1,39 @@
+test-items:
+    - key: store/GET-GEO-ADDRESS
+      inputSpec: |
+          {
+            "type": "object",
+            "properties": {
+              "uaa": {
+                "$ref": "#/xmDefinition/geoAddress"
+              }
+            },
+            "xmDefinition": {
+              "geoAddress": {
+                  "type": "object",
+                  "properties": {
+                    "location": {
+                      "lat": {
+                        "type": "number"
+                      },
+                      "lng": {
+                        "type": "number"
+                      }
+                    },
+                    "place_id": {
+                      "type": "string"
+                    },
+                    "utcOffset": {
+                      "type": "integer"
+                    },
+                    "components": {
+                      "type": "object"
+                    }
+                  }
+              }
+            }
+          }
+
+definitions:
+    - key: geoAddress
+      ref: json-definitions/geoAddress.json

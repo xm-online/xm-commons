@@ -26,6 +26,7 @@ public class FunctionResultTest implements FunctionResult {
     private String key;
     private Instant startDate;
     private Instant endDate;
+    @Builder.Default
     private Map<String, Object> data = new HashMap<>();
     private transient boolean onlyData;
 

@@ -1,0 +1,17 @@
+{
+    "type": "object",
+    "properties": {
+        "userInfo": {
+            "$ref": "#/xmDefinition/userInfo"
+        },
+        "address": {
+            "$ref": "#/xmDefinition/address"
+        },
+        "companyName": { "type": "string" }
+    },
+    "required": [
+        "userInfo",
+        "address",
+        "companyName"
+    ]
+}

@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -29,10 +30,14 @@ public class FunctionApiSpecsProcessor extends DefaultSpecProcessingService<Func
     public FunctionApiSpecs processSpecification(String tenant, String baseSpecKey, FunctionApiSpecs specification) {
         Optional.ofNullable(specification.getItems())
             .orElseGet(List::of)
+            .stream()
+            .filter(Objects::nonNull)
             .forEach(f -> {
                 processValidateInputParameter(specification.isValidateFunctionInput(), f);
                 definitionSpecProcessor.processDataSpec(tenant, baseSpecKey, f::setInputDataSpec, f::getInputDataSpec);
+                definitionSpecProcessor.processDataSpec(tenant, baseSpecKey, f::setOutputDataSpec, f::getOutputDataSpec);
                 formSpecProcessor.processDataSpec(tenant, baseSpecKey, f::setInputFormSpec, f::getInputFormSpec);
+                formSpecProcessor.processDataSpec(tenant, baseSpecKey, f::setOutputFormSpec, f::getOutputFormSpec);
             });
         definitionSpecProcessor.processDefinitionsItSelf(tenant, baseSpecKey);
         return specification;

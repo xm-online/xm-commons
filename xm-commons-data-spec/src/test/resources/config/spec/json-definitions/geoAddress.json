@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "location": {
+      "lat": {
+        "type": "number"
+      },
+      "lng": {
+        "type": "number"
+      }
+    },
+    "place_id": {
+      "type": "string"
+    },
+    "utcOffset": {
+      "type": "integer"
+    },
+    "components": {
+      "type": "object"
+    }
+  }
+}

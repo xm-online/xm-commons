@@ -1,0 +1,7 @@
+[
+    { "key": "employeeName", "title": { "en": "First name" }, "type": "string" },
+    { "key": "employeeLastName", "title": { "en": "Last name" }, "type": "string" },
+    { "key": "employeeEmail", "title": {"en": "Email" }, "type": "string" },
+    { "key": "phoneNumber", "title": {"en": "Email" }, "type": "string" },
+    { "key": "age", "title": {"en": "Email" }, "type": "string" }
+]

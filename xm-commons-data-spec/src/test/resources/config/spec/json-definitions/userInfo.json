@@ -1,0 +1,15 @@
+{
+    "type": "object",
+    "properties": {
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "langKey": { "type": "string" }
+    },
+    "required": [
+        "firstName",
+        "lastName",
+        "email"
+    ]
+}

@@ -1,0 +1,48 @@
+---
+test-items:
+  - key: item/SEARCH-ITEMS-BY-CATEGORY
+    inputForm: |
+      {
+        "form": [
+          {
+            "form": [
+              {
+                "key": "storeName",
+                "title": "Enter store name",
+                "type": "rest-select",
+                "labelField": "name",
+                "valueField": "id"
+              },
+              {
+                "key": "name"
+              }
+            ],
+            "dataFieldExpressions": {
+                "categoryId": "$.dto?.id"
+            },
+            "props": {
+                "hideNameAndDescription": true,
+                "formHeaderTitle": {
+                    "en": "Add new"
+                }
+            }
+          },
+          { "key": "role", "title": { "en": "Role" }, "type": "string", "readonly": true, "condition": {"functionBody": "{ return $.xmEntity; }"} },
+          { "type": "submit", "title": "Submit", "condition": {"functionBody": "{return $.principal.hasPrivilegesInline(['EMPLOYEE.UPDATE.FIELDS']);}"}}
+        ],
+        "props": {
+          "hideNameAndDescription": true
+        }
+      }
+forms:
+  - key: itemsByCategoryForm
+    ref: json-forms/itemsByCategoryForm.json
+  - key: itemsByStoreForm
+    value: |-
+      {
+        "key": "storeName",
+        "title": "Enter store name",
+        "type": "rest-select",
+        "labelField": "name",
+        "valueField": "id"
+      }
