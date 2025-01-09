@@ -1,0 +1,172 @@
+---
+functions:
+  - key: folder/v1/TestName
+    tags: ["external"]
+    name: {"uk": "Test Name"}
+    wrapResult: true
+    inputSpec: |
+        {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          }
+        }
+  - key: check/path/TestNamePut
+    tags: ["test", "duplicatePath"]
+    path: /check/different/key/with/same/path
+    httpMethods: ["PUT"]
+  - key: check/path/TestNameDelete
+    tags: ["test", "duplicatePath", "duplicatePathExclude"]
+    path: /check/different/key/with/same/path
+    httpMethods: ["DELETE"]
+  - key: NameFromKeyWrappedResultInReturn
+    httpMethods: ["POST_URLENCODED", "DELETE"]
+    tags: ["test", "external"]
+    inputSpec: |
+        {
+          "type": "object",
+          "properties": {
+            "phone": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string"
+            }
+          }
+        }
+    outputSpec: |
+        {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string"
+            },
+            "count": {
+              "type": "number"
+            }
+          }
+        }
+  - key: TestFunctionGeneration
+    tags: ["test", "internal"]
+    name: {en: "TestFunctionGeneration name"}
+    path: /relative/path/{pathVariable}/other/{otherPathVariable}/{notDefinedVariable}/etc
+    httpMethods: ["GET", "POST", "POST_URLENCODED", "PUT", "DELETE"]
+    wrapResult: true
+    inputSpec: |
+        {
+          "definitions": {
+            "FunctionName": {
+              "$ref": "#/xmDefinition/nameHolder/NameDefinition"
+            }
+          },
+          "xmDefinition": {
+            "nameHolder": {
+              "NameDefinition": {
+                "type": "object",
+                "properties": {
+                "name": {
+                  "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "type": "object",
+          "properties": {
+            "functionName": {
+              "$ref": "#/definitions/FunctionName"
+            },
+            "functionName2": {
+              "$ref": "#/definitions/FunctionName"
+            },
+            "firstName": {
+              "type": "string"
+            },
+            "lastName": {
+              "type": "string"
+            },
+            "pathVariable": {
+              "type": "string"
+            },
+            "otherPathVariable": {
+              "type": "number"
+            }
+          }
+        }
+    outputSpec: |
+        {
+          "type":"object",
+          "properties":{
+              "value":{
+                  "type":"string"
+              },
+              "count":{
+                  "type":"number"
+              },
+              "nameHolder":{
+                  "$ref":"#/xmDefinition/nameHolder/NameDefinition"
+              }
+          },
+          "xmDefinition":{
+              "nameHolder":{
+                  "NameDefinition":{
+                      "type":"object",
+                      "properties":{
+                          "name":{
+                              "type":"string"
+                          }
+                      }
+                  }
+              }
+          }
+        }
+  - key: StructureFunction
+    path: folder/{variable}/StructureFunction
+    tags: ["external"]
+    name: {"uk": "Structure"}
+    wrapResult: true
+    inputSpec: |
+        {
+          "$ref":"#/xmDefinition/structure",
+          "xmDefinition":{
+              "structure":{
+                  "type":"object",
+                  "properties":{
+                      "name":{
+                          "type":"string"
+                      },
+                      "variable":{
+                          "type":"number"
+                      }
+                  }
+              }
+          }
+        }
+definitions:
+    - key: nameHolder
+      value: |
+          {
+            "NameDefinition": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+    - key: structure
+      value: |
+          {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "variable": {
+                "type": "number"
+              }
+            }
+          }

@@ -16,6 +16,9 @@ dependencies {
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
 
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.module:jackson-module-jsonSchema'
+    implementation 'com.fasterxml.jackson.module:jackson-module-afterburner'
+    implementation "org.apache.commons:commons-collections4:${versions.commonsCollections4}"
     implementation "com.networknt:json-schema-validator:${versions.jsonSchemaValidatorVersion}"
     implementation "com.codahale.metrics:metrics-annotation:${versions.codahaleMetrics}"
     implementation('org.springframework.boot:spring-boot-starter-web') {

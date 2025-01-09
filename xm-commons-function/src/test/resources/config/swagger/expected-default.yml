@@ -1,0 +1,690 @@
+---
+openapi: "3.0.3"
+info:
+    version: "0.0.1"
+    title: "XM functions api"
+servers:
+    - url: "https://xm.domain.com:8080"
+paths:
+    /function/api/functions/folder/v1/TestName:
+        post:
+            summary: "Test Name"
+            description: "folder/v1/TestName"
+            operationId: "folderV1TestNamePost"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: "object"
+                            properties:
+                                name:
+                                    type: "string"
+            tags:
+                - "external"
+            responses:
+                400:
+                    $ref: "#/components/responses/400"
+                401:
+                    $ref: "#/components/responses/401"
+                403:
+                    $ref: "#/components/responses/403"
+                404:
+                    $ref: "#/components/responses/404"
+                500:
+                    $ref: "#/components/responses/500"
+                201:
+                    description: "Successful operation"
+                    content:
+                        application/json:
+                            schema:
+                                type: "object"
+                                properties:
+                                    id:
+                                        type: "integer"
+                                    startDate:
+                                        type: "number"
+                                    endDate:
+                                        type: "number"
+                                    data:
+                                        type: "object"
+                                        additionalProperties: true
+        get:
+            summary: "Test Name"
+            description: "folder/v1/TestName"
+            operationId: "folderV1TestNameGet"
+            parameters:
+                - in: "query"
+                  name: "name"
+                  required: true
+                  schema:
+                      type: "string"
+            tags:
+                - "external"
+            responses:
+                400:
+                    $ref: "#/components/responses/400"
+                401:
+                    $ref: "#/components/responses/401"
+                403:
+                    $ref: "#/components/responses/403"
+                404:
+                    $ref: "#/components/responses/404"
+                500:
+                    $ref: "#/components/responses/500"
+                200:
+                    description: "Successful operation"
+                    content:
+                        application/json:
+                            schema:
+                                type: "object"
+                                properties:
+                                    id:
+                                        type: "integer"
+                                    startDate:
+                                        type: "number"
+                                    endDate:
+                                        type: "number"
+                                    data:
+                                        type: "object"
+                                        additionalProperties: true
+    /function/api/functions/check/different/key/with/same/path:
+        delete:
+            summary: "check/path/TestNameDelete"
+            description: "check/path/TestNameDelete"
+            operationId: "checkPathTestNameDelete"
+            tags:
+                - "test"
+                - "duplicatePath"
+                - "duplicatePathExclude"
+            responses:
+                400:
+                    $ref: "#/components/responses/400"
+                401:
+                    $ref: "#/components/responses/401"
+                403:
+                    $ref: "#/components/responses/403"
+                404:
+                    $ref: "#/components/responses/404"
+                500:
+                    $ref: "#/components/responses/500"
+                200:
+                    description: "Successful operation"
+                    content:
+                        application/json: {}
+        put:
+            summary: "check/path/TestNamePut"
+            description: "check/path/TestNamePut"
+            operationId: "checkPathTestNamePut"
+            tags:
+                - "test"
+                - "duplicatePath"
+            responses:
+                400:
+                    $ref: "#/components/responses/400"
+                401:
+                    $ref: "#/components/responses/401"
+                403:
+                    $ref: "#/components/responses/403"
+                404:
+                    $ref: "#/components/responses/404"
+                500:
+                    $ref: "#/components/responses/500"
+                200:
+                    description: "Successful operation"
+                    content:
+                        application/json: {}
+    /function/api/functions/NameFromKeyWrappedResultInReturn:
+        post:
+            summary: "NameFromKeyWrappedResultInReturn"
+            description: "NameFromKeyWrappedResultInReturn"
+            operationId: "nameFromKeyWrappedResultInReturnPostUrlencoded"
+            tags:
+                - "test"
+                - "external"
+            requestBody:
+                required: true
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            type: "object"
+                            properties:
+                                phone:
+                                    type: "string"
+                                email:
+                                    type: "string"
+            responses:
+                400:
+                    $ref: "#/components/responses/400"
+                401:
+                    $ref: "#/components/responses/401"
+                403:
+                    $ref: "#/components/responses/403"
+                404:
+                    $ref: "#/components/responses/404"
+                500:
+                    $ref: "#/components/responses/500"
+                201:
+                    description: "Successful operation"
+                    content:
+                        application/json:
+                            schema:
+                                type: "object"
+                                properties:
+                                    value:
+                                        type: "string"
+                                    count:
+                                        type: "number"
+        delete:
+            summary: "NameFromKeyWrappedResultInReturn"
+            description: "NameFromKeyWrappedResultInReturn"
+            operationId: "nameFromKeyWrappedResultInReturnDelete"
+            tags:
+                - "test"
+                - "external"
+            parameters:
+                - in: "query"
+                  name: "phone"
+                  required: true
+                  schema:
+                      type: "string"
+                - in: "query"
+                  name: "email"
+                  required: true
+                  schema:
+                      type: "string"
+            responses:
+                400:
+                    $ref: "#/components/responses/400"
+                401:
+                    $ref: "#/components/responses/401"
+                403:
+                    $ref: "#/components/responses/403"
+                404:
+                    $ref: "#/components/responses/404"
+                500:
+                    $ref: "#/components/responses/500"
+                200:
+                    description: "Successful operation"
+                    content:
+                        application/json:
+                            schema:
+                                type: "object"
+                                properties:
+                                    value:
+                                        type: "string"
+                                    count:
+                                        type: "number"
+    /function/api/functions/relative/path/{pathVariable}/other/{otherPathVariable}/{notDefinedVariable}/etc:
+        post:
+            summary: "TestFunctionGeneration name"
+            description: "TestFunctionGeneration"
+            operationId: "testFunctionGenerationPost"
+            tags:
+                - "test"
+                - "internal"
+            parameters:
+                - in: "path"
+                  name: "pathVariable"
+                  required: true
+                  schema:
+                      type: "string"
+                - in: "path"
+                  name: "otherPathVariable"
+                  required: true
+                  schema:
+                      type: "number"
+                - in: "path"
+                  name: "notDefinedVariable"
+                  required: true
+                  schema:
+                      type: "string"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: "object"
+                            properties:
+                                functionName:
+                                    $ref: "#/components/schemas/FunctionName"
+                                functionName2:
+                                    $ref: "#/components/schemas/FunctionName"
+                                firstName:
+                                    type: "string"
+                                lastName:
+                                    type: "string"
+                    application/x-www-form-urlencoded:
+                        schema:
+                            type: "object"
+                            properties:
+                                functionName:
+                                    $ref: "#/components/schemas/FunctionName"
+                                functionName2:
+                                    $ref: "#/components/schemas/FunctionName"
+                                firstName:
+                                    type: "string"
+                                lastName:
+                                    type: "string"
+            responses:
+                400:
+                    $ref: "#/components/responses/400"
+                401:
+                    $ref: "#/components/responses/401"
+                403:
+                    $ref: "#/components/responses/403"
+                404:
+                    $ref: "#/components/responses/404"
+                500:
+                    $ref: "#/components/responses/500"
+                201:
+                    description: "Successful operation"
+                    content:
+                        application/json:
+                            schema:
+                                type: "object"
+                                properties:
+                                    id:
+                                        type: "integer"
+                                    startDate:
+                                        type: "number"
+                                    endDate:
+                                        type: "number"
+                                    data:
+                                        type: "object"
+                                        properties:
+                                            value:
+                                                type: "string"
+                                            count:
+                                                type: "number"
+                                            nameHolder:
+                                                $ref: "#/components/schemas/NameDefinition"
+        get:
+            summary: "TestFunctionGeneration name"
+            description: "TestFunctionGeneration"
+            operationId: "testFunctionGenerationGet"
+            tags:
+                - "test"
+                - "internal"
+            parameters:
+                - in: "path"
+                  name: "pathVariable"
+                  required: true
+                  schema:
+                      type: "string"
+                - in: "path"
+                  name: "otherPathVariable"
+                  required: true
+                  schema:
+                      type: "number"
+                - in: "path"
+                  name: "notDefinedVariable"
+                  required: true
+                  schema:
+                      type: "string"
+                - in: "query"
+                  name: "functionName"
+                  required: true
+                  schema:
+                      $ref: "#/components/schemas/FunctionName"
+                - in: "query"
+                  name: "functionName2"
+                  required: true
+                  schema:
+                      $ref: "#/components/schemas/FunctionName"
+                - in: "query"
+                  name: "firstName"
+                  required: true
+                  schema:
+                      type: "string"
+                - in: "query"
+                  name: "lastName"
+                  required: true
+                  schema:
+                      type: "string"
+            responses:
+                400:
+                    $ref: "#/components/responses/400"
+                401:
+                    $ref: "#/components/responses/401"
+                403:
+                    $ref: "#/components/responses/403"
+                404:
+                    $ref: "#/components/responses/404"
+                500:
+                    $ref: "#/components/responses/500"
+                200:
+                    description: "Successful operation"
+                    content:
+                        application/json:
+                            schema:
+                                type: "object"
+                                properties:
+                                    id:
+                                        type: "integer"
+                                    startDate:
+                                        type: "number"
+                                    endDate:
+                                        type: "number"
+                                    data:
+                                        type: "object"
+                                        properties:
+                                            value:
+                                                type: "string"
+                                            count:
+                                                type: "number"
+                                            nameHolder:
+                                                $ref: "#/components/schemas/NameDefinition"
+        delete:
+            summary: "TestFunctionGeneration name"
+            description: "TestFunctionGeneration"
+            operationId: "testFunctionGenerationDelete"
+            tags:
+                - "test"
+                - "internal"
+            parameters:
+                - in: "path"
+                  name: "pathVariable"
+                  required: true
+                  schema:
+                      type: "string"
+                - in: "path"
+                  name: "otherPathVariable"
+                  required: true
+                  schema:
+                      type: "number"
+                - in: "path"
+                  name: "notDefinedVariable"
+                  required: true
+                  schema:
+                      type: "string"
+                - in: "query"
+                  name: "functionName"
+                  required: true
+                  schema:
+                      $ref: "#/components/schemas/FunctionName"
+                - in: "query"
+                  name: "functionName2"
+                  required: true
+                  schema:
+                      $ref: "#/components/schemas/FunctionName"
+                - in: "query"
+                  name: "firstName"
+                  required: true
+                  schema:
+                      type: "string"
+                - in: "query"
+                  name: "lastName"
+                  required: true
+                  schema:
+                      type: "string"
+            responses:
+                400:
+                    $ref: "#/components/responses/400"
+                401:
+                    $ref: "#/components/responses/401"
+                403:
+                    $ref: "#/components/responses/403"
+                404:
+                    $ref: "#/components/responses/404"
+                500:
+                    $ref: "#/components/responses/500"
+                200:
+                    description: "Successful operation"
+                    content:
+                        application/json:
+                            schema:
+                                type: "object"
+                                properties:
+                                    id:
+                                        type: "integer"
+                                    startDate:
+                                        type: "number"
+                                    endDate:
+                                        type: "number"
+                                    data:
+                                        type: "object"
+                                        properties:
+                                            value:
+                                                type: "string"
+                                            count:
+                                                type: "number"
+                                            nameHolder:
+                                                $ref: "#/components/schemas/NameDefinition"
+        put:
+            summary: "TestFunctionGeneration name"
+            description: "TestFunctionGeneration"
+            operationId: "testFunctionGenerationPut"
+            tags:
+                - "test"
+                - "internal"
+            parameters:
+                - in: "path"
+                  name: "pathVariable"
+                  required: true
+                  schema:
+                      type: "string"
+                - in: "path"
+                  name: "otherPathVariable"
+                  required: true
+                  schema:
+                      type: "number"
+                - in: "path"
+                  name: "notDefinedVariable"
+                  required: true
+                  schema:
+                      type: "string"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: "object"
+                            properties:
+                                functionName:
+                                    $ref: "#/components/schemas/FunctionName"
+                                functionName2:
+                                    $ref: "#/components/schemas/FunctionName"
+                                firstName:
+                                    type: "string"
+                                lastName:
+                                    type: "string"
+            responses:
+                400:
+                    $ref: "#/components/responses/400"
+                401:
+                    $ref: "#/components/responses/401"
+                403:
+                    $ref: "#/components/responses/403"
+                404:
+                    $ref: "#/components/responses/404"
+                500:
+                    $ref: "#/components/responses/500"
+                200:
+                    description: "Successful operation"
+                    content:
+                        application/json:
+                            schema:
+                                type: "object"
+                                properties:
+                                    id:
+                                        type: "integer"
+                                    startDate:
+                                        type: "number"
+                                    endDate:
+                                        type: "number"
+                                    data:
+                                        type: "object"
+                                        properties:
+                                            value:
+                                                type: "string"
+                                            count:
+                                                type: "number"
+                                            nameHolder:
+                                                $ref: "#/components/schemas/NameDefinition"
+    /function/api/functions/folder/{variable}/StructureFunction:
+        get:
+            description: "StructureFunction"
+            operationId: "structureFunctionGet"
+            parameters:
+                - in: "path"
+                  name: "variable"
+                  required: true
+                  schema:
+                      type: "number"
+                - in: "query"
+                  name: "name"
+                  required: true
+                  schema:
+                      type: "string"
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    data:
+                                        additionalProperties: true
+                                        type: "object"
+                                    endDate:
+                                        type: "number"
+                                    id:
+                                        type: "integer"
+                                    startDate:
+                                        type: "number"
+                                type: "object"
+                    description: "Successful operation"
+                "400":
+                    $ref: "#/components/responses/400"
+                "401":
+                    $ref: "#/components/responses/401"
+                "403":
+                    $ref: "#/components/responses/403"
+                "404":
+                    $ref: "#/components/responses/404"
+                "500":
+                    $ref: "#/components/responses/500"
+            summary: "Structure"
+            tags:
+                - "external"
+        post:
+            description: "StructureFunction"
+            operationId: "structureFunctionPost"
+            parameters:
+                - in: "path"
+                  name: "variable"
+                  required: true
+                  schema:
+                      type: "number"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/Structure"
+                            properties:
+                                name:
+                                    type: "string"
+                            type: "object"
+                required: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    data:
+                                        additionalProperties: true
+                                        type: "object"
+                                    endDate:
+                                        type: "number"
+                                    id:
+                                        type: "integer"
+                                    startDate:
+                                        type: "number"
+                                type: "object"
+                    description: "Successful operation"
+                "400":
+                    $ref: "#/components/responses/400"
+                "401":
+                    $ref: "#/components/responses/401"
+                "403":
+                    $ref: "#/components/responses/403"
+                "404":
+                    $ref: "#/components/responses/404"
+                "500":
+                    $ref: "#/components/responses/500"
+            summary: "Structure"
+            tags:
+                - "external"
+components:
+    responses:
+        400:
+            description: "Bad request. Request invalid by business rules"
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/RequestError"
+        401:
+            description: "Invalid access token"
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/RequestError"
+        403:
+            description: "Forbidden"
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/RequestError"
+        404:
+            description: "Not found"
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/RequestError"
+        500:
+            description: "Internal server error"
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/RequestError"
+    schemas:
+        RequestError:
+            properties:
+                error:
+                    type: "string"
+                error_description:
+                    type: "string"
+            type: "object"
+        FunctionName:
+            $ref: "#/components/schemas/NameDefinition"
+        NameDefinition:
+            type: "object"
+            properties:
+                name:
+                    type: "string"
+        Structure:
+            properties:
+                name:
+                    type: "string"
+                variable:
+                    type: "number"
+            type: "object"
+    securitySchemes:
+        oAuth2Password:
+            type: "oauth2"
+            flows:
+                password:
+                    tokenUrl: "/uaa/oauth/token"
+                    scopes:
+                        openapi: "Default client scope"
+        oAuth2ClientCredentials:
+            type: "oauth2"
+            flows:
+                clientCredentials:
+                    tokenUrl: "/uaa/oauth/token"
+                    scopes:
+                        openapi: "Default client scope"
+security:
+    - oAuth2Password: []
+    - oAuth2ClientCredentials: []
