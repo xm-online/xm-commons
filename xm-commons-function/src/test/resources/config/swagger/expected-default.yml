@@ -9,7 +9,7 @@ paths:
     /function/api/functions/folder/v1/TestName:
         post:
             summary: "Test Name"
-            description: "folder/v1/TestName"
+            description: "Test name function description"
             operationId: "folderV1TestNamePost"
             requestBody:
                 required: true
@@ -51,7 +51,7 @@ paths:
                                         additionalProperties: true
         get:
             summary: "Test Name"
-            description: "folder/v1/TestName"
+            description: "Test name function description"
             operationId: "folderV1TestNameGet"
             parameters:
                 - in: "query"
@@ -218,7 +218,7 @@ paths:
     /function/api/functions/relative/path/{pathVariable}/other/{otherPathVariable}/{notDefinedVariable}/etc:
         post:
             summary: "TestFunctionGeneration name"
-            description: "TestFunctionGeneration"
+            description: "Description for test function generation"
             operationId: "testFunctionGenerationPost"
             tags:
                 - "test"
@@ -301,7 +301,7 @@ paths:
                                                 $ref: "#/components/schemas/NameDefinition"
         get:
             summary: "TestFunctionGeneration name"
-            description: "TestFunctionGeneration"
+            description: "Description for test function generation"
             operationId: "testFunctionGenerationGet"
             tags:
                 - "test"
@@ -377,7 +377,7 @@ paths:
                                                 $ref: "#/components/schemas/NameDefinition"
         delete:
             summary: "TestFunctionGeneration name"
-            description: "TestFunctionGeneration"
+            description: "Description for test function generation"
             operationId: "testFunctionGenerationDelete"
             tags:
                 - "test"
@@ -453,7 +453,7 @@ paths:
                                                 $ref: "#/components/schemas/NameDefinition"
         put:
             summary: "TestFunctionGeneration name"
-            description: "TestFunctionGeneration"
+            description: "Description for test function generation"
             operationId: "testFunctionGenerationPut"
             tags:
                 - "test"

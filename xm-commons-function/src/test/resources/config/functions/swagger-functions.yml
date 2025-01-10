@@ -3,6 +3,7 @@ functions:
   - key: folder/v1/TestName
     tags: ["external"]
     name: {"uk": "Test Name"}
+    description: "Test name function description"
     wrapResult: true
     inputSpec: |
         {
@@ -51,6 +52,7 @@ functions:
   - key: TestFunctionGeneration
     tags: ["test", "internal"]
     name: {en: "TestFunctionGeneration name"}
+    description: "Description for test function generation"
     path: /relative/path/{pathVariable}/other/{otherPathVariable}/{notDefinedVariable}/etc
     httpMethods: ["GET", "POST", "POST_URLENCODED", "PUT", "DELETE"]
     wrapResult: true

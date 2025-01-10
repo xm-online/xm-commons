@@ -77,6 +77,11 @@ public class DynamicSwaggerFunctionGeneratorImpl extends DefaultDynamicSwaggerFu
     }
 
     @Override
+    public String getFunctionDescription(FunctionSpec functionSpec) {
+        return Optional.ofNullable(functionSpec.getDescription()).orElse(functionSpec.getKey());
+    }
+
+    @Override
     public String getFunctionInputJsonSchema(FunctionSpec functionSpec) {
         return functionSpec.getInputDataSpec();
     }

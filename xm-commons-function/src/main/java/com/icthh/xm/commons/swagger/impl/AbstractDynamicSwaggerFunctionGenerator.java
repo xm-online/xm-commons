@@ -53,7 +53,7 @@ public abstract class AbstractDynamicSwaggerFunctionGenerator<FS extends IFuncti
             functionSpec.getKey(),
             makeAsPath(functionSpec.getPath(), functionSpec.getKey()),
             getFunctionName(functionSpec),
-            functionSpec.getKey(),
+            getFunctionDescription(functionSpec),
             getFunctionInputJsonSchema(functionSpec),
             getFunctionOutputJsonSchema(functionSpec),
             getFunctionTags(functionSpec),
@@ -79,6 +79,7 @@ public abstract class AbstractDynamicSwaggerFunctionGenerator<FS extends IFuncti
     @NotNull
     public abstract List<String> getFunctionTags(FS functionSpec);
     public abstract String getFunctionName(FS functionSpec);
+    public abstract String getFunctionDescription(FS functionSpec);
     public abstract String getFunctionInputJsonSchema(FS functionSpec);
     public abstract String getFunctionOutputJsonSchema(FS functionSpec);
 }

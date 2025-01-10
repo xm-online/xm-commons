@@ -33,6 +33,12 @@ public class FunctionSpec implements IFunctionSpec, BaseSpecificationItem {
     private Map<String, String> name;
 
     /**
+     * Function description.
+     */
+    @JsonProperty("description")
+    private String description;
+
+    /**
      * Unique in tenant HTTP path template.
      * May contain placeholders for path parameters.
      * Example: my/rest/service/{id}

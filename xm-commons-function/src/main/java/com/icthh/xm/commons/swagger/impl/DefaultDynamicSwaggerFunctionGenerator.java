@@ -63,7 +63,12 @@ public abstract class DefaultDynamicSwaggerFunctionGenerator<FS extends IFunctio
 
     @Override
     public String getFunctionName(FS functionSpec) {
-        return "";
+        return EMPTY;
+    }
+
+    @Override
+    public String getFunctionDescription(FS functionSpec) {
+        return functionSpec.getKey();
     }
 
     @Override
