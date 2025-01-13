@@ -1,0 +1,12 @@
+---
+info:
+    version: "4.5.0"
+    title: "Test swagger"
+servers:
+    - url: "https://test-env"
+    - url: "https://dev-env"
+tags:
+    - name: "external"
+      description: "External functions"
+    - name: "test"
+      description: "Test functions"

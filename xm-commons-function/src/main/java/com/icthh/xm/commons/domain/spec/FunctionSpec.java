@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.icthh.xm.commons.domain.BaseSpecificationItem;
-import com.icthh.xm.commons.domain.SpecificationItem;
 import com.icthh.xm.commons.domain.enums.FunctionTxTypes;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The {@link FunctionSpec} class.
@@ -25,6 +25,18 @@ public class FunctionSpec implements IFunctionSpec, BaseSpecificationItem {
      */
     @JsonProperty("key")
     private String key;
+
+    /**
+     * Function name.
+     */
+    @JsonProperty("name")
+    private Map<String, String> name;
+
+    /**
+     * Function description.
+     */
+    @JsonProperty("description")
+    private String description;
 
     /**
      * Unique in tenant HTTP path template.
@@ -80,7 +92,7 @@ public class FunctionSpec implements IFunctionSpec, BaseSpecificationItem {
      * Function api tags
      */
     @JsonProperty("tags")
-    private List<TagSpec> tags = new ArrayList<>();
+    private List<String> tags = new ArrayList<>();
 
     /**
      * Function api http methods
