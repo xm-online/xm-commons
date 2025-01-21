@@ -35,8 +35,6 @@ public class DefaultSwaggerGenerator extends AbstractSwaggerGenerator {
         ObjectNode tree = (ObjectNode) objectMapper.readTree(objectMapper.writeValueAsString(jsonSchema));
         ObjectNode properties = (ObjectNode) tree.get("properties");
         tree.remove("id");
-        properties.remove("rid");
-        properties.remove("executeTime");
         properties.remove("modelAndView");
         return tree;
     }

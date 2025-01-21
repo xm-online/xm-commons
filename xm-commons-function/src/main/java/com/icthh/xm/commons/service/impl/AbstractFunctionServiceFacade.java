@@ -1,5 +1,9 @@
 package com.icthh.xm.commons.service.impl;
 
+import static com.icthh.xm.commons.utils.Constants.FUNCTION_CALL_PRIVILEGE;
+import static com.icthh.xm.commons.utils.HttpRequestUtils.convertToCanonicalHttpMethod;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 import com.icthh.xm.commons.domain.FunctionResult;
 import com.icthh.xm.commons.domain.enums.FunctionTxTypes;
 import com.icthh.xm.commons.domain.spec.IFunctionSpec;
@@ -8,14 +12,11 @@ import com.icthh.xm.commons.service.FunctionResultProcessor;
 import com.icthh.xm.commons.service.FunctionService;
 import com.icthh.xm.commons.service.FunctionServiceFacade;
 import com.icthh.xm.commons.service.FunctionTxControl;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
-
 import java.util.Map;
 import java.util.function.Supplier;
-
-import static com.icthh.xm.commons.utils.Constants.FUNCTION_CALL_PRIVILEGE;
-import static com.icthh.xm.commons.utils.HttpRequestUtils.convertToCanonicalHttpMethod;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.time.StopWatch;
+import org.springframework.security.access.AccessDeniedException;
 
 @RequiredArgsConstructor
 public abstract class AbstractFunctionServiceFacade<FS extends IFunctionSpec> implements FunctionServiceFacade {
@@ -27,6 +28,7 @@ public abstract class AbstractFunctionServiceFacade<FS extends IFunctionSpec> im
 
     @Override
     public FunctionResult execute(String functionKey, Map<String, Object> functionInput, String httpMethod) {
+        StopWatch stopWatch = StopWatch.createStarted();
         functionService.validateFunctionKey(functionKey);
         functionService.checkPermissions(FUNCTION_CALL_PRIVILEGE, functionKey);
 
@@ -34,15 +36,18 @@ public abstract class AbstractFunctionServiceFacade<FS extends IFunctionSpec> im
         Map<String, Object> input = functionService.getValidFunctionInput(functionSpec, functionInput);
         functionService.enrichInputFromPathParams(functionKey, input, functionSpec);
 
-        return callLepExecutor(functionSpec.getTxType(), () -> {
+        FunctionResult functionResult = callLepExecutor(functionSpec.getTxType(), () -> {
             var lepHttpMethod = convertToCanonicalHttpMethod(httpMethod);
             Object data = functionExecutorService.execute(functionSpec.getKey(), input, lepHttpMethod);
             return processFunctionResult(functionKey, data, functionSpec);
         });
+        functionResult.setExecuteTime(stopWatch.getTime(MILLISECONDS));
+        return functionResult;
     }
 
     @Override
     public FunctionResult executeAnonymous(String functionKey, Map<String, Object> functionInput, String httpMethod) {
+        StopWatch stopWatch = StopWatch.createStarted();
         FS functionSpec = functionService.findFunctionSpec(functionKey, httpMethod);
 
         if (!functionSpec.getAnonymous()) {
@@ -52,11 +57,13 @@ public abstract class AbstractFunctionServiceFacade<FS extends IFunctionSpec> im
         Map<String, Object> input = functionService.getValidFunctionInput(functionSpec, functionInput);
         functionService.enrichInputFromPathParams(functionKey, input, functionSpec);
 
-        return callLepExecutor(functionSpec.getTxType(), () -> {
+        FunctionResult functionResult = callLepExecutor(functionSpec.getTxType(), () -> {
             var lepHttpMethod = convertToCanonicalHttpMethod(httpMethod);
             Object data = functionExecutorService.executeAnonymousFunction(functionSpec.getKey(), input, lepHttpMethod);
             return processFunctionResult(functionKey, data, functionSpec);
         });
+        functionResult.setExecuteTime(stopWatch.getTime(MILLISECONDS));
+        return functionResult;
     }
 
     /**

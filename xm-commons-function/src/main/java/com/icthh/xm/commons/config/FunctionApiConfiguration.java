@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.config;
 
+import com.icthh.xm.commons.domain.DefaultFunctionResult;
 import com.icthh.xm.commons.domain.FunctionResult;
 import com.icthh.xm.commons.domain.spec.FunctionSpec;
 import com.icthh.xm.commons.service.FunctionExecutorService;
@@ -22,7 +23,7 @@ public class FunctionApiConfiguration {
     public FunctionResultProcessor<FunctionSpec> functionResultProcessor() {
         return (functionKey, executorResult, functionSpec) -> {
             log.debug("Function result wrapping is not implemented for function: {}", functionKey);
-            return (FunctionResult) executorResult;
+            return new DefaultFunctionResult(executorResult, functionSpec.getWrapResult());
         };
     }
 

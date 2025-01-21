@@ -21,7 +21,7 @@ public interface FunctionResultProcessor<FS extends IFunctionSpec> {
      * @return function result
      */
     default FunctionResult processFunctionResult(String functionKey, Object executorResult, FS functionSpec) {
-        return FALSE.equals(functionSpec.getWrapResult()) && executorResult instanceof FunctionResult
+        return executorResult instanceof FunctionResult
             ? (FunctionResult) executorResult
             : wrapFunctionResult(functionKey, executorResult, functionSpec);
     }

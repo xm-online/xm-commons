@@ -74,7 +74,7 @@ public class DynamicSwaggerFunctionGeneratorImplUnitTest {
         var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL);
         var expected = readExpected("config/swagger/expected-default.yml");
 
-        assertThat(toYml(expected)).isEqualTo(toYml(swagger));
+        assertThat(toYml(swagger)).isEqualTo(toYml(expected));
     }
 
     @Test

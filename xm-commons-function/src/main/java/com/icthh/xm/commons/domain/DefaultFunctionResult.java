@@ -1,38 +1,48 @@
 package com.icthh.xm.commons.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.web.servlet.ModelAndView;
+import static com.icthh.xm.commons.utils.ModelAndViewUtils.MVC_FUNC_RESULT;
+import static java.lang.Boolean.TRUE;
+import static java.time.temporal.ChronoUnit.MILLIS;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Transient;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import static com.icthh.xm.commons.utils.ModelAndViewUtils.MVC_FUNC_RESULT;
+import java.util.function.Function;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.web.servlet.ModelAndView;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class DefaultFunctionResult implements FunctionResult {
 
-    private Instant startDate;
-    private Instant endDate;
-    private Map<String, Object> data = new HashMap<>();
+    private long executeTime;
+    private Object data;
 
-    @Override
-    public long getExecuteTime() {
-        Instant startDate = Optional.ofNullable(this.startDate).orElse(Instant.now());
-        Instant endDate = Optional.ofNullable(this.endDate).orElse(Instant.now());
-        return startDate != null && endDate != null ? Duration.between(startDate, endDate).getSeconds() : 0;
+    @JsonIgnore
+    @Transient
+    @Setter
+    private transient Boolean wrapResult;
+
+    public DefaultFunctionResult(Object data, Boolean wrapResult) {
+        this.data = data;
+        this.wrapResult = wrapResult;
+    }
+
+    public DefaultFunctionResult(Object data) {
+        this.data = data;
     }
 
     @JsonIgnore
     @Override
     public Object functionResult() {
+        if (TRUE.equals(wrapResult)) {
+            return this;
+        }
         return this.data;
     }
 
@@ -40,7 +50,12 @@ public class DefaultFunctionResult implements FunctionResult {
     @Override
     public ModelAndView getModelAndView() {
         return (ModelAndView) Optional.ofNullable(getData())
+            .flatMap(isInstanceOf(Map.class))
             .map(d -> d.get(MVC_FUNC_RESULT))
             .orElse(null);
+    }
+
+    private <T> Function<Object, Optional<T>> isInstanceOf(Class<T> type) {
+        return obj -> type.isInstance(obj) ? Optional.of((T) obj) : Optional.empty();
     }
 }

@@ -15,14 +15,16 @@ public interface FunctionResult {
     /**
      * Get function execution related data
      */
-    default Object getData() {
-        return functionResult();
-    }
+    Object getData();
 
     /**
      * Get function execution time
      */
     long getExecuteTime();
+
+    default void setExecuteTime(long executeTime) {
+        // not implemented by default
+    }
 
     /**
      * Get function execution rid
