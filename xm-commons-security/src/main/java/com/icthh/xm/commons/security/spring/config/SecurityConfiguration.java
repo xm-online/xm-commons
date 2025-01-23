@@ -78,6 +78,7 @@ public class SecurityConfiguration {
                     .requestMatchers("/management/prometheus").permitAll()
                     .requestMatchers("/management/prometheus/**").permitAll()
                     .requestMatchers("/management/**").hasAuthority(SUPER_ADMIN)
+                    .requestMatchers("/v3/api-docs/**").hasAuthority(SUPER_ADMIN)
                     .requestMatchers("/swagger-resources/configuration/ui").permitAll()
             );
         // @formatter:on
