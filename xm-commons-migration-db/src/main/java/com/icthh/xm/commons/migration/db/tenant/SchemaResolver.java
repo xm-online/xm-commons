@@ -58,6 +58,7 @@ public class SchemaResolver {
 
         if (StringUtils.isNotBlank(suffix)) {
             return schemas.stream().map((schema) -> (schema.concat(suffix)))
+                .map(String::toUpperCase)
                 .collect(Collectors.toList());
         }
         return schemas;
