@@ -11,12 +11,8 @@ import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.gen.model.Tenant;
-import com.icthh.xm.commons.migration.db.Constants;
 import com.icthh.xm.commons.migration.db.liquibase.LiquibaseRunner;
 import com.icthh.xm.commons.migration.db.tenant.DropSchemaResolver;
-import java.sql.Connection;
-import java.sql.Statement;
-import javax.sql.DataSource;
 import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,8 +23,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
-import org.springframework.core.env.Environment;
 
+import java.sql.Connection;
+import java.sql.Statement;
+import javax.sql.DataSource;
 
 public class TenantDatabaseProvisionerUnitTest {
 
@@ -36,7 +34,6 @@ public class TenantDatabaseProvisionerUnitTest {
     private static final String TENANT_STATE = "testState";
     private static final String DB_SCHEMA_SUFFIX_VALUE = "_suffix";
 
-    @Mock
     private TenantDatabaseProvisioner tenantDatabaseProvisioner;
 
     @Rule
@@ -60,9 +57,6 @@ public class TenantDatabaseProvisionerUnitTest {
     @Mock
     private LiquibaseRunner liquibaseRunner;
 
-    @Mock
-    private Environment environment;
-
     @Before
     @SneakyThrows
     public void setup() {
@@ -70,10 +64,9 @@ public class TenantDatabaseProvisionerUnitTest {
 
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.createStatement()).thenReturn(statement);
-        when(environment.getProperty(eq(Constants.DB_SCHEMA_SUFFIX), eq(""))).thenReturn("");
 
         tenantDatabaseProvisioner = Mockito.spy(new TenantDatabaseProvisioner(dataSource, properties,
-            schemaDropResolver, liquibaseRunner, environment));
+            schemaDropResolver, liquibaseRunner, null));
     }
 
     @Test
@@ -95,9 +88,8 @@ public class TenantDatabaseProvisionerUnitTest {
     @Test
     @SneakyThrows
     public void testCreateTenantWithSuffix() {
-        when(environment.getProperty(eq(Constants.DB_SCHEMA_SUFFIX), eq(""))).thenReturn(DB_SCHEMA_SUFFIX_VALUE);
         tenantDatabaseProvisioner = Mockito.spy(new TenantDatabaseProvisioner(dataSource, properties,
-            schemaDropResolver, liquibaseRunner, environment));
+            schemaDropResolver, liquibaseRunner, DB_SCHEMA_SUFFIX_VALUE));
 
         doNothing().when(tenantDatabaseProvisioner).migrateSchema(any());
         Tenant tenant = new Tenant().tenantKey(TENANT_KEY);
@@ -147,9 +139,8 @@ public class TenantDatabaseProvisionerUnitTest {
     @Test
     @SneakyThrows
     public void testDeleteTenantWithSuffix() {
-        when(environment.getProperty(eq(Constants.DB_SCHEMA_SUFFIX), eq(""))).thenReturn(DB_SCHEMA_SUFFIX_VALUE);
         tenantDatabaseProvisioner = Mockito.spy(new TenantDatabaseProvisioner(dataSource, properties,
-            schemaDropResolver, liquibaseRunner, environment));
+            schemaDropResolver, liquibaseRunner, DB_SCHEMA_SUFFIX_VALUE));
 
         when(schemaDropResolver.getSchemaDropCommand()).thenReturn("DROP SCHEMA IF EXISTS %s CASCADE");
         tenantDatabaseProvisioner.deleteTenant(TENANT_KEY);
