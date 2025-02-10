@@ -9,10 +9,10 @@ import com.icthh.xm.commons.gen.model.Tenant;
 import com.icthh.xm.commons.migration.db.liquibase.LiquibaseRunner;
 import com.icthh.xm.commons.migration.db.tenant.DropSchemaResolver;
 import com.icthh.xm.commons.tenantendpoint.provisioner.TenantProvisioner;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
 import org.springframework.stereotype.Service;
 
@@ -22,13 +22,23 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class TenantDatabaseProvisioner implements TenantProvisioner {
 
     private final DataSource dataSource;
     private final LiquibaseProperties properties;
     private final DropSchemaResolver schemaDropResolver;
     private final LiquibaseRunner liquibaseRunner;
+    private final String dbSchemaSuffix;
+
+    public TenantDatabaseProvisioner(DataSource dataSource, LiquibaseProperties properties,
+        DropSchemaResolver schemaDropResolver, LiquibaseRunner liquibaseRunner,
+        @Value("${application.db-schema-suffix}") String dbSchemaSuffix) {
+        this.dataSource = dataSource;
+        this.properties = properties;
+        this.schemaDropResolver = schemaDropResolver;
+        this.liquibaseRunner = liquibaseRunner;
+        this.dbSchemaSuffix = dbSchemaSuffix;
+    }
 
     @SneakyThrows
     @Override
@@ -37,8 +47,9 @@ public class TenantDatabaseProvisioner implements TenantProvisioner {
 
         assertTenantKeyValid(tenantKey);
 
-        createSchema(tenantKey);
-        migrateSchema(tenantKey);
+        String schema = resolveSchemaName(tenantKey);
+        createSchema(schema);
+        migrateSchema(schema);
     }
 
     @Override
@@ -49,26 +60,31 @@ public class TenantDatabaseProvisioner implements TenantProvisioner {
     @SneakyThrows
     @Override
     public void deleteTenant(final String tenantKey) {
-        String tenantKeyUpper = tenantKey.toUpperCase();
-        assertTenantKeyValid(tenantKeyUpper);
-        String sql = String.format(schemaDropResolver.getSchemaDropCommand(), tenantKeyUpper);
+        assertTenantKeyValid(tenantKey);
+        String schema = resolveSchemaName(tenantKey);
+        String sql = String.format(schemaDropResolver.getSchemaDropCommand(), schema);
         executeUpdateWithAutoCommit(dataSource, sql);
     }
 
-    private void createSchema(final String tenantKey) throws SQLException {
-        String sql = String.format(DDL_CREATE_SCHEMA, tenantKey);
+    private void createSchema(final String schema) throws SQLException {
+        String sql = String.format(DDL_CREATE_SCHEMA, schema);
         executeUpdateWithAutoCommit(dataSource, sql);
     }
 
     @SneakyThrows
-    protected void migrateSchema(String tenantKey) {
+    protected void migrateSchema(String schema) {
         String changeLogPath = getChangelogPath();
-        liquibaseRunner.runOnTenant(tenantKey, changeLogPath);
+        liquibaseRunner.runOnTenant(schema, changeLogPath);
     }
 
     private String getChangelogPath() {
         return Optional.ofNullable(properties.getChangeLog())
             .filter(StringUtils::isNotEmpty)
             .orElse(CHANGE_LOG_PATH);
+    }
+
+    private String resolveSchemaName(String tenantKey) {
+        return StringUtils.isBlank(dbSchemaSuffix) ? tenantKey.toUpperCase()
+            : (tenantKey + dbSchemaSuffix).toUpperCase();
     }
 }
