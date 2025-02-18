@@ -149,6 +149,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
         rewriteIfThenElse(object);
         rewriteExclusiveMinMax(object);
         convertDependencies(parent, fieldName, object);
+        addAllOffForRootReference(parent, fieldName, object);
         removeEmptyRequired(object);
     }
 
@@ -206,6 +207,26 @@ public class JsonSchemaToSwaggerSchemaConverter {
 
             allOf.add(allOfItem);
         });
+    }
+
+    private void addAllOffForRootReference(JsonNode parent, String fieldName, ObjectNode schema) {
+        if (insideProperties(parent, fieldName)) {
+            return;
+        }
+
+        boolean schemaHasRefAndPropsOnOneLevel = schema.has("$ref") && schema.has("properties")
+            && schema.has("type") && schema.get("type").asText().equals("object");
+
+        if (!schemaHasRefAndPropsOnOneLevel) {
+            return;
+        }
+
+        ArrayNode allOf = schema.putArray("allOf");
+        allOf.add(object("$ref", schema.remove("$ref")));
+        allOf.add(objectMapper.valueToTree(Map.of(
+            "type", schema.get("type"),
+            "properties", schema.get("properties")
+        )));
     }
 
     private void rewriteUnsupportedKeywords(JsonNode parent, String parentFieldName, ObjectNode json) {
