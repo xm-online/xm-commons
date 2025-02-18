@@ -84,24 +84,6 @@ components:
             x-label:
               x-en: "Package"
         type: "object"
-      properties:
-        doNotDisturb:
-          type: "boolean"
-          x-label:
-            x-en: "Do not disturb"
-        name:
-          type: "string"
-          x-label:
-            x-en: "Name"
-        package:
-          items:
-            $ref: "#/components/schemas/Pair"
-            x-label:
-              x-en: "Package"
-          type: "array"
-          x-label:
-            x-en: "Package"
-      type: "object"
       x-$schema: "http://json-schema.org/draft-07/schema#"
   securitySchemes:
     oAuth2ClientCredentials:

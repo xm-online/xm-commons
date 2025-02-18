@@ -224,8 +224,8 @@ public class JsonSchemaToSwaggerSchemaConverter {
         ArrayNode allOf = schema.putArray("allOf");
         allOf.add(object("$ref", schema.remove("$ref")));
         allOf.add(objectMapper.valueToTree(Map.of(
-            "type", schema.get("type"),
-            "properties", schema.get("properties")
+            "type", schema.remove("type"),
+            "properties", schema.remove("properties")
         )));
     }
 
