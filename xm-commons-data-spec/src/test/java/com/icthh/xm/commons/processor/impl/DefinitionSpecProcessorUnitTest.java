@@ -141,6 +141,18 @@ public class DefinitionSpecProcessorUnitTest {
         assertEqualsSpec(expectedBaseSpec, inputBaseSpec);
     }
 
+    @Test
+    public void processDataSpec_rootRefDefinitions() {
+        TestBaseSpecification expectedBaseSpec = loadBaseSpecByFileName("definitions/expected/root-ref-definition");
+        TestBaseSpecification inputBaseSpec = loadBaseSpecByFileName("definitions/input/root-ref-definition");
+        TestSpecificationItem itemSpec = getSpecItemByKey(inputBaseSpec, "user/GET-INFO");
+
+        definitionSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
+        definitionSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setOutputDataSpec, itemSpec::getOutputDataSpec);
+
+        assertEqualsSpec(expectedBaseSpec, inputBaseSpec);
+    }
+
     @SneakyThrows
     private Map<String, Map<String, Map<String, DefinitionSpec>>> getDefinitionsByTenantMap() {
         Field field = getField(definitionSpecProcessor, "definitionsByTenant");

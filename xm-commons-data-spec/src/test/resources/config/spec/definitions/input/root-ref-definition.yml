@@ -1,0 +1,84 @@
+---
+test-items:
+  - key: user/GET-INFO
+    outputSpec: |
+      {
+        "$ref": "#/xmDefinition/UserInfo"
+      }
+definitions:
+  - key: UserContact
+    # language=JSON
+    value: |-
+      {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "msisdn": {
+            "type": "string",
+            "label": {
+              "en": "Mobile Number"
+            }
+          },
+          "email": {
+            "type": "string",
+            "label": {
+              "en": "Email"
+            }
+          }
+        }
+      }
+  - key: Pair
+      # language=JSON
+    value: |-
+      {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "label": {
+              "en": "Code"
+            }
+          },
+          "value": {
+            "type": "string",
+            "label": {
+              "en": "Value"
+            }
+          }
+        }
+      }
+  - key: UserInfo
+    # language=JSON
+    value: |-
+      {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "package": {
+            "type": "array",
+            "items": {
+              "$ref": "#/xmDefinition/Pair",
+              "label": {
+                "en": "Package"
+              }
+            },
+            "label": {
+              "en": "Package"
+            }
+          },
+          "name": {
+            "type": "string",
+            "label": {
+              "en": "Name"
+            }
+          },
+          "doNotDisturb": {
+            "type": "boolean",
+            "label": {
+              "en": "Do not disturb"
+            }
+          }
+        },
+        "$ref": "#/xmDefinition/UserContact"
+      }

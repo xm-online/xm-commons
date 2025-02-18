@@ -78,6 +78,23 @@ public class DynamicSwaggerFunctionGeneratorImplUnitTest {
     }
 
     @Test
+    public void testGenerateSwagger_functionWithRootRefDefinition() {
+        when(functionApiSpecConfiguration.getTenantSpecifications(TEST_TENANT)).thenReturn(Map.of(
+            "/config/tenants/TEST_TENANT/function/functions/function-with-root-ref.yml", loadFunctionApiSpecByFile("function-with-root-ref")
+        ));
+
+        dynamicSwaggerConfigService.onRefresh(
+            "/config/tenants/TEST_TENANT/function/function-with-root-ref.yml",
+            null
+        );
+
+        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL);
+        var expected = readExpected("config/swagger/expected-swagger-with-root-ref.yml");
+
+        assertThat(toYml(swagger)).isEqualTo(toYml(expected));
+    }
+
+    @Test
     public void testOverrideConfiguration() {
         dynamicSwaggerConfigService.onRefresh(SWAGGER_CONFIG_PATH, loadFile("config/swagger/test-swagger.yml"));
         var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL);
