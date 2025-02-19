@@ -32,7 +32,7 @@ public class TenantDatabaseProvisioner implements TenantProvisioner {
 
     public TenantDatabaseProvisioner(DataSource dataSource, LiquibaseProperties properties,
         DropSchemaResolver schemaDropResolver, LiquibaseRunner liquibaseRunner,
-        @Value("${application.db-schema-suffix}") String dbSchemaSuffix) {
+        @Value("${application.db-schema-suffix:}") String dbSchemaSuffix) {
         this.dataSource = dataSource;
         this.properties = properties;
         this.schemaDropResolver = schemaDropResolver;
