@@ -32,6 +32,7 @@ public class TenantDatabaseProvisionerUnitTest {
 
     private static final String TENANT_KEY = "testKey";
     private static final String TENANT_STATE = "testState";
+    private static final String DB_SCHEMA_SUFFIX_VALUE = "_suffix";
 
     private TenantDatabaseProvisioner tenantDatabaseProvisioner;
 
@@ -65,7 +66,7 @@ public class TenantDatabaseProvisionerUnitTest {
         when(connection.createStatement()).thenReturn(statement);
 
         tenantDatabaseProvisioner = Mockito.spy(new TenantDatabaseProvisioner(dataSource, properties,
-                                                                              schemaDropResolver, liquibaseRunner));
+            schemaDropResolver, liquibaseRunner, null));
     }
 
     @Test
@@ -82,6 +83,26 @@ public class TenantDatabaseProvisionerUnitTest {
         inOrder.verify(connection).setAutoCommit(eq(false));
 
         verify(tenantDatabaseProvisioner).migrateSchema(TENANT_KEY.toUpperCase());
+    }
+
+    @Test
+    @SneakyThrows
+    public void testCreateTenantWithSuffix() {
+        tenantDatabaseProvisioner = Mockito.spy(new TenantDatabaseProvisioner(dataSource, properties,
+            schemaDropResolver, liquibaseRunner, DB_SCHEMA_SUFFIX_VALUE));
+
+        doNothing().when(tenantDatabaseProvisioner).migrateSchema(any());
+        Tenant tenant = new Tenant().tenantKey(TENANT_KEY);
+        tenantDatabaseProvisioner.createTenant(tenant);
+        InOrder inOrder = inOrder(connection, statement);
+
+        String expectedSchema = TENANT_KEY.toUpperCase() + DB_SCHEMA_SUFFIX_VALUE.toUpperCase();
+        inOrder.verify(connection).setAutoCommit(eq(true));
+        inOrder.verify(statement, times(1))
+            .executeUpdate("CREATE SCHEMA IF NOT EXISTS " + expectedSchema);
+        inOrder.verify(connection).setAutoCommit(eq(false));
+
+        verify(tenantDatabaseProvisioner).migrateSchema(expectedSchema);
     }
 
     @Test
@@ -113,6 +134,18 @@ public class TenantDatabaseProvisionerUnitTest {
         tenantDatabaseProvisioner.deleteTenant(TENANT_KEY);
 
         verify(statement, times(1)).executeUpdate("DROP SCHEMA IF EXISTS TESTKEY CASCADE");
+    }
+
+    @Test
+    @SneakyThrows
+    public void testDeleteTenantWithSuffix() {
+        tenantDatabaseProvisioner = Mockito.spy(new TenantDatabaseProvisioner(dataSource, properties,
+            schemaDropResolver, liquibaseRunner, DB_SCHEMA_SUFFIX_VALUE));
+
+        when(schemaDropResolver.getSchemaDropCommand()).thenReturn("DROP SCHEMA IF EXISTS %s CASCADE");
+        tenantDatabaseProvisioner.deleteTenant(TENANT_KEY);
+
+        verify(statement, times(1)).executeUpdate("DROP SCHEMA IF EXISTS TESTKEY_SUFFIX CASCADE");
     }
 
     @Test
