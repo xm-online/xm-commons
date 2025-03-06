@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -171,6 +172,8 @@ public abstract class AbstractSwaggerGenerator implements SwaggerGenerator {
             if (jsonNode.isObject() && jsonNode.has("properties")) {
                 ObjectNode object = (ObjectNode) jsonNode.get("properties");
                 var fields = object.fields();
+                Set<String> requiredFields = getRequiredFieldsFromFromSchema(jsonNode);
+
                 while (fields.hasNext()) {
                     var field = fields.next();
                     if (skipUnsupportedFields(field)) {
@@ -178,11 +181,24 @@ public abstract class AbstractSwaggerGenerator implements SwaggerGenerator {
                     }
 
                     Map<String, Object> schema = convertToMap(field.getValue());
-                    parameters.put(field.getKey(), new SwaggerParameter("query", field.getKey(), true, schema));
+                    // return true for empty list for backward compatibility, could be changed later
+                    boolean required = requiredFields.isEmpty() || requiredFields.contains(field.getKey());
+                    parameters.put(field.getKey(), new SwaggerParameter("query", field.getKey(), required, schema));
                     fields.remove();
                 }
             }
         }
+    }
+
+    private Set<String> getRequiredFieldsFromFromSchema(JsonNode jsonNode) {
+        if (!jsonNode.has("required") || !jsonNode.get("required").isArray() || jsonNode.get("required").isEmpty()) {
+            return Set.of();
+        }
+        Set<String> requiredFields = new HashSet<>();
+        for (JsonNode item : jsonNode.get("required")) {
+            requiredFields.add(item.textValue());
+        }
+        return requiredFields;
     }
 
     private void addPathParameters(String swaggerFunctionPath, JsonNode jsonNode, Map<String, SwaggerParameter> parameters) {
