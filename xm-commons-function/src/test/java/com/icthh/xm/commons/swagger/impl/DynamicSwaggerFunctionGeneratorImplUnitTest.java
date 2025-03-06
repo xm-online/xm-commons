@@ -95,6 +95,23 @@ public class DynamicSwaggerFunctionGeneratorImplUnitTest {
     }
 
     @Test
+    public void testGenerateSwagger_getFunctionWithRequiredParameters() {
+        when(functionApiSpecConfiguration.getTenantSpecifications(TEST_TENANT)).thenReturn(Map.of(
+            "/config/tenants/TEST_TENANT/function/functions/get-function-with-required-param.yml", loadFunctionApiSpecByFile("get-function-with-required-param")
+        ));
+
+        dynamicSwaggerConfigService.onRefresh(
+            "/config/tenants/TEST_TENANT/function/get-function-with-required-param.yml",
+            null
+        );
+
+        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL);
+        var expected = readExpected("config/swagger/expected-get-function-with-required-param.yml");
+
+        assertThat(toYml(swagger)).isEqualTo(toYml(expected));
+    }
+
+    @Test
     public void testOverrideConfiguration() {
         dynamicSwaggerConfigService.onRefresh(SWAGGER_CONFIG_PATH, loadFile("config/swagger/test-swagger.yml"));
         var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL);

@@ -1,0 +1,114 @@
+
+---
+components:
+  responses:
+    "400":
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RequestError"
+      description: "Bad request. Request invalid by business rules"
+    "401":
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RequestError"
+      description: "Invalid access token"
+    "403":
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RequestError"
+      description: "Forbidden"
+    "404":
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RequestError"
+      description: "Not found"
+    "500":
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RequestError"
+      description: "Internal server error"
+  schemas:
+    RequestError:
+      properties:
+        error:
+          type: "string"
+        error_description:
+          type: "string"
+      type: "object"
+  securitySchemes:
+    oAuth2ClientCredentials:
+      flows:
+        clientCredentials:
+          scopes:
+            openapi: "Default client scope"
+          tokenUrl: "/uaa/oauth/token"
+      type: "oauth2"
+    oAuth2Password:
+      flows:
+        password:
+          scopes:
+            openapi: "Default client scope"
+          tokenUrl: "/uaa/oauth/token"
+      type: "oauth2"
+info:
+  title: "XM functions api"
+  version: "0.0.1"
+openapi: "3.0.3"
+paths:
+  /function/api/functions/content/GET-CONTENT:
+    get:
+      description: "content/GET-CONTENT"
+      operationId: "contentGetContent"
+      parameters:
+      - in: "query"
+        name: "fieldName"
+        required: true
+        schema:
+          type: "string"
+          x-label:
+            x-en: "fieldName"
+      - in: "query"
+        name: "fieldValue"
+        required: true
+        schema:
+          type: "string"
+          x-label:
+            x-en: "fieldValue"
+      - in: "query"
+        name: "startDate"
+        required: false
+        schema:
+          type: "string"
+          x-label:
+            x-en: "startDate"
+      - in: "query"
+        name: "endDate"
+        required: false
+        schema:
+          type: "string"
+          x-label:
+            x-en: "endDate"
+      responses:
+        "200":
+          description: "Successful operation"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "404":
+          $ref: "#/components/responses/404"
+        "500":
+          $ref: "#/components/responses/500"
+      summary: "content/GET-CONTENT"
+security:
+- {}
+- {}
+servers:
+- url: "https://xm.domain.com:8080"

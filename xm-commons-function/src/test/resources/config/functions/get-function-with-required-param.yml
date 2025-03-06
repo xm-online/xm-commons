@@ -1,0 +1,42 @@
+---
+functions:
+    - key: content/GET-CONTENT
+      txType: READ_ONLY
+      httpMethods:
+        - GET
+      inputSpec: |
+        {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "fieldName": {
+              "type": "string",
+              "label": {
+                "en": "fieldName"
+              }
+            },
+            "fieldValue": {
+              "type": "string",
+              "label": {
+                "en": "fieldValue"
+              }
+            },
+            "startDate": {
+              "type": "string",
+              "label": {
+                "en": "startDate"
+              }
+            },
+            "endDate": {
+              "type": "string",
+              "label": {
+                "en": "endDate"
+              }
+            }
+          },
+          "required": [
+            "fieldName",
+            "fieldValue"
+          ]
+        }
+definitions: []
