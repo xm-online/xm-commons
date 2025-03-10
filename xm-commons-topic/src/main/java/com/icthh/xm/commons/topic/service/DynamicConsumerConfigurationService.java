@@ -3,23 +3,28 @@ package com.icthh.xm.commons.topic.service;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.topic.domain.DynamicConsumer;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
+import com.icthh.xm.commons.topic.service.dto.RefreshDynamicConsumersEvent;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationListener;
+import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class DynamicConsumerConfigurationService {
+public class DynamicConsumerConfigurationService implements ApplicationListener<RefreshDynamicConsumersEvent> {
+
     private final List<DynamicConsumerConfiguration> dynamicConsumerConfigurations;
     private final TopicManagerService topicManagerService;
     private final TenantListRepository tenantListRepository;
 
     public void startDynamicConsumers(String tenantKey) {
         List<DynamicConsumer> dynamicConsumers = getDynamicConsumersByTenant(tenantKey);
-        dynamicConsumers.forEach(it -> topicManagerService.startNewConsumer(tenantKey, it.getConfig(), it.getMessageHandler()));
+        dynamicConsumers.forEach(
+            it -> topicManagerService.startNewConsumer(tenantKey, it.getConfig(), it.getMessageHandler()));
     }
 
     public void refreshDynamicConsumersAll() {
@@ -49,7 +54,14 @@ public class DynamicConsumerConfigurationService {
     }
 
     private void refreshConsumer(String tenantKey, DynamicConsumer updatedDynamicConsumer) {
-        topicManagerService.processTopicConfig(tenantKey, updatedDynamicConsumer.getConfig(), updatedDynamicConsumer.getMessageHandler());
+        topicManagerService.processTopicConfig(tenantKey, updatedDynamicConsumer.getConfig(),
+            updatedDynamicConsumer.getMessageHandler());
+    }
+
+    @Override
+    public void onApplicationEvent(RefreshDynamicConsumersEvent event) {
+        log.debug("OnApplicationEvent with event = {}", event);
+        refreshDynamicConsumers(event.getTenantKey());
     }
 
 }
