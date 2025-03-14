@@ -66,9 +66,6 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
     @Value("${application.kafkaMetric.metricTopics:#{null}}")
     private List<String> metricTopics;
 
-    @Value("${management.prometheus.metrics.export.enabled}")
-    private Boolean prometheusExportEnabled;
-
     public MetricsConfiguration(KafkaAdmin kafkaAdmin, CollectorRegistry collectorRegistry) {
         this.kafkaAdmin = kafkaAdmin;
         this.collectorRegistry = collectorRegistry;
@@ -120,10 +117,6 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
         if (TRUE.equals(kafkaMetricEnabled)) {
             metricRegistry.register(PROP_METRIC_CONNECTION_TO_TOPIC,
                 new KafkaMetricsSet(kafkaAdmin, connectionTimeoutTopic, metricTopics));
-        }
-
-        if (TRUE.equals(prometheusExportEnabled)) {
-            collectorRegistry.register(new DropwizardExports(metricRegistry));
         }
     }
 }
