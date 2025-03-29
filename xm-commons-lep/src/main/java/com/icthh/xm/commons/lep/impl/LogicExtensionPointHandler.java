@@ -84,7 +84,8 @@ public class LogicExtensionPointHandler {
         if (lepContextMethodParameter == null) {
             return lepContextService.createLepContext(lepEngine, targetProceedingLep);
         } else {
-            return lepMethod.getParameter(lepContextMethodParameter, BaseLepContext.class);
+            BaseLepContext lepContext = lepMethod.getParameter(lepContextMethodParameter, BaseLepContext.class);
+            return lepContextService.customize(lepContext, lepEngine, targetProceedingLep);
         }
     }
 

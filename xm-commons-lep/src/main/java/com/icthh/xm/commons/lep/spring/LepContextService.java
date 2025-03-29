@@ -6,4 +6,5 @@ import com.icthh.xm.commons.lep.api.LepEngine;
 
 public interface LepContextService {
     BaseLepContext createLepContext(LepEngine lepEngine, TargetProceedingLep lepMethod);
+    BaseLepContext customize(BaseLepContext lepContext, LepEngine lepEngine, TargetProceedingLep lepMethod);
 }
