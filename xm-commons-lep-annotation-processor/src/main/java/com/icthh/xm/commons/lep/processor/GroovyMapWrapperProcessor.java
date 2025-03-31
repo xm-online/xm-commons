@@ -31,7 +31,7 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.tools.Diagnostic.Kind.ERROR;
 
 @SupportedAnnotationTypes("com.icthh.xm.commons.lep.processor.GroovyMap")
-@SupportedSourceVersion(SourceVersion.RELEASE_17)
+@SupportedSourceVersion(SourceVersion.RELEASE_21)
 public class GroovyMapWrapperProcessor extends AbstractProcessor {
 
     private Types typeUtils;
