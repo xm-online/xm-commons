@@ -90,6 +90,11 @@ public class GroovyMapWrapperProcessor extends AbstractProcessor {
             MethodSpec constructor = constructorBuilder.build();
             classBuilder.addMethod(constructor);
 
+            // Empty constructor
+            MethodSpec.Builder emptyConstructorBuilder = MethodSpec.constructorBuilder().addModifiers(PUBLIC);
+            MethodSpec emptyConstructor = emptyConstructorBuilder.build();
+            classBuilder.addMethod(emptyConstructor);
+
             // Override get method
             MethodSpec.Builder getMethodBuilder = MethodSpec.methodBuilder("get")
                 .addAnnotation(Override.class)
