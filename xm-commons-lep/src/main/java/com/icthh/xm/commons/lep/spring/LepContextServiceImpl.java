@@ -52,7 +52,8 @@ public class LepContextServiceImpl implements LepContextService {
         return customize(baseLepContext, lepEngine, lepMethod);
     }
 
-    private BaseLepContext customize(BaseLepContext lepContext, LepEngine lepEngine, TargetProceedingLep lepMethod) {
+    @Override
+    public BaseLepContext customize(BaseLepContext lepContext, LepEngine lepEngine, TargetProceedingLep lepMethod) {
         for (var customizer : customizers) {
             lepContext = customizer.customize(lepContext, lepEngine, lepMethod);
         }

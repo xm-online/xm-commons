@@ -2,6 +2,7 @@ package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 
+import com.icthh.xm.commons.lep.api.UseAsLepContext;
 import java.util.Map;
 
 /**
@@ -20,8 +21,18 @@ public class DynamicTestLepService {
         return "Hello I am service method!";
     }
 
+    @LogicExtensionPoint("TestLepMethodWithInputObject")
+    public Object testLepMethodObject(Map<String, Object> input) {
+        return null;
+    }
+
     @LogicExtensionPoint("TestWithReturnMap")
     public Map<String, Object> testWithReturnMap() {
         return Map.of();
+    }
+
+    @LogicExtensionPoint("TestUseAsLepContext")
+    public Object testUseAsLepContext(@UseAsLepContext LepContext lepContext) {
+        return "";
     }
 }

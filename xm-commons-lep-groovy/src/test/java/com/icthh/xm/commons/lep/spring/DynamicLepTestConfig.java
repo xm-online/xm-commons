@@ -44,7 +44,7 @@ public class DynamicLepTestConfig extends GroovyLepEngineConfiguration {
 
     @Bean
     public LepContextFactory lepContextFactory() {
-        return lepMethod -> new TestLepContext();
+        return lepMethod -> new LepContext();
     }
 
     @Bean

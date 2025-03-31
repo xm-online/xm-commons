@@ -107,8 +107,8 @@ public class LepIntTest {
 
             assertNotNull(get("lepContext"));
             assertNotNull(get("context"));
-            assertTrue(get("lepContext") instanceof TestLepContext);
-            assertTrue(get("context") instanceof TestLepContext);
+            assertTrue(get("lepContext") instanceof LepContext);
+            assertTrue(get("context") instanceof LepContext);
 
             assertEquals("valueFromLepSubClass", get("stringBuilderField").toString());
             assertEquals("First", get("stringWithValueFirst"));
