@@ -31,7 +31,7 @@ public class XmLoggingInterceptor extends HandlerInterceptorAdapter {
         XmAuthenticationContext authContext = authenticationContextHolder.getContext();
         Optional<String> impersonateLogin = authContext.getAdditionalDetailsValue(IMPERSONATE_INBOUND_LOGIN);
         String userLogin = authContext.getLogin().orElse("[unknown]");
-        return impersonateLogin.map(il -> ":" + il + ":" + userLogin).orElse(userLogin);
+        return impersonateLogin.map(il -> il + ":" + userLogin).orElse(userLogin);
     }
 
     private String getTenantName() {
