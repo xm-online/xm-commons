@@ -16,6 +16,8 @@ import java.util.Optional;
  */
 public class XmLoggingInterceptor implements HandlerInterceptor {
 
+    public static final String IMPERSONATE_INBOUND_LOGIN = "impersonateInboundLogin";
+
     private final XmAuthenticationContextHolder authenticationContextHolder;
     private final TenantContextHolder tenantContextHolder;
 
@@ -27,7 +29,9 @@ public class XmLoggingInterceptor implements HandlerInterceptor {
 
     private String getLogin() {
         XmAuthenticationContext authContext = authenticationContextHolder.getContext();
-        return authContext.getLogin().orElse("[unknown]");
+        Optional<String> impersonateLogin = authContext.getAdditionalDetailsValue(IMPERSONATE_INBOUND_LOGIN);
+        String userLogin = authContext.getLogin().orElse("[unknown]");
+        return impersonateLogin.map(il -> il + ":" + userLogin).orElse(userLogin);
     }
 
     private String getTenantName() {
