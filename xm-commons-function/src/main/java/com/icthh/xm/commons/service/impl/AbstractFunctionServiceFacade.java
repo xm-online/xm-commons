@@ -30,16 +30,18 @@ public abstract class AbstractFunctionServiceFacade<FS extends IFunctionSpec> im
     public FunctionResult execute(String functionKey, Map<String, Object> functionInput, String httpMethod) {
         StopWatch stopWatch = StopWatch.createStarted();
         functionService.validateFunctionKey(functionKey);
-        functionService.checkPermissions(FUNCTION_CALL_PRIVILEGE, functionKey);
 
         FS functionSpec = functionService.findFunctionSpec(functionKey, httpMethod);
+        String functionSpecFromSpec = functionSpec.getKey();
+        functionService.checkPermissions(FUNCTION_CALL_PRIVILEGE, functionSpecFromSpec);
+
         Map<String, Object> input = functionService.getValidFunctionInput(functionSpec, functionInput);
-        functionService.enrichInputFromPathParams(functionKey, input, functionSpec);
+        functionService.enrichInputFromPathParams(functionSpecFromSpec, input, functionSpec);
 
         FunctionResult functionResult = callLepExecutor(functionSpec.getTxType(), () -> {
             var lepHttpMethod = convertToCanonicalHttpMethod(httpMethod);
-            Object data = functionExecutorService.execute(functionSpec.getKey(), input, lepHttpMethod);
-            return processFunctionResult(functionKey, data, functionSpec);
+            Object data = functionExecutorService.execute(functionSpecFromSpec, input, lepHttpMethod);
+            return processFunctionResult(functionSpecFromSpec, data, functionSpec);
         });
         functionResult.setExecuteTime(stopWatch.getTime(MILLISECONDS));
         return functionResult;

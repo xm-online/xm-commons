@@ -56,11 +56,9 @@ public class FunctionServiceFacadeImplUnitTest {
 
     @Test
     void execute() {
-        String functionSpecKey = "functionSpecKey";
-
         FunctionSpec mockFunctionSpec = mock(FunctionSpec.class);
         when(mockFunctionSpec.getTxType()).thenReturn(TX); // to execute in default transaction
-        when(mockFunctionSpec.getKey()).thenReturn(functionSpecKey);
+        when(mockFunctionSpec.getKey()).thenReturn(FUNCTION_KEY_TEST);
 
         Map<String, Object> functionInput = Map.of("param", "value");
         Map<String, Object> validatedInput = Map.of("param", "value");
@@ -70,7 +68,7 @@ public class FunctionServiceFacadeImplUnitTest {
 
         when(functionService.findFunctionSpec(FUNCTION_KEY_TEST, GET.name())).thenReturn(mockFunctionSpec);
         when(functionService.getValidFunctionInput(mockFunctionSpec, functionInput)).thenReturn(validatedInput);
-        when(functionExecutorService.execute(functionSpecKey, validatedInput, GET.name())).thenReturn(executionData);
+        when(functionExecutorService.execute(FUNCTION_KEY_TEST, validatedInput, GET.name())).thenReturn(executionData);
         when(functionResultProcessor.processFunctionResult(FUNCTION_KEY_TEST, executionData, mockFunctionSpec))
             .thenReturn(expectedResult);
         when(functionTxControl.executeInTransaction(any(Supplier.class)))
@@ -80,6 +78,37 @@ public class FunctionServiceFacadeImplUnitTest {
         assertEquals(expectedResult, result);
 
         verify(functionService).validateFunctionKey(FUNCTION_KEY_TEST);
+        verify(functionService).checkPermissions(FUNCTION_CALL_PRIVILEGE, FUNCTION_KEY_TEST);
+        verify(functionService).enrichInputFromPathParams(FUNCTION_KEY_TEST, validatedInput, mockFunctionSpec);
+    }
+
+    @Test
+    void executeWithPath() {
+        String functionSpecPath = "testEntity/111/activate";
+
+        FunctionSpec mockFunctionSpec = mock(FunctionSpec.class);
+        when(mockFunctionSpec.getTxType()).thenReturn(TX); // to execute in default transaction
+        when(mockFunctionSpec.getKey()).thenReturn(FUNCTION_KEY_TEST);
+        when(mockFunctionSpec.getPath()).thenReturn(functionSpecPath);
+
+        Map<String, Object> functionInput = Map.of("param", "value");
+        Map<String, Object> validatedInput = Map.of("param", "value");
+
+        Map<String, Object> executionData = Map.of("result", "success");
+        FunctionResult expectedResult = mock(FunctionResult.class);
+
+        when(functionService.findFunctionSpec(functionSpecPath, GET.name())).thenReturn(mockFunctionSpec);
+        when(functionService.getValidFunctionInput(mockFunctionSpec, functionInput)).thenReturn(validatedInput);
+        when(functionExecutorService.execute(FUNCTION_KEY_TEST, validatedInput, GET.name())).thenReturn(executionData);
+        when(functionResultProcessor.processFunctionResult(FUNCTION_KEY_TEST, executionData, mockFunctionSpec))
+            .thenReturn(expectedResult);
+        when(functionTxControl.executeInTransaction(any(Supplier.class)))
+            .thenAnswer(invocation -> ((Supplier<FunctionResult>) invocation.getArgument(0)).get());
+
+        FunctionResult result = functionServiceFacade.execute(functionSpecPath, functionInput, GET.name());
+        assertEquals(expectedResult, result);
+
+        verify(functionService).validateFunctionKey(functionSpecPath);
         verify(functionService).checkPermissions(FUNCTION_CALL_PRIVILEGE, FUNCTION_KEY_TEST);
         verify(functionService).enrichInputFromPathParams(FUNCTION_KEY_TEST, validatedInput, mockFunctionSpec);
     }
