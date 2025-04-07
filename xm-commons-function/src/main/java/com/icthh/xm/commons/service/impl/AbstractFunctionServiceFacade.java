@@ -36,7 +36,7 @@ public abstract class AbstractFunctionServiceFacade<FS extends IFunctionSpec> im
         functionService.checkPermissions(FUNCTION_CALL_PRIVILEGE, functionSpecFromSpec);
 
         Map<String, Object> input = functionService.getValidFunctionInput(functionSpec, functionInput);
-        functionService.enrichInputFromPathParams(functionSpecFromSpec, input, functionSpec);
+        functionService.enrichInputFromPathParams(functionKey, input, functionSpec);
 
         FunctionResult functionResult = callLepExecutor(functionSpec.getTxType(), () -> {
             var lepHttpMethod = convertToCanonicalHttpMethod(httpMethod);

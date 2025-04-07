@@ -84,7 +84,8 @@ public class FunctionServiceFacadeImplUnitTest {
 
     @Test
     void executeWithPath() {
-        String functionSpecPath = "testEntity/111/activate";
+        String functionInputPath = "testEntity/111/activate";
+        String functionSpecPath = "testEntity/{id}/activate";
 
         FunctionSpec mockFunctionSpec = mock(FunctionSpec.class);
         when(mockFunctionSpec.getTxType()).thenReturn(TX); // to execute in default transaction
@@ -97,7 +98,7 @@ public class FunctionServiceFacadeImplUnitTest {
         Map<String, Object> executionData = Map.of("result", "success");
         FunctionResult expectedResult = mock(FunctionResult.class);
 
-        when(functionService.findFunctionSpec(functionSpecPath, GET.name())).thenReturn(mockFunctionSpec);
+        when(functionService.findFunctionSpec(functionInputPath, GET.name())).thenReturn(mockFunctionSpec);
         when(functionService.getValidFunctionInput(mockFunctionSpec, functionInput)).thenReturn(validatedInput);
         when(functionExecutorService.execute(FUNCTION_KEY_TEST, validatedInput, GET.name())).thenReturn(executionData);
         when(functionResultProcessor.processFunctionResult(FUNCTION_KEY_TEST, executionData, mockFunctionSpec))
@@ -105,12 +106,12 @@ public class FunctionServiceFacadeImplUnitTest {
         when(functionTxControl.executeInTransaction(any(Supplier.class)))
             .thenAnswer(invocation -> ((Supplier<FunctionResult>) invocation.getArgument(0)).get());
 
-        FunctionResult result = functionServiceFacade.execute(functionSpecPath, functionInput, GET.name());
+        FunctionResult result = functionServiceFacade.execute(functionInputPath, functionInput, GET.name());
         assertEquals(expectedResult, result);
 
-        verify(functionService).validateFunctionKey(functionSpecPath);
+        verify(functionService).validateFunctionKey(functionInputPath);
         verify(functionService).checkPermissions(FUNCTION_CALL_PRIVILEGE, FUNCTION_KEY_TEST);
-        verify(functionService).enrichInputFromPathParams(FUNCTION_KEY_TEST, validatedInput, mockFunctionSpec);
+        verify(functionService).enrichInputFromPathParams(functionInputPath, validatedInput, mockFunctionSpec);
     }
 
     @Test
