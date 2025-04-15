@@ -53,6 +53,17 @@ public class TenantListRepository implements RefreshableConfiguration {
     private volatile Set<String> suspendedTenants = new HashSet<>();
 
     public TenantListRepository(RestTemplate restTemplate,
+                                Configuration configuration,
+                                String applicationName,
+                                XmConfigProperties xmConfigProperties) {
+        this.restTemplate = restTemplate;
+        this.applicationName = applicationName;
+        this.xmConfigUrl = xmConfigProperties.getXmConfigUrl() + URL;
+        this.includeTenants = xmConfigProperties.getIncludeTenantLowercase();
+        checkAndInit(configuration);
+    }
+
+    public TenantListRepository(RestTemplate restTemplate,
                                 CommonConfigRepository commonConfigRepository,
                                 String applicationName,
                                 XmConfigProperties xmConfigProperties) {
@@ -63,6 +74,10 @@ public class TenantListRepository implements RefreshableConfiguration {
 
         Configuration configuration = commonConfigRepository.getConfig(null, singletonList(TENANTS_LIST_CONFIG_KEY)).
             get(TENANTS_LIST_CONFIG_KEY);
+        checkAndInit(configuration);
+    }
+
+    private void checkAndInit(Configuration configuration) {
         if (configuration == null) {
             log.error(ERROR);
             throw new IllegalStateException(ERROR);
