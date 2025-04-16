@@ -6,6 +6,7 @@ import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.service.dto.RefreshDynamicConsumersEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@ConditionalOnBean(name = "tenantListRepository")
 public class DynamicConsumerConfigurationService implements ApplicationListener<RefreshDynamicConsumersEvent> {
 
     private final List<DynamicConsumerConfiguration> dynamicConsumerConfigurations;
