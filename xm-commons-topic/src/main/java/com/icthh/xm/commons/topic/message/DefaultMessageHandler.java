@@ -1,30 +1,37 @@
 package com.icthh.xm.commons.topic.message;
 
-import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@ConditionalOnBean(name = "lepManager")
+@ConditionalOnMissingBean(name = "lepManager")
 @RequiredArgsConstructor
-public class LepMessageHandler implements MessageHandler {
+public class DefaultMessageHandler implements MessageHandler {
 
     private final MessageService messageListenerService;
     private final TenantContextHolder tenantContextHolder;
-    private final LepManagementService lepManagementService;
 
     @Override
     public void onMessage(String message, String tenant, TopicConfig topicConfig) {
-        tenantContextHolder.getPrivilegedContext().execute(TenantContextUtils.buildTenant(tenant), () -> {
-            try (var context = lepManagementService.beginThreadContext()) {
-                messageListenerService.onMessage(message, topicConfig);
-            }
-        });
+        try {
+            init(tenant);
+            messageListenerService.onMessage(message, topicConfig);
+        } finally {
+            destroy();
+        }
+    }
+
+    private void init(String tenantKey) {
+        TenantContextUtils.setTenant(tenantContextHolder, tenantKey);
+    }
+
+    private void destroy() {
+        tenantContextHolder.getPrivilegedContext().destroyCurrentContext();
     }
 }
