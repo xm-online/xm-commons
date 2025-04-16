@@ -6,6 +6,7 @@ import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.service.dto.RefreshDynamicConsumersEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@ConditionalOnBean(name = "tenantListRepository")
 @RequiredArgsConstructor
 public class DynamicConsumerConfigurationService implements ApplicationListener<RefreshDynamicConsumersEvent> {
 
