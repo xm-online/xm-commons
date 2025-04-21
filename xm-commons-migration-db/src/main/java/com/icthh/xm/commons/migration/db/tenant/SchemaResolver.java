@@ -3,12 +3,14 @@ package com.icthh.xm.commons.migration.db.tenant;
 import static com.icthh.xm.commons.migration.db.Constants.DB_SCHEMA_CREATION_ENABLED;
 import static com.icthh.xm.commons.migration.db.Constants.DB_SCHEMA_SUFFIX;
 import static com.icthh.xm.commons.migration.db.Constants.JPA_VENDOR;
+import static java.util.function.Predicate.not;
 
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.migration.db.util.DatabaseUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
@@ -46,10 +48,14 @@ public class SchemaResolver {
 
     public List<String> getSchemas() {
         String suffix = env.getProperty(DB_SCHEMA_SUFFIX);
+        Set<String> suspendedTenants = tenantListRepository.getSuspendedTenants();
         List<String> schemas = new ArrayList<>(tenantListRepository.getTenants());
 
         if (StringUtils.isNotBlank(suffix)) {
-            return schemas.stream().map((schema) -> (schema.concat(suffix)))
+            return schemas.stream()
+                .filter(not(suspendedTenants::contains))
+                .map(schema -> schema.concat(suffix))
+                .map(String::toUpperCase)
                 .collect(Collectors.toList());
         }
         return schemas;
