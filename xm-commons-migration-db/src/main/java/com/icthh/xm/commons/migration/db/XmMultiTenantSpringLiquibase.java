@@ -59,6 +59,7 @@ public class XmMultiTenantSpringLiquibase extends MultiTenantSpringLiquibase {
                 log.info("Liquibase run for schema {}", schema);
             } catch (Exception e) {
                 log.error("Failed to initialize Liquibase for schema {}", schema, e);
+                throw e;
             }
         }
 
