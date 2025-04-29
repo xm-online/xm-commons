@@ -57,27 +57,15 @@ public class PermissionContextCheckServiceUnitTest {
     private static final String TENANT = "TENANT_KEY";
     private static final String APPLICATION_NAME = "service";
     private static final String PERMISSION_CONTEXT_URI = "uaa/api/account";
-    private static final String CUSTOM_PRIVILEGES_PATH = "/config/tenants/{tenantName}/custom-privileges.yml";
-    private static final String CUSTOM_PRIVILEGES_CONTENT = ""
-        + "context:\n"
-        + "- key: \"READ_PRIVILEGE\"\n"
-        + "- key: \"WRITE_PRIVILEGE\"\n"
-        + "test:\n"
-        + "- key: \"TEST_PRIVILEGE\"\n";
 
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        permissionContextCheckService = new PermissionContextCheckService(
-            restTemplate,
-            tenantConfigRepository,
-            tenantContextHolder
-        );
+        permissionContextCheckService = new PermissionContextCheckService(restTemplate);
 
         setField(permissionContextCheckService, "applicationName", APPLICATION_NAME);
         setField(permissionContextCheckService, "permissionContextUri", PERMISSION_CONTEXT_URI);
-        setField(permissionContextCheckService, "customPrivilegesPath", CUSTOM_PRIVILEGES_PATH);
 
         // Mock SecurityContextHolder
         SecurityContext securityContext = mock(SecurityContext.class);
@@ -142,15 +130,6 @@ public class PermissionContextCheckServiceUnitTest {
         assertThat(result).isFalse();
     }
 
-    @Test
-    public void hasPermission_returnsFalse_whenPermissionNotExist() {
-        mockPermissionContextDto(List.of("NOT_EXISTING_PERMISSION"), Map.of("role", "admin"));
-
-        boolean result = permissionContextCheckService.hasPermission("NOT_EXISTING_PERMISSION", Map.of("role", "admin"));
-
-        assertThat(result).isFalse();
-    }
-
     @SneakyThrows
     private void mockPermissionContextDto(List<String> permissions, Map<String, Object> ctx) {
         PermissionContextDto dto = new PermissionContextDto();
@@ -163,11 +142,6 @@ public class PermissionContextCheckServiceUnitTest {
         Map<String, Object> contextWrapper = Map.of("context", serviceContextMapping);
 
         ResponseEntity<Map> responseEntity = new ResponseEntity<>(contextWrapper, HttpStatus.OK);
-
-        when(tenantConfigRepository.getConfigFullPath(
-            eq(TENANT),
-            eq("/api" + CUSTOM_PRIVILEGES_PATH.replace("{tenantName}", TENANT)))
-        ).thenReturn(CUSTOM_PRIVILEGES_CONTENT);
 
         when(restTemplate.exchange(
             eq(new URI("http://uaa/api/account")),
