@@ -2,7 +2,7 @@ package com.icthh.xm.commons.permission.web.rest;
 
 import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.commons.permission.domain.dto.PermissionContextDto;
-import com.icthh.xm.commons.permission.service.PermissionContextService;
+import com.icthh.xm.commons.permission.service.PermissionContextExposureService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -18,13 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/permission/context")
 public class PermissionContextResource {
 
-    private final PermissionContextService permissionContextService;
+    private final PermissionContextExposureService permissionContextExposureService;
 
     @GetMapping()
     @PreAuthorize("hasPermission({'userKey': #userKey}, 'PERMISSION.CONTEXT.GET')")
     @PrivilegeDescription("Privilege to call get permission context")
     public ResponseEntity<PermissionContextDto> callGetFunction(@RequestParam String userKey) {
-        PermissionContextDto context = permissionContextService.getPermissionContext(userKey);
+        PermissionContextDto context = permissionContextExposureService.exposePermissionContext(userKey);
         return ResponseEntity.ok().body(context);
     }
 }
