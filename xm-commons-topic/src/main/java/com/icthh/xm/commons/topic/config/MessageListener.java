@@ -14,8 +14,6 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.StringJoiner;
 
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
