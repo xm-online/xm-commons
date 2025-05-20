@@ -1,16 +1,21 @@
 package com.icthh.xm.commons.topic;
 
+import static com.icthh.xm.commons.topic.message.MessageHandler.EXCEPTION_MESSAGE;
 import static java.lang.Thread.sleep;
 import static java.nio.charset.Charset.defaultCharset;
 import static java.util.Collections.singleton;
 import static org.apache.kafka.clients.producer.ProducerConfig.RETRIES_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_CONFIG;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -20,9 +25,11 @@ import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.logging.trace.SleuthWrapper;
 import com.icthh.xm.commons.topic.config.TestBeanConfiguration;
+import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
 import com.icthh.xm.commons.topic.service.TopicConfigurationService;
 import java.util.Map;
+import java.util.Set;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -35,6 +42,8 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -264,7 +273,7 @@ public class MessageListenerIntTest {
         Thread.sleep(5000);
 
         InOrder inOrder = inOrder(messageHandler);
-        inOrder.verify(messageHandler, times(3)).onMessage(eq("test value"), eq(TENANT_KEY), refEq(config), any());
+        inOrder.verify(messageHandler, times(2)).onMessage(eq("test value"), eq(TENANT_KEY), refEq(config), any());
 
         ArgumentCaptor<Map<String, byte[]>> headersCaptor = ArgumentCaptor.forClass(Map.class);
         inOrder.verify(messageHandler).onMessage(eq("test value"), eq(TENANT_KEY), refEq(configDeadLetter), headersCaptor.capture());
