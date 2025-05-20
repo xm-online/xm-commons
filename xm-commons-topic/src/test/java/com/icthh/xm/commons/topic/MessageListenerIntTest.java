@@ -135,16 +135,16 @@ public class MessageListenerIntTest {
             sleep(500);
             log.info("TRYFIXTEST slept 500 3");
             return null;
-        }).when(messageHandler).onMessage(any(), any(), any());
+        }).when(messageHandler).onMessage(any(), any(), any(), any());
 
         producer.send(new ProducerRecord<>(TOPIC, "test-id", TEST_MESSAGE));
         producer.flush();
         log.info("TRYFIXTEST producer.flush();");
 
         verify(messageHandler, timeout(2000).atLeast(3))
-              .onMessage(eq(TEST_MESSAGE), eq(TENANT_KEY), any());
+              .onMessage(eq(TEST_MESSAGE), eq(TENANT_KEY), any(), any());
         verify(messageHandler, after(2000).times(3))
-              .onMessage(eq(TEST_MESSAGE), eq(TENANT_KEY), any());
+              .onMessage(eq(TEST_MESSAGE), eq(TENANT_KEY), any(), any());
         verifyNoMoreInteractions(messageHandler);
 
         producer.close();
@@ -170,13 +170,13 @@ public class MessageListenerIntTest {
         producer.flush();
 
         verify(messageHandler, timeout(2000).atLeastOnce())
-            .onMessage(eq("value1"), eq(TENANT_KEY), any());
+            .onMessage(eq("value1"), eq(TENANT_KEY), any(), any());
 
         producer.send(new ProducerRecord<>("kafka-tx-queue", "value2"));
         producer.flush();
 
         verify(messageHandler, timeout(2000).atLeastOnce())
-            .onMessage(eq("value2"), eq(TENANT_KEY), any());
+            .onMessage(eq("value2"), eq(TENANT_KEY), any(), any());
 
         producer.commitTransaction();
 
@@ -208,8 +208,8 @@ public class MessageListenerIntTest {
 
         producer.commitTransaction();
 
-        verify(messageHandler, timeout(2000)).onMessage(eq("value1"), eq(TENANT_KEY), any());
-        verify(messageHandler, timeout(2000)).onMessage(eq("value2"), eq(TENANT_KEY), any());
+        verify(messageHandler, timeout(2000)).onMessage(eq("value1"), eq(TENANT_KEY), any(), any());
+        verify(messageHandler, timeout(2000)).onMessage(eq("value2"), eq(TENANT_KEY), any(), any());
 
         producer.close();
 
