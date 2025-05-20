@@ -219,14 +219,12 @@ public class MessageListenerIntTest {
         Thread.sleep(1000);
         verifyNoInteractions(messageHandler);
 
+        producer.commitTransaction();
         verify(messageHandler, timeout(2000)).onMessage(eq("value1"), eq(TENANT_KEY), any(), any());
         verify(messageHandler, timeout(2000)).onMessage(eq("value2"), eq(TENANT_KEY), any(), any());
-
         producer.close();
-
         topicConfigurationService.onRefresh(UPDATE_KEY, "");
     }
-
 
     @Test
     @SneakyThrows
