@@ -62,6 +62,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 @ContextConfiguration(classes = TestBeanConfiguration.class)
 public class MessageListenerIntTest {
 
+    private static final String TOPIC_FOR_TEST_DEAD_LETTER = "dead-letter-test";
+    private static final String TOPIC_DEAD_QUEUE = "kafka-test-dead-queue";
+
     private static final String TOPIC = "kafka-test-queue";
     private static final String GROUP = "test";
     private static final String UPDATE_KEY = "/config/tenants/test/some-ms/topic-consumers.yml";
@@ -70,6 +73,7 @@ public class MessageListenerIntTest {
     private static final String CONFIG = "topic-consumers-4.yml";
     private static final String TX_CONFIG = "topic-consumers-without-isolation.yml";
     private static final String TX_RC_CONFIG = "topic-consumers-with-isolation-read_committed.yml";
+    private static final String DEAD_LETTER_CONFIG = "topic-consumers-dead-letter.yml";
     private static final String TEST_MESSAGE = "test message";
 
     @Autowired
@@ -112,7 +116,7 @@ public class MessageListenerIntTest {
     @Test
     public void testSuccessProcessMessageWhenPollTimeIsOver() {
         log.info("TRYFIXTEST init consumers");
-        initConsumers();
+        initConsumers(singleton(TOPIC));
 
         DefaultKafkaProducerFactory<String, String> kafkaProducerFactory = new DefaultKafkaProducerFactory<>(
             producerProps(kafkaEmbedded),
@@ -163,7 +167,7 @@ public class MessageListenerIntTest {
     @SneakyThrows
     @Test
     public void testConsumerReadUncommited() {
-        initConsumers();
+        initConsumers(singleton(TOPIC));
 
         topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(TX_CONFIG));
 
@@ -191,7 +195,7 @@ public class MessageListenerIntTest {
     @Test
     @SneakyThrows
     public void testConsumerReadCommitted() {
-        initConsumers();
+        initConsumers(singleton(TOPIC));
 
         topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(TX_RC_CONFIG));
 
@@ -219,13 +223,68 @@ public class MessageListenerIntTest {
         topicConfigurationService.onRefresh(UPDATE_KEY, "");
     }
 
-    private void initConsumers() {
+
+    @Test
+    @SneakyThrows
+    public void testConsumerDeadLetter() {
+        initConsumers(Set.of(TOPIC_FOR_TEST_DEAD_LETTER, TOPIC_DEAD_QUEUE));
+
+        topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(DEAD_LETTER_CONFIG));
+
+        var config = new TopicConfig();
+        config.setKey("dead-letter-test");
+        config.setTypeKey("dead-letter-test");
+        config.setTopicName("dead-letter-test");
+        config.setRetriesCount(2);
+        config.setBackOffPeriod(1L);
+        config.setDeadLetterQueue("kafka-test-dead-queue");
+
+        var configDeadLetter = new TopicConfig();
+        configDeadLetter.setKey("kafka-test-dead-queue");
+        configDeadLetter.setTypeKey("kafka-test-dead-queue");
+        configDeadLetter.setTopicName("kafka-test-dead-queue");
+        configDeadLetter.setRetriesCount(1);
+        configDeadLetter.setBackOffPeriod(1L);
+        configDeadLetter.setDeadLetterQueue("kafka-test-absolute-dead-queue");
+
+        doAnswer(answer -> {
+            log.info("TEST dead letter exception");
+            throw new BusinessException("test");
+        }).when(messageHandler).onMessage(any(), any(), refEq(config), any());
+        doAnswer(answer -> {
+            log.info("TEST dead letter handling");
+            return null;
+        }).when(messageHandler).onMessage(any(), any(), refEq(configDeadLetter), any());
+
+        Producer<String, String> producer = createTxProducer();
+        producer.beginTransaction();
+        producer.send(new ProducerRecord<>(TOPIC_FOR_TEST_DEAD_LETTER, "test value"));
+        producer.flush();
+
+        Thread.sleep(5000);
+
+        InOrder inOrder = inOrder(messageHandler);
+        inOrder.verify(messageHandler, times(3)).onMessage(eq("test value"), eq(TENANT_KEY), refEq(config), any());
+
+        ArgumentCaptor<Map<String, byte[]>> headersCaptor = ArgumentCaptor.forClass(Map.class);
+        inOrder.verify(messageHandler).onMessage(eq("test value"), eq(TENANT_KEY), refEq(configDeadLetter), headersCaptor.capture());
+        Map<String, byte[]> headers = headersCaptor.getValue();
+        assertEquals("{code=error.business, message=test}", new String(headers.get(EXCEPTION_MESSAGE)));
+        verifyNoMoreInteractions(messageHandler);
+
+        producer.close();
+
+        topicConfigurationService.onRefresh(UPDATE_KEY, "");
+    }
+
+
+    private void initConsumers(Set<String> topics) {
         DefaultKafkaConsumerFactory<String, String> kafkaConsumerFactory =
             new DefaultKafkaConsumerFactory<>(consumerProps(GROUP, "false", kafkaEmbedded),
                 new StringDeserializer(),
                 new StringDeserializer());
         Consumer<String, String> consumer = kafkaConsumerFactory.createConsumer();
-        consumer.subscribe(singleton(TOPIC));
+        consumer.subscribe(topics);
         consumer.poll(0);
         consumer.close();
     }
