@@ -37,11 +37,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Map;
 
+import static com.icthh.xm.commons.topic.message.MessageHandler.EXCEPTION_MESSAGE;
 import static java.lang.Thread.sleep;
 import static java.nio.charset.Charset.defaultCharset;
 import static java.util.Collections.singleton;
 import static org.apache.kafka.clients.producer.ProducerConfig.RETRIES_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_CONFIG;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.refEq;
@@ -271,7 +273,7 @@ public class MessageListenerIntTest {
         ArgumentCaptor<Map<String, byte[]>> headersCaptor = ArgumentCaptor.forClass(Map.class);
         inOrder.verify(messageHandler).onMessage(eq("test value"), eq(TENANT_KEY), refEq(configDeadLetter), headersCaptor.capture());
         Map<String, byte[]> headers = headersCaptor.getValue();
-        System.out.println(headers);
+        assertEquals("{code=error.business, message=test}", new String(headers.get(EXCEPTION_MESSAGE)));
         verifyNoMoreInteractions(messageHandler);
 
         producer.close();
