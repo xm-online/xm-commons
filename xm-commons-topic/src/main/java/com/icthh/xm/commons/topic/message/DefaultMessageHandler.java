@@ -3,6 +3,7 @@ package com.icthh.xm.commons.topic.message;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -18,10 +19,10 @@ public class DefaultMessageHandler implements MessageHandler {
     private final TenantContextHolder tenantContextHolder;
 
     @Override
-    public void onMessage(String message, String tenant, TopicConfig topicConfig) {
+    public void onMessage(String message, String tenant, TopicConfig topicConfig, Map<String, byte[]> headers) {
         try {
             init(tenant);
-            messageListenerService.onMessage(message, topicConfig);
+            messageListenerService.onMessageWithHeaders(message, topicConfig, headers);
         } finally {
             destroy();
         }
