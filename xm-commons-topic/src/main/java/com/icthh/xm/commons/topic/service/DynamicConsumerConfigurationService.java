@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@ConditionalOnBean(name = "tenantListRepository")
+@ConditionalOnBean(TenantListRepository.class)
 public class DynamicConsumerConfigurationService implements ApplicationListener<RefreshDynamicConsumersEvent> {
 
     private final List<DynamicConsumerConfiguration> dynamicConsumerConfigurations;
