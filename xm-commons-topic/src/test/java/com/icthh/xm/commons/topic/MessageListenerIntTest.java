@@ -1,5 +1,27 @@
 package com.icthh.xm.commons.topic;
 
+import static com.icthh.xm.commons.topic.message.MessageHandler.EXCEPTION_MESSAGE;
+import static java.lang.Thread.sleep;
+import static java.nio.charset.Charset.defaultCharset;
+import static java.util.Collections.singleton;
+import static org.apache.kafka.clients.producer.ProducerConfig.RETRIES_CONFIG;
+import static org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_CONFIG;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.after;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.springframework.kafka.test.utils.KafkaTestUtils.consumerProps;
+import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
+
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.logging.trace.SleuthWrapper;
@@ -8,6 +30,9 @@ import com.icthh.xm.commons.topic.message.MessageHandler;
 import com.icthh.xm.commons.topic.service.DynamicConsumerConfigurationService;
 import com.icthh.xm.commons.topic.service.TopicConfigurationService;
 import com.icthh.xm.commons.topic.service.TopicManagerService;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -38,22 +63,6 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.Message;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.icthh.xm.commons.topic.message.MessageHandler.EXCEPTION_MESSAGE;
-import static java.lang.Thread.sleep;
-import static java.nio.charset.Charset.defaultCharset;
-import static java.util.Collections.singleton;
-import static org.apache.kafka.clients.producer.ProducerConfig.RETRIES_CONFIG;
-import static org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_CONFIG;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.kafka.test.utils.KafkaTestUtils.consumerProps;
-import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
 
 @Slf4j
 @RunWith(SpringRunner.class)
