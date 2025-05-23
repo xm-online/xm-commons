@@ -1,17 +1,27 @@
 package com.icthh.xm.commons.topic.config;
 
+import static com.icthh.xm.commons.topic.message.MessageHandler.EXCEPTION_MESSAGE;
+import static com.icthh.xm.commons.topic.message.MessageHandler.EXCEPTION_STACKTRACE;
 import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.getRetryCounter;
 import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.getRid;
 import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.getTotalProcessingTime;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 import static org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter.CONTEXT_ACKNOWLEDGMENT;
 import static org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter.CONTEXT_RECORD;
 
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
+import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeader;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ListenerExecutionFailedException;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
@@ -52,7 +62,16 @@ public class ConsumerRecoveryCallback implements RecoveryCallback<Object> {
                 return null;
             }
 
-            kafkaTemplate.send(deadLetterQueue, rawBody);
+            Headers headers = addExceptionHeaders(context, record);
+            ProducerRecord<String, String> dlqRecord = new ProducerRecord<>(
+                deadLetterQueue,
+                record.partition(),
+                record.key() != null ? record.key().toString() : null,
+                rawBody,
+                headers
+            );
+            kafkaTemplate.send(dlqRecord);
+
             acknowledge(rawBody, context);
 
             log.warn("send message to dead-letter [{}] due to retry count exceeded [{}], "
@@ -62,6 +81,17 @@ public class ConsumerRecoveryCallback implements RecoveryCallback<Object> {
             MdcUtils.clear();
         }
         return null;
+    }
+
+    private static Headers addExceptionHeaders(RetryContext context, ConsumerRecord<?, ?> record) {
+        Headers headers = new RecordHeaders(record.headers());
+        Throwable e = context.getLastThrowable();
+        if (e instanceof ListenerExecutionFailedException && e.getCause() != null) {
+            e = e.getCause();
+        }
+        headers.add(new RecordHeader(EXCEPTION_MESSAGE, e.toString().getBytes(UTF_8)));
+        headers.add(new RecordHeader(EXCEPTION_STACKTRACE, getStackTrace(e).getBytes(UTF_8)));
+        return headers;
     }
 
     private void acknowledge(String rawBody, RetryContext context) {

@@ -2,6 +2,8 @@ package com.icthh.xm.commons.topic.config;
 
 import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.delete;
 import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.getUpdatedOrGenerateRetryDetails;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.StreamSupport.stream;
 
 import com.icthh.xm.commons.logging.trace.SleuthWrapper;
 import com.icthh.xm.commons.logging.util.MdcUtils;
@@ -9,12 +11,14 @@ import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
 import com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.MessageRetryDetails;
 import java.math.BigInteger;
+import java.util.Map;
 import java.util.StringJoiner;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.header.Header;
 import org.springframework.kafka.listener.AcknowledgingMessageListener;
 import org.springframework.kafka.support.Acknowledgment;
 
@@ -40,7 +44,8 @@ public class MessageListener implements AcknowledgingMessageListener<String, Str
         String rawBody = record.value();
         log.info("start processing message, size = {}, body = [{}]", rawBody.length(), formatBody(rawBody));
         try {
-            messageHandler.onMessage(rawBody, tenantKey, topicConfig);
+            Map<String, byte[]> headers = stream(record.headers().spliterator(), false).collect(toMap(Header::key, Header::value));
+            messageHandler.onMessage(rawBody, tenantKey, topicConfig, headers);
             acknowledgment.acknowledge();
             delete(record);
             log.info("stop processing message, time = {} ms.", stopWatch.getTime());
