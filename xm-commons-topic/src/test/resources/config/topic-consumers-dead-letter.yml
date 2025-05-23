@@ -1,0 +1,15 @@
+---
+topics:
+  - key: dead-letter-test
+    typeKey: dead-letter-test
+    topicName: dead-letter-test
+    retriesCount: 2
+    backOffPeriod: 1
+    deadLetterQueue: kafka-test-dead-queue
+  - key: kafka-test-dead-queue
+    typeKey: kafka-test-dead-queue
+    topicName: kafka-test-dead-queue
+    retriesCount: 1
+    backOffPeriod: 1
+    deadLetterQueue: kafka-test-absolute-dead-queue
+
