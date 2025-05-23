@@ -5,8 +5,8 @@ import java.util.Map;
 
 public interface MessageHandler {
 
-    String EXCEPTION_MESSAGE = "xm_exceptionMessage";
-    String EXCEPTION_STACKTRACE = "xm_exceptionStackTrace";
+    String EXCEPTION_MESSAGE = "xm_exception_message";
+    String EXCEPTION_STACKTRACE = "xm_exception_stack_trace";
 
     default void onMessage(String message, String tenant, TopicConfig topicConfig) {
     }
