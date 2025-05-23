@@ -1,42 +1,5 @@
 package com.icthh.xm.commons.topic;
 
-import com.icthh.xm.commons.exceptions.BusinessException;
-import com.icthh.xm.commons.logging.trace.TraceWrapper;
-import com.icthh.xm.commons.topic.config.TestBeanConfiguration;
-import com.icthh.xm.commons.topic.domain.TopicConfig;
-import com.icthh.xm.commons.topic.message.MessageHandler;
-import com.icthh.xm.commons.topic.service.TopicConfigurationService;
-import java.util.Set;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InOrder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.context.EmbeddedKafka;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-
-import java.util.Map;
-
 import static com.icthh.xm.commons.topic.message.MessageHandler.EXCEPTION_MESSAGE;
 import static java.lang.Thread.sleep;
 import static java.nio.charset.Charset.defaultCharset;
@@ -58,6 +21,41 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.springframework.kafka.test.utils.KafkaTestUtils.consumerProps;
 import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
+
+import com.icthh.xm.commons.exceptions.BusinessException;
+import com.icthh.xm.commons.logging.trace.TraceWrapper;
+import com.icthh.xm.commons.topic.config.TestBeanConfiguration;
+import com.icthh.xm.commons.topic.domain.TopicConfig;
+import com.icthh.xm.commons.topic.message.MessageHandler;
+import com.icthh.xm.commons.topic.service.TopicConfigurationService;
+import java.util.Map;
+import java.util.Set;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 
 @Slf4j
 @RunWith(SpringRunner.class)
