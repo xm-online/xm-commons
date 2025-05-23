@@ -4,6 +4,7 @@ import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -20,10 +21,10 @@ public class LepMessageHandler implements MessageHandler {
     private final LepManagementService lepManagementService;
 
     @Override
-    public void onMessage(String message, String tenant, TopicConfig topicConfig) {
+    public void onMessage(String message, String tenant, TopicConfig topicConfig, Map<String, byte[]> headers) {
         tenantContextHolder.getPrivilegedContext().execute(TenantContextUtils.buildTenant(tenant), () -> {
             try (var context = lepManagementService.beginThreadContext()) {
-                messageListenerService.onMessage(message, topicConfig);
+                messageListenerService.onMessageWithHeaders(message, topicConfig, headers);
             }
         });
     }

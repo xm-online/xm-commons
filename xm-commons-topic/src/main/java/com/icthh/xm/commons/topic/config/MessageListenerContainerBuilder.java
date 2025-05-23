@@ -1,8 +1,12 @@
 package com.icthh.xm.commons.topic.config;
 
+import static com.icthh.xm.commons.topic.message.MessageHandler.EXCEPTION_MESSAGE;
+import static com.icthh.xm.commons.topic.message.MessageHandler.EXCEPTION_STACKTRACE;
 import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.getRetryCounter;
 import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.getTotalProcessingTime;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
@@ -16,11 +20,17 @@ import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
 import com.icthh.xm.commons.topic.util.MessageRetryUtils;
+import java.util.Collections;
+import java.util.Map;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeader;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -32,11 +42,8 @@ import org.springframework.kafka.listener.ConsumerRecordRecoverer;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.listener.ListenerExecutionFailedException;
 import org.springframework.util.backoff.FixedBackOff;
-
-import java.util.Collections;
-import java.util.Map;
-import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -87,7 +94,18 @@ public class MessageListenerContainerBuilder {
     }
 
     private ConsumerRecordRecoverer getDeadLetterPublishingRecoverer(String tenantKey, TopicConfig topicConfig) {
-        return new DeadLetterPublishingRecoverer(kafkaTemplate, (r, ex) -> recover(r, tenantKey, topicConfig));
+        var recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate, (r, ex) -> recover(r, tenantKey, topicConfig));
+        recoverer.addHeadersFunction((record, ex) -> {
+            Throwable e = ex;
+            if (e instanceof ListenerExecutionFailedException && e.getCause() != null) {
+                e = e.getCause();
+            }
+            Headers additional = new RecordHeaders();
+            additional.add(new RecordHeader(EXCEPTION_MESSAGE, e.toString().getBytes(UTF_8)));
+            additional.add(new RecordHeader(EXCEPTION_STACKTRACE, getStackTrace(e).getBytes(UTF_8)));
+            return additional;
+        });
+        return recoverer;
     }
 
     private TopicPartition recover(ConsumerRecord<?, ?> record, String tenantKey,

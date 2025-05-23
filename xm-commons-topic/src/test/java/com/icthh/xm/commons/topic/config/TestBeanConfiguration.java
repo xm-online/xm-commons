@@ -8,6 +8,7 @@ import com.icthh.xm.commons.topic.service.DynamicConsumerConfigurationService;
 import com.icthh.xm.commons.topic.service.TopicConfigurationService;
 import com.icthh.xm.commons.topic.service.TopicDynamicConsumerConfiguration;
 import com.icthh.xm.commons.topic.service.TopicManagerService;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -65,7 +66,7 @@ public class TestBeanConfiguration {
     public MessageHandler messageHandler() {
         return spy(new MessageHandler() { // don't use lamda!
             @Override
-            public void onMessage(String message, String tenant, TopicConfig topicConfig) {
+            public void onMessage(String message, String tenant, TopicConfig topicConfig, Map<String, byte[]> headers) {
                 log.info("Handle message = {}", message);
             }
         });
