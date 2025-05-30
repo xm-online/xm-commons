@@ -8,11 +8,12 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@ConditionalOnMissingBean(LepManagementService.class)
+@ConditionalOnProperty(name = "application.lep-message-handling.disabled", havingValue = "true", matchIfMissing = false)
 @RequiredArgsConstructor
 public class DefaultMessageHandler implements MessageHandler {
 
