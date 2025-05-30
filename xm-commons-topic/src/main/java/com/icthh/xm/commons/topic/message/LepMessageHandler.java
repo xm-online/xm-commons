@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@ConditionalOnBean(name = "lepManager")
+@ConditionalOnBean(LepManagementService.class)
 @RequiredArgsConstructor
 public class LepMessageHandler implements MessageHandler {
 

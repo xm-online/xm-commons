@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.topic.message;
 
+import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@ConditionalOnMissingBean(name = "lepManager")
+@ConditionalOnMissingBean(LepManagementService.class)
 @RequiredArgsConstructor
 public class DefaultMessageHandler implements MessageHandler {
 
