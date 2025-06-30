@@ -45,7 +45,6 @@ public class ApplicationStartup implements ApplicationListener<ApplicationReadyE
     private void createSystemConsumer(String name, MessageListener<String, String> consumeEvent) {
         log.info("Creating kafka consumer for topic {}", name);
         ContainerProperties containerProps = new ContainerProperties(name);
-        containerProps.setObservationEnabled(true);
 
         Map<String, Object> props = kafkaProperties.buildConsumerProperties();
         props.put(ConsumerConfig.METADATA_MAX_AGE_CONFIG, kafkaMetadataMaxAge);
