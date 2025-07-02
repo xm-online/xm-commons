@@ -5,11 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.logging.LoggingAspectConfig;
+import com.icthh.xm.commons.logging.trace.SleuthWrapper;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.messaging.event.system.SystemEvent;
-import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
+import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -17,25 +18,22 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-
 @Slf4j
 @Service
 public class SystemQueueConsumer {
 
     private final TenantContextHolder tenantContextHolder;
-    private final XmAuthenticationContextHolder authContextHolder;
     private final SystemConsumerService systemConsumerService;
     private final LepManagementService lepManager;
+    private final SleuthWrapper sleuthWrapper;
 
     public SystemQueueConsumer(TenantContextHolder tenantContextHolder,
-                               XmAuthenticationContextHolder authContextHolder,
-                               SystemConsumerService systemConsumerService,
-                               LepManagementService lepManager) {
+        SystemConsumerService systemConsumerService,
+        LepManagementService lepManager, SleuthWrapper sleuthWrapper) {
         this.tenantContextHolder = tenantContextHolder;
-        this.authContextHolder = authContextHolder;
         this.systemConsumerService = systemConsumerService;
         this.lepManager = lepManager;
+        this.sleuthWrapper = sleuthWrapper;
     }
 
     /**
@@ -50,28 +48,31 @@ public class SystemQueueConsumer {
     public void consumeEvent(ConsumerRecord<String, String> message) {
         MdcUtils.putRid();
         try {
-            log.info("Consume event from topic [{}]", message.topic());
-            ObjectMapper mapper = new ObjectMapper()
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            mapper.registerModule(new JavaTimeModule());
-            try {
-                SystemEvent event = mapper.readValue(message.value(), SystemEvent.class);
-
-                log.info("Process event from topic [{}], {}", message.topic(), event);
-
-                if (StringUtils.isBlank(event.getTenantKey())) {
-                    log.info("Event ignored due to tenantKey is empty {}", event);
-                    return;
-                }
-                init(event.getTenantKey(), event.getUserLogin());
-
-                systemConsumerService.acceptSystemEvent(event);
-
-            } catch (IOException e) {
-                log.error("System queue message has incorrect format: '{}'", message.value(), e);
-            }
+            sleuthWrapper.runWithSleuth(message, () -> processEvent(message));
         } finally {
             destroy();
+        }
+    }
+
+    private void processEvent(ConsumerRecord<String, String> message) {
+        log.info("Consume event from topic [{}]", message.topic());
+        ObjectMapper mapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.registerModule(new JavaTimeModule());
+        try {
+            SystemEvent event = mapper.readValue(message.value(), SystemEvent.class);
+
+            log.info("Process event from topic [{}], {}", message.topic(), event);
+
+            if (StringUtils.isBlank(event.getTenantKey())) {
+                log.info("Event ignored due to tenantKey is empty {}", event);
+                return;
+            }
+            init(event.getTenantKey(), event.getUserLogin());
+
+            systemConsumerService.acceptSystemEvent(event);
+        } catch (IOException e) {
+            log.error("System queue message has incorrect format: '{}'", message.value(), e);
         }
     }
 
@@ -92,5 +93,4 @@ public class SystemQueueConsumer {
         tenantContextHolder.getPrivilegedContext().destroyCurrentContext();
         MdcUtils.removeRid();
     }
-
 }
