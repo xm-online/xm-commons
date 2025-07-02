@@ -6,6 +6,8 @@ if (hasProperty('ossrhUsername') && hasProperty('ossrhPassword') && !hasProperty
             sonatype {
                 username = ossrhUsername
                 password = ossrhPassword
+                nexusUrl.set(uri(artifactoryStaging))
+                snapshotRepositoryUrl.set(uri(artifactorySnapshot))
             }
         }
 
