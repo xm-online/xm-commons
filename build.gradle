@@ -173,8 +173,8 @@ subprojects {
                     if (isRelease(project)) {
                         // id: 'sonatype-nexus-staging',
                         maven {
-                            name = 'ossrh-staging-api'
-                            url artifactoryStaging
+                            name = "ossrh-staging-api"
+                            url  = uri(artifactoryStaging)
                             credentials {
                                 username ossrhUsername
                                 password ossrhPassword
