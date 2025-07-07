@@ -19,8 +19,8 @@ buildscript {
 // Plugin for support environment's with gradle.properties (gradle-local.properties is default local environment)
 plugins {
     id 'net.saliman.properties' version "1.5.2"
-    id 'org.ajoberstar.grgit' version "5.0.0"
-    id "com.github.spotbugs" version '5.0.9'
+    id 'org.ajoberstar.grgit' version "2.0.0"
+    id "com.github.spotbugs" version '1.6.3'
     id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
     id 'maven-publish'
 }
@@ -200,20 +200,6 @@ subprojects {
 
             publications {
                 mavenJava(MavenPublication) {
-                    from components.java
-
-                    artifact javadocJar
-                    artifact sourcesJar
-
-                    versionMapping {
-                        usage('java-api') {
-                            fromResolutionOf('runtimeClasspath')
-                        }
-                        usage('java-runtime') {
-                            fromResolutionResult()
-                        }
-                    }
-
                     pom {
 
                         packaging = 'jar'
