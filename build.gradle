@@ -179,7 +179,8 @@ subprojects {
                     if (isRelease(project)) {
                         // id: 'sonatype-nexus-staging',
                         maven {
-                            url "https://central.sonatype.com/service/local/staging/deploy/maven2/"
+                            name = "ossrh-staging-api"
+                            url  = uri(artifactoryStaging)
                             credentials {
                                 username ossrhUsername
                                 password ossrhPassword
@@ -188,7 +189,7 @@ subprojects {
                     } else {
                         // id: 'sonatype-nexus-snapshots'
                         maven {
-                            url "https://central.sonatype.com/content/repositories/snapshots/"
+                            url artifactorySnapshot
                             credentials {
                                 username ossrhUsername
                                 password ossrhPassword
@@ -200,6 +201,20 @@ subprojects {
 
             publications {
                 mavenJava(MavenPublication) {
+                    from components.java
+
+                    artifact javadocJar
+                    artifact sourcesJar
+
+                    versionMapping {
+                        usage('java-api') {
+                            fromResolutionOf('runtimeClasspath')
+                        }
+                        usage('java-runtime') {
+                            fromResolutionResult()
+                        }
+                    }
+
                     pom {
 
                         packaging = 'jar'
