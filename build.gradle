@@ -201,6 +201,20 @@ subprojects {
 
             publications {
                 mavenJava(MavenPublication) {
+                    from components.java
+
+                    artifact javadocJar
+                    artifact sourcesJar
+
+                    versionMapping {
+                        usage('java-api') {
+                            fromResolutionOf('runtimeClasspath')
+                        }
+                        usage('java-runtime') {
+                            fromResolutionResult()
+                        }
+                    }
+
                     pom {
 
                         packaging = 'jar'
