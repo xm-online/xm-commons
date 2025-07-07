@@ -1,11 +1,16 @@
 
 if (hasProperty('ossrhUsername') && hasProperty('ossrhPassword')) {
 
-    nexusStaging {
-        username = ossrhUsername
-        password = ossrhPassword
-        numberOfRetries = 100
-        delayBetweenRetriesInMillis = 10000
+    nexusPublishing {
+        repositories {
+            sonatype {
+                username = ossrhUsername
+                password = ossrhPassword
+            }
+        }
+
+        clientTimeout = Duration.ofSeconds(60 * 5)
+        connectTimeout = Duration.ofSeconds(60)
         packageGroup = "com.icthh"
     }
 
