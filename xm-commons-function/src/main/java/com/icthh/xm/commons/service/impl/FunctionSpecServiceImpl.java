@@ -1,6 +1,8 @@
 package com.icthh.xm.commons.service.impl;
 
+import com.icthh.xm.commons.config.FunctionApiSpecConfiguration;
 import com.icthh.xm.commons.domain.DefinitionSpec;
+import com.icthh.xm.commons.domain.spec.FunctionSpec;
 import com.icthh.xm.commons.processor.impl.DefinitionSpecProcessor;
 import com.icthh.xm.commons.service.FunctionSpecService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
@@ -24,6 +26,7 @@ public class FunctionSpecServiceImpl implements FunctionSpecService {
 
     private final TenantContextHolder tenantContextHolder;
     private final DefinitionSpecProcessor definitionSpecProcessor;
+    private final FunctionApiSpecConfiguration functionApiSpecConfiguration;
 
     @Override
     public List<DataSchemaResponse> getDataSpecSchemas() {
@@ -31,6 +34,12 @@ public class FunctionSpecServiceImpl implements FunctionSpecService {
             .stream()
             .map(it -> new DataSchemaResponse(it.getKey(), it.getValue(), DEFINITION_TYPE))
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<FunctionSpec> getFunctionSpecList() {
+        String tenantKey = TenantContextUtils.getRequiredTenantKeyValue(tenantContextHolder);
+        return List.copyOf(functionApiSpecConfiguration.getOrderedSpecByTenant(tenantKey));
     }
 
     private Collection<DefinitionSpec> getProcessedSpecsCopy() {

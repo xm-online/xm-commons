@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
+import com.icthh.xm.commons.domain.spec.FunctionSpec;
 import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.commons.service.FunctionSpecService;
 import com.icthh.xm.commons.web.rest.response.DataSchemaResponse;
@@ -33,4 +34,13 @@ public class FunctionSpecResource {
     public ResponseEntity<List<DataSchemaResponse>> getDataSpecSchemas() {
         return ResponseEntity.ok().body(functionSpecService.getDataSpecSchemas());
     }
+
+    @GetMapping(value = "/function-spec", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Timed
+    @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'FUNCTION_SPEC.SPEC.GET')")
+    @PrivilegeDescription("Privilege to get the function list")
+    public ResponseEntity<List<FunctionSpec>> getFunctionSpecList() {
+        return ResponseEntity.ok().body(functionSpecService.getFunctionSpecList());
+    }
+
 }

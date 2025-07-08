@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.service;
 
+import com.icthh.xm.commons.domain.spec.FunctionSpec;
 import com.icthh.xm.commons.web.rest.response.DataSchemaResponse;
 
 import java.util.List;
@@ -10,4 +11,6 @@ import java.util.List;
 public interface FunctionSpecService {
 
     List<DataSchemaResponse> getDataSpecSchemas();
+
+    List<FunctionSpec> getFunctionSpecList();
 }
