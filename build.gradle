@@ -18,10 +18,11 @@ buildscript {
 
 // Plugin for support environment's with gradle.properties (gradle-local.properties is default local environment)
 plugins {
-    id 'net.saliman.properties' version '1.4.6'
-    id 'org.ajoberstar.grgit' version '2.0.0'
-    id "com.github.spotbugs" version "1.6.3"
-    id 'maven'
+    id 'net.saliman.properties' version "1.5.2"
+    id 'org.ajoberstar.grgit' version "2.0.0"
+    id "com.github.spotbugs" version '1.6.3'
+    id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
+    id 'maven-publish'
 }
 apply from: rootProject.file('gradle/git.gradle')
 
@@ -51,11 +52,13 @@ allprojects {
 apply from: rootProject.file('gradle/nexus-staging.gradle')
 
 subprojects {
+
     apply plugin: 'java'
-    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
     apply plugin: 'signing'
     apply plugin: 'checkstyle'
     apply plugin: 'pmd'
+    apply plugin: 'java-library'
     apply from: rootProject.file('gradle/jacoco.gradle')
 
     version = parent.version
@@ -70,7 +73,6 @@ subprojects {
 
     repositories {
         mavenCentral()
-        jcenter()
     }
 
     dependencies {
@@ -137,16 +139,6 @@ subprojects {
 
     task allDeps(type: DependencyReportTask) {}
 
-    signing {
-        // We only want to require signing if we are building a release version and we are going to publish it.
-        // Because we are inspecting the task graph to determine if we are going to be publishing,
-        // we must set the signing.required property to a closure to defer the evaluation
-        required {
-            isRelease(project) && gradle.taskGraph.hasTask("uploadArchives")
-        }
-        sign configurations.archives
-    }
-
     checkstyle {
         toolVersion = versions.checkstyle
         ignoreFailures = true
@@ -164,8 +156,8 @@ subprojects {
 
     // use `afterEvaluate` for init some pom values or jar manifest from sub-projects (for example: description)
     afterEvaluate {
+        publishing {
 
-        uploadArchives {
             def projectDescription = ((project.description != null) ? project.description : project.name)
 
             jar {
@@ -181,100 +173,118 @@ subprojects {
             }
 
             repositories {
-                mavenDeployer {
-                    beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-                    if (!project.hasProperty('ossrhUsername') || !project.hasProperty('ossrhPassword')) {
-                        logger.lifecycle("No OSS RH user credentail defined - you can't deploy artifacts")
-                    } else {
-                        if (isRelease(project)) {
-                            // id: 'sonatype-nexus-staging',
-                            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                                authentication(userName: ossrhUsername, password: ossrhPassword)
-                            }
-                        } else {
-                            // id: 'sonatype-nexus-snapshots'
-                            repository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-                                authentication(userName: ossrhUsername, password: ossrhPassword)
+                if (!project.hasProperty('ossrhUsername') || !project.hasProperty('ossrhPassword')) {
+                    mavenLocal()
+                    logger.lifecycle("No OSS RH user credentail defined - you can't deploy artifacts")
+                } else {
+                    if (isRelease(project)) {
+                        // id: 'sonatype-nexus-staging',
+                        maven {
+                            name = "ossrh-staging-api"
+                            url  = uri(artifactoryStaging)
+                            credentials {
+                                username ossrhUsername
+                                password ossrhPassword
                             }
                         }
+                    } else {
+                        // id: 'sonatype-nexus-snapshots'
+                        maven {
+                            url artifactorySnapshot
+                            credentials {
+                                username ossrhUsername
+                                password ossrhPassword
+                            }
+                        }
+                    }
+                }
+            }
 
-                        //repository(url: "file://" + rootProject.buildDir.absolutePath + File.separatorChar + "mvn-local-repo") {
-                        //}
+            publications {
+                mavenJava(MavenPublication) {
+                    from components.java
 
-                        //snapshotRepository(id: 'sonatype-nexus-snapshots',
-                        //    url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
-                        //    authentication(userName: ossrhUsername, password: ossrhPassword)
-                        //}
+                    artifact javadocJar
+                    artifact sourcesJar
+
+                    versionMapping {
+                        usage('java-api') {
+                            fromResolutionOf('runtimeClasspath')
+                        }
+                        usage('java-runtime') {
+                            fromResolutionResult()
+                        }
                     }
 
-                    pom.project {
-                        packaging 'jar'
-                        name project.name
-                        description projectDescription
-                        url 'https://xm.icthh.com'
+                    pom {
+
+                        packaging = 'jar'
+                        name = project.name
+                        description = projectDescription
+                        url = 'https://xm.icthh.com'
 
                         scm {
-                            url 'https://github.com/xm-online/xm-commons'
-                            connection 'scm:git:git://github.com/xm-online/xm-commons.git'
-                            developerConnection 'scm:git:git://github.com/xm-online/xm-commons.git'
+                            url = 'https://github.com/xm-online/xm-commons'
+                            connection = 'scm:git:git://github.com/xm-online/xm-commons.git'
+                            developerConnection = 'scm:git:git://github.com/xm-online/xm-commons.git'
                         }
 
                         licenses {
                             license {
-                                name 'The Apache License, Version 2.0'
-                                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                                name = 'The Apache License, Version 2.0'
+                                url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
                             }
                         }
 
                         developers {
                             developer {
-                                id 'adovbnya'
-                                name 'Alexander Dovbnya'
-                                email 'adovbnya@icthh.com'
+                                id = 'adovbnya'
+                                name = 'Alexander Dovbnya'
+                                email = 'adovbnya@icthh.com'
                             }
 
                             developer {
-                                id 'agorobey'
-                                name 'Aleksey Gorobey'
+                                id = 'agorobey'
+                                name = 'Aleksey Gorobey'
                             }
 
                             developer {
-                                id 'amedvedchuk'
-                                name 'Anatoliy Medvedchuk'
+                                id = 'amedvedchuk'
+                                name = 'Anatoliy Medvedchuk'
                             }
 
                             developer {
-                                id 'bonertale'
-                                name 'Alexander Bonert'
+                                id = 'bonertale'
+                                name = 'Alexander Bonert'
                             }
 
                             developer {
-                                id 'emonastyrev'
-                                name 'Evgen Monastyrev'
+                                id = 'emonastyrev'
+                                name = 'Evgen Monastyrev'
                             }
 
                             developer {
-                                id 'epikuza'
-                                name 'Elena Pikuza'
+                                id = 'epikuza'
+                                name = 'Elena Pikuza'
                             }
 
                             developer {
-                                id 'ishkurko'
-                                name 'Igor Shkurko'
-                                email 'ishkurko@icthh.com'
+                                id = 'ishkurko'
+                                name = 'Igor Shkurko'
+                                email = 'ishkurko@icthh.com'
                             }
 
                             developer {
-                                id 'okoval'
-                                name 'Olha Koval'
+                                id = 'okoval'
+                                name = 'Olha Koval'
                             }
 
                             developer {
-                                id 'ssenko'
-                                name 'Serhii Senko'
+                                id = 'ssenko'
+                                name = 'Serhii Senko'
                             }
                         }
+
                     }
 
                     // remove test dependencies from pom file
@@ -286,8 +296,20 @@ subprojects {
                             it.parent().remove(it)
                         }
                     }
+
                 }
             }
+
+        }
+        signing {
+            // We only want to require signing if we are building a release version and we are going to publish it.
+            // Because we are inspecting the task graph to determine if we are going to be publishing,
+            // we must set the signing.required property to a closure to defer the evaluation
+            required {
+                isRelease(project) && gradle.taskGraph.hasTask("publish")
+            }
+            //sign configurations.archives
+            sign publishing.publications.mavenJava
         }
     }
 
