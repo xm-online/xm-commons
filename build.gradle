@@ -53,10 +53,6 @@ apply from: rootProject.file('gradle/nexus-staging.gradle')
 
 subprojects {
 
-    if (project.ext.has('skipPublishing') && project.ext.skipPublishing) {
-        return
-    }
-
     apply plugin: 'java'
     apply plugin: 'maven-publish'
     apply plugin: 'signing'
