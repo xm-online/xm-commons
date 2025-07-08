@@ -6,6 +6,8 @@ if (hasProperty('ossrhUsername') && hasProperty('ossrhPassword') && !hasProperty
             sonatype {
                 username = ossrhUsername
                 password = ossrhPassword
+                nexusUrl = uri(artifactoryStagingLocal)
+                snapshotRepositoryUrl = uri("https://central.sonatype.com/repository/maven-snapshots/")
             }
         }
 
