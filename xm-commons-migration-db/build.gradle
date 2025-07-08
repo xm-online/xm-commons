@@ -25,9 +25,12 @@ dependencies {
     testCompile 'org.mockito:mockito-core'
 }
 
+ext.skipPublishing = true
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            from components.java
         }
     }
 }
