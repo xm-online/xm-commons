@@ -1,11 +1,18 @@
 
-if (hasProperty('ossrhUsername') && hasProperty('ossrhPassword')) {
+if (hasProperty('ossrhUsername') && hasProperty('ossrhPassword') && !hasProperty('skipSonatype')) {
 
-    nexusStaging {
-        username = ossrhUsername
-        password = ossrhPassword
-        numberOfRetries = 100
-        delayBetweenRetriesInMillis = 10000
+    nexusPublishing {
+        repositories {
+            sonatype {
+                username = ossrhUsername
+                password = ossrhPassword
+                nexusUrl = uri(artifactoryStagingLocal)
+                snapshotRepositoryUrl = uri("https://central.sonatype.com/repository/maven-snapshots/")
+            }
+        }
+
+        clientTimeout = Duration.ofSeconds(60 * 5)
+        connectTimeout = Duration.ofSeconds(60)
         packageGroup = "com.icthh"
     }
 

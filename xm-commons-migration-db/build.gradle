@@ -24,11 +24,3 @@ dependencies {
     testCompile 'junit:junit'
     testCompile 'org.mockito:mockito-core'
 }
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
-    }
-}
