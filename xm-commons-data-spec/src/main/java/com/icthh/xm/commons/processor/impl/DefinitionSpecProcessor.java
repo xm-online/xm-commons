@@ -58,13 +58,12 @@ public class DefinitionSpecProcessor extends DataSpecProcessor<DefinitionSpec> {
      */
     @Override
     public void fullUpdateStateByTenant(String tenant, String baseSpecKey, Collection<DefinitionSpec> definitionSpecs) {
-        Map<String, DefinitionSpec> addedDefinitions = toKeyMapOverrideDuplicates(definitionSpecs);
-        if (!addedDefinitions.isEmpty()) {
-            log.info("added {} definition specs to tenant: {}", addedDefinitions.size(), tenant);
+        Map<String, DefinitionSpec> allDefinitions = toKeyMapOverrideDuplicates(definitionSpecs);
+        if (!allDefinitions.isEmpty()) {
+            log.info("added {} definition specs to tenant: {}", allDefinitions.size(), tenant);
             definitionsByTenant
                 .computeIfAbsent(tenant, s -> new HashMap<>())
-                .computeIfAbsent(baseSpecKey, s -> new HashMap<>())
-                .putAll(addedDefinitions);
+                .put(baseSpecKey, allDefinitions);
         }
     }
 

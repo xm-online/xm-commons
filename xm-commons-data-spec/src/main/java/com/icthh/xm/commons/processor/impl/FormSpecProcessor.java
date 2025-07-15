@@ -66,13 +66,12 @@ public class FormSpecProcessor extends SpecProcessor<FormSpec> {
 
     @Override
     public void fullUpdateStateByTenant(String tenant, String baseSpecKey, Collection<FormSpec> formSpecs) {
-        Map<String, FormSpec> addedForms = toKeyMapOverrideDuplicates(formSpecs);
-        if (!addedForms.isEmpty()) {
-            log.info("added {} form specs to tenant: {}", addedForms.size(), tenant);
+        Map<String, FormSpec> allForms = toKeyMapOverrideDuplicates(formSpecs);
+        if (!allForms.isEmpty()) {
+            log.info("added {} form specs to tenant: {}", allForms.size(), tenant);
             formsByTenant
                 .computeIfAbsent(tenant, s -> new HashMap<>())
-                .computeIfAbsent(baseSpecKey, s -> new HashMap<>())
-                .putAll(addedForms);
+                .put(baseSpecKey, allForms);
         }
     }
 
