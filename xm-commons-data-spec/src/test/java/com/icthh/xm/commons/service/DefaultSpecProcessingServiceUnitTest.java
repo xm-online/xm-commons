@@ -13,7 +13,9 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.icthh.xm.commons.utils.TestConstants.BASE_SPEC_KEY;
 import static com.icthh.xm.commons.utils.TestConstants.TEST_TENANT;
@@ -61,11 +63,11 @@ public class DefaultSpecProcessingServiceUnitTest {
 
         processingService.updateByTenantState(TEST_TENANT, BASE_SPEC_KEY, Set.of(spec, specWithEmptyItems));
 
-        verify(definitionSpecProcessor).updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, spec.getDefinitions());
-        verify(formSpecProcessor).updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, spec.getForms());
+        verify(definitionSpecProcessor).fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, spec.getDefinitions());
+        verify(formSpecProcessor).fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, spec.getForms());
 
-        verify(definitionSpecProcessor).updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, specWithEmptyItems.getDefinitions());
-        verify(formSpecProcessor).updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, specWithEmptyItems.getForms());
+        verify(definitionSpecProcessor).fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, spec.getDefinitions());
+        verify(formSpecProcessor).fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, specWithEmptyItems.getForms());
 
         verify(definitionSpecProcessor, times(itemsNumber * 2)).processDataSpec(eq(TEST_TENANT), eq(BASE_SPEC_KEY), any(), any());
         verify(formSpecProcessor, times(itemsNumber * 2)).processDataSpec(eq(TEST_TENANT), eq(BASE_SPEC_KEY), any(), any());

@@ -65,7 +65,7 @@ public class FormSpecProcessor extends SpecProcessor<FormSpec> {
     }
 
     @Override
-    public void updateStateByTenant(String tenant, String baseSpecKey, Collection<FormSpec> formSpecs) {
+    public void fullUpdateStateByTenant(String tenant, String baseSpecKey, Collection<FormSpec> formSpecs) {
         Map<String, FormSpec> addedForms = toKeyMapOverrideDuplicates(formSpecs);
         if (!addedForms.isEmpty()) {
             log.info("added {} form specs to tenant: {}", addedForms.size(), tenant);
