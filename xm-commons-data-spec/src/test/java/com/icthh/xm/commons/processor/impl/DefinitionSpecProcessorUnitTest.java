@@ -82,6 +82,36 @@ public class DefinitionSpecProcessorUnitTest {
     }
 
     @Test
+    void fullUpdateDefinitionStateByTenant() {
+        TestBaseSpecification expectedBaseSpec = loadBaseSpecByFileName("definitions/expected/single-ref-definition");
+        TestBaseSpecification inputBaseSpec = loadBaseSpecByFileName("definitions/input/single-ref-definition");
+        TestSpecificationItem itemSpec = getSpecItemByKey(inputBaseSpec, "team/CREATE_EMPLOYEE");
+
+        definitionSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
+        definitionSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setInputDataSpec, itemSpec::getInputDataSpec);
+
+        var updatedDefinitionsMap = getDefinitionsByTenantMap();
+        assertEquals(1, updatedDefinitionsMap.get(TEST_TENANT).get(BASE_SPEC_KEY).size());
+
+        assertEqualsSpec(expectedBaseSpec, inputBaseSpec);
+
+        TestBaseSpecification updatedExpectedBaseSpec = loadBaseSpecByFileName("definitions/expected/single-ref-definition-update");
+        TestBaseSpecification updateInputBaseSpec = loadBaseSpecByFileName("definitions/input/single-ref-definition-update");
+        TestSpecificationItem updateItemSpec = getSpecItemByKey(updateInputBaseSpec, "team/CREATE_EMPLOYEE");
+
+        definitionSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, updateInputBaseSpec.getDefinitions());
+        definitionSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, updateItemSpec::setInputDataSpec, updateItemSpec::getInputDataSpec);
+
+        var secondaryUpdatedDefinitionsMap = getDefinitionsByTenantMap();
+
+        assertEquals(1, secondaryUpdatedDefinitionsMap.get(TEST_TENANT).get(BASE_SPEC_KEY).size());
+        assertEquals(updatedExpectedBaseSpec.getDefinitions().getFirst().getValue(),
+                secondaryUpdatedDefinitionsMap.get(TEST_TENANT).get(BASE_SPEC_KEY).get("create").getValue());
+
+        assertEqualsSpec(updatedExpectedBaseSpec, updateInputBaseSpec);
+    }
+
+    @Test
     public void processDataSpec_simpleDefinition() {
         TestBaseSpecification expectedBaseSpec = loadBaseSpecByFileName("definitions/expected/simple-definition");
         TestBaseSpecification inputBaseSpec = loadBaseSpecByFileName("definitions/input/simple-definition");
