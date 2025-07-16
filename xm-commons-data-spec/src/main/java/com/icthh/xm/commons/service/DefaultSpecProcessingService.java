@@ -12,6 +12,7 @@ import com.icthh.xm.commons.processor.impl.DefinitionSpecProcessor;
 import com.icthh.xm.commons.processor.impl.FormSpecProcessor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -45,7 +46,7 @@ public class DefaultSpecProcessingService<S extends BaseSpecification> extends A
     }
 
     @Override
-    public void fullUpdateByTenantState(String tenant, String baseSpecKey, List<S> specs) {
+    public void fullUpdateByTenantState(String tenant, String baseSpecKey, Collection<S> specs) {
         final List<DefinitionSpec> allSpecDefinitions = specs.stream()
             .filter(spec -> Objects.nonNull(spec) && Objects.nonNull(spec.getDefinitions()))
             .flatMap(spec -> spec.getDefinitions().stream())
