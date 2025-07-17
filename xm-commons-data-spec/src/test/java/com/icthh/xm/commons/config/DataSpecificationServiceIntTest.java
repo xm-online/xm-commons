@@ -1,13 +1,17 @@
 package com.icthh.xm.commons.config;
 
+import com.icthh.xm.commons.domain.DefinitionSpec;
 import com.icthh.xm.commons.domain.TestBaseSpecification;
 import com.icthh.xm.commons.listener.JsonListenerService;
 import com.icthh.xm.commons.processor.impl.DefinitionSpecProcessor;
 import com.icthh.xm.commons.processor.impl.FormSpecProcessor;
 import com.icthh.xm.commons.service.DefaultSpecProcessingService;
 import com.icthh.xm.commons.service.SpecificationProcessingService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static com.icthh.xm.commons.utils.AssertionUtils.assertEqualsSpec;
 import static com.icthh.xm.commons.utils.TestConstants.APP_NAME;
@@ -91,6 +95,35 @@ public class DataSpecificationServiceIntTest {
         assertEqualsTenantSpec(specFileName1, updatedKey1);
         assertEqualsTenantSpec(specFileName2, updatedKey2);
         assertEqualsTenantSpec(specFileName3, updatedKey3);
+    }
+
+    @Test
+    public void onRefresh_processUpdateDefinitionSpec() {
+        String specKeyPart2 = CONFIG_KEY_PREFIX + "/test-spec-simple-part-2.yml";
+        String specKeyPart3 = CONFIG_KEY_PREFIX + "/test-spec-simple-part-3.yml";
+
+        String specFilePart2Name = "test-spec-simple-part-2";
+        String specFilePart3Name = "test-spec-simple-part-3";
+
+        List<DefinitionSpec> definitionsPart2Before = loadBaseSpecByFileName(specFilePart2Name).getDefinitions();
+        List<DefinitionSpec> definitionsPart3Before = loadBaseSpecByFileName(specFilePart3Name).getDefinitions();
+
+        Assertions.assertEquals(3, definitionsPart2Before.size());
+        Assertions.assertEquals(3, definitionsPart3Before.size());
+
+
+        dataSpecService.onRefresh(specKeyPart2, loadBaseSpecFileByName(specFilePart2Name));
+        dataSpecService.onRefresh(specKeyPart3, loadBaseSpecFileByName(specFilePart3Name));
+
+        String specFilePart3NewContentName = "test-spec-simple-part-3-update";
+
+        dataSpecService.onRefresh(specKeyPart3, loadBaseSpecFileByName(specFilePart3NewContentName));
+
+        List<DefinitionSpec> definitionsPart2After = dataSpecService.getTenantSpecifications(TEST_TENANT).get(specKeyPart2).getDefinitions();
+        List<DefinitionSpec> definitionsPart3After = dataSpecService.getTenantSpecifications(TEST_TENANT).get(specKeyPart3).getDefinitions();
+
+        Assertions.assertEquals(definitionsPart2Before, definitionsPart2After);
+        Assertions.assertEquals(2, definitionsPart3After.size());
     }
 
     private void assertEqualsTenantSpec(String expectedSpecRelativePath, String updatedKey) {

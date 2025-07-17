@@ -1,0 +1,44 @@
+---
+test-items:
+  - key: store/GET-EMPLOYEES-AGE2
+    inputSpec: |
+      {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "employeesInfo": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "employeeInfo": {
+                  "$ref": "#/xmDefinition/employeeInfo2"
+                }
+              }
+            }
+          },
+          "location": {
+            "$ref": "#/xmDefinition/address2"
+          }
+        },
+        "required": ["employeesInfo"]
+      }
+definitions:
+  - key: address2
+    ref: json-definitions/address.json
+  - key: geoAddress2
+    ref: json-definitions/geoAddress.json
+  - key: employeeInfo2
+    value: |-
+      {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "storeName": {
+            "type": "string"
+          },
+          "info": {
+            "$ref": "#/xmDefinition/userInfo"
+          }
+        }
+      }
