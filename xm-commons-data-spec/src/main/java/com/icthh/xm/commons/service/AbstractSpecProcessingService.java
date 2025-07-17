@@ -44,5 +44,5 @@ public abstract class AbstractSpecProcessingService<S extends BaseSpecification>
     /**
      * If you're using this method inside a for or foreach loop, move it outside the loop and pass all configurations to it instead.
      */
-    public abstract void fullUpdateByTenantState(String tenant, String baseSpecKey, Collection<S> specifications);
+    public abstract void fullUpdateByTenantState(String tenant, String baseSpecKey, Collection<S> allSpecifications);
 }
