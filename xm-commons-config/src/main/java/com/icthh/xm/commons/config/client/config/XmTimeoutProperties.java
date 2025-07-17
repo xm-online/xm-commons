@@ -6,8 +6,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-@Component
-@ConditionalOnProperty(name = "application.rest.timeouts")
 @ConfigurationProperties(
     prefix = "application.rest.timeouts",
     ignoreUnknownFields = false

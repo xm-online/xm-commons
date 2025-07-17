@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -58,7 +59,9 @@ public class XmRestTemplateConfiguration {
         ObjectProvider<XmTimeoutProperties> xmTimeoutPropertiesProvider) {
         XmTimeoutProperties timeoutProperties = xmTimeoutPropertiesProvider.getIfAvailable();
 
-        if (Objects.nonNull(timeoutProperties)) {
+        if (Objects.nonNull(timeoutProperties) &&
+            ObjectUtils.anyNotNull(timeoutProperties.getConnectionTimeout(), timeoutProperties.getReadTimeout())) {
+
             log.info("createRestTemplate applying timeouts={}", timeoutProperties);
             restTemplateBuilder
                 .setConnectTimeout(timeoutProperties.getConnectionTimeout())
