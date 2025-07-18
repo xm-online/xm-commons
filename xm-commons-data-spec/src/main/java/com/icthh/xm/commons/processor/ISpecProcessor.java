@@ -13,12 +13,15 @@ import java.util.function.Supplier;
 public interface ISpecProcessor<S extends DataSpec> {
 
     /**
-     * Method to update data spec configuration storage per tenant per spec
+     * Method to update all data spec configuration storage per tenant per specs
      * @param tenant            specification tenant
      * @param baseSpecKey       base specification key
-     * @param configs           data specifications to be updated in storage
+     * @param allConfigs        all data specifications to be updated in storage
+     *
+     * If you're using this method inside a for or foreach loop, move it outside the loop and pass all configurations to it instead.
      */
-    void updateStateByTenant(String tenant, String baseSpecKey, Collection<S> configs);
+
+    void fullUpdateStateByTenant(String tenant, String baseSpecKey, Collection<S> allConfigs);
 
     /**
      * Method to process data spec

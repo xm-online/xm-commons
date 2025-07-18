@@ -1,0 +1,130 @@
+---
+test-items:
+  - key: store/STORE-INFO
+    inputSpec: |
+      {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "location": {
+          "$ref": "#/xmDefinition/address"
+        }
+      },
+      "required": ["name"],
+      "xmDefinition" : { }
+      }
+    inputForm: |
+      {
+        "form": [
+          {
+            "$ref": "#/xmForm/itemsByStoreForm"
+          },
+          {
+            "$ref": "#/xmForm/datesForm"
+          }
+        ],
+        "app": {
+          "hideNameAndDescription": true
+        }
+      }
+  - key: store/GET-EMPLOYEES-AGE
+    inputSpec: |
+      {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "employeesInfo": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "employeeInfo": {
+                  "$ref": "#/xmDefinition/employeeInfo"
+                }
+              }
+            }
+          },
+          "location": {
+            "$ref": "#/xmDefinition/address"
+          }
+        },
+        "required": ["employeesInfo"]
+      }
+    inputForm: |
+      {
+        "form": [
+          {
+            "$ref": "#/xmForm/itemByCategoryForm"
+          },
+          { "key": "role", "title": { "en": "Role" }, "type": "string", "readonly": true, "condition": {"functionBody": "{ return $.testValues; }"} },
+          { "type": "submit", "title": "Submit", "condition": {"functionBody": "{return $.principal.hasPrivilegesInline(['EMPLOYEE.UPDATE.FIELDS']);}"}}
+        ],
+        "app": {
+          "hideNameAndDescription": true
+        }
+      }
+definitions:
+  - key: address
+    ref: test-spec/json-definitions/address.json
+  - key: employeeInfo
+    value: |-
+      {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "storeName": {
+            "type": "string"
+          },
+          "info": {
+            "$ref": "#/xmDefinition/userInfo"
+          }
+        }
+      }
+  - key: userInfo
+    value: |-
+      {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "age": {
+            "type": "number"
+          }
+        }
+      }
+forms:
+  - key: itemsByStoreForm
+    value: |-
+      {
+        "key": "storeName",
+        "title": "Enter store name",
+        "type": "rest-select",
+        "labelField": "name",
+        "valueField": "id"
+      }
+  - key: itemByCategoryForm
+    value: |-
+      {
+        "form": [
+          {
+            "$ref": "#/xmForm/itemsByStoreForm"
+          },
+          {
+            "key": "name"
+          }
+        ],
+        "app": {
+          "hideNameAndDescription": true,
+          "formHeaderTitle": {
+            "en": "Add new"
+          }
+        }
+      }
+  - key: datesForm
+    ref: test-spec/json-forms/datesForm.json
