@@ -115,6 +115,9 @@ public class DataSpecificationServiceIntTest {
         dataSpecService.onRefresh(specKeyPart2, loadBaseSpecFileByName(specFilePart2Name));
         dataSpecService.onRefresh(specKeyPart3, loadBaseSpecFileByName(specFilePart3Name));
 
+        List<DefinitionSpec> specKeyPart3AfterRefresh = dataSpecService.getTenantSpecifications(TEST_TENANT).get(specKeyPart3).getDefinitions();
+        Assertions.assertEquals(3, specKeyPart3AfterRefresh.size());
+
         String specFilePart3NewContentName = "test-spec-simple-part-3-update";
 
         dataSpecService.onRefresh(specKeyPart3, loadBaseSpecFileByName(specFilePart3NewContentName));
