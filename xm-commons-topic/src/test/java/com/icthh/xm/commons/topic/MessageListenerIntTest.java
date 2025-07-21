@@ -25,6 +25,7 @@ import static org.springframework.kafka.test.utils.KafkaTestUtils.producerProps;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.logging.trace.TraceWrapper;
 import com.icthh.xm.commons.topic.config.TestBeanConfiguration;
+import com.icthh.xm.commons.topic.domain.NotRetryableException;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
 import com.icthh.xm.commons.topic.service.TopicConfigurationService;
@@ -231,21 +232,9 @@ public class MessageListenerIntTest {
 
         topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(DEAD_LETTER_CONFIG));
 
-        var config = new TopicConfig();
-        config.setKey("dead-letter-test");
-        config.setTypeKey("dead-letter-test");
-        config.setTopicName("dead-letter-test");
-        config.setRetriesCount(2);
-        config.setBackOffPeriod(1L);
-        config.setDeadLetterQueue("kafka-test-dead-queue");
+        var config = deadLetterTestConsumerConfig();
 
-        var configDeadLetter = new TopicConfig();
-        configDeadLetter.setKey("kafka-test-dead-queue");
-        configDeadLetter.setTypeKey("kafka-test-dead-queue");
-        configDeadLetter.setTopicName("kafka-test-dead-queue");
-        configDeadLetter.setRetriesCount(1);
-        configDeadLetter.setBackOffPeriod(1L);
-        configDeadLetter.setDeadLetterQueue("kafka-test-absolute-dead-queue");
+        var configDeadLetter = deadLetterTestDealLetterConfig();
 
         doAnswer(answer -> {
             log.info("TEST dead letter exception");
@@ -275,6 +264,69 @@ public class MessageListenerIntTest {
         producer.close();
 
         topicConfigurationService.onRefresh(UPDATE_KEY, "");
+    }
+
+    @Test
+    @SneakyThrows
+    public void testNotRetryableException() {
+        initConsumers(Set.of(TOPIC_FOR_TEST_DEAD_LETTER, TOPIC_DEAD_QUEUE));
+
+        topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(DEAD_LETTER_CONFIG));
+
+        var config = deadLetterTestConsumerConfig();
+        var configDeadLetter = deadLetterTestDealLetterConfig();
+
+        doAnswer(answer -> {
+            log.info("TEST dead letter exception");
+            throw new NotRetryableException("test error message");
+        }).when(messageHandler).onMessage(any(), any(), refEq(config), any());
+        doAnswer(answer -> {
+            log.info("TEST dead letter handling");
+            return null;
+        }).when(messageHandler).onMessage(any(), any(), refEq(configDeadLetter), any());
+
+        Producer<String, String> producer = createTxProducer();
+        producer.beginTransaction();
+        producer.send(new ProducerRecord<>(TOPIC_FOR_TEST_DEAD_LETTER, "test value"));
+        producer.flush();
+
+        Thread.sleep(1000);
+
+        InOrder inOrder = inOrder(messageHandler);
+        // only once because message not retryable
+        inOrder.verify(messageHandler, times(1)).onMessage(eq("test value"), eq(TENANT_KEY), refEq(config), any());
+
+        ArgumentCaptor<Map<String, byte[]>> headersCaptor = ArgumentCaptor.forClass(Map.class);
+        inOrder.verify(messageHandler).onMessage(eq("test value"), eq(TENANT_KEY), refEq(configDeadLetter), headersCaptor.capture());
+        Map<String, byte[]> headers = headersCaptor.getValue();
+        assertEquals("test error message", new String(headers.get(EXCEPTION_MESSAGE)));
+        verifyNoMoreInteractions(messageHandler);
+
+        producer.close();
+
+        topicConfigurationService.onRefresh(UPDATE_KEY, "");
+    }
+
+    private static TopicConfig deadLetterTestDealLetterConfig() {
+        var configDeadLetter = new TopicConfig();
+        configDeadLetter.setKey("kafka-test-dead-queue");
+        configDeadLetter.setTypeKey("kafka-test-dead-queue");
+        configDeadLetter.setTopicName("kafka-test-dead-queue");
+        configDeadLetter.setRetriesCount(1);
+        configDeadLetter.setBackOffPeriod(1L);
+        configDeadLetter.setDeadLetterQueue("kafka-test-absolute-dead-queue");
+        return configDeadLetter;
+    }
+
+    private static TopicConfig deadLetterTestConsumerConfig() {
+        var config = new TopicConfig();
+        config.setKey("dead-letter-test");
+        config.setTypeKey("dead-letter-test");
+        config.setTopicName("dead-letter-test");
+        config.setRetriesCount(2);
+        config.setBackOffPeriod(1L);
+        config.setDeadLetterQueue("kafka-test-dead-queue");
+        return config;
     }
 
 
