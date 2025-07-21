@@ -51,15 +51,15 @@ public class FormSpecProcessorUnitTest {
 
     @Test
     void updateStateByTenant_filterNullSpecifications() {
-        formSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, Set.of());
+        formSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, Set.of());
         assertTrue(getFormsByTenantMap().isEmpty());
 
-        formSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, null);
+        formSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, null);
         assertTrue(getFormsByTenantMap().isEmpty());
 
         List<FormSpec> list = new ArrayList<>();
         list.add(null);
-        formSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, list);
+        formSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, list);
         assertTrue(getFormsByTenantMap().isEmpty());
     }
 
@@ -67,7 +67,7 @@ public class FormSpecProcessorUnitTest {
     void updateStateByTenant() {
         List<FormSpec> forms = loadBaseSpecByFileName("test-spec-simple").getForms();
 
-        formSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, forms);
+        formSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, forms);
 
         DataSpec itemsByStoreForm = getSpecByKey(forms, "itemsByStoreForm");
         DataSpec itemByCategoryForm = getSpecByKey(forms, "itemByCategoryForm");
@@ -90,7 +90,7 @@ public class FormSpecProcessorUnitTest {
         TestBaseSpecification inputBaseSpec = loadBaseSpecByFileName("forms/input/simple-form");
         TestSpecificationItem itemSpec = getSpecItemByKey(inputBaseSpec, "CATEGORY");
 
-        formSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getForms());
+        formSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getForms());
         formSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setInputFormSpec, itemSpec::getInputFormSpec);
 
         assertEqualsSpec(expectedBaseSpec, inputBaseSpec);
@@ -102,7 +102,7 @@ public class FormSpecProcessorUnitTest {
         TestBaseSpecification inputBaseSpec = loadBaseSpecByFileName("forms/input/single-ref-form");
         TestSpecificationItem itemSpec = getSpecItemByKey(inputBaseSpec, "team/CREATE_EMPLOYEE");
 
-        formSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getForms());
+        formSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getForms());
         formSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setInputFormSpec, itemSpec::getInputFormSpec);
 
         assertEqualsSpec(expectedBaseSpec, inputBaseSpec);
@@ -114,7 +114,7 @@ public class FormSpecProcessorUnitTest {
         TestBaseSpecification inputBaseSpec = loadBaseSpecByFileName("forms/input/single-json-ref-form");
         TestSpecificationItem itemSpec = getSpecItemByKey(inputBaseSpec, "team/CREATE_EMPLOYEE");
 
-        formSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getForms());
+        formSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getForms());
         formSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setInputFormSpec, itemSpec::getInputFormSpec);
 
         assertEqualsSpec(expectedBaseSpec, inputBaseSpec);
@@ -126,7 +126,7 @@ public class FormSpecProcessorUnitTest {
         TestBaseSpecification inputBaseSpec = loadBaseSpecByFileName("forms/input/recursive-json-ref-form");
         TestSpecificationItem itemSpec = getSpecItemByKey(inputBaseSpec, "item/SEARCH-ITEMS-BY-CATEGORY");
 
-        formSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getForms());
+        formSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getForms());
         formSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setInputFormSpec, itemSpec::getInputFormSpec);
 
         assertEqualsSpec(expectedBaseSpec, inputBaseSpec);
@@ -138,7 +138,7 @@ public class FormSpecProcessorUnitTest {
         TestBaseSpecification inputBaseSpec = loadBaseSpecByFileName("forms/input/multiple-form");
         TestSpecificationItem itemSpec = getSpecItemByKey(inputBaseSpec, "MULTIPLE");
 
-        formSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getForms());
+        formSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getForms());
         formSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setInputFormSpec, itemSpec::getInputFormSpec);
 
         assertEqualsSpec(expectedBaseSpec, inputBaseSpec);
@@ -151,7 +151,7 @@ public class FormSpecProcessorUnitTest {
 
         // override json
         jsonListenerService.processTenantSpecification(TEST_TENANT,"json-forms/employeeForm.json", "{,}");
-        formSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getForms());
+        formSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getForms());
 
         assertThrows(JsonProcessingException.class, () ->
             formSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setInputFormSpec, itemSpec::getInputFormSpec)

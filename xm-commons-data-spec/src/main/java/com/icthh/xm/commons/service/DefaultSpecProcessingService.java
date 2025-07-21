@@ -1,6 +1,8 @@
 package com.icthh.xm.commons.service;
 
 import com.icthh.xm.commons.domain.BaseSpecification;
+import com.icthh.xm.commons.domain.DefinitionSpec;
+import com.icthh.xm.commons.domain.FormSpec;
 import com.icthh.xm.commons.domain.HasInputDataForm;
 import com.icthh.xm.commons.domain.HasInputDataSpec;
 import com.icthh.xm.commons.domain.HasOutputDataForm;
@@ -9,6 +11,10 @@ import com.icthh.xm.commons.domain.SpecificationItem;
 import com.icthh.xm.commons.processor.impl.DefinitionSpecProcessor;
 import com.icthh.xm.commons.processor.impl.FormSpecProcessor;
 import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 @Service
 public class DefaultSpecProcessingService<S extends BaseSpecification> extends AbstractSpecProcessingService<S> {
@@ -40,8 +46,18 @@ public class DefaultSpecProcessingService<S extends BaseSpecification> extends A
     }
 
     @Override
-    public void updateByTenantState(String tenant, String baseSpecKey, S spec) {
-        definitionSpecProcessor.updateStateByTenant(tenant, baseSpecKey, spec.getDefinitions());
-        formSpecProcessor.updateStateByTenant(tenant, baseSpecKey, spec.getForms());
+    public void fullUpdateByTenantState(String tenant, String baseSpecKey, Collection<S> specs) {
+        final List<DefinitionSpec> allSpecDefinitions = specs.stream()
+            .filter(spec -> Objects.nonNull(spec) && Objects.nonNull(spec.getDefinitions()))
+            .flatMap(spec -> spec.getDefinitions().stream())
+            .toList();
+
+        final List<FormSpec> allSpecForms = specs.stream()
+            .filter(spec -> Objects.nonNull(spec) && Objects.nonNull(spec.getForms()))
+            .flatMap(spec -> spec.getForms().stream())
+            .toList();
+
+        definitionSpecProcessor.fullUpdateStateByTenant(tenant, baseSpecKey, allSpecDefinitions);
+        formSpecProcessor.fullUpdateStateByTenant(tenant, baseSpecKey, allSpecForms);
     }
 }

@@ -48,15 +48,15 @@ public class DefinitionSpecProcessorUnitTest {
 
     @Test
     void updateStateByTenant_filterNullSpecifications() {
-        definitionSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, Set.of());
+        definitionSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, Set.of());
         assertTrue(getDefinitionsByTenantMap().isEmpty());
 
-        definitionSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, null);
+        definitionSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, null);
         assertTrue(getDefinitionsByTenantMap().isEmpty());
 
         List<DefinitionSpec> list = new ArrayList<>();
         list.add(null);
-        definitionSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, list);
+        definitionSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, list);
         assertTrue(getDefinitionsByTenantMap().isEmpty());
     }
 
@@ -64,7 +64,7 @@ public class DefinitionSpecProcessorUnitTest {
     void updateStateByTenant() {
         List<DefinitionSpec> definitions = loadBaseSpecByFileName("test-spec-simple").getDefinitions();
 
-        definitionSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, definitions);
+        definitionSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, definitions);
 
         DataSpec userInfoSpec = getSpecByKey(definitions, "userInfo");
         DataSpec employeeInfoSpec = getSpecByKey(definitions, "employeeInfo");
@@ -82,12 +82,34 @@ public class DefinitionSpecProcessorUnitTest {
     }
 
     @Test
+    void fullUpdateStateByTenant_When_RemoveDefinitionAnd_ExpectedCorrectSizeDefinitions() {
+        TestBaseSpecification expectedBaseSpec = loadBaseSpecByFileName("definitions/expected/multiple-definition");
+        TestBaseSpecification inputBaseSpec = loadBaseSpecByFileName("definitions/input/multiple-definition");
+        TestSpecificationItem itemSpec = getSpecItemByKey(inputBaseSpec, "store/GET-EMPLOYEES-AGE");
+
+        definitionSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
+        definitionSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setInputDataSpec, itemSpec::getInputDataSpec);
+
+        var updatedDefinitionsMap = getDefinitionsByTenantMap();
+        assertEquals(4, updatedDefinitionsMap.get(TEST_TENANT).get(BASE_SPEC_KEY).size());
+
+        assertEqualsSpec(expectedBaseSpec, inputBaseSpec);
+
+        inputBaseSpec.getDefinitions().removeLast(); // remove last definition
+        definitionSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
+        definitionSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setInputDataSpec, itemSpec::getInputDataSpec);
+
+        var secondaryUpdatedDefinitionsMap = getDefinitionsByTenantMap();
+        assertEquals(3, secondaryUpdatedDefinitionsMap.get(TEST_TENANT).get(BASE_SPEC_KEY).size());
+    }
+
+    @Test
     public void processDataSpec_simpleDefinition() {
         TestBaseSpecification expectedBaseSpec = loadBaseSpecByFileName("definitions/expected/simple-definition");
         TestBaseSpecification inputBaseSpec = loadBaseSpecByFileName("definitions/input/simple-definition");
         TestSpecificationItem itemSpec = getSpecItemByKey(inputBaseSpec, "BOOKING");
 
-        definitionSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
+        definitionSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
         definitionSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setInputDataSpec, itemSpec::getInputDataSpec);
 
         assertEqualsSpec(expectedBaseSpec, inputBaseSpec);
@@ -99,7 +121,7 @@ public class DefinitionSpecProcessorUnitTest {
         TestBaseSpecification inputBaseSpec = loadBaseSpecByFileName("definitions/input/single-ref-definition");
         TestSpecificationItem itemSpec = getSpecItemByKey(inputBaseSpec, "team/CREATE_EMPLOYEE");
 
-        definitionSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
+        definitionSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
         definitionSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setInputDataSpec, itemSpec::getInputDataSpec);
 
         assertEqualsSpec(expectedBaseSpec, inputBaseSpec);
@@ -111,7 +133,7 @@ public class DefinitionSpecProcessorUnitTest {
         TestBaseSpecification inputBaseSpec = loadBaseSpecByFileName("definitions/input/single-json-ref-definition");
         TestSpecificationItem itemSpec = getSpecItemByKey(inputBaseSpec, "store/GET-GEO-ADDRESS");
 
-        definitionSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
+        definitionSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
         definitionSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setInputDataSpec, itemSpec::getInputDataSpec);
 
         assertEqualsSpec(expectedBaseSpec, inputBaseSpec);
@@ -123,7 +145,7 @@ public class DefinitionSpecProcessorUnitTest {
         TestBaseSpecification inputBaseSpec = loadBaseSpecByFileName("definitions/input/recursive-json-ref-definition");
         TestSpecificationItem itemSpec = getSpecItemByKey(inputBaseSpec, "store/GET-FULL-ADDRESS");
 
-        definitionSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
+        definitionSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
         definitionSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setInputDataSpec, itemSpec::getInputDataSpec);
 
         assertEqualsSpec(expectedBaseSpec, inputBaseSpec);
@@ -135,7 +157,7 @@ public class DefinitionSpecProcessorUnitTest {
         TestBaseSpecification inputBaseSpec = loadBaseSpecByFileName("definitions/input/multiple-definition");
         TestSpecificationItem itemSpec = getSpecItemByKey(inputBaseSpec, "store/GET-EMPLOYEES-AGE");
 
-        definitionSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
+        definitionSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
         definitionSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setInputDataSpec, itemSpec::getInputDataSpec);
 
         assertEqualsSpec(expectedBaseSpec, inputBaseSpec);
@@ -147,7 +169,7 @@ public class DefinitionSpecProcessorUnitTest {
         TestBaseSpecification inputBaseSpec = loadBaseSpecByFileName("definitions/input/root-ref-definition");
         TestSpecificationItem itemSpec = getSpecItemByKey(inputBaseSpec, "user/GET-INFO");
 
-        definitionSpecProcessor.updateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
+        definitionSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getDefinitions());
         definitionSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setOutputDataSpec, itemSpec::getOutputDataSpec);
 
         assertEqualsSpec(expectedBaseSpec, inputBaseSpec);

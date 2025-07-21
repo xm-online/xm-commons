@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public abstract class AbstractSpecProcessingService<S extends BaseSpecification> implements SpecificationProcessingService<S> {
@@ -33,10 +34,15 @@ public abstract class AbstractSpecProcessingService<S extends BaseSpecification>
             .stream()
             .filter(Objects::nonNull)
             .toList();
-        filtered.forEach(spec -> updateByTenantState(tenant, baseSpecKey, spec));
+
+        fullUpdateByTenantState(tenant, baseSpecKey, filtered);
         filtered.forEach(spec -> processSpecification(tenant, baseSpecKey, spec));
     }
 
     public abstract <I extends SpecificationItem> void processDataSpecification(String tenant, String baseSpecKey, I specWithInputData);
-    public abstract void updateByTenantState(String tenant, String baseSpecKey, S specification);
+
+    /**
+     * If you're using this method inside a for or foreach loop, move it outside the loop and pass all configurations to it instead.
+     */
+    public abstract void fullUpdateByTenantState(String tenant, String baseSpecKey, Collection<S> allSpecifications);
 }
