@@ -17,6 +17,7 @@ import static org.springframework.kafka.listener.ContainerProperties.AckMode.MAN
 
 import com.icthh.xm.commons.logging.trace.TraceWrapper;
 import com.icthh.xm.commons.logging.util.MdcUtils;
+import com.icthh.xm.commons.topic.domain.NotRetryableException;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
 import com.icthh.xm.commons.topic.util.MessageRetryUtils;
@@ -89,6 +90,7 @@ public class MessageListenerContainerBuilder {
             ? new DefaultErrorHandler(getDeadLetterPublishingRecoverer(tenantKey, topicConfig), fixedBackOff)
             : new DefaultErrorHandler(fixedBackOff);
 
+        defaultErrorHandler.addNotRetryableExceptions(NotRetryableException.class);
         defaultErrorHandler.setCommitRecovered(true);
         return defaultErrorHandler;
     }
@@ -105,6 +107,7 @@ public class MessageListenerContainerBuilder {
             additional.add(new RecordHeader(EXCEPTION_STACKTRACE, getStackTrace(e).getBytes(UTF_8)));
             return additional;
         });
+        recoverer.addNotRetryableExceptions(NotRetryableException.class);
         return recoverer;
     }
 
