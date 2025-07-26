@@ -24,6 +24,8 @@ dependencies {
     api "com.google.guava:guava:${versions.guava}"
     api "org.reflections:reflections:${versions.reflections}"
 
+    implementation "org.jetbrains:annotations:${versions.intellijAnnotations}"
+
     testImplementation 'junit:junit'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.hamcrest:hamcrest-library'

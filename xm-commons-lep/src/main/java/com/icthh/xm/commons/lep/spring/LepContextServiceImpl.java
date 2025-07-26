@@ -61,6 +61,11 @@ public class LepContextServiceImpl implements LepContextService {
     }
 
     private void buildUpInVars(LepMethod lepMethod, BaseLepContext baseLepContext) {
+        baseLepContext.inArgs = buildInArgsMap(lepMethod);
+    }
+
+    @Override
+    public Map<String, Object> buildInArgsMap(LepMethod lepMethod) {
         final String[] parameterNames = lepMethod.getMethodSignature().getParameterNames();
         final Object[] methodArgValues = lepMethod.getMethodArgValues();
         Map<String, Object> inVars = new LinkedHashMap<>(parameterNames.length);
@@ -69,7 +74,7 @@ public class LepContextServiceImpl implements LepContextService {
             Object paramValue = methodArgValues[i];
             inVars.put(paramName, paramValue);
         }
-        baseLepContext.inArgs = inVars;
+        return inVars;
     }
 
 }

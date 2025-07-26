@@ -1,16 +1,23 @@
 package com.icthh.xm.commons.lep.spring;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.lep.api.LepManagementService;
+import com.icthh.xm.commons.lep.spring.DynamicTestLepService.TestInput;
+import com.icthh.xm.commons.lep.spring.DynamicTestLepService.TestInputData;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -26,6 +33,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+@Slf4j
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {
     DynamicLepTestConfig.class,
@@ -51,6 +59,27 @@ public class LepIntTest {
     public void init() {
         TenantContextUtils.setTenant(tenantContextHolder, "TEST");
         lepManagerService.beginThreadContext();
+    }
+
+    @Test
+    @SneakyThrows
+    public void testSpelResolver() {
+        // language=groovy
+        String code = "return 'resolved'";
+        String path = "/config/tenants/TEST/testApp/lep/service";
+        resourceLoader.onRefresh(path + "/LepMethodWithArgExpression$$testDataValue.groovy", code);
+        resourceLoader.onRefresh(path + "/LepMethodWithExpression$$testDataValue.groovy", code);
+        resourceLoader.onRefresh(path + "/LepMethodWithListExpression$$testDataValue$$tvalue.groovy", code);
+        TestInput input = new TestInput();
+        TestInputData data = new TestInputData();
+        input.setData(data);
+        data.setValue("testDataValue");
+        String result = testLepService.testLepMethodWithArgExpression(input);
+        assertEquals("resolved", result);
+        String result2 = testLepService.testLepMethodWithExpression(input);
+        assertEquals("resolved", result2);
+        String result3 = testLepService.testLepMethodWithListExpression(input, "tvalue");
+        assertEquals("resolved", result3);
     }
 
     @Test
