@@ -6,6 +6,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.intellij.lang.annotations.Language;
 
 /**
  * LogicExtensionPoint annotation.
@@ -35,5 +36,17 @@ public @interface LogicExtensionPoint {
      * @return LEP key resolver implementation class
      */
     Class<? extends LepKeyResolver> resolver() default DefaultLepKeyResolver.class;
+
+    /**
+     * LEP key resolver expression to determine LEP key segments.
+     * Use SPEL with method arguments in context to build expression that return string or list of strings.
+     * <p>
+     * If this attribute is specified, then {@link #resolver()} attribute is ignored.
+     * </p>
+     *
+     * @return LEP key resolver expression
+     */
+    @Language("spel")
+    String resolverExpression() default "";
 
 }
