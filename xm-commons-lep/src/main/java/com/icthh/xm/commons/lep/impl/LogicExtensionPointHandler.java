@@ -1,5 +1,11 @@
 package com.icthh.xm.commons.lep.impl;
 
+import static com.icthh.xm.commons.lep.impl.MethodEqualsByReferenceWrapper.wrap;
+import static com.icthh.xm.commons.lep.spring.LepSpelReader.readFieldByPath;
+import static java.util.Collections.unmodifiableMap;
+import static java.util.Objects.requireNonNull;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.TargetProceedingLep;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
@@ -13,20 +19,15 @@ import com.icthh.xm.lep.api.LepInvocationCauseException;
 import com.icthh.xm.lep.api.LepKeyResolver;
 import com.icthh.xm.lep.api.LepMethod;
 import com.icthh.xm.lep.api.MethodSignature;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static com.icthh.xm.commons.lep.impl.MethodEqualsByReferenceWrapper.wrap;
-import static java.util.Collections.unmodifiableMap;
-import static java.util.Objects.requireNonNull;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class LogicExtensionPointHandler {
@@ -118,12 +119,33 @@ public class LogicExtensionPointHandler {
     }
 
     private LepKey resolveLepKey(LogicExtensionPoint lep, LepKey baseLepKey, LepMethod lepMethod) {
+        if (StringUtils.isNoneBlank(lep.resolverExpression())) {
+            // Use resolver expression to resolve segments
+            return new DefaultLepKey(
+                baseLepKey.getGroup(),
+                baseLepKey.getBaseKey(),
+                resolveSegmentsByExpression(lep.resolverExpression(), lepMethod)
+            );
+        }
+
         LepKeyResolver keyResolver = getResolver(lep);
         return new DefaultLepKey(
             keyResolver.group(lepMethod),
             baseLepKey.getBaseKey(),
             keyResolver.segments(lepMethod)
         );
+    }
+
+    private List<String> resolveSegmentsByExpression(String expression, LepMethod lepMethod) {
+        Map<String, Object> args = lepContextService.buildInArgsMap(lepMethod);
+        var segments = readFieldByPath(expression, args);
+        if (segments instanceof List<?>) {
+            return (List<String>) segments;
+        } else if (segments == null) {
+            return List.of();
+        } else {
+            return List.of(String.valueOf(segments));
+        }
     }
 
     private LepKeyResolver getResolver(LogicExtensionPoint lep) {
