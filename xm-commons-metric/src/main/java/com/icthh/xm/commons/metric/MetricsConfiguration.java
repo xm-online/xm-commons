@@ -2,31 +2,21 @@ package com.icthh.xm.commons.metric;
 
 import static java.lang.Boolean.TRUE;
 import static java.lang.management.ManagementFactory.getOperatingSystemMXBean;
-import static java.lang.management.ManagementFactory.getPlatformMBeanServer;
 
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Slf4jReporter;
-import com.codahale.metrics.health.HealthCheckRegistry;
-import com.codahale.metrics.jmx.JmxReporter;
-import com.codahale.metrics.jvm.BufferPoolMetricSet;
-import com.codahale.metrics.jvm.FileDescriptorRatioGauge;
-import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
-import com.codahale.metrics.jvm.JvmAttributeGaugeSet;
-import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
-import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.ryantenney.metrics.spring.config.annotation.EnableMetrics;
 import com.ryantenney.metrics.spring.config.annotation.MetricsConfigurerAdapter;
-import io.prometheus.client.CollectorRegistry;
-import io.prometheus.client.dropwizard.DropwizardExports;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
+import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
+import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
+import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
+import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
-import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.KafkaAdmin;
 
@@ -34,53 +24,21 @@ import org.springframework.kafka.core.KafkaAdmin;
 @EnableMetrics(proxyTargetClass = true)
 public class MetricsConfiguration extends MetricsConfigurerAdapter {
 
-    private static final String PROP_METRIC_REG_JVM_MEMORY = "jvm.memory";
-    private static final String PROP_METRIC_REG_JVM_GARBAGE = "jvm.garbage";
-    private static final String PROP_METRIC_REG_JVM_THREADS = "jvm.threads";
-    private static final String PROP_METRIC_REG_JVM_FILES = "jvm.files";
-    private static final String PROP_METRIC_REG_JVM_BUFFERS = "jvm.buffers";
-    private static final String PROP_METRIC_REG_JVM_ATTRIBUTE_SET = "jvm.attributes";
-    private static final String PROP_METRIC_REG_OS = "os.attributes";
-    private static final String PROP_METRIC_CONNECTION_TO_TOPIC = "kafka";
-
     private final Logger log = LoggerFactory.getLogger(MetricsConfiguration.class);
 
-    private MetricRegistry metricRegistry = new MetricRegistry();
-
-    private HealthCheckRegistry healthCheckRegistry = new HealthCheckRegistry();
-
+    private final MeterRegistry meterRegistry;
     private final KafkaAdmin kafkaAdmin;
-    private final CollectorRegistry collectorRegistry;
 
-    @Value("${jhipster.metrics.logs.enabled:false}")
-    private Boolean logsEnabled;
-    @Value("${jhipster.metrics.logs.report-frequency:#{null}}")
-    private Integer reportFrequency;
-
-    @Value("${spring.jmx.enabled:false}")
-    private Boolean jmxEnabled;
-    @Value("${application.kafkaMetric.enabled:false}")
+   @Value("${application.kafkaMetric.enabled:false}")
     private Boolean kafkaMetricEnabled;
     @Value("${application.kafkaMetric.connectionTimeoutTopic:#{null}}")
     private Integer connectionTimeoutTopic;
     @Value("${application.kafkaMetric.metricTopics:#{null}}")
     private List<String> metricTopics;
 
-    public MetricsConfiguration(KafkaAdmin kafkaAdmin, CollectorRegistry collectorRegistry) {
+    public MetricsConfiguration(MeterRegistry meterRegistry, KafkaAdmin kafkaAdmin) {
+        this.meterRegistry = meterRegistry;
         this.kafkaAdmin = kafkaAdmin;
-        this.collectorRegistry = collectorRegistry;
-    }
-
-    @Override
-    @Bean
-    public MetricRegistry getMetricRegistry() {
-        return metricRegistry;
-    }
-
-    @Override
-    @Bean
-    public HealthCheckRegistry getHealthCheckRegistry() {
-        return healthCheckRegistry;
     }
 
     /**
@@ -89,34 +47,15 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
     @PostConstruct
     public void init() {
         log.debug("Registering JVM gauges");
-        metricRegistry.register(PROP_METRIC_REG_JVM_MEMORY, new MemoryUsageGaugeSet());
-        metricRegistry.register(PROP_METRIC_REG_JVM_GARBAGE, new GarbageCollectorMetricSet());
-        metricRegistry.register(PROP_METRIC_REG_JVM_THREADS, new ThreadStatesGaugeSet());
-        metricRegistry.register(PROP_METRIC_REG_JVM_FILES, new FileDescriptorRatioGauge());
-        metricRegistry.register(PROP_METRIC_REG_JVM_BUFFERS, new BufferPoolMetricSet(getPlatformMBeanServer()));
-        metricRegistry.register(PROP_METRIC_REG_JVM_ATTRIBUTE_SET, new JvmAttributeGaugeSet());
-        metricRegistry.register(PROP_METRIC_REG_OS, new OperatingSystemGaugeSet(getOperatingSystemMXBean()));
-
-        if (jmxEnabled) {
-            log.debug("Initializing Metrics JMX reporting");
-            JmxReporter jmxReporter = JmxReporter.forRegistry(metricRegistry).build();
-            jmxReporter.start();
-        }
-        if (TRUE.equals(logsEnabled)) {
-            log.info("Initializing Metrics Log reporting");
-            Marker metricsMarker = MarkerFactory.getMarker("metrics");
-            final Slf4jReporter reporter = Slf4jReporter.forRegistry(metricRegistry)
-                .outputTo(LoggerFactory.getLogger("metrics"))
-                .markWith(metricsMarker)
-                .convertRatesTo(TimeUnit.SECONDS)
-                .convertDurationsTo(TimeUnit.MILLISECONDS)
-                .build();
-            reporter.start(reportFrequency, TimeUnit.SECONDS);
-        }
+        new ClassLoaderMetrics().bindTo(meterRegistry);
+        new JvmMemoryMetrics().bindTo(meterRegistry);
+        new JvmGcMetrics().bindTo(meterRegistry);
+        new ProcessorMetrics().bindTo(meterRegistry);
+        new JvmThreadMetrics().bindTo(meterRegistry);
+        new OperatingSystemMetrics(getOperatingSystemMXBean()).bindTo(meterRegistry);
 
         if (TRUE.equals(kafkaMetricEnabled)) {
-            metricRegistry.register(PROP_METRIC_CONNECTION_TO_TOPIC,
-                new KafkaMetricsSet(kafkaAdmin, connectionTimeoutTopic, metricTopics));
+            new KafkaMetrics(kafkaAdmin, connectionTimeoutTopic, metricTopics).bindTo(meterRegistry);
         }
     }
 }
