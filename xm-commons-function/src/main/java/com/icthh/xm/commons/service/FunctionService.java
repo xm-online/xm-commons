@@ -1,8 +1,10 @@
 package com.icthh.xm.commons.service;
 
+import com.icthh.xm.commons.domain.FunctionSpecWithFileName;
 import com.icthh.xm.commons.domain.spec.IFunctionSpec;
 import com.icthh.xm.commons.permission.domain.enums.IFeatureContext;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -19,8 +21,12 @@ public interface FunctionService<FS extends IFunctionSpec> {
 
     FS findFunctionSpec(String functionKey, String httpMethod);
 
+    Collection<FunctionSpecWithFileName<FS>> getAllFunctionSpecs();
+
     Map<String, Object> getValidFunctionInput(FS functionSpec, Map<String, Object> functionInput);
 
     void enrichInputFromPathParams(String functionKey, Map<String, Object> functionInput, FS functionSpec);
+
+    Collection<String> getAllFileNames();
 
 }

@@ -1,0 +1,15 @@
+functions:
+  - key: EXISTING_FUNCTION
+    path: existing/function
+    inputSpec: '{"$ref":"#/xmDefinition/PhoneNumberDto"}'
+    wrapResult: false
+    anonymous: false
+    txType: NO_TX
+    tags:
+      - resource
+    httpMethods:
+      - PUT
+    name:
+      en: Update phone number resource
+    description: Update phone number resource
+    outputSpec: '{"$ref":"#/xmDefinition/PhoneNumberDto"}'

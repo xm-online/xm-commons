@@ -32,7 +32,7 @@ public abstract class AbstractConfigService implements ConfigService {
         configurationListeners.forEach(it -> it.refreshFinished(paths));
     }
 
-    protected void notifyUpdated(Configuration configuration) {
+    public void notifyUpdated(Configuration configuration) {
         log.debug("Notify configuration changed [{}]", configuration != null ? configuration.getPath() : null);
 
         if (configuration == null) {

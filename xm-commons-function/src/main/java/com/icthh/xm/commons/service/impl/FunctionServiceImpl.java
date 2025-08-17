@@ -1,10 +1,13 @@
 package com.icthh.xm.commons.service.impl;
 
 import com.icthh.xm.commons.config.FunctionApiSpecConfiguration;
+import com.icthh.xm.commons.domain.FunctionSpecWithFileName;
 import com.icthh.xm.commons.domain.spec.FunctionSpec;
 import com.icthh.xm.commons.permission.service.DynamicPermissionCheckService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.utils.CollectionsUtils;
+import java.util.Collection;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.AntPathMatcher;
@@ -43,6 +46,12 @@ public class FunctionServiceImpl extends AbstractFunctionService<FunctionSpec> {
                 String.format("Function by key: %s and tenant: %s not found", functionKey, tenantKey)));
     }
 
+    @Override
+    public Collection<FunctionSpecWithFileName<FunctionSpec>> getAllFunctionSpecs() {
+        String tenantKey = tenantContextHolder.getTenantKey();
+        return functionApiSpecConfiguration.getFunctionSpecsWithFileName(tenantKey);
+    }
+
     private Optional<FunctionSpec> filterByPathAsFunctionKey(String tenantKey, String functionKey, String httpMethod) {
         return functionApiSpecConfiguration.getOrderedSpecByTenant(tenantKey).stream()
             .filter(fs -> fs.getPath() != null)
@@ -59,4 +68,11 @@ public class FunctionServiceImpl extends AbstractFunctionService<FunctionSpec> {
         }
         return input;
     }
+
+    @Override
+    public Collection<String> getAllFileNames() {
+        String tenantKey = tenantContextHolder.getTenantKey();
+        return functionApiSpecConfiguration.getFileNames(tenantKey);
+    }
+
 }

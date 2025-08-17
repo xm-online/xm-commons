@@ -51,5 +51,6 @@ ext.versions = [
 
     jsonSchemaValidatorVersion : '1.5.2',
     codahaleMetrics            : '3.0.2',
-    intellijAnnotations        : '26.0.2'
+    intellijAnnotations        : '26.0.2',
+    snakeyamlEngine            : '2.10'
 ]
