@@ -7,6 +7,7 @@ import static com.icthh.xm.commons.utils.YamlPatchUtils.key;
 import static com.icthh.xm.commons.utils.YamlPatchUtils.updateSequenceItem;
 import static java.util.Objects.nonNull;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.icthh.xm.commons.config.FunctionApiSpecConfiguration;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.service.CommonConfigService;
@@ -84,13 +85,14 @@ public class FunctionManageServiceImpl implements FunctionManageService<Function
             String updatedYaml = updateSequenceItem(originalConfig.getContent(), updatedFunction.getItem(), removePath(functionKey));
             commonConfigRepository.updateConfigFullPath(new Configuration(originalConfig.getPath(), updatedYaml), null);
         } else {
-            removeFunction(oldFileKey, functionKey);
+            removeFunction(functionKey);
             addFunction(updatedFunction);
         }
     }
 
     @Override
-    public void removeFunction(String fileKey, String functionKey) {
+    public void removeFunction(String functionKey) {
+        String fileKey = getFileKeyByFunctionKey(functionKey);
         Configuration configuration = findOriginalConfig(fileKey);
         if (configuration.getContent() != null) {
             String updatedYaml = delete(configuration.getContent(), removePath(functionKey));
@@ -100,6 +102,16 @@ public class FunctionManageServiceImpl implements FunctionManageService<Function
         } else {
             throw new EntityNotFoundException("Function not found, fileKey: " + fileKey + ", functionKey: " + functionKey);
         }
+    }
+
+    @Override
+    public TypeReference<FunctionSpecWithFileName<FunctionSpec>> getFunctionSpecWrapperClass() {
+        return new TypeReference<>() {};
+    }
+
+    @Override
+    public TypeReference<FunctionSpec> getFunctionSpecClass() {
+        return new TypeReference<>() {};
     }
 
     private Configuration findOriginalConfig(String fileKey) {

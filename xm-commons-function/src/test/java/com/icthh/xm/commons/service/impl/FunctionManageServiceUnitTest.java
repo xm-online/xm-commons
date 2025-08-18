@@ -227,8 +227,23 @@ public class FunctionManageServiceUnitTest {
         specService.refreshFinished(List.of(TEST_PATH, TEST_NEW_PATH));
     }
 
+    @Test
     public void testDeleteFunction() {
+        when(tenantContextHolder.getTenantKey()).thenReturn(TEST_TENANT);
 
+        specService.onRefresh(TEST_PATH, loadFile("config/functions/test-update-function.yml"));
+        specService.refreshFinished(List.of(TEST_PATH));
+
+        functionManageService.removeFunction("FUNC_2");
+
+        verify(commonConfigRepository).updateConfigFullPath(argThat(c -> {
+            assertEquals(TEST_PATH, c.getPath());
+            assertEquals(loadFile("config/functions/test-delete-function-expected.yml"), c.getContent());
+            return true;
+        }), isNull());
+
+        specService.onRefresh(TEST_PATH, null);
+        specService.refreshFinished(List.of(TEST_PATH));
     }
 
     private FunctionSpec mockSpec() {
