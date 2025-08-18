@@ -114,7 +114,7 @@ public class FunctionManageServiceImpl implements FunctionManageService<Function
         return new TypeReference<>() {};
     }
 
-    private Configuration findOriginalConfig(String fileKey) {
+    protected Configuration findOriginalConfig(String fileKey) {
         String tenantKey = tenantContextHolder.getTenantKey();
         Map<String, String> specFiles = specService.getSpecFiles(tenantKey);
         String filePath = buildFilePath(fileKey, tenantKey);
@@ -122,12 +122,12 @@ public class FunctionManageServiceImpl implements FunctionManageService<Function
         return new Configuration(filePath, yamlFile);
     }
 
-    private String buildFilePath(String fileKey, String tenantKey) {
+    protected String buildFilePath(String fileKey, String tenantKey) {
         String folder = specService.getSpecFolder(tenantKey);
         return fileKey == null ? folder + ".yml" : folder + "/" + fileKey + ".yml";
     }
 
-    private String getFileKeyByFunctionKey(String functionKey) {
+    protected String getFileKeyByFunctionKey(String functionKey) {
         String tenantKey = tenantContextHolder.getTenantKey();
         var spec = specService.getFunctionSpecsWithFileName(tenantKey).stream()
             .filter(e -> nonNull(e.getItem()))
