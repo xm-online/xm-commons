@@ -43,4 +43,5 @@ public abstract class AbstractFunctionService<FS extends IFunctionSpec> implemen
             functionInput.putAll(matcher.extractUriTemplateVariables(functionSpec.getPath(), functionKey));
         }
     }
+
 }

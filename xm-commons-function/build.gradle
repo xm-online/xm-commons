@@ -21,6 +21,7 @@ dependencies {
     implementation "org.apache.commons:commons-collections4:${versions.commonsCollections4}"
     implementation "com.networknt:json-schema-validator:${versions.jsonSchemaValidatorVersion}"
     implementation "com.codahale.metrics:metrics-annotation:${versions.codahaleMetrics}"
+    implementation "org.snakeyaml:snakeyaml-engine:${versions.snakeyamlEngine}"
     implementation('org.springframework.boot:spring-boot-starter-web') {
         exclude module: 'spring-boot-starter-tomcat'
     }

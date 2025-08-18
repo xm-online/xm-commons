@@ -9,6 +9,7 @@ import com.icthh.xm.commons.enums.SpecPathPatternEnum;
 import com.icthh.xm.commons.listener.JsonListenerService;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.service.SpecificationProcessingService;
+import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -102,15 +103,15 @@ public abstract class DataSpecificationService<S extends BaseSpecification> impl
         return specsByTenant.getOrDefault(tenant, Map.of());
     }
 
-    private Set<S> getSpecificationsFromFiles(String tenantKey) {
-        return specFilesByTenant.getOrDefault(tenantKey, Map.of()).values().stream()
-            .map(config -> readSpecYml(tenantKey, config, specType))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .collect(Collectors.toSet());
+    public Collection<String> getFileNames(String tenantKey) {
+        return specFilesByTenant.getOrDefault(tenantKey, Map.of()).keySet();
     }
 
-    private Map<String, S> getSpecificationsMapFromFiles(String tenantKey) {
+    public Map<String, String> getSpecFiles(String tenantKey) {
+        return specFilesByTenant.getOrDefault(tenantKey, Map.of());
+    }
+
+    protected Map<String, S> getSpecificationsMapFromFiles(String tenantKey) {
         return specFilesByTenant.getOrDefault(tenantKey, Map.of())
             .entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, e -> readSpecYml(tenantKey, e.getValue(), specType)))

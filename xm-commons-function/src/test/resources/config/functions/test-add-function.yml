@@ -1,0 +1,15 @@
+functions:
+  - key: "flow/http/flow-http-trigger-PUT-UPDATE_PHONE_NUMBER_RESOURCE"
+    path: "resource/{orgRef}/phoneNumber/{phoneNumber}"
+    inputSpec: "{\"$ref\":\"#/xmDefinition/PhoneNumberDto\"}"
+    wrapResult: false
+    anonymous: false
+    txType: "NO_TX"
+    tags:
+    - "resource"
+    httpMethods:
+    - "PUT"
+    name:
+      en: "Update phone number resource"
+    description: "Update phone number resource"
+    outputSpec: "{\"$ref\":\"#/xmDefinition/PhoneNumberDto\"}"

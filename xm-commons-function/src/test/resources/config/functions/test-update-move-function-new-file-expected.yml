@@ -1,0 +1,17 @@
+functions:
+  - key: "FUNC_2"
+    path: "func2"
+    inputSpec: "{\"$ref\":\"#/xmDefinition/PhoneNumberDto\"}"
+    wrapResult: false
+    anonymous: true
+    txType: "NO_TX"
+    tags:
+    - "resource"
+    httpMethods:
+    - "PUT"
+    - "GET"
+    - "POST"
+    name:
+      en: "func2"
+    description: "func2"
+    outputSpec: "{\"$ref\":\"#/xmDefinition/PhoneNumberDto\"}"
