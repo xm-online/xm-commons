@@ -217,7 +217,7 @@ public class YamlPatchUtils {
         return sb.toString();
     }
 
-    private static List<YamlNode> searchNodes(YamlNode yamlNode, List<YamlPatchPattern> path, int pathIndex) {
+    public static List<YamlNode> searchNodes(YamlNode yamlNode, List<YamlPatchPattern> path, int pathIndex) {
         if (pathIndex >= path.size()) {
             return List.of(yamlNode);
         }

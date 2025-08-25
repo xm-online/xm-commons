@@ -46,7 +46,9 @@ public class FunctionManageServiceImpl implements FunctionManageService<Function
         }
         FunctionSpec item = newFunction.getItem();
         String updatedYaml = addSequenceItem(yamlFile, item, addPath());
-        commonConfigRepository.updateConfigFullPath(new Configuration(configuration.getPath(), updatedYaml), null);
+        Configuration updatedConfig = new Configuration(configuration.getPath(), updatedYaml);
+        commonConfigRepository.updateConfigFullPath(updatedConfig, null);
+        commonConfigService.notifyUpdated(updatedConfig);
     }
 
     protected List<YamlPatchPattern> addPath() {
@@ -83,7 +85,9 @@ public class FunctionManageServiceImpl implements FunctionManageService<Function
         if (Objects.equals(oldFileKey, updatedFunction.getFileKey())) {
             Configuration originalConfig = findOriginalConfig(oldFileKey);
             String updatedYaml = updateSequenceItem(originalConfig.getContent(), updatedFunction.getItem(), removePath(functionKey));
-            commonConfigRepository.updateConfigFullPath(new Configuration(originalConfig.getPath(), updatedYaml), null);
+            Configuration updatedConfig = new Configuration(originalConfig.getPath(), updatedYaml);
+            commonConfigRepository.updateConfigFullPath(updatedConfig, null);
+            commonConfigService.notifyUpdated(updatedConfig);
         } else {
             removeFunction(functionKey);
             addFunction(updatedFunction);
