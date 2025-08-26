@@ -29,6 +29,10 @@ public class YamlPatchUtils {
     private static final ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
 
     public static String addObject(String yamlText, Object value, List<YamlPatchPattern> path) {
+        return addObject(yamlText, value, path, 0);
+    }
+
+    public static String addObject(String yamlText, Object value, List<YamlPatchPattern> path, int insertPosition) {
         var rootNode = loadYamlNode(yamlText);
         if (rootNode.isEmpty()) {
             log.warn("Failed to load YAML from text: {}", yamlText);
@@ -44,11 +48,11 @@ public class YamlPatchUtils {
         YamlNode targetNode = result.getFirst();
         List<String> lines = yamlText.lines().toList();
         int line = targetNode.node.getEndMark().map(Mark::getLine).orElse(lines.size());
-        return insertString(value, targetNode, yamlText, line);
+        return insertString(value, targetNode, yamlText, line + insertPosition - 1);
     }
 
     public static String addSequenceItem(String yamlText, Object value, List<YamlPatchPattern> path) {
-        return addObject(yamlText, List.of(value), path);
+        return addObject(yamlText, List.of(value), path, 1);
     }
 
     public static String delete(String yamlText, List<YamlPatchPattern> path) {
