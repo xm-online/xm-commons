@@ -1,15 +1,12 @@
 package com.icthh.xm.commons.lep.spring;
 
+import brave.Tracer;
+import brave.propagation.CurrentTraceContext;
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.DefaultLepKeyResolver;
 import com.icthh.xm.commons.lep.LepPathResolver;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
-import com.icthh.xm.commons.lep.api.BaseLepContext;
-import com.icthh.xm.commons.lep.api.LepAdditionalContext;
-import com.icthh.xm.commons.lep.api.LepContextFactory;
-import com.icthh.xm.commons.lep.api.LepEngine;
-import com.icthh.xm.commons.lep.api.LepEngineFactory;
-import com.icthh.xm.commons.lep.api.LepManagementService;
+import com.icthh.xm.commons.lep.api.*;
 import com.icthh.xm.commons.lep.commons.CommonsConfiguration;
 import com.icthh.xm.commons.lep.commons.CommonsService;
 import com.icthh.xm.commons.lep.impl.LepMethodAspect;
@@ -182,8 +179,11 @@ public class LepSpringConfiguration {
     }
 
     @Bean
-    public LepThreadHelper lepThreadHelper(TenantContextHolder tenantContextHolder, LepManagementService lepManagementService) {
-        return new LepThreadHelper(tenantContextHolder, lepManagementService);
+    public LepThreadHelper lepThreadHelper(TenantContextHolder tenantContextHolder,
+                                           Tracer tracer,
+                                           CurrentTraceContext currentTraceContext,
+                                           LepManagementService lepManagementService) {
+        return new LepThreadHelper(tenantContextHolder, tracer, currentTraceContext, lepManagementService);
     }
 
     @Bean
@@ -194,7 +194,8 @@ public class LepSpringConfiguration {
 
     @Bean
     @Deprecated(forRemoval = true)
-    public MigrationFromCoreContextsHolderLepManagementServiceReference migrationFromCoreContextsHolderLepManagementServiceReference(LepManagementService lepManagementService) {
+    public MigrationFromCoreContextsHolderLepManagementServiceReference migrationFromCoreContextsHolderLepManagementServiceReference(
+        LepManagementService lepManagementService) {
         return new MigrationFromCoreContextsHolderLepManagementServiceReference(lepManagementService);
     }
 

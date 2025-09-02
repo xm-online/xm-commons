@@ -22,6 +22,7 @@ dependencies {
     compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
     compile "commons-io:commons-io:${versions.commonsIo}"
     compile "org.reflections:reflections:${versions.reflections}"
+    compile "org.springframework.cloud:spring-cloud-sleuth-core"
 
     testCompile 'junit:junit'
     testCompile 'org.mockito:mockito-core'
