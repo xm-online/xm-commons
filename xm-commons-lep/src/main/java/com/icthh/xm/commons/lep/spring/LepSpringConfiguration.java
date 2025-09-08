@@ -28,8 +28,6 @@ import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.lep.api.LepKeyResolver;
 import com.icthh.xm.lep.api.LepManager;
 import com.icthh.xm.lep.core.CoreLepManager;
-import io.micrometer.tracing.CurrentTraceContext;
-import io.micrometer.tracing.Tracer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
@@ -185,11 +183,8 @@ public class LepSpringConfiguration {
     }
 
     @Bean
-    public LepThreadHelper lepThreadHelper(TenantContextHolder tenantContextHolder,
-                                           Tracer tracer,
-                                           CurrentTraceContext currentTraceContext,
-                                           LepManagementService lepManagementService) {
-        return new LepThreadHelper(tenantContextHolder, tracer, currentTraceContext, lepManagementService);
+    public LepThreadHelper lepThreadHelper(TenantContextHolder tenantContextHolder, LepManagementService lepManagementService) {
+        return new LepThreadHelper(tenantContextHolder, lepManagementService);
     }
 
     @Bean

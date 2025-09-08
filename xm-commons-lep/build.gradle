@@ -26,11 +26,6 @@ dependencies {
 
     implementation "org.jetbrains:annotations:${versions.intellijAnnotations}"
 
-    implementation 'io.micrometer:micrometer-tracing'
-    implementation 'io.micrometer:micrometer-core'
-    implementation 'io.micrometer:micrometer-tracing-bridge-brave'
-    implementation 'io.micrometer:context-propagation'
-
     testImplementation 'junit:junit'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.hamcrest:hamcrest-library'
