@@ -2,7 +2,7 @@ functions:
   - key: FUNC_1
     path: func1
     inputSpec: |
-      {"$ref":"#/xmDefinition/PhoneNumberDto"}
+      {"$ref":"#/xmDefinition/A1"}
     wrapResult: false
     anonymous: false
     txType: NO_TX
@@ -14,11 +14,11 @@ functions:
             en: func_1
     description: func_1
     outputSpec: >
-      {"$ref":"#/xmDefinition/PhoneNumberDto"}'
+      {"$ref":"#/xmDefinition/A2"}'
   - key: FUNC_3
     path: func3
     inputSpec: |
-        {"$ref":"#/xmDefinition/PhoneNumberDto"}
+        {"$ref":"#/xmDefinition/A5"}
     wrapResult: false
     anonymous: false
     txType: NO_TX
@@ -30,4 +30,4 @@ functions:
         en: func_3
     description: func_3
     outputSpec: >
-        {"$ref":"#/xmDefinition/PhoneNumberDto"}'
+        {"$ref":"#/xmDefinition/A6"}'

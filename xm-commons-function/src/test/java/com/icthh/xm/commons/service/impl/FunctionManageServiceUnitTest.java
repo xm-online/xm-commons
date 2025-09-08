@@ -166,6 +166,8 @@ public class FunctionManageServiceUnitTest {
     public void testUpdateFunctionInSameFile() {
         when(tenantContextHolder.getTenantKey()).thenReturn(TEST_TENANT);
         FunctionSpec functionSpec = mockFunc2();
+        functionSpec.setInputSpec("{\"$ref\":\"#/xmDefinition/A3\"}");
+        functionSpec.setOutputSpec("{\"$ref\":\"#/xmDefinition/A4\"}");
         FunctionSpecWithFileName<FunctionSpec> testData = new FunctionSpecWithFileName<>();
         testData.setItem(functionSpec);
         testData.setFileKey("test-file");
@@ -178,6 +180,31 @@ public class FunctionManageServiceUnitTest {
         verify(commonConfigRepository).updateConfigFullPath(argThat(c -> {
             assertEquals(TEST_PATH, c.getPath());
             assertEquals(loadFile("config/functions/test-update-function-expected.yml"), c.getContent());
+            return true;
+        }), isNull());
+
+        specService.onRefresh(TEST_PATH, null);
+        specService.refreshFinished(List.of(TEST_PATH));
+    }
+
+    @Test
+    public void testUpdateFunctionInSameFileLast() {
+        when(tenantContextHolder.getTenantKey()).thenReturn(TEST_TENANT);
+        FunctionSpec functionSpec = mockFunc2();
+        functionSpec.setInputSpec("{\"$ref\":\"#/xmDefinition/A3\"}");
+        functionSpec.setOutputSpec("{\"$ref\":\"#/xmDefinition/A4\"}");
+        FunctionSpecWithFileName<FunctionSpec> testData = new FunctionSpecWithFileName<>();
+        testData.setItem(functionSpec);
+        testData.setFileKey("test-file");
+
+        specService.onRefresh(TEST_PATH, loadFile("config/functions/test-update-function-last.yml"));
+        specService.refreshFinished(List.of(TEST_PATH));
+
+        functionManageService.updateFunction(testData);
+
+        verify(commonConfigRepository).updateConfigFullPath(argThat(c -> {
+            assertEquals(TEST_PATH, c.getPath());
+            assertEquals(loadFile("config/functions/test-update-function-last-expected.yml"), c.getContent());
             return true;
         }), isNull());
 
