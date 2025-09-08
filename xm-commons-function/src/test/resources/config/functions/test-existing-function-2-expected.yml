@@ -27,3 +27,4 @@ functions:
       en: "Update phone number resource"
     description: "Update phone number resource"
     outputSpec: "{\"$ref\":\"#/xmDefinition/PhoneNumberDto\"}"
+definitions: []

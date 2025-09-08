@@ -1,5 +1,9 @@
 package com.icthh.xm.commons.utils;
 
+import static java.lang.Math.abs;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
@@ -13,7 +17,6 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.snakeyaml.engine.v2.api.lowlevel.Compose;
 import org.snakeyaml.engine.v2.exceptions.Mark;
@@ -29,10 +32,6 @@ public class YamlPatchUtils {
     private static final ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
 
     public static String addObject(String yamlText, Object value, List<YamlPatchPattern> path) {
-        return addObject(yamlText, value, path, 0);
-    }
-
-    public static String addObject(String yamlText, Object value, List<YamlPatchPattern> path, int insertPosition) {
         var rootNode = loadYamlNode(yamlText);
         if (rootNode.isEmpty()) {
             log.warn("Failed to load YAML from text: {}", yamlText);
@@ -48,11 +47,13 @@ public class YamlPatchUtils {
         YamlNode targetNode = result.getFirst();
         List<String> lines = yamlText.lines().toList();
         int line = targetNode.node.getEndMark().map(Mark::getLine).orElse(lines.size());
-        return insertString(value, targetNode, yamlText, line + insertPosition - 1);
+        int index = getIndex(yamlText, targetNode);
+        yamlText = yamlText.substring(0, index) + "\n" + yamlText.substring(index);
+        return insertString(value, targetNode, yamlText, line);
     }
 
     public static String addSequenceItem(String yamlText, Object value, List<YamlPatchPattern> path) {
-        return addObject(yamlText, List.of(value), path, 1);
+        return addObject(yamlText, List.of(value), path);
     }
 
     public static String delete(String yamlText, List<YamlPatchPattern> path) {
@@ -90,8 +91,25 @@ public class YamlPatchUtils {
 
         YamlNode targetNode = result.getFirst();
         Range toUpdate = getLinesRange(targetNode);
+
+        int index = getIndex(yamlText, targetNode);
+        yamlText = yamlText.substring(0, index) + "\n" + yamlText.substring(index);
+
         String updateText = removeRangesFromString(yamlText, List.of(toUpdate));
-        return insertString(value, targetNode.parent, updateText, toUpdate.startLine - 1);
+        return insertString(value, targetNode.parent, updateText, toUpdate.startLine);
+    }
+
+    private static int getIndex(String yamlText, YamlNode targetNode) {
+        return targetNode.node.getEndMark().map(endMark -> {
+            int line = endMark.getLine();
+            int column = endMark.getColumn();
+            List<String> lines = yamlText.lines().toList();
+            if (lines.size() > line && line > 0 && lines.get(line - 1).substring(0, column).isBlank()) {
+                return endMark.getIndex() - column;
+            } else {
+                return endMark.getIndex();
+            }
+        }).orElse(yamlText.length());
     }
 
     public static YamlPatchPattern key(String key) {
@@ -145,7 +163,10 @@ public class YamlPatchUtils {
         String valueYaml = buildTargetYaml(value, startingSpaces);
         StringBuilder resultYaml = new StringBuilder();
         for(int i = 0; i < lines.size(); i++) {
-            resultYaml.append(lines.get(i)).append("\n");
+            if (!(abs(i - line) <= 1 && isEmpty(lines.get(i)))) {
+                resultYaml.append(lines.get(i)).append("\n");
+            }
+
             if (i == line) {
                 resultYaml.append(valueYaml);
             }
@@ -166,7 +187,7 @@ public class YamlPatchUtils {
         Stream<String> lines = valueYaml.lines();
         StringBuilder valueString = new StringBuilder();
         lines.skip(1).forEach(line -> {
-            if (StringUtils.isBlank(line)) {
+            if (isBlank(line)) {
                 valueString.append("\n");
             } else {
                 valueString.append(" ".repeat(startingSpaces)).append(line).append("\n");
@@ -237,7 +258,8 @@ public class YamlPatchUtils {
         if (startMarkOpt.isEmpty() || endMarkOpt.isEmpty()) {
             return null;
         }
-        return new Range(startMarkOpt.get().getLine(), endMarkOpt.get().getLine());
+        int index = endMarkOpt.get().getIndex();
+        return new Range(startMarkOpt.get().getLine(), endMarkOpt.get().getLine(), index);
     }
 
     private static String keyToString(Node keyNode) {
@@ -279,7 +301,7 @@ public class YamlPatchUtils {
         };
     }
 
-    public record Range(int startLine, int endLine) {
+    public record Range(int startLine, int endLine, int index) {
         public boolean isInside(int line) {
             return line >= startLine && line < endLine;
         }
