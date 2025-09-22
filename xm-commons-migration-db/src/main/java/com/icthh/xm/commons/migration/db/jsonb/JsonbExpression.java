@@ -14,7 +14,6 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.icthh.xm.commons.migration.db.jsonb.CustomDialect.JSON_QUERY;
-import static com.icthh.xm.commons.migration.db.jsonb.CustomPostgreSQLDialect.JSON_EXTRACT_PATH;
 import static com.icthh.xm.commons.migration.db.jsonb.CustomPostgreSQLDialect.JSON_EXTRACT_PATH_TEMPLATE_SIMPLE;
 import static com.icthh.xm.commons.migration.db.jsonb.CustomPostgreSQLDialect.TO_JSON_B;
 import static com.icthh.xm.commons.migration.db.jsonb.CustomPostgreSQLDialect.TO_JSON_B_TEXT;

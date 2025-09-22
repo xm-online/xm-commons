@@ -16,8 +16,10 @@ public class CustomPostgreSQLDialect extends PostgreSQLDialect implements Custom
     public static final String JSON_QUERY_TEMPLATE = "jsonb_path_query_first(?1, ?2::jsonpath)";
 
     public static final String JSON_EXTRACT_PATH = "jsonb_to_string";
+    public static final String JSON_EXTRACT_PATH_ARRAY = "jsonb_to_string_array";
     public static final String JSON_EXTRACT_PATH_TEMPLATE_SIMPLE = "jsonb_extract_path_text";
-    public static final String JSON_EXTRACT_PATH_TEMPLATE = "jsonb_extract_path_text(?1, VARIADIC ?2)";
+    public static final String JSON_EXTRACT_PATH_TEMPLATE_ARRAY = "jsonb_extract_path_text(?1, VARIADIC ?2)";
+    public static final String JSON_EXTRACT_PATH_TEMPLATE = "jsonb_extract_path_text(?1, ?2)";
 
     public static final String TO_JSON_B = "to_json_b";
     public static final String TO_JSON_B_TEMPLATE = "to_jsonb(?1)";
@@ -39,6 +41,7 @@ public class CustomPostgreSQLDialect extends PostgreSQLDialect implements Custom
         functionContributions.getFunctionRegistry().registerPattern(TO_JSON_B, TO_JSON_B_TEMPLATE, stringBasicType);
         functionContributions.getFunctionRegistry().registerPattern(TO_JSON_B_TEXT, TO_JSON_B_TEMPLATE_TEXT, stringBasicType);
         functionContributions.getFunctionRegistry().registerPattern(JSON_EXTRACT_PATH, JSON_EXTRACT_PATH_TEMPLATE, stringBasicType);
+        functionContributions.getFunctionRegistry().registerPattern(JSON_EXTRACT_PATH_ARRAY, JSON_EXTRACT_PATH_TEMPLATE_ARRAY, stringBasicType);
     }
 
     @Override
