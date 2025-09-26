@@ -1,12 +1,14 @@
 package com.icthh.xm.commons.logging.trace;
 
-import brave.Span;
-import brave.Tracer;
-import brave.kafka.clients.KafkaTracing;
+import java.nio.charset.StandardCharsets;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.cloud.sleuth.instrument.messaging.TracingChannelInterceptor;
+import org.springframework.cloud.sleuth.propagation.Propagator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.stereotype.Component;
@@ -16,18 +18,23 @@ import org.springframework.stereotype.Component;
 public class SleuthWrapper {
 
     private static final String SPAN_NAME_FROM_MESSAGE = "on-message";
+    private static final String SPAN_ID_UNKNOWN = "<unknown>";
+
+    private static final Propagator.Getter<ConsumerRecord<?, ?>> KAFKA_GETTER =
+        (rec, key) -> {
+            var header = rec.headers().lastHeader(key);
+            return header != null
+                ? new String(header.value(), StandardCharsets.UTF_8)
+                : null;
+        };
 
     private final Tracer tracer;
-    private KafkaTracing kafkaTracing;
+    private final Propagator propagator;
     private TracingChannelInterceptor tracingChannelInterceptor;
 
-    public SleuthWrapper(Tracer tracer) {
+    public SleuthWrapper(Tracer tracer, Propagator propagator) {
         this.tracer = tracer;
-    }
-
-    @Autowired(required = false)
-    public void setKafkaTracing(KafkaTracing kafkaTracing) {
-        this.kafkaTracing = kafkaTracing;
+        this.propagator = propagator;
     }
 
     @Autowired(required = false)
@@ -36,11 +43,16 @@ public class SleuthWrapper {
     }
 
     public void runWithSleuth(ConsumerRecord<?, ?> record, Runnable codeToRun) {
-        Span kafkaSpan = kafkaTracing.nextSpan(record).name(SPAN_NAME_FROM_MESSAGE).start();
+        Span.Builder extracted = propagator.extract(record, KAFKA_GETTER);
+        Span kafkaSpan = extracted.name(SPAN_NAME_FROM_MESSAGE).start();
         runWithExistingSpan(kafkaSpan, codeToRun);
     }
 
     public void runWithSleuth(Message<?> message, MessageChannel channel, Runnable codeToRun) {
+        if (this.tracingChannelInterceptor == null) {
+            codeToRun.run();
+            return;
+        }
         tracingChannelInterceptor.postReceive(message, channel);
         Exception exceptionFromExecution = null;
         try {
@@ -53,12 +65,17 @@ public class SleuthWrapper {
     }
 
     private void runWithExistingSpan(Span existingSpan, Runnable codeToRun) {
-        log.trace("Opening span, {}", existingSpan.context().spanIdString());
-        try (Tracer.SpanInScope spanInScope = this.tracer.withSpanInScope(existingSpan)) {
+
+        String spanId = existingSpan.context() != null
+            ? existingSpan.context().spanId()
+            : SPAN_ID_UNKNOWN;
+
+        log.trace("Opening span, {}", spanId);
+        try (Tracer.SpanInScope spanInScope = this.tracer.withSpan(existingSpan)) {
             codeToRun.run();
         } finally {
-            log.trace("Closing span, {}", existingSpan.context().spanIdString());
-            existingSpan.finish();
+            log.trace("Closing span, {}", spanId);
+            existingSpan.end();
         }
     }
 }
