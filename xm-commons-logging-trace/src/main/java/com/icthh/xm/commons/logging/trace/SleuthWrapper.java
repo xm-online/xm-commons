@@ -1,8 +1,9 @@
 package com.icthh.xm.commons.logging.trace;
 
-import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Span;
@@ -23,9 +24,9 @@ public class SleuthWrapper {
     private static final Propagator.Getter<ConsumerRecord<?, ?>> KAFKA_GETTER =
         (rec, key) -> {
             var header = rec.headers().lastHeader(key);
-            return header != null
-                ? new String(header.value(), StandardCharsets.UTF_8)
-                : null;
+            return Optional.ofNullable(header)
+                    .map(h -> StringUtils.newStringUtf8(h.value()))
+                    .orElse(null);
         };
 
     private final Tracer tracer;
