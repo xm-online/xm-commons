@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
+import com.icthh.xm.commons.config.client.repository.message.ConfigPatternRequest;
 import com.icthh.xm.commons.config.client.repository.message.ConfigurationUpdateMessage;
 import com.icthh.xm.commons.config.client.repository.message.GetConfigRequest;
 import com.icthh.xm.commons.config.domain.ConfigQueueEvent;
 import com.icthh.xm.commons.config.domain.Configuration;
 
+import com.icthh.xm.commons.exceptions.BusinessNotFoundException;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Map;
@@ -25,8 +27,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -46,6 +51,7 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
 
     private static final String URL = "/api/private";
     private static final String VERSION = "version";
+    private static final String VERSION_MS_CONFIG = "3.0.16";
 
     private static final String TENANT_NAME = "tenantName";
     private static final String TENANT_PATH = "/config/tenants/{" + TENANT_NAME + "}/*/**";
@@ -78,6 +84,21 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
         HttpEntity<GetConfigRequest> entity = new HttpEntity<>(new GetConfigRequest(version, paths), createApplicationJsonHeaders());
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + "/config_map");
         return restTemplate.exchange(builder.toUriString(), HttpMethod.POST, entity, typeRef).getBody();
+    }
+
+    @Override
+    public Map<String,Configuration> getConfigByPatternPaths(String version, Collection<String> patterns) {
+        try {
+            ParameterizedTypeReference<Map<String, Configuration>> typeRef = new ParameterizedTypeReference<>() {};
+            HttpEntity<ConfigPatternRequest> entity = new HttpEntity<>(new ConfigPatternRequest(patterns, version), createApplicationJsonHeaders());
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + "/config_map/pattern");
+            return restTemplate.exchange(builder.toUriString(), HttpMethod.POST, entity, typeRef).getBody();
+        } catch (HttpClientErrorException errorException) {
+            if (errorException.getStatusCode() == HttpStatus.NOT_FOUND) {
+                log.warn("Not found resource, update ms-config version from {}", VERSION_MS_CONFIG);
+            }
+            throw new BusinessException("Not found resource, update ms-config version from " + VERSION_MS_CONFIG);
+        }
     }
 
     @Override
@@ -119,5 +140,4 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
     private String toJson(ConfigQueueEvent event) {
         return mapper.writeValueAsString(event);
     }
-
 }

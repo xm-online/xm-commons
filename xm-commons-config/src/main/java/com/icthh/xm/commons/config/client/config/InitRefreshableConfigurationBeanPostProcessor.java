@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.config.client.config;
 
+import static com.icthh.xm.commons.config.client.api.AbstractConfigService.CONFIG_ANT_PATTERN_PATHS;
 import static org.apache.commons.lang3.StringUtils.length;
 
 import com.icthh.xm.commons.config.client.api.ConfigService;
@@ -59,7 +60,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
 
     private Map<String, Configuration> getConfig() {
         if (configMap == null) {
-            configMap = configService.getConfigurationMap(null);
+            configMap = configService.getConfigMapAntPattern(null, CONFIG_ANT_PATTERN_PATHS);
         }
         return configMap;
     }

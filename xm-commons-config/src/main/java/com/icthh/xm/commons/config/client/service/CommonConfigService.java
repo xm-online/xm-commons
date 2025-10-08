@@ -24,4 +24,9 @@ public class CommonConfigService extends AbstractConfigService {
     public Map<String, Configuration> getConfigurationMap(String commit, Collection<String> paths) {
         return commonConfigRepository.getConfig(commit, paths);
     }
+
+    @Override
+    public Map<String, Configuration> getConfigMapAntPattern(String commit, Collection<String> patternPaths) {
+        return commonConfigRepository.getConfigByPatternPaths(commit, patternPaths);
+    }
 }

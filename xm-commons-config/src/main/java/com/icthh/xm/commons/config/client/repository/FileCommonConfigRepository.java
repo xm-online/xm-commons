@@ -50,6 +50,11 @@ public class FileCommonConfigRepository implements CommonConfigRepository {
         return configurationMap;
     }
 
+    @Override
+    public Map<String, Configuration> getConfigByPatternPaths(String version, Collection<String> paths) {
+        return Map.of();
+    }
+
     @SneakyThrows
     private static String readFile(File basePath, String relativePath) {
         File file = new File(basePath, relativePath);
