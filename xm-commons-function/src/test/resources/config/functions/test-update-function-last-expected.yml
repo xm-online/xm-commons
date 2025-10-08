@@ -15,19 +15,20 @@ functions:
     description: func_1
     outputSpec: >
       {"$ref":"#/xmDefinition/A2"}'
-  - key: FUNC_3
-    path: func3
-    inputSpec: |
-        {"$ref":"#/xmDefinition/A5"}
+  - key: "FUNC_2"
+    path: "func2"
+    inputSpec: "{\"$ref\":\"#/xmDefinition/A3\"}"
     wrapResult: false
-    anonymous: false
-    txType: NO_TX
+    anonymous: true
+    txType: "NO_TX"
     tags:
-        - resource
+    - "resource"
     httpMethods:
-        - PUT
+    - "PUT"
+    - "GET"
+    - "POST"
     name:
-        en: func_3
-    description: func_3
-    outputSpec: >
-        {"$ref":"#/xmDefinition/A6"}'
+      en: "func2"
+    description: "func2"
+    outputSpec: "{\"$ref\":\"#/xmDefinition/A4\"}"
+definitions: []

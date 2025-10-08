@@ -31,19 +31,4 @@ functions:
     description: func_2
     outputSpec: >
         {"$ref":"#/xmDefinition/A4"}'
-  - key: FUNC_3
-    path: func3
-    inputSpec: |
-        {"$ref":"#/xmDefinition/A5"}
-    wrapResult: false
-    anonymous: false
-    txType: NO_TX
-    tags:
-        - resource
-    httpMethods:
-        - PUT
-    name:
-        en: func_3
-    description: func_3
-    outputSpec: >
-        {"$ref":"#/xmDefinition/A6"}'
+definitions: []
