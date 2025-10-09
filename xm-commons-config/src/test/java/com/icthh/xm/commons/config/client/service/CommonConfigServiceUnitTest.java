@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.config.client.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.refEq;
@@ -82,8 +83,7 @@ public class CommonConfigServiceUnitTest {
     @Test
     public void updateConfigurationsWhenFetchAllFalseAndPathNotMatch() {
         FetchConfigurationSettings fetchConfigurationSettings = new FetchConfigurationSettings("test", false);
-        CommonConfigRepository commonConfigRepository = mock(CommonConfigRepository.class);
-        CommonConfigService configService = spy(new CommonConfigService(fetchConfigurationSettings, commonConfigRepository));
+        configService = spy(new CommonConfigService(fetchConfigurationSettings, commonConfigRepository));
 
         List<String> testPaths = Collections.singletonList("path");
         List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
@@ -94,6 +94,26 @@ public class CommonConfigServiceUnitTest {
         configService.updateConfigurations("commit", testPaths);
 
         verify(configService, never()).getConfigurationMap(eq("commit"), eq(testPaths));
+    }
+
+    @Test
+    public void updateConfigurationsWhenFetchAllFalseAndPathsHasMatch() {
+        FetchConfigurationSettings fetchConfigurationSettings = new FetchConfigurationSettings("test", false);
+        CommonConfigService configService = spy(new CommonConfigService(fetchConfigurationSettings, commonConfigRepository));
+
+        Map<String, Configuration> config = Collections.singletonMap("/config/tenants/test.txt", new Configuration("/config/tenants/test.txt", "content text"));
+        when(commonConfigRepository.getConfig(eq("commit"), anyList())).thenReturn(config);
+
+        List<String> testPaths = List.of("/config/tenants/test.txt");
+        List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
+        configurationListeners.add(mock(ConfigurationChangedListener.class));
+        configurationListeners.add(mock(ConfigurationChangedListener.class));
+
+        configurationListeners.forEach(configService::addConfigurationChangedListener);
+        configService.updateConfigurations("commit", testPaths);
+
+        verify(configService).getConfigurationMap(eq("commit"), eq(testPaths));
+        assertEquals(config, configService.getConfigurationMap("commit", testPaths));
     }
 
     @Test
