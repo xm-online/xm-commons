@@ -2,14 +2,11 @@ package com.icthh.xm.commons.config.client.repository;
 
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.domain.Configuration;
-import com.icthh.xm.commons.exceptions.BusinessException;
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.io.filefilter.IOFileFilter;
@@ -46,13 +43,7 @@ public class FileCommonConfigRepository implements CommonConfigRepository {
     @SneakyThrows
     public Map<String, Configuration> getConfig(String version, Collection<String> paths) {
         File basePath = new File(xmConfigProperties.getDirectoryBasePath());
-        Map<String, Configuration> configurationMap = new HashMap<>();
-        for (String relativePath: paths) {
-            String content = readFile(basePath, relativePath);
-            String path = replaceChars(relativePath, separator, "/");
-            configurationMap.put(path, new Configuration(path, content));
-        }
-        return configurationMap;
+        return getConfigMap(basePath, paths);
     }
 
     @Override
@@ -67,13 +58,18 @@ public class FileCommonConfigRepository implements CommonConfigRepository {
                 .filter(path -> matchPath(path, fullPatternPaths))
                 .toList();
 
+        return getConfigMap(null, filteredConfigPaths);
+    }
+
+    private Map<String, Configuration> getConfigMap(File basePath, Collection<String> paths) {
         Map<String, Configuration> configurationMap = new HashMap<>();
 
-        for (String fullPath: filteredConfigPaths) {
-            String content = readFile(new File(fullPath));
-            String path = replaceChars(fullPath, separator, "/");
-            configurationMap.put(path, new Configuration(path, content));
+        for (String path: paths) {
+            String content = readFile(basePath, path);
+            String normalizePath = replaceChars(path, separator, "/");
+            configurationMap.put(normalizePath, new Configuration(normalizePath, content));
         }
+
         return configurationMap;
     }
 
@@ -84,11 +80,6 @@ public class FileCommonConfigRepository implements CommonConfigRepository {
     @SneakyThrows
     private static String readFile(File basePath, String relativePath) {
         File file = new File(basePath, relativePath);
-        return readFile(file);
-    }
-
-    @SneakyThrows
-    private static String readFile(File file) {
         if (file.exists()) {
             return readFileToString(file, UTF_8);
         } else {

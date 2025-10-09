@@ -3,6 +3,7 @@ package com.icthh.xm.commons.config.client.config;
 import static com.icthh.xm.commons.config.client.config.XmRestTemplateConfiguration.XM_CONFIG_REST_TEMPLATE;
 
 import com.icthh.xm.commons.config.client.api.ConfigService;
+import com.icthh.xm.commons.config.client.api.FetchConfigurationSettings;
 import com.icthh.xm.commons.config.client.listener.ApplicationReadyEventListener;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.repository.FileCommonConfigRepository;
@@ -12,6 +13,7 @@ import com.icthh.xm.commons.config.client.repository.kafka.ConfigTopicConsumer;
 import com.icthh.xm.commons.config.client.service.CommonConfigService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
@@ -51,14 +53,15 @@ public class XmConfigConfiguration {
 
     @Bean
     public ConfigService configService(
-        CommonConfigRepository commonConfigRepository) {
-        return new CommonConfigService(commonConfigRepository);
+        CommonConfigRepository commonConfigRepository,
+        FetchConfigurationSettings fetchConfigurationSettings) {
+        return new CommonConfigService(fetchConfigurationSettings, commonConfigRepository);
     }
 
     @Bean
     public InitRefreshableConfigurationBeanPostProcessor refreshableConfigurationPostProcessor(
-        ConfigService configService, XmConfigProperties xmConfigProperties) {
-        return new InitRefreshableConfigurationBeanPostProcessor(configService, xmConfigProperties);
+            ConfigService configService, XmConfigProperties xmConfigProperties, FetchConfigurationSettings fetchConfigurationSettings) {
+        return new InitRefreshableConfigurationBeanPostProcessor(configService, xmConfigProperties, fetchConfigurationSettings);
     }
 
     @Bean

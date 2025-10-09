@@ -14,6 +14,7 @@ import com.icthh.xm.commons.exceptions.BusinessNotFoundException;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
@@ -26,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
@@ -68,10 +70,8 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
 
     @Override
     public Map<String, Configuration> getConfig(String commit) {
-        ParameterizedTypeReference<Map<String, Configuration>> typeRef = new ParameterizedTypeReference<Map<String, Configuration>>() {};
-        HttpEntity<String> entity = new HttpEntity<>(createSimpleHeaders());
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + "/config_map").queryParam(VERSION, commit);
-        return restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, typeRef).getBody();
+        return getExchangeConfigMap(null, HttpMethod.GET, builder, createSimpleHeaders());
     }
 
     private String getServiceConfigUrl() {
@@ -80,19 +80,15 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
 
     @Override
     public Map<String,Configuration> getConfig(String version, Collection<String> paths) {
-        ParameterizedTypeReference<Map<String, Configuration>> typeRef = new ParameterizedTypeReference<Map<String, Configuration>>() {};
-        HttpEntity<GetConfigRequest> entity = new HttpEntity<>(new GetConfigRequest(version, paths), createApplicationJsonHeaders());
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + "/config_map");
-        return restTemplate.exchange(builder.toUriString(), HttpMethod.POST, entity, typeRef).getBody();
+        return getExchangeConfigMap(new GetConfigRequest(version, paths),  HttpMethod.POST, builder, createApplicationJsonHeaders());
     }
 
     @Override
     public Map<String,Configuration> getConfigByPatternPaths(String version, Collection<String> patterns) {
         try {
-            ParameterizedTypeReference<Map<String, Configuration>> typeRef = new ParameterizedTypeReference<>() {};
-            HttpEntity<ConfigPatternRequest> entity = new HttpEntity<>(new ConfigPatternRequest(patterns, version), createApplicationJsonHeaders());
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + "/config_map/pattern");
-            return restTemplate.exchange(builder.toUriString(), HttpMethod.POST, entity, typeRef).getBody();
+            return getExchangeConfigMap(new ConfigPatternRequest(patterns, version),  HttpMethod.POST, builder, createApplicationJsonHeaders());
         } catch (HttpClientErrorException errorException) {
             if (errorException.getStatusCode() == HttpStatus.NOT_FOUND) {
                 log.warn("Not found resource, update ms-config version from {}", VERSION_MS_CONFIG);
@@ -109,6 +105,20 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
 
         log.info("Sending update configuration message event to kafka-topic = '{}', data = '{}'", topicName, message);
         kafkaTemplate.send(topicName, buildSystemEvent(message, tenantKey));
+    }
+
+    private <T> Map<String, Configuration> getExchangeConfigMap(T object, HttpMethod httpMethod, UriComponentsBuilder builder, HttpHeaders headers) {
+        ParameterizedTypeReference<Map<String, Configuration>> typeRef = new ParameterizedTypeReference<>() {};
+        HttpEntity<T> entity = Optional.ofNullable(object)
+                .map(o -> new HttpEntity<>(o, headers))
+                .orElse(new HttpEntity<>(headers));
+
+        return restTemplate.exchange(
+                builder.toUriString(),
+                httpMethod,
+                entity,
+                typeRef
+        ).getBody();
     }
 
     private String getValidatedTenantKey(String configurationPath) {
