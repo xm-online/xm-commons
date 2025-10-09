@@ -52,6 +52,12 @@ public class XmConfigConfiguration {
     }
 
     @Bean
+    public FetchConfigurationSettings fetchConfigurationSettings(@Value("${spring.application.name}") String applicationName,
+                                                                 @Value("${application.config-fetch-all.enabled:false}") Boolean isFetchAll) {
+        return new FetchConfigurationSettings(applicationName, isFetchAll);
+    }
+
+    @Bean
     public ConfigService configService(
         CommonConfigRepository commonConfigRepository,
         FetchConfigurationSettings fetchConfigurationSettings) {

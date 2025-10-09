@@ -5,6 +5,8 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,6 +47,20 @@ public class CommonConfigServiceUnitTest {
     }
 
     @Test
+    public void getConfigMapAntPattern() {
+        final List<String> paths = List.of("/path/to/*", "/path2/to/*");
+        Map<String, Configuration> config = Map.of(
+                "/path/to/*",
+                new Configuration("/path/to/*", "content1"),
+                "/path2/to/*",
+                new Configuration("/path2/to/*", "content2")
+        );
+        when(commonConfigRepository.getConfigByPatternPaths("commit", paths)).thenReturn(config);
+
+        assertThat(configService.getConfigMapAntPattern("commit", paths)).isEqualTo(config);
+    }
+
+    @Test
     public void updateConfigurations() {
         Map<String, Configuration> config = Collections.singletonMap("path", new Configuration("path", "content"));
         when(commonConfigRepository.getConfig(eq("commit"), anyList())).thenReturn(config);
@@ -61,6 +77,23 @@ public class CommonConfigServiceUnitTest {
                                                .onConfigurationChanged(refEq(config.get("path"))));
         configurationListeners.forEach(configurationListener ->
                 verify(configurationListener).refreshFinished(Collections.singletonList("path")));
+    }
+
+    @Test
+    public void updateConfigurationsWhenFetchAllFalseAndPathNotMatch() {
+        FetchConfigurationSettings fetchConfigurationSettings = new FetchConfigurationSettings("test", false);
+        CommonConfigRepository commonConfigRepository = mock(CommonConfigRepository.class);
+        CommonConfigService configService = spy(new CommonConfigService(fetchConfigurationSettings, commonConfigRepository));
+
+        List<String> testPaths = Collections.singletonList("path");
+        List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
+        configurationListeners.add(mock(ConfigurationChangedListener.class));
+        configurationListeners.add(mock(ConfigurationChangedListener.class));
+
+        configurationListeners.forEach(configService::addConfigurationChangedListener);
+        configService.updateConfigurations("commit", testPaths);
+
+        verify(configService, never()).getConfigurationMap(eq("commit"), eq(testPaths));
     }
 
     @Test
