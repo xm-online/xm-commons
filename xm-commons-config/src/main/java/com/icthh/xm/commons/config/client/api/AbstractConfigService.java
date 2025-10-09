@@ -20,7 +20,7 @@ public abstract class AbstractConfigService implements ConfigService {
     private final List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
-    @Value("${application.config-fetch-all.enable:false}")
+    @Value("${application.config-fetch-all.enabled:false}")
     private boolean isFetchAll;
 
     @Value("${spring.application.name}")
