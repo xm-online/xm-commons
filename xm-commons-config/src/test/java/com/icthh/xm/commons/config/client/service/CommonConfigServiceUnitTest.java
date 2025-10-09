@@ -9,11 +9,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.config.client.api.ConfigurationChangedListener;
+import com.icthh.xm.commons.config.client.api.FetchConfigurationSettings;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -25,10 +26,15 @@ import java.util.Map;
 @RunWith(MockitoJUnitRunner.class)
 public class CommonConfigServiceUnitTest {
 
-    @InjectMocks
     private CommonConfigService configService;
     @Mock
     private CommonConfigRepository commonConfigRepository;
+
+    @Before
+    public void setUp() {
+        FetchConfigurationSettings fetchConfigurationSettings = new FetchConfigurationSettings("test", true);
+        configService = new CommonConfigService(fetchConfigurationSettings, commonConfigRepository);
+    }
 
     @Test
     public void getConfigurationMap() {
