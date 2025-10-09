@@ -10,7 +10,6 @@ import com.icthh.xm.commons.config.client.repository.message.GetConfigRequest;
 import com.icthh.xm.commons.config.domain.ConfigQueueEvent;
 import com.icthh.xm.commons.config.domain.Configuration;
 
-import com.icthh.xm.commons.exceptions.BusinessNotFoundException;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Map;
@@ -30,7 +29,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.client.HttpClientErrorException;
