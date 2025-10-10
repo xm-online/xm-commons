@@ -68,7 +68,6 @@ public class CommonConfigServiceUnitTest {
 
         List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
         configurationListeners.add(mock(ConfigurationChangedListener.class));
-        configurationListeners.add(mock(ConfigurationChangedListener.class));
 
         configurationListeners.forEach(configService::addConfigurationChangedListener);
         configService.updateConfigurations("commit", Collections.singletonList("path"));
@@ -88,7 +87,6 @@ public class CommonConfigServiceUnitTest {
         List<String> testPaths = Collections.singletonList("path");
         List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
         configurationListeners.add(mock(ConfigurationChangedListener.class));
-        configurationListeners.add(mock(ConfigurationChangedListener.class));
 
         configurationListeners.forEach(configService::addConfigurationChangedListener);
         configService.updateConfigurations("commit", testPaths);
@@ -107,7 +105,6 @@ public class CommonConfigServiceUnitTest {
         List<String> testPaths = List.of("/config/tenants/test.txt");
         List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
         configurationListeners.add(mock(ConfigurationChangedListener.class));
-        configurationListeners.add(mock(ConfigurationChangedListener.class));
 
         configurationListeners.forEach(configService::addConfigurationChangedListener);
         configService.updateConfigurations("commit", testPaths);
@@ -125,7 +122,6 @@ public class CommonConfigServiceUnitTest {
         when(commonConfigRepository.getConfig(eq("commit"), anyList())).thenReturn(config);
 
         List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
-        configurationListeners.add(mock(ConfigurationChangedListener.class));
         configurationListeners.add(mock(ConfigurationChangedListener.class));
 
         configurationListeners.forEach(configService::addConfigurationChangedListener);
@@ -148,7 +144,6 @@ public class CommonConfigServiceUnitTest {
         when(commonConfigRepository.getConfig(eq("commit"), anyList())).thenReturn(config);
 
         List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
-        configurationListeners.add(mock(ConfigurationChangedListener.class));
         configurationListeners.add(mock(ConfigurationChangedListener.class));
 
         configurationListeners.forEach(configService::addConfigurationChangedListener);
