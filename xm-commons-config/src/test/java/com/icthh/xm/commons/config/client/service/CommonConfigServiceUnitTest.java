@@ -82,12 +82,34 @@ public class CommonConfigServiceUnitTest {
 
     @Test
     public void updateConfigurationsWhenFetchAllFalseAndPathsHasMatch() {
-        FetchConfigurationSettings fetchConfigurationSettings = new FetchConfigurationSettings("test", false);
+        FetchConfigurationSettings fetchConfigurationSettings = spy(new FetchConfigurationSettings("test", false));
         CommonConfigService configService = spy(new CommonConfigService(fetchConfigurationSettings, commonConfigRepository));
 
-        List<String> testPaths = List.of("/config/tenants/test.txt");
+        when(fetchConfigurationSettings.getMsConfigPatterns()).thenReturn(List.of(
+                "/config/tenants/commons/**",
+                "/config/tenants/*",
+                "/config/tenants/{tenantName}/commons/**",
+                "/config/tenants/{tenantName}/*",
+                "/config/tenants/{tenantName}/" + "test" + "/**",
+                "/config/tenants/{tenantName}/config/**"));
 
-        Map<String, Configuration> config = Collections.singletonMap("/config/tenants/test.txt", new Configuration("/config/tenants/test.txt", "content text"));
+        List<String> testPaths = List.of(
+                "/config/tenants/commons/test.txt",
+                "/config/tenants/test.txt",
+                "/config/tenants/XM/commons/commons-file.txt",
+                "/config/tenants/XM/simple-file.txt",
+                "/config/tenants/XM/test/test2.txt",
+                "/config/tenants/XM/config/config.txt"
+        );
+
+        Map<String, Configuration> config = Map.of(
+                "/config/tenants/commons/test.txt", new Configuration("/config/tenants/commons/test.txt", "content text"),
+                "/config/tenants/test.txt", new Configuration("/config/tenants/test.txt", "content text"),
+                "/config/tenants/XM/commons/commons-file.txt", new Configuration("/config/tenants/XM/commons/commons-file.txt", "content text"),
+                "/config/tenants/XM/simple-file.txt", new Configuration("/config/tenants/XM/simple-file.txt", "content text"),
+                "/config/tenants/XM/test/test2.txt", new Configuration("/config/tenants/XM/test/test2.txt", "content text"),
+                "/config/tenants/XM/config/config.txt", new Configuration("/config/tenants/XM/config/config.txt", "content text")
+        );
         when(commonConfigRepository.getConfig(eq("commit"), eq(testPaths))).thenReturn(config);
 
         List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
