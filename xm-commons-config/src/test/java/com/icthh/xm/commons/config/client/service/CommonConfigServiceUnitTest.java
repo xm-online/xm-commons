@@ -98,6 +98,16 @@ public class CommonConfigServiceUnitTest {
                 "/config/tenants/test.txt",
                 "/config/tenants/XM/commons/commons-file.txt",
                 "/config/tenants/XM/simple-file.txt",
+                "/config/tenants/XM/demo/demo-file.txt", //not
+                "/config/tenants/XM/test/test2.txt",
+                "/config/tenants/XM/config/config.txt"
+        );
+
+        List<String> expectedPaths = List.of(
+                "/config/tenants/commons/test.txt",
+                "/config/tenants/test.txt",
+                "/config/tenants/XM/commons/commons-file.txt",
+                "/config/tenants/XM/simple-file.txt",
                 "/config/tenants/XM/test/test2.txt",
                 "/config/tenants/XM/config/config.txt"
         );
@@ -110,7 +120,7 @@ public class CommonConfigServiceUnitTest {
                 "/config/tenants/XM/test/test2.txt", new Configuration("/config/tenants/XM/test/test2.txt", "content text"),
                 "/config/tenants/XM/config/config.txt", new Configuration("/config/tenants/XM/config/config.txt", "content text")
         );
-        when(commonConfigRepository.getConfig(eq("commit"), eq(testPaths))).thenReturn(config);
+        when(commonConfigRepository.getConfig(eq("commit"), eq(expectedPaths))).thenReturn(config);
 
         List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
         configurationListeners.add(mock(ConfigurationChangedListener.class));
@@ -118,8 +128,8 @@ public class CommonConfigServiceUnitTest {
         configurationListeners.forEach(configService::addConfigurationChangedListener);
         configService.updateConfigurations("commit", testPaths);
 
-        verify(configService).getConfigurationMap(eq("commit"), eq(testPaths));
-        assertEquals(config, configService.getConfigurationMap("commit", testPaths));
+        verify(configService).getConfigurationMap(eq("commit"), eq(expectedPaths));
+        assertEquals(config, configService.getConfigurationMap("commit", expectedPaths));
     }
 
     @Test
