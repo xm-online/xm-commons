@@ -105,7 +105,7 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
         kafkaTemplate.send(topicName, buildSystemEvent(message, tenantKey));
     }
 
-    private <T> Map<String, Configuration> getExchangeConfigMap(T object, HttpMethod httpMethod, UriComponentsBuilder builder, HttpHeaders headers) {
+    public <T> Map<String, Configuration> getExchangeConfigMap(T object, HttpMethod httpMethod, UriComponentsBuilder builder, HttpHeaders headers) {
         ParameterizedTypeReference<Map<String, Configuration>> typeRef = new ParameterizedTypeReference<>() {};
         HttpEntity<T> entity = Optional.ofNullable(object)
                 .map(o -> new HttpEntity<>(o, headers))
