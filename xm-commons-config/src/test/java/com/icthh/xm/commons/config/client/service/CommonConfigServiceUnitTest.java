@@ -48,20 +48,6 @@ public class CommonConfigServiceUnitTest {
     }
 
     @Test
-    public void getConfigMapAntPattern() {
-        final List<String> paths = List.of("/path/to/*", "/path2/to/*");
-        Map<String, Configuration> config = Map.of(
-                "/path/to/*",
-                new Configuration("/path/to/*", "content1"),
-                "/path2/to/*",
-                new Configuration("/path2/to/*", "content2")
-        );
-        when(commonConfigRepository.getConfigByPatternPaths("commit", paths)).thenReturn(config);
-
-        assertThat(configService.getConfigMapAntPattern("commit", paths)).isEqualTo(config);
-    }
-
-    @Test
     public void updateConfigurations() {
         Map<String, Configuration> config = Collections.singletonMap("path", new Configuration("path", "content"));
         when(commonConfigRepository.getConfig(eq("commit"), anyList())).thenReturn(config);
@@ -99,10 +85,11 @@ public class CommonConfigServiceUnitTest {
         FetchConfigurationSettings fetchConfigurationSettings = new FetchConfigurationSettings("test", false);
         CommonConfigService configService = spy(new CommonConfigService(fetchConfigurationSettings, commonConfigRepository));
 
-        Map<String, Configuration> config = Collections.singletonMap("/config/tenants/test.txt", new Configuration("/config/tenants/test.txt", "content text"));
-        when(commonConfigRepository.getConfig(eq("commit"), anyList())).thenReturn(config);
-
         List<String> testPaths = List.of("/config/tenants/test.txt");
+
+        Map<String, Configuration> config = Collections.singletonMap("/config/tenants/test.txt", new Configuration("/config/tenants/test.txt", "content text"));
+        when(commonConfigRepository.getConfig(eq("commit"), eq(testPaths))).thenReturn(config);
+
         List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
         configurationListeners.add(mock(ConfigurationChangedListener.class));
 
