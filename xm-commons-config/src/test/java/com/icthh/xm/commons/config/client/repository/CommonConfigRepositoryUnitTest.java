@@ -150,8 +150,8 @@ public class CommonConfigRepositoryUnitTest {
         String expectedUrl = xmConfigProperties.getXmConfigUrl() + "/api/private/config_map/pattern";
 
         Map<String, Configuration> expectedResponse = Map.of(
-                "path1/*", new Configuration("path1/*", "content1"),
-                "path2/*", new Configuration("path2/*", "content2")
+                "path1/to", new Configuration("path1/to", "content1"),
+                "path2/to", new Configuration("path2/to", "content2")
         );
         ResponseEntity<Map<String, Configuration>> responseEntity = new ResponseEntity<>(expectedResponse, HttpStatus.OK);
 
