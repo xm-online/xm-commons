@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.config.client.api.ConfigService;
+import com.icthh.xm.commons.config.client.api.FetchConfigurationSettings;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.service.CommonConfigService;
@@ -37,6 +38,9 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
     @Mock
     private CommonConfigRepository commonConfigRepository;
     private ConfigService configService;
+
+    private FetchConfigurationSettings fetchConfigurationSettings;
+
     @Spy
     private XmConfigProperties configProperties;
     private InitRefreshableConfigurationBeanPostProcessor processor;
@@ -47,7 +51,9 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
     @SneakyThrows
     public void init() {
         when(refreshableConfiguration.isListeningConfiguration(anyString())).thenReturn(true);
-        configService = new CommonConfigService(commonConfigRepository);
+        fetchConfigurationSettings = new FetchConfigurationSettings("test", true);
+        configService = new CommonConfigService(fetchConfigurationSettings, commonConfigRepository);
+
         configKeys = List.of(
             "/config/tenants/TENANT1/dashboard/dashboards/ADMIN_METRICS-27.yml",
             "/config/tenants/TENANT2/custom-privileges.yml",
@@ -77,7 +83,7 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
     public void shouldContainIncludedTenantsAndCommons() {
 
         when(configProperties.getIncludeTenants()).thenReturn(Set.of("tenant1", "Tenant2"));
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configService, configProperties);
+        processor = new InitRefreshableConfigurationBeanPostProcessor(configService, configProperties, fetchConfigurationSettings);
 
         List<String> configs = processor.initConfigPaths(refreshableConfiguration, configMap);
 
@@ -92,7 +98,7 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
     @Test
     public void shouldContainAllTenantsIfIncludePropertyEmpty() {
         when(configProperties.getIncludeTenants()).thenReturn(null);
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configService, configProperties);
+        processor = new InitRefreshableConfigurationBeanPostProcessor(configService, configProperties, fetchConfigurationSettings);
 
         List<String> configs = processor.initConfigPaths(refreshableConfiguration, configMap);
 
@@ -101,9 +107,9 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
 
     @Test
     public void shouldContainAllTenantsIfIncludePropertyEmptyDuringUpdate() {
-        when(configService.getConfigurationMap(any())).thenReturn(configMap);
+        when(configService.getConfigMapAntPattern(any(), any())).thenReturn(configMap);
 
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configService, configProperties);
+        processor = new InitRefreshableConfigurationBeanPostProcessor(configService, configProperties, fetchConfigurationSettings);
         processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
         processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
 
@@ -118,8 +124,8 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
     @Test
     public void shouldContainIncludedTenantsAndCommonsDuringUpdate() {
         when(configProperties.getIncludeTenants()).thenReturn(Set.of("tenant1", "Tenant2"));
-        when(configService.getConfigurationMap(any())).thenReturn(configMap);
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configService, configProperties);
+        when(configService.getConfigMapAntPattern(any(), any())).thenReturn(configMap);
+        processor = new InitRefreshableConfigurationBeanPostProcessor(configService, configProperties, fetchConfigurationSettings);
         processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
         processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
 

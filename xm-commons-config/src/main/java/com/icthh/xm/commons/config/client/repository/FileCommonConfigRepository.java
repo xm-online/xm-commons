@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.springframework.util.AntPathMatcher;
 
 import static java.io.File.separator;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -25,6 +26,7 @@ public class FileCommonConfigRepository implements CommonConfigRepository {
     private static final IOFileFilter TRUE_FILTER = TrueFileFilter.INSTANCE;
 
     private final XmConfigProperties xmConfigProperties;
+    private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
     @Override
     public Map<String, Configuration> getConfig(String commit) {
@@ -41,13 +43,38 @@ public class FileCommonConfigRepository implements CommonConfigRepository {
     @SneakyThrows
     public Map<String, Configuration> getConfig(String version, Collection<String> paths) {
         File basePath = new File(xmConfigProperties.getDirectoryBasePath());
+        return getConfigMap(basePath, paths);
+    }
+
+    @Override
+    public Map<String, Configuration> getConfigByPatternPaths(String version, Collection<String> patterns) {
+        File basePath = new File(xmConfigProperties.getDirectoryBasePath());
+        List<String> fullPatternPaths = patterns.stream()
+                .map(pattern -> basePath.getPath() + pattern)
+                .toList();
+
+        List<String> filteredConfigPaths = listFiles(basePath, TRUE_FILTER, TRUE_FILTER).stream()
+                .map(File::getPath)
+                .filter(path -> matchPath(path, fullPatternPaths))
+                .toList();
+
+        return getConfigMap(null, filteredConfigPaths);
+    }
+
+    private Map<String, Configuration> getConfigMap(File basePath, Collection<String> paths) {
         Map<String, Configuration> configurationMap = new HashMap<>();
-        for (String relativePath: paths) {
-            String content = readFile(basePath, relativePath);
-            String path = replaceChars(relativePath, separator, "/");
-            configurationMap.put(path, new Configuration(path, content));
+
+        for (String path: paths) {
+            String content = readFile(basePath, path);
+            String normalizePath = replaceChars(path, separator, "/");
+            configurationMap.put(normalizePath, new Configuration(normalizePath, content));
         }
+
         return configurationMap;
+    }
+
+    private boolean matchPath(String path, Collection<String> pathsAntPattern) {
+        return pathsAntPattern.stream().anyMatch(it -> antPathMatcher.match(it, path));
     }
 
     @SneakyThrows

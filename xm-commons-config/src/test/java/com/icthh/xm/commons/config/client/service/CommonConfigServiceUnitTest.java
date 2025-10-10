@@ -1,19 +1,23 @@
 package com.icthh.xm.commons.config.client.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.config.client.api.ConfigurationChangedListener;
+import com.icthh.xm.commons.config.client.api.FetchConfigurationSettings;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -25,10 +29,15 @@ import java.util.Map;
 @RunWith(MockitoJUnitRunner.class)
 public class CommonConfigServiceUnitTest {
 
-    @InjectMocks
     private CommonConfigService configService;
     @Mock
     private CommonConfigRepository commonConfigRepository;
+
+    @Before
+    public void setUp() {
+        FetchConfigurationSettings fetchConfigurationSettings = new FetchConfigurationSettings("test", true);
+        configService = new CommonConfigService(fetchConfigurationSettings, commonConfigRepository);
+    }
 
     @Test
     public void getConfigurationMap() {
@@ -45,7 +54,6 @@ public class CommonConfigServiceUnitTest {
 
         List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
         configurationListeners.add(mock(ConfigurationChangedListener.class));
-        configurationListeners.add(mock(ConfigurationChangedListener.class));
 
         configurationListeners.forEach(configService::addConfigurationChangedListener);
         configService.updateConfigurations("commit", Collections.singletonList("path"));
@@ -58,6 +66,73 @@ public class CommonConfigServiceUnitTest {
     }
 
     @Test
+    public void updateConfigurationsWhenFetchAllFalseAndPathNotMatch() {
+        FetchConfigurationSettings fetchConfigurationSettings = new FetchConfigurationSettings("test", false);
+        configService = spy(new CommonConfigService(fetchConfigurationSettings, commonConfigRepository));
+
+        List<String> testPaths = Collections.singletonList("path");
+        List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
+        configurationListeners.add(mock(ConfigurationChangedListener.class));
+
+        configurationListeners.forEach(configService::addConfigurationChangedListener);
+        configService.updateConfigurations("commit", testPaths);
+
+        verify(configService, never()).getConfigurationMap(eq("commit"), eq(testPaths));
+    }
+
+    @Test
+    public void updateConfigurationsWhenFetchAllFalseAndPathsHasMatch() {
+        FetchConfigurationSettings fetchConfigurationSettings = spy(new FetchConfigurationSettings("test", false));
+        CommonConfigService configService = spy(new CommonConfigService(fetchConfigurationSettings, commonConfigRepository));
+
+        when(fetchConfigurationSettings.getMsConfigPatterns()).thenReturn(List.of(
+                "/config/tenants/commons/**",
+                "/config/tenants/*",
+                "/config/tenants/{tenantName}/commons/**",
+                "/config/tenants/{tenantName}/*",
+                "/config/tenants/{tenantName}/" + "test" + "/**",
+                "/config/tenants/{tenantName}/config/**"));
+
+        List<String> testPaths = List.of(
+                "/config/tenants/commons/test.txt",
+                "/config/tenants/test.txt",
+                "/config/tenants/XM/commons/commons-file.txt",
+                "/config/tenants/XM/simple-file.txt",
+                "/config/tenants/XM/demo/demo-file.txt", //not
+                "/config/tenants/XM/test/test2.txt",
+                "/config/tenants/XM/config/config.txt"
+        );
+
+        List<String> expectedPaths = List.of(
+                "/config/tenants/commons/test.txt",
+                "/config/tenants/test.txt",
+                "/config/tenants/XM/commons/commons-file.txt",
+                "/config/tenants/XM/simple-file.txt",
+                "/config/tenants/XM/test/test2.txt",
+                "/config/tenants/XM/config/config.txt"
+        );
+
+        Map<String, Configuration> config = Map.of(
+                "/config/tenants/commons/test.txt", new Configuration("/config/tenants/commons/test.txt", "content text"),
+                "/config/tenants/test.txt", new Configuration("/config/tenants/test.txt", "content text"),
+                "/config/tenants/XM/commons/commons-file.txt", new Configuration("/config/tenants/XM/commons/commons-file.txt", "content text"),
+                "/config/tenants/XM/simple-file.txt", new Configuration("/config/tenants/XM/simple-file.txt", "content text"),
+                "/config/tenants/XM/test/test2.txt", new Configuration("/config/tenants/XM/test/test2.txt", "content text"),
+                "/config/tenants/XM/config/config.txt", new Configuration("/config/tenants/XM/config/config.txt", "content text")
+        );
+        when(commonConfigRepository.getConfig(eq("commit"), eq(expectedPaths))).thenReturn(config);
+
+        List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
+        configurationListeners.add(mock(ConfigurationChangedListener.class));
+
+        configurationListeners.forEach(configService::addConfigurationChangedListener);
+        configService.updateConfigurations("commit", testPaths);
+
+        verify(configService).getConfigurationMap(eq("commit"), eq(expectedPaths));
+        assertEquals(config, configService.getConfigurationMap("commit", expectedPaths));
+    }
+
+    @Test
     public void updateMultiplyConfigurationsWithSingleFinished() {
         Map<String, Configuration> config = Map.of(
                 "path1", new Configuration("path1", "content1"),
@@ -66,7 +141,6 @@ public class CommonConfigServiceUnitTest {
         when(commonConfigRepository.getConfig(eq("commit"), anyList())).thenReturn(config);
 
         List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
-        configurationListeners.add(mock(ConfigurationChangedListener.class));
         configurationListeners.add(mock(ConfigurationChangedListener.class));
 
         configurationListeners.forEach(configService::addConfigurationChangedListener);
@@ -89,7 +163,6 @@ public class CommonConfigServiceUnitTest {
         when(commonConfigRepository.getConfig(eq("commit"), anyList())).thenReturn(config);
 
         List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
-        configurationListeners.add(mock(ConfigurationChangedListener.class));
         configurationListeners.add(mock(ConfigurationChangedListener.class));
 
         configurationListeners.forEach(configService::addConfigurationChangedListener);

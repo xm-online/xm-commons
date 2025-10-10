@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
+import com.icthh.xm.commons.config.client.repository.message.ConfigPatternRequest;
 import com.icthh.xm.commons.config.client.repository.message.ConfigurationUpdateMessage;
 import com.icthh.xm.commons.config.client.repository.message.GetConfigRequest;
 import com.icthh.xm.commons.config.domain.ConfigQueueEvent;
@@ -12,6 +13,7 @@ import com.icthh.xm.commons.config.domain.Configuration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
@@ -24,9 +26,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -46,6 +51,7 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
 
     private static final String URL = "/api/private";
     private static final String VERSION = "version";
+    private static final String VERSION_MS_CONFIG = "3.0.16";
 
     private static final String TENANT_NAME = "tenantName";
     private static final String TENANT_PATH = "/config/tenants/{" + TENANT_NAME + "}/*/**";
@@ -62,10 +68,8 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
 
     @Override
     public Map<String, Configuration> getConfig(String commit) {
-        ParameterizedTypeReference<Map<String, Configuration>> typeRef = new ParameterizedTypeReference<Map<String, Configuration>>() {};
-        HttpEntity<String> entity = new HttpEntity<>(createSimpleHeaders());
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + "/config_map").queryParam(VERSION, commit);
-        return restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, typeRef).getBody();
+        return getExchangeConfigMap(null, HttpMethod.GET, builder, createSimpleHeaders());
     }
 
     private String getServiceConfigUrl() {
@@ -74,10 +78,21 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
 
     @Override
     public Map<String,Configuration> getConfig(String version, Collection<String> paths) {
-        ParameterizedTypeReference<Map<String, Configuration>> typeRef = new ParameterizedTypeReference<Map<String, Configuration>>() {};
-        HttpEntity<GetConfigRequest> entity = new HttpEntity<>(new GetConfigRequest(version, paths), createApplicationJsonHeaders());
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + "/config_map");
-        return restTemplate.exchange(builder.toUriString(), HttpMethod.POST, entity, typeRef).getBody();
+        return getExchangeConfigMap(new GetConfigRequest(version, paths),  HttpMethod.POST, builder, createApplicationJsonHeaders());
+    }
+
+    @Override
+    public Map<String,Configuration> getConfigByPatternPaths(String version, Collection<String> patterns) {
+        try {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + "/config_map/pattern");
+            return getExchangeConfigMap(new ConfigPatternRequest(patterns, version),  HttpMethod.POST, builder, createApplicationJsonHeaders());
+        } catch (HttpClientErrorException errorException) {
+            if (errorException.getStatusCode() == HttpStatus.NOT_FOUND) {
+                log.warn("Not found resource, update ms-config version from {}", VERSION_MS_CONFIG);
+            }
+            throw new BusinessException("Not found resource, update ms-config version from " + VERSION_MS_CONFIG);
+        }
     }
 
     @Override
@@ -88,6 +103,20 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
 
         log.info("Sending update configuration message event to kafka-topic = '{}', data = '{}'", topicName, message);
         kafkaTemplate.send(topicName, buildSystemEvent(message, tenantKey));
+    }
+
+    public <T> Map<String, Configuration> getExchangeConfigMap(T object, HttpMethod httpMethod, UriComponentsBuilder builder, HttpHeaders headers) {
+        ParameterizedTypeReference<Map<String, Configuration>> typeRef = new ParameterizedTypeReference<>() {};
+        HttpEntity<T> entity = Optional.ofNullable(object)
+                .map(o -> new HttpEntity<>(o, headers))
+                .orElse(new HttpEntity<>(headers));
+
+        return restTemplate.exchange(
+                builder.toUriString(),
+                httpMethod,
+                entity,
+                typeRef
+        ).getBody();
     }
 
     private String getValidatedTenantKey(String configurationPath) {
@@ -119,5 +148,4 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
     private String toJson(ConfigQueueEvent event) {
         return mapper.writeValueAsString(event);
     }
-
 }

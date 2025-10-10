@@ -8,11 +8,19 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.util.AntPathMatcher;
 
 @Slf4j
 public abstract class AbstractConfigService implements ConfigService {
 
     private final List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
+    private final AntPathMatcher antPathMatcher;
+    private final FetchConfigurationSettings fetchConfigurationSettings;
+
+    protected AbstractConfigService(FetchConfigurationSettings fetchConfigurationSettings) {
+        this.antPathMatcher = new AntPathMatcher();
+        this.fetchConfigurationSettings = fetchConfigurationSettings;
+    }
 
     @Override
     public void addConfigurationChangedListener(ConfigurationChangedListener configurationListener) {
@@ -27,9 +35,12 @@ public abstract class AbstractConfigService implements ConfigService {
      */
     @Override
     public void updateConfigurations(String commit, Collection<String> paths) {
-        Map<String, Configuration> configurationsMap = getConfigurationMap(commit, paths);
-        paths.forEach(path -> notifyUpdated(getNonNullConfiguration(configurationsMap, path)));
-        configurationListeners.forEach(it -> it.refreshFinished(paths));
+        final Collection<String> filteredPaths = getFilteredPaths(paths);
+        if (!filteredPaths.isEmpty()) {
+            Map<String, Configuration> configurationsMap = getConfigurationMap(commit, filteredPaths);
+            paths.forEach(path -> notifyUpdated(getNonNullConfiguration(configurationsMap, path)));
+            configurationListeners.forEach(it -> it.refreshFinished(filteredPaths));
+        }
     }
 
     public void notifyUpdated(Configuration configuration) {
@@ -46,5 +57,19 @@ public abstract class AbstractConfigService implements ConfigService {
                                                   final String path) {
         return Optional.ofNullable(configurationsMap.get(path))
                        .orElseGet(() -> new Configuration(path, null));
+    }
+
+    private Collection<String> getFilteredPaths(Collection<String> paths) {
+        if (fetchConfigurationSettings.getIsFetchAll()) {
+            return paths;
+        }
+
+        return paths.stream()
+                .filter(path -> matchPath(path, fetchConfigurationSettings.getMsConfigPatterns()))
+                .toList();
+    }
+
+    private boolean matchPath(String path, List<String> pathsAntPattern) {
+        return pathsAntPattern.stream().anyMatch(it -> antPathMatcher.match(it, path));
     }
 }

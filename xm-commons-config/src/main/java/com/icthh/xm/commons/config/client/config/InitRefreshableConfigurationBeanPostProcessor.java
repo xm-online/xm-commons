@@ -4,6 +4,7 @@ import static org.apache.commons.lang3.StringUtils.length;
 
 import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.api.ConfigurationChangedListener;
+import com.icthh.xm.commons.config.client.api.FetchConfigurationSettings;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.extern.slf4j.Slf4j;
@@ -32,11 +33,14 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
 
     private final Set<String> includedTenants;
     private final AntPathMatcher matcher = new AntPathMatcher();
+    private final FetchConfigurationSettings fetchConfigurationSettings;
 
     public InitRefreshableConfigurationBeanPostProcessor(ConfigService configService,
-                                                         XmConfigProperties xmConfigProperties) {
+                                                         XmConfigProperties xmConfigProperties,
+                                                         FetchConfigurationSettings fetchConfigurationSettings) {
         this.configService = configService;
         this.includedTenants = xmConfigProperties.getIncludeTenantUppercase();
+        this.fetchConfigurationSettings = fetchConfigurationSettings;
         addLepCommons();
     }
 
@@ -59,7 +63,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
 
     private Map<String, Configuration> getConfig() {
         if (configMap == null) {
-            configMap = configService.getConfigurationMap(null);
+            configMap = configService.getConfigMapAntPattern(null, fetchConfigurationSettings.getMsConfigPatterns());
         }
         return configMap;
     }
