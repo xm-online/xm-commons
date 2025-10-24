@@ -12,7 +12,7 @@ public class CustomPrivilegeSpecConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(CustomPrivilegeSpecService.class)
-    public CustomPrivilegeSpecService functionServiceFacade(CommonConfigRepository commonConfigRepository,
+    public CustomPrivilegeSpecService customPrivilegeSpecService(CommonConfigRepository commonConfigRepository,
                                                             List<CustomPrivilegesExtractor> privilegesExtractors) {
         return new AbstractCustomPrivilegeSpecService(commonConfigRepository, privilegesExtractors) {
         };
