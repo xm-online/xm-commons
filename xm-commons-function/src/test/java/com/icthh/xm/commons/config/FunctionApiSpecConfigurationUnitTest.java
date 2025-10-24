@@ -3,6 +3,7 @@ package com.icthh.xm.commons.config;
 import com.icthh.xm.commons.domain.spec.FunctionApiSpecs;
 import com.icthh.xm.commons.domain.spec.FunctionSpec;
 import com.icthh.xm.commons.listener.JsonListenerService;
+import com.icthh.xm.commons.permission.service.custom.CustomPrivilegeSpecService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,9 @@ public class FunctionApiSpecConfigurationUnitTest {
     @Mock
     private FunctionApiSpecsProcessor functionApiSpecsProcessor;
 
+    @Mock
+    private CustomPrivilegeSpecService customPrivilegeSpecService;
+
     private FunctionApiSpecConfiguration functionApiSpecConfiguration;
 
     private FunctionApiSpecs specs1;
@@ -42,6 +46,7 @@ public class FunctionApiSpecConfigurationUnitTest {
         functionApiSpecConfiguration = new FunctionApiSpecConfiguration(
             APP_NAME,
             jsonListenerService,
+            customPrivilegeSpecService,
             functionApiSpecsProcessor
         );
         setupTenantSpecification();
