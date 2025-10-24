@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -29,8 +30,9 @@ public class FunctionApiDocsResource {
     @Timed
     @GetMapping("/functions/api-docs")
     @PrivilegeDescription("Privilege to get openapi documentation for functions api")
-    public ResponseEntity<Object> callGetFunction(HttpServletRequest request) {
+    public ResponseEntity<Object> callGetFunction(HttpServletRequest request,
+                                                  @RequestParam(value = "specName", required = false) String specName) {
         String url = PROTOCOL + request.getHeader(X_DOMAIN) + ":" + request.getHeader(X_PORT);
-        return ResponseEntity.ok().body(functionDocService.generateSwagger(url));
+        return ResponseEntity.ok().body(functionDocService.generateSwagger(url, specName));
     }
 }

@@ -24,18 +24,18 @@ public abstract class AbstractDynamicSwaggerFunctionGenerator<FS extends IFuncti
         this.dynamicSwaggerService = dynamicSwaggerService;
     }
 
-    public DynamicSwaggerConfiguration getSwaggerConfiguration() {
-        return dynamicSwaggerService.getConfiguration();
+    public DynamicSwaggerConfiguration getSwaggerConfiguration(String specName) {
+        return dynamicSwaggerService.getConfiguration(specName);
     }
 
     @Override
-    public SwaggerModel generateSwagger(String baseUrl) {
-        DynamicSwaggerConfiguration swaggerConfig = getSwaggerConfiguration();
-        return generateSwagger(baseUrl, getFunctionSpecs(swaggerConfig));
+    public SwaggerModel generateSwagger(String baseUrl, String specName) {
+        DynamicSwaggerConfiguration swaggerConfig = getSwaggerConfiguration(specName);
+        return generateSwagger(baseUrl, getFunctionSpecs(swaggerConfig), specName);
     }
 
-    public SwaggerModel generateSwagger(String baseUrl, List<FS> functionSpecs) {
-        SwaggerGenerator swaggerGenerator = getSwaggerGenerator(baseUrl);
+    public SwaggerModel generateSwagger(String baseUrl, List<FS> functionSpecs, String specName) {
+        SwaggerGenerator swaggerGenerator = getSwaggerGenerator(baseUrl, specName);
         functionSpecs.forEach(it -> generateSwaggerFunction(it, swaggerGenerator));
         SwaggerModel swaggerBody = swaggerGenerator.getSwaggerBody();
         enrichSwaggerBody(swaggerBody);
@@ -68,7 +68,7 @@ public abstract class AbstractDynamicSwaggerFunctionGenerator<FS extends IFuncti
     public abstract void enrichSwaggerBody(SwaggerModel swaggerBody);
     public abstract void enrichSwaggerFunction(FS it, SwaggerFunction swaggerFunction);
 
-    public abstract SwaggerGenerator getSwaggerGenerator(String baseUrl);
+    public abstract SwaggerGenerator getSwaggerGenerator(String baseUrl, String specName);
     public abstract List<FS> getFunctionSpecs(DynamicSwaggerConfiguration swaggerConfig);
     @NotNull
     public abstract String buildPathPrefix(FS functionSpec);
