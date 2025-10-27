@@ -4,6 +4,7 @@ import com.icthh.xm.commons.domain.spec.FunctionApiSpecs;
 import com.icthh.xm.commons.domain.spec.FunctionSpec;
 import com.icthh.xm.commons.listener.JsonListenerService;
 import com.icthh.xm.commons.permission.service.custom.CustomPrivilegeSpecService;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,9 @@ import static org.junit.jupiter.api.Assertions.*;
 public class FunctionApiSpecConfigurationUnitTest {
 
     @Mock
+    private TenantContextHolder tenantContextHolder;
+
+    @Mock
     private JsonListenerService jsonListenerService;
 
     @Mock
@@ -47,6 +51,7 @@ public class FunctionApiSpecConfigurationUnitTest {
             APP_NAME,
             jsonListenerService,
             customPrivilegeSpecService,
+            tenantContextHolder,
             functionApiSpecsProcessor
         );
         setupTenantSpecification();
