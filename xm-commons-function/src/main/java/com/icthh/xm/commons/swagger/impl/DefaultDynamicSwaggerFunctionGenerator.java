@@ -37,8 +37,8 @@ public abstract class DefaultDynamicSwaggerFunctionGenerator<FS extends IFunctio
     }
 
     @Override
-    public SwaggerGenerator getSwaggerGenerator(String baseUrl) {
-        DynamicSwaggerConfiguration swaggerConfig = getSwaggerConfiguration();
+    public SwaggerGenerator getSwaggerGenerator(String baseUrl, String specName) {
+        DynamicSwaggerConfiguration swaggerConfig = getSwaggerConfiguration(specName);
         return getSwaggerGenerator(baseUrl, swaggerConfig);
     }
 

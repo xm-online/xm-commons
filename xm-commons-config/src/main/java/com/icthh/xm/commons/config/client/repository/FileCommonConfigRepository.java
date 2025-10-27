@@ -3,6 +3,7 @@ package com.icthh.xm.commons.config.client.repository;
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.domain.Configuration;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -49,16 +50,16 @@ public class FileCommonConfigRepository implements CommonConfigRepository {
     @Override
     public Map<String, Configuration> getConfigByPatternPaths(String version, Collection<String> patterns) {
         File basePath = new File(xmConfigProperties.getDirectoryBasePath());
-        List<String> fullPatternPaths = patterns.stream()
-                .map(pattern -> basePath.getPath() + pattern)
-                .toList();
 
         List<String> filteredConfigPaths = listFiles(basePath, TRUE_FILTER, TRUE_FILTER).stream()
-                .map(File::getPath)
-                .filter(path -> matchPath(path, fullPatternPaths))
-                .toList();
+            .map(File::toPath)
+            .map(path -> basePath.toPath().relativize(path))
+            .map(Path::toString)
+            .map(p -> separator + p)
+            .filter(path -> matchPath(path, patterns))
+            .toList();
 
-        return getConfigMap(null, filteredConfigPaths);
+        return getConfigMap(basePath, filteredConfigPaths);
     }
 
     private Map<String, Configuration> getConfigMap(File basePath, Collection<String> paths) {
