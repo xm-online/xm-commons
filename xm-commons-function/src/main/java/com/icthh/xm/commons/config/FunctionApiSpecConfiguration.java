@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.icthh.xm.commons.permission.service.custom.CustomPrivilegeSpecService;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -32,14 +33,17 @@ public class FunctionApiSpecConfiguration extends DataSpecificationService<Funct
 
     private final String appName;
     private final CustomPrivilegeSpecService customPrivilegeSpecService;
+    private final TenantContextHolder tenantContextHolder;
 
     public FunctionApiSpecConfiguration(@Value("${spring.application.name}") String appName,
                                         JsonListenerService jsonListenerService,
                                         CustomPrivilegeSpecService customPrivilegeSpecService,
+                                        TenantContextHolder tenantContextHolder,
                                         FunctionApiSpecsProcessor functionApiSpecsProcessor) {
         super(FunctionApiSpecs.class, jsonListenerService, functionApiSpecsProcessor);
         this.appName = appName;
         this.customPrivilegeSpecService = customPrivilegeSpecService;
+        this.tenantContextHolder = tenantContextHolder;
     }
 
     @Override
@@ -62,7 +66,8 @@ public class FunctionApiSpecConfiguration extends DataSpecificationService<Funct
 
         tenants.forEach(tenantKey -> {
             Collection<FunctionSpec> specByTenant = getOrderedSpecByTenant(tenantKey);
-            customPrivilegeSpecService.onSpecificationUpdate(specByTenant, tenantKey);
+            tenantContextHolder.getPrivilegedContext().execute(tenantKey, () ->
+                customPrivilegeSpecService.onSpecificationUpdate(specByTenant, tenantKey));
         });
     }
 
