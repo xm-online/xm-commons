@@ -24,6 +24,8 @@ import com.icthh.xm.commons.domain.enums.FunctionTxTypes;
 import com.icthh.xm.commons.domain.spec.FunctionSpec;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.listener.JsonListenerService;
+import com.icthh.xm.commons.permission.service.custom.CustomPrivilegeSpecService;
+import com.icthh.xm.commons.tenant.PrivilegedTenantContext;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import java.util.List;
 import java.util.Map;
@@ -40,9 +42,6 @@ public class FunctionManageServiceUnitTest {
 
     private FunctionManageServiceImpl functionManageService;
 
-    private FunctionApiSpecConfiguration specService = new FunctionApiSpecConfiguration(
-        "testApp", mock(JsonListenerService.class), mock(FunctionApiSpecsProcessor.class)
-    );
     @Mock
     private TenantContextHolder tenantContextHolder;
     @Mock
@@ -50,9 +49,20 @@ public class FunctionManageServiceUnitTest {
     @Mock
     private CommonConfigService commonConfigService;
 
+    private FunctionApiSpecConfiguration specService;
+
     @BeforeEach
     void setUp() {
         openMocks(this);
+        when(tenantContextHolder.getPrivilegedContext())
+            .thenReturn(mock(PrivilegedTenantContext.class));
+
+        specService = new FunctionApiSpecConfiguration(
+            "testApp", mock(JsonListenerService.class), mock(CustomPrivilegeSpecService.class),
+            tenantContextHolder,
+            mock(FunctionApiSpecsProcessor.class)
+        );
+
         functionManageService = new FunctionManageServiceImpl(
             specService, tenantContextHolder, commonConfigRepository, commonConfigService
         );

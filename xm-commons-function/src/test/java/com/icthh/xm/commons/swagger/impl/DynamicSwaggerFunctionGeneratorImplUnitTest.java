@@ -71,7 +71,7 @@ public class DynamicSwaggerFunctionGeneratorImplUnitTest {
             null
         );
 
-        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL);
+        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL, null);
         var expected = readExpected("config/swagger/expected-default.yml");
 
         assertThat(toYml(swagger)).isEqualTo(toYml(expected));
@@ -88,7 +88,7 @@ public class DynamicSwaggerFunctionGeneratorImplUnitTest {
             null
         );
 
-        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL);
+        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL, null);
         var expected = readExpected("config/swagger/expected-swagger-with-root-ref.yml");
 
         assertThat(toYml(swagger)).isEqualTo(toYml(expected));
@@ -105,7 +105,7 @@ public class DynamicSwaggerFunctionGeneratorImplUnitTest {
             null
         );
 
-        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL);
+        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL, null);
         var expected = readExpected("config/swagger/expected-get-function-with-required-param.yml");
 
         assertThat(toYml(swagger)).isEqualTo(toYml(expected));
@@ -114,7 +114,7 @@ public class DynamicSwaggerFunctionGeneratorImplUnitTest {
     @Test
     public void testOverrideConfiguration() {
         dynamicSwaggerConfigService.onRefresh(SWAGGER_CONFIG_PATH, loadFile("config/swagger/test-swagger.yml"));
-        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL);
+        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL, null);
 
         assertEquals("4.5.0", swagger.getInfo().getVersion());
         assertEquals("Test swagger", swagger.getInfo().getTitle());
@@ -132,7 +132,7 @@ public class DynamicSwaggerFunctionGeneratorImplUnitTest {
     @Test
     public void testExcludeInclude() {
         dynamicSwaggerConfigService.onRefresh(SWAGGER_CONFIG_PATH, loadFile("config/swagger/test-swagger.yml"));
-        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL);
+        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL, null);
 
         assertPaths(swagger, Map.of(
             "/function/api/functions/folder/v1/TestName", List.of("post", "get"),
@@ -149,7 +149,7 @@ public class DynamicSwaggerFunctionGeneratorImplUnitTest {
         DynamicSwaggerConfiguration config = new DynamicSwaggerConfiguration();
         config.setIncludeTags(List.of("test"));
         dynamicSwaggerConfigService.onRefresh(SWAGGER_CONFIG_PATH, toYml(config));
-        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL);
+        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL, null);
 
         assertPaths(swagger, Map.of(
             "/function/api/functions/check/different/key/with/same/path", List.of("delete", "put"),
@@ -164,7 +164,7 @@ public class DynamicSwaggerFunctionGeneratorImplUnitTest {
         DynamicSwaggerConfiguration config = new DynamicSwaggerConfiguration();
         config.setExcludeTags(List.of("internal"));
         dynamicSwaggerConfigService.onRefresh(SWAGGER_CONFIG_PATH, toYml(config));
-        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL);
+        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL, null);
 
         assertPaths(swagger, Map.of(
             "/function/api/functions/folder/v1/TestName", List.of("post", "get"),
@@ -180,7 +180,7 @@ public class DynamicSwaggerFunctionGeneratorImplUnitTest {
         config.setIncludeTags(List.of("test"));
         config.setExcludeTags(List.of("internal"));
         dynamicSwaggerConfigService.onRefresh(SWAGGER_CONFIG_PATH, toYml(config));
-        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL);
+        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL, null);
 
         assertPaths(swagger, Map.of(
             "/function/api/functions/check/different/key/with/same/path", List.of("delete", "put"),
@@ -194,7 +194,7 @@ public class DynamicSwaggerFunctionGeneratorImplUnitTest {
         config.setIncludeTags(List.of("test"));
         config.setExcludeTags(List.of("internal", "duplicatePathExclude"));
         dynamicSwaggerConfigService.onRefresh(SWAGGER_CONFIG_PATH, toYml(config));
-        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL);
+        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL, null);
 
         assertPaths(swagger, Map.of(
             "/function/api/functions/check/different/key/with/same/path", List.of("put"),
@@ -208,7 +208,7 @@ public class DynamicSwaggerFunctionGeneratorImplUnitTest {
         config.setIncludeTags(List.of("test", "external"));
         config.setExcludeTags(List.of("internal", "duplicatePathExclude"));
         dynamicSwaggerConfigService.onRefresh(SWAGGER_CONFIG_PATH, toYml(config));
-        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL);
+        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL, null);
 
         assertPaths(swagger, Map.of(
             "/function/api/functions/folder/v1/TestName", List.of("post", "get"),
@@ -225,7 +225,7 @@ public class DynamicSwaggerFunctionGeneratorImplUnitTest {
         config.setExcludeTags(List.of("internal", "duplicatePathExclude"));
         config.setExcludeKeyPatterns(List.of("folder/v1/.*"));
         dynamicSwaggerConfigService.onRefresh(SWAGGER_CONFIG_PATH, toYml(config));
-        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL);
+        var swagger = dynamicSwaggerFunctionGenerator.generateSwagger(TEST_BASE_URL, null);
 
         assertPaths(swagger, Map.of(
             "/function/api/functions/check/different/key/with/same/path", List.of("put"),

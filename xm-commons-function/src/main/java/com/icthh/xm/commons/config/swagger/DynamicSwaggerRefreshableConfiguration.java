@@ -9,7 +9,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.icthh.xm.commons.utils.DataSpecConstants.TENANT_NAME;
@@ -19,15 +22,21 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @Component
 public class DynamicSwaggerRefreshableConfiguration implements RefreshableConfiguration {
 
+    private static final String SPEC_NAME = "specName";
+
     private final ObjectMapper objectMapper;
     private final AntPathMatcher matcher;
     private final String specPath;
-    private final Map<String, DynamicSwaggerConfiguration> config;
+    private final String specPathSeparator;
+    private final String defaultSpecName;
+    private final Map<String, Map<String, DynamicSwaggerConfiguration>> config;
     private final TenantContextHolder tenantContextHolder;
 
     public DynamicSwaggerRefreshableConfiguration(@Value("${spring.application.name}") String appName,
                                                   TenantContextHolder tenantContextHolder) {
-        this.specPath = "/config/tenants/{tenantName}/" + appName + "/swagger.yml";
+        this.defaultSpecName = "swagger";
+        this.specPath = "/config/tenants/{tenantName}/" + appName + "/swagger{suffix}.yml";
+        this.specPathSeparator = "/config/tenants/{tenantName}/" + appName + "/{specName}.yml";
         this.tenantContextHolder = tenantContextHolder;
         this.objectMapper = new ObjectMapper(new YAMLFactory());
         this.matcher = new AntPathMatcher();
@@ -37,11 +46,16 @@ public class DynamicSwaggerRefreshableConfiguration implements RefreshableConfig
     public void onRefresh(final String updatedKey, final String config) {
         try {
             String tenant = this.matcher.extractUriTemplateVariables(specPath, updatedKey).get(TENANT_NAME);
+            String specName = this.matcher.extractUriTemplateVariables(specPathSeparator, updatedKey).get(SPEC_NAME);
             if (isBlank(config)) {
-                this.config.remove(tenant);
+                this.config
+                    .getOrDefault(tenant, new HashMap<>())
+                    .remove(specName);
                 log.info("Configuration was removed for tenant [{}] by key [{}]", tenant, updatedKey);
             } else {
-                this.config.put(tenant, objectMapper.readValue(config, DynamicSwaggerConfiguration.class));
+                this.config
+                    .computeIfAbsent(tenant, key -> new LinkedHashMap<>())
+                    .put(specName, objectMapper.readValue(config, DynamicSwaggerConfiguration.class));
                 log.info("Configuration was updated for tenant [{}] by key [{}]", tenant, updatedKey);
             }
         } catch (Exception e) {
@@ -54,6 +68,11 @@ public class DynamicSwaggerRefreshableConfiguration implements RefreshableConfig
     }
 
     public DynamicSwaggerConfiguration getConfiguration() {
-        return this.config.get(tenantContextHolder.getTenantKey());
+        return getConfiguration(defaultSpecName);
+    }
+
+    public DynamicSwaggerConfiguration getConfiguration(String specName) {
+        String name = Optional.ofNullable(specName).orElse(defaultSpecName);
+        return this.config.getOrDefault(tenantContextHolder.getTenantKey(), Map.of()).get(name);
     }
 }

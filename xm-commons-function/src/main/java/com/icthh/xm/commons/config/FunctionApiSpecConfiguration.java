@@ -8,20 +8,23 @@ import com.icthh.xm.commons.listener.JsonListenerService;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import java.util.List;
 import java.util.Map;
+
+import com.icthh.xm.commons.permission.service.custom.CustomPrivilegeSpecService;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import static com.icthh.xm.commons.enums.SpecPathPatternEnum.findTenantName;
 import static com.icthh.xm.commons.utils.Constants.FUNCTIONS;
 import static java.util.Objects.nonNull;
-import static java.util.Optional.ofNullable;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 
 @Slf4j
 @Service
@@ -29,12 +32,18 @@ import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 public class FunctionApiSpecConfiguration extends DataSpecificationService<FunctionApiSpecs> {
 
     private final String appName;
+    private final CustomPrivilegeSpecService customPrivilegeSpecService;
+    private final TenantContextHolder tenantContextHolder;
 
     public FunctionApiSpecConfiguration(@Value("${spring.application.name}") String appName,
                                         JsonListenerService jsonListenerService,
+                                        CustomPrivilegeSpecService customPrivilegeSpecService,
+                                        TenantContextHolder tenantContextHolder,
                                         FunctionApiSpecsProcessor functionApiSpecsProcessor) {
         super(FunctionApiSpecs.class, jsonListenerService, functionApiSpecsProcessor);
         this.appName = appName;
+        this.customPrivilegeSpecService = customPrivilegeSpecService;
+        this.tenantContextHolder = tenantContextHolder;
     }
 
     @Override
@@ -45,6 +54,21 @@ public class FunctionApiSpecConfiguration extends DataSpecificationService<Funct
     @Override
     public String folder() {
         return appName + "/" + FUNCTIONS;
+    }
+
+    @Override
+    public void refreshFinished(Collection<String> paths) {
+        super.refreshFinished(paths);
+
+        Set<String> tenants = paths.stream()
+            .map(p -> findTenantName(p, folder()))
+            .collect(Collectors.toSet());
+
+        tenants.forEach(tenantKey -> {
+            Collection<FunctionSpec> specByTenant = getOrderedSpecByTenant(tenantKey);
+            tenantContextHolder.getPrivilegedContext().execute(tenantKey, () ->
+                customPrivilegeSpecService.onSpecificationUpdate(specByTenant, tenantKey));
+        });
     }
 
     public Optional<FunctionSpec> getSpecByKeyAndTenant(String functionKey, String tenantKey) {
