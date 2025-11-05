@@ -19,4 +19,6 @@ public class TopicConfig implements Serializable {
     private String isolationLevel;
     private String autoOffsetReset;
     private String metadataMaxAge;
+    private Integer consumeMessagePerSecondLimit;
+    private Integer concurrency;
 }

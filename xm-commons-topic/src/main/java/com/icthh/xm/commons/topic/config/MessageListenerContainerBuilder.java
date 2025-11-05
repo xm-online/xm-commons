@@ -7,12 +7,7 @@ import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.getTotalP
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace;
-import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
-import static org.apache.kafka.clients.consumer.ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG;
-import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
-import static org.apache.kafka.clients.consumer.ConsumerConfig.ISOLATION_LEVEL_CONFIG;
-import static org.apache.kafka.clients.consumer.ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG;
-import static org.apache.kafka.clients.consumer.ConsumerConfig.METADATA_MAX_AGE_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
 import static org.springframework.kafka.listener.ContainerProperties.AckMode.MANUAL_IMMEDIATE;
 
 import com.icthh.xm.commons.logging.trace.TraceWrapper;
@@ -21,6 +16,9 @@ import com.icthh.xm.commons.topic.domain.NotRetryableException;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
 import com.icthh.xm.commons.topic.util.MessageRetryUtils;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
@@ -67,11 +65,17 @@ public class MessageListenerContainerBuilder {
         ContainerProperties containerProperties = new ContainerProperties(topicConfig.getTopicName());
         containerProperties.setObservationEnabled(true);
         containerProperties.setAckMode(MANUAL_IMMEDIATE);
+        if (topicConfig.getConsumeMessagePerSecondLimit() != null && topicConfig.getConsumeMessagePerSecondLimit() > 0) {
+            containerProperties.setIdleBetweenPolls(Math.divideExact(1000, topicConfig.getConsumeMessagePerSecondLimit()));
+        }
         containerProperties.setMessageListener(new MessageListener(topicConfig, messageHandler, tenantKey, traceWrapper));
 
         ConcurrentMessageListenerContainer<String, String> container =
               new ConcurrentMessageListenerContainer<>(kafkaConsumerFactory, containerProperties);
         container.setCommonErrorHandler(buildErrorHandler(tenantKey, topicConfig));
+        if (topicConfig.getConcurrency() != null) {
+            container.setConcurrency(topicConfig.getConcurrency());
+        }
         return container;
     }
 
@@ -151,6 +155,10 @@ public class MessageListenerContainerBuilder {
 
         if (topicConfig.getMaxPollInterval() != null) {
             props.put(MAX_POLL_INTERVAL_MS_CONFIG, topicConfig.getMaxPollInterval());
+        }
+
+        if (topicConfig.getConsumeMessagePerSecondLimit() != null) {
+            props.put(MAX_POLL_RECORDS_CONFIG, 1);
         }
 
         return Collections.unmodifiableMap(props);
