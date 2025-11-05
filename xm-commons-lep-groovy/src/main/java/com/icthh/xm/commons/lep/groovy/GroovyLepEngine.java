@@ -5,16 +5,22 @@ import com.icthh.xm.commons.lep.ProceedingLep;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepKey;
+import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import com.icthh.xm.commons.lep.groovy.storage.LepStorage;
 import com.icthh.xm.commons.lep.impl.LoggingWrapper;
 import groovy.lang.Binding;
+import groovy.lang.Script;
 import groovy.util.GroovyScriptEngine;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.runtime.InvokerHelper;
 
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +29,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.icthh.xm.commons.lep.groovy.storage.LepStorage.FILE_EXTENSION;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.codehaus.groovy.control.CompilerConfiguration.INVOKEDYNAMIC;
 
 @Slf4j
 public class GroovyLepEngine extends LepEngine {
@@ -35,6 +43,11 @@ public class GroovyLepEngine extends LepEngine {
     private final LoggingWrapper loggingWrapper;
     private final LepPathResolver lepPathResolver;
     private final List<String> tenantCommonsFolders;
+    private final LepResourceConnector lepResourceConnector;
+
+    private final boolean loadPrecompiled;
+    private final String precompiledInputDirectory;
+    private final String compilationOutputDirectory;
 
     private final Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata = new ConcurrentHashMap<>();
 
@@ -45,13 +58,21 @@ public class GroovyLepEngine extends LepEngine {
                            Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata,
                            LepResourceConnector lepResourceConnector,
                            LepPathResolver lepPathResolver,
-                           boolean isWarmupEnabled) {
+                           boolean isWarmupEnabled,
+                           boolean loadPrecompiled,
+                           String precompiledInputDirectory,
+                           String compilationOutputDirectory) {
         this.tenant = tenant;
         this.leps = leps;
         this.loggingWrapper = loggingWrapper;
+        this.lepResourceConnector = lepResourceConnector;
+        this.loadPrecompiled = loadPrecompiled;
+        this.precompiledInputDirectory = precompiledInputDirectory;
+        this.compilationOutputDirectory = compilationOutputDirectory;
+        this.lepPathResolver = lepPathResolver;
+
         this.gse = buildGroovyEngine(classLoader, lepResourceConnector);
         this.lepMetadata.putAll(lepMetadata);
-        this.lepPathResolver = lepPathResolver;
         this.tenantCommonsFolders = lepPathResolver.getLepCommonsPaths(tenant);
         if (isWarmupEnabled) {
             warmupScripts();
@@ -60,14 +81,41 @@ public class GroovyLepEngine extends LepEngine {
         }
     }
 
-    protected GroovyScriptEngine buildGroovyEngine(ClassLoader classLoader, LepResourceConnector lepResourceConnector) {
-        var gse = new GroovyScriptEngine(lepResourceConnector, classLoader);
+    @SneakyThrows
+    protected GroovyScriptEngine buildGroovyEngine(ClassLoader classLoader,
+                                                   LepResourceConnector lepResourceConnector) {
+        var gse = isNotBlank(precompiledInputDirectory) ?
+            new GroovyScriptEngine(new String[]{ precompiledInputDirectory }, classLoader)
+            : new GroovyScriptEngine(lepResourceConnector, classLoader);
         CompilerConfiguration config = gse.getConfig();
-        config.setRecompileGroovySource(true);
-        config.setMinimumRecompilationInterval(50);
+        config.setRecompileGroovySource(!loadPrecompiled);
+        if (!loadPrecompiled) {
+            config.setMinimumRecompilationInterval(50);
+        }
+        config.getOptimizationOptions().put(INVOKEDYNAMIC, true);
+        config.setParameters(true);
+        if (isNotBlank(compilationOutputDirectory)) {
+            config.setTargetDirectory(compilationOutputDirectory);
+        }
         gse.setConfig(config);
-        gse.getGroovyClassLoader().setShouldRecompile(true);
+        gse.getGroovyClassLoader().setShouldRecompile(!loadPrecompiled);
+        if (isNotBlank(precompiledInputDirectory)) {
+            gse.getGroovyClassLoader().addClasspath(precompiledInputDirectory);
+        }
         return gse;
+    }
+
+    public void compileAllLepFiles() {
+        this.leps.forEach(this::parseLepFile);
+    }
+
+    @SneakyThrows
+    private void parseLepFile(XmLepConfigFile lep) {
+        String fileName = LEP_PREFIX + lep.getPath();
+        URLConnection conn = lepResourceConnector.getResourceConnection(fileName);
+        String path = conn.getURL().toExternalForm();
+        String content = IOUtils.toString(conn.getInputStream(), StandardCharsets.UTF_8);
+        gse.getGroovyClassLoader().parseClass(content, path);
     }
 
     private void warmupScripts() {
@@ -117,9 +165,18 @@ public class GroovyLepEngine extends LepEngine {
     @SneakyThrows
     private Object executeLep(String key, LepKey lepKey, ProceedingLep lepMethod, BaseLepContext lepContext) {
         String scriptName = LEP_PREFIX + key + FILE_EXTENSION;
-        return loggingWrapper.doWithLogs(lepMethod, scriptName, lepKey, () ->
+        return loggingWrapper.doWithLogs(lepMethod, scriptName, lepKey, () -> {
             // map HAVE TO be mutable!
-            gse.run(LEP_PREFIX + key, new Binding(new HashMap<>(Map.of("lepContext", lepContext))))
+            Binding binding = new Binding(new HashMap<>(Map.of("lepContext", lepContext)));
+                if (loadPrecompiled) {
+                    String scriptId = key.replace("/", ".").replace("$", "_");
+                    Class<?> c = Class.forName(scriptId, true, gse.getGroovyClassLoader());
+                    Script s = InvokerHelper.createScript(c, binding);
+                    return s.run();
+                } else {
+                    return gse.run(LEP_PREFIX + key, binding);
+                }
+            }
         );
     }
 

@@ -27,6 +27,9 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
     private final Set<String> tenantWithWarmup;
     private final Boolean warmupScriptsForAllTenants;
     private final GroovyEngineCreationStrategy groovyEngineCreationStrategy;
+    private final boolean loadPrecompiled;
+    private final String precompiledInputDirectory;
+    private final String compilationOutputDirectory;
 
     private volatile ClassLoader classLoader;
 
@@ -37,7 +40,10 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
                                   LepPathResolver lepPathResolver,
                                   GroovyFileParser groovyFileParser,
                                   Set<String> tenantWithWarmup,
-                                  Boolean warmupScriptsForAllTenants) {
+                                  Boolean warmupScriptsForAllTenants,
+                                  boolean loadPrecompiled,
+                                  String precompiledInputDirectory,
+                                  String compilationOutputDirectory) {
         super(appName);
         this.lepPathResolver = lepPathResolver;
         this.lepStorageFactory = lepStorageFactory;
@@ -46,6 +52,9 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
         this.groovyFileParser = groovyFileParser;
         this.tenantWithWarmup = tenantWithWarmup;
         this.warmupScriptsForAllTenants = warmupScriptsForAllTenants;
+        this.loadPrecompiled = loadPrecompiled;
+        this.precompiledInputDirectory = precompiledInputDirectory;
+        this.compilationOutputDirectory = compilationOutputDirectory;
     }
 
     @Override
@@ -77,7 +86,10 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
             lepMetadata,
             lepResourceConnector,
             lepPathResolver,
-            isWarmupEnabled
+            isWarmupEnabled,
+            loadPrecompiled,
+            precompiledInputDirectory,
+            compilationOutputDirectory
         );
     }
 }

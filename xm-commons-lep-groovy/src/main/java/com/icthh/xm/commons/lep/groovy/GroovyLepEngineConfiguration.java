@@ -47,6 +47,16 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     @Value("${application.lep.tenants-with-lep-warmup:#{T(java.util.Set).of('XM')}}")
     private Set<String> tenantsWithLepWarmup;
 
+    @Value("${application.lep.load-precompiled:false}")
+    private boolean loadPrecompiled;
+
+    @Value("${application.lep.precompiled-input-directory:#{null}}")
+    private String precompiledInputDirectory;
+
+    @Value("${application.lep.compilation-output-directory:#{null}}")
+    private String compilationOutputDirectory;
+
+
     public GroovyLepEngineConfiguration(@Value("${spring.application.name}") String appName) {
         super(appName);
     }
@@ -67,7 +77,10 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
             lepPathResolver,
             groovyFileParser,
             warmupScripts ? tenantsWithLepWarmup : emptySet(),
-            warmupScriptsForAllTenant
+            warmupScriptsForAllTenant,
+            loadPrecompiled,
+            precompiledInputDirectory,
+            compilationOutputDirectory
         );
     }
 
