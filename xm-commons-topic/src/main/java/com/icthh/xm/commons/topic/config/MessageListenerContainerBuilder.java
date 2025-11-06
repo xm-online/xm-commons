@@ -55,7 +55,7 @@ public class MessageListenerContainerBuilder {
             true
         ));
         if (topicConfig.getConsumeMessagePerSecondLimit() != null && topicConfig.getConsumeMessagePerSecondLimit() > 0) {
-            containerProperties.setIdleBetweenPolls(Math.divideExact(1000, topicConfig.getConsumeMessagePerSecondLimit()));
+            containerProperties.setIdleBetweenPolls(Math.floorDiv(1000, topicConfig.getConsumeMessagePerSecondLimit()));
         }
 
         ConcurrentMessageListenerContainer<String, String> container =
