@@ -7,6 +7,7 @@ The configuration defines how the microservice consumes, retries, and processes 
 ### Example configuration (`topic-consumers.yml`)
 ```yaml
 ---
+topics:
 - key: "example-event"
   typeKey: "USER_EVENT"
   topicName: "webhook-event-user"
