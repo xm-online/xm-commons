@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.lep.groovy;
 
+import com.codahale.metrics.MetricRegistry;
 import com.icthh.xm.commons.lep.LepPathResolver;
 import com.icthh.xm.commons.lep.ProceedingLep;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
@@ -35,6 +36,7 @@ public class GroovyLepEngine extends LepEngine {
     private final LoggingWrapper loggingWrapper;
     private final LepPathResolver lepPathResolver;
     private final List<String> tenantCommonsFolders;
+    private final MetricRegistry metricRegistry;
 
     private final Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata = new ConcurrentHashMap<>();
 
@@ -45,6 +47,7 @@ public class GroovyLepEngine extends LepEngine {
                            Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata,
                            LepResourceConnector lepResourceConnector,
                            LepPathResolver lepPathResolver,
+                           MetricRegistry metricRegistry,
                            boolean isWarmupEnabled) {
         this.tenant = tenant;
         this.leps = leps;
@@ -52,6 +55,7 @@ public class GroovyLepEngine extends LepEngine {
         this.gse = buildGroovyEngine(classLoader, lepResourceConnector);
         this.lepMetadata.putAll(lepMetadata);
         this.lepPathResolver = lepPathResolver;
+        this.metricRegistry = metricRegistry;
         this.tenantCommonsFolders = lepPathResolver.getLepCommonsPaths(tenant);
         if (isWarmupEnabled) {
             warmupScripts();
@@ -89,7 +93,9 @@ public class GroovyLepEngine extends LepEngine {
                 log.error("Error create script {}", lep.getPath(), e);
             }
         });
-        log.info("Stop warm-up LEP scripts, time = {} ms, ", stopWatch.getTime(MILLISECONDS));
+        long warmUpTimeMillis = stopWatch.getTime(MILLISECONDS);
+        metricRegistry.histogram(tenant + " LEP warm-up").update(warmUpTimeMillis);
+        log.info("Stop warm-up LEP scripts, time = {} ms, ", warmUpTimeMillis);
     }
 
     @Override
