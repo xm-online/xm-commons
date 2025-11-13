@@ -11,6 +11,7 @@ dependencies {
     compile project(':xm-commons-tenant')
     compile project(':xm-commons-config')
     compile project(':xm-commons-lep')
+    compile project(':xm-commons-metric')
 
     compileOnly 'javax.servlet:javax.servlet-api'
 

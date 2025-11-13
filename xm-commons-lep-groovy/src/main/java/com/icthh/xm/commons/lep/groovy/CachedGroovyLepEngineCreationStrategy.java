@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.lep.groovy;
 
+import com.codahale.metrics.MetricRegistry;
 import com.icthh.xm.commons.lep.LepPathResolver;
 import com.icthh.xm.commons.lep.groovy.storage.LepStorage;
 import com.icthh.xm.commons.lep.impl.LoggingWrapper;
@@ -18,6 +19,7 @@ public class CachedGroovyLepEngineCreationStrategy implements GroovyEngineCreati
                                         Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata,
                                         LepResourceConnector lepResourceConnector,
                                         LepPathResolver lepPathResolver,
+                                        MetricRegistry metricRegistry,
                                         boolean isWarmupEnabled) {
         return engineByTenant.computeIfAbsent(tenant, it ->
             new GroovyLepEngine(
@@ -28,6 +30,7 @@ public class CachedGroovyLepEngineCreationStrategy implements GroovyEngineCreati
                 lepMetadata,
                 lepResourceConnector,
                 lepPathResolver,
+                metricRegistry,
                 isWarmupEnabled
             )
         );

@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.lep.groovy;
 
+import com.codahale.metrics.MetricRegistry;
 import com.icthh.xm.commons.lep.LepPathResolver;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepEngineFactory;
@@ -27,6 +28,7 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
     private final Set<String> tenantWithWarmup;
     private final Boolean warmupScriptsForAllTenants;
     private final GroovyEngineCreationStrategy groovyEngineCreationStrategy;
+    private final MetricRegistry metricRegistry;
 
     private volatile ClassLoader classLoader;
 
@@ -37,7 +39,8 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
                                   LepPathResolver lepPathResolver,
                                   GroovyFileParser groovyFileParser,
                                   Set<String> tenantWithWarmup,
-                                  Boolean warmupScriptsForAllTenants) {
+                                  Boolean warmupScriptsForAllTenants,
+                                  MetricRegistry metricRegistry) {
         super(appName);
         this.lepPathResolver = lepPathResolver;
         this.lepStorageFactory = lepStorageFactory;
@@ -46,6 +49,7 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
         this.groovyFileParser = groovyFileParser;
         this.tenantWithWarmup = tenantWithWarmup;
         this.warmupScriptsForAllTenants = warmupScriptsForAllTenants;
+        this.metricRegistry = metricRegistry;
     }
 
     @Override
@@ -77,6 +81,7 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
             lepMetadata,
             lepResourceConnector,
             lepPathResolver,
+            metricRegistry,
             isWarmupEnabled
         );
     }

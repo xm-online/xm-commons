@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.lep.groovy;
 
+import com.codahale.metrics.MetricRegistry;
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.FileSystemUtils;
 import com.icthh.xm.commons.lep.LepPathResolver;
@@ -57,7 +58,8 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
                                                          GroovyEngineCreationStrategy groovyEngineCreationStrategy,
                                                          LoggingWrapper loggingWrapper,
                                                          LepPathResolver lepPathResolver,
-                                                         GroovyFileParser groovyFileParser) {
+                                                         GroovyFileParser groovyFileParser,
+                                                         MetricRegistry metricRegistry) {
         String appName = applicationNameProvider.getAppName();
         return new GroovyLepEngineFactory(
             appName,
@@ -67,7 +69,8 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
             lepPathResolver,
             groovyFileParser,
             warmupScripts ? tenantsWithLepWarmup : emptySet(),
-            warmupScriptsForAllTenant
+            warmupScriptsForAllTenant,
+            metricRegistry
         );
     }
 
