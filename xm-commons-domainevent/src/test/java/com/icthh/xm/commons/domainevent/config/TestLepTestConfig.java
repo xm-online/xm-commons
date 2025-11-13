@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.domainevent.config;
 
+import com.codahale.metrics.MetricRegistry;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
@@ -22,7 +23,7 @@ import org.springframework.transaction.support.SimpleTransactionScope;
 import static org.mockito.Mockito.mock;
 
 @Configuration
-@ComponentScan({"com.icthh.xm.commons.lep.spring", "com.icthh.xm.commons.domainevent", "com.icthh.xm.commons.tenant", "com.icthh.xm.commons.metric"})
+@ComponentScan({"com.icthh.xm.commons.lep.spring", "com.icthh.xm.commons.domainevent", "com.icthh.xm.commons.tenant"})
 @EnableAutoConfiguration
 public class TestLepTestConfig extends GroovyLepEngineConfiguration {
 
@@ -39,6 +40,11 @@ public class TestLepTestConfig extends GroovyLepEngineConfiguration {
     @Bean
     public WebLepFilter webLepFilter() {
         return new WebLepFilter();
+    }
+
+    @Bean
+    public MetricRegistry metricRegistry() {
+        return new MetricRegistry();
     }
 
     @Bean
