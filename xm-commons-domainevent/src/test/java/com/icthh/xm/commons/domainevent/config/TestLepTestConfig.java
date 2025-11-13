@@ -22,7 +22,7 @@ import org.springframework.transaction.support.SimpleTransactionScope;
 import static org.mockito.Mockito.mock;
 
 @Configuration
-@ComponentScan({"com.icthh.xm.commons.lep.spring", "com.icthh.xm.commons.domainevent", "com.icthh.xm.commons.tenant"})
+@ComponentScan({"com.icthh.xm.commons.lep.spring", "com.icthh.xm.commons.domainevent", "com.icthh.xm.commons.tenant", "com.icthh.xm.commons.metric"})
 @EnableAutoConfiguration
 public class TestLepTestConfig extends GroovyLepEngineConfiguration {
 

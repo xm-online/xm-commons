@@ -39,7 +39,8 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
                                   LepPathResolver lepPathResolver,
                                   GroovyFileParser groovyFileParser,
                                   Set<String> tenantWithWarmup,
-                                  Boolean warmupScriptsForAllTenants, MetricRegistry metricRegistry) {
+                                  Boolean warmupScriptsForAllTenants,
+                                  MetricRegistry metricRegistry) {
         super(appName);
         this.lepPathResolver = lepPathResolver;
         this.lepStorageFactory = lepStorageFactory;
