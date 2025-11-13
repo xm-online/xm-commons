@@ -49,7 +49,9 @@ public class DynamicLepTestConfig extends GroovyLepEngineConfiguration {
     }
 
     @Bean
-    public MetricRegistry metricRegistry() {return new MetricRegistry();}
+    public MetricRegistry metricRegistry() {
+        return new MetricRegistry();
+    }
 
     @Bean
     public TenantAliasService tenantAliasService() {

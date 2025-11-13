@@ -35,7 +35,9 @@ public class LepTestConfig extends GroovyLepEngineConfiguration {
     }
 
     @Bean
-    public MetricRegistry metricRegistry() {return new MetricRegistry();}
+    public MetricRegistry metricRegistry() {
+        return new MetricRegistry();
+    }
 
     @Bean
     public TestLepService testLepService() {
