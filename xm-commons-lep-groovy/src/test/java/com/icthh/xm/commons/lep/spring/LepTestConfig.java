@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.lep.spring;
 
+import com.codahale.metrics.MetricRegistry;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
@@ -32,6 +33,9 @@ public class LepTestConfig extends GroovyLepEngineConfiguration {
     public TenantScriptStorage getTenantScriptStorageType() {
         return TenantScriptStorage.CLASSPATH;
     }
+
+    @Bean
+    public MetricRegistry metricRegistry() {return new MetricRegistry();}
 
     @Bean
     public TestLepService testLepService() {
