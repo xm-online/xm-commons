@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.logging.configurable;
 
+import com.codahale.metrics.MetricRegistry;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
@@ -33,6 +34,11 @@ public class TestConfig extends GroovyLepEngineConfiguration {
     @Bean
     public XmAuthenticationContextHolder authenticationContextHolder() {
         return Mockito.mock(XmAuthenticationContextHolder.class);
+    }
+
+    @Bean
+    public MetricRegistry metricRegistry() {
+        return new MetricRegistry();
     }
 
     @Override
