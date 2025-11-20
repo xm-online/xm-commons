@@ -3,11 +3,11 @@ package com.icthh.xm.commons.service.impl;
 import com.icthh.xm.commons.config.FunctionApiSpecConfiguration;
 import com.icthh.xm.commons.domain.FunctionSpecWithFileName;
 import com.icthh.xm.commons.domain.spec.FunctionSpec;
+import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.permission.service.DynamicPermissionCheckService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.utils.CollectionsUtils;
 import java.util.Collection;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.AntPathMatcher;
@@ -37,6 +37,7 @@ public class FunctionServiceImpl extends AbstractFunctionService<FunctionSpec> {
     }
 
     @Override
+    @IgnoreLogginAspect
     public FunctionSpec findFunctionSpec(String functionKey, String httpMethod) {
         String tenantKey = tenantContextHolder.getTenantKey();
         return functionApiSpecConfiguration.getSpecByKeyAndTenant(functionKey, tenantKey)
@@ -61,6 +62,7 @@ public class FunctionServiceImpl extends AbstractFunctionService<FunctionSpec> {
     }
 
     @Override
+    @IgnoreLogginAspect
     public Map<String, Object> getValidFunctionInput(FunctionSpec functionSpec, Map<String, Object> functionInput) {
         Map<String, Object> input = CollectionsUtils.getOrEmpty(functionInput);
         if (TRUE.equals(functionSpec.getValidateFunctionInput())) {
