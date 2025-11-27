@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.client.HttpServerErrorException;
 
-import static com.icthh.xm.commons.exceptions.ErrorConstants.ERR_MESSAGE_NOT_READABLE;
+import java.nio.file.NoSuchFileException;
 
 /**
  * Controller advice to translate the server side exceptions to client-friendly json structures.
@@ -151,6 +151,15 @@ public class ExceptionTranslator {
         log.debug("Entity not found", ex);
         return new ErrorVM(ErrorConstants.ERR_NOTFOUND,
                         localizationErrorMessageService.getMessage(ErrorConstants.ERR_NOTFOUND));
+    }
+
+    @ExceptionHandler(NoSuchFileException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseBody
+    public ErrorVM processNoSuchFileException(NoSuchFileException ex) {
+        log.debug("File not found", ex);
+        return new ErrorVM(ErrorConstants.ERR_NOTFOUND,
+            localizationErrorMessageService.getMessage(ErrorConstants.ERR_NOTFOUND));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
