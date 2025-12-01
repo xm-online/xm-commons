@@ -11,8 +11,11 @@ import com.icthh.xm.commons.domainevent.service.builder.DomainEventFactory;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
+import com.icthh.xm.commons.topic.message.MessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -28,9 +31,16 @@ public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
 
     private final DomainEventFactory domainEventFactory;
 
+    private TypeKeyAwareJpaEntityMapper self;
+
     @Override
-    @LogicExtensionPoint(value = "TypeKey", resolver = TypeKeyAwareEntityResolver.class)
+    @LogicExtensionPoint(value = "TypeKey")
     public DomainEvent map(JpaEntityContext jpaEntityContext) {
+        return self.mapByTypeKey(jpaEntityContext);
+    }
+
+    @LogicExtensionPoint(value = "TypeKey", resolver = TypeKeyAwareEntityResolver.class)
+    public DomainEvent mapByTypeKey(JpaEntityContext jpaEntityContext) {
 
         DomainEventPayload dbDomainEventPayload = buildDomainEventPayload(jpaEntityContext);
 
@@ -62,4 +72,8 @@ public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
         return domainEventPayload;
     }
 
+    @Autowired
+    public void setSelf(@Lazy TypeKeyAwareJpaEntityMapper self) {
+        this.self = self;
+    }
 }
