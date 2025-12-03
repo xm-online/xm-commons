@@ -48,7 +48,7 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter {
     }
 
     @Bean
-    public InitializingBean databaseMetricsInitializer(
+    public InitializingBean metricsInitializer(
         MeterRegistry meterRegistry,
         List<MeterBinder> meterBinders) {
         return () -> {
