@@ -1,5 +1,13 @@
 package com.icthh.xm.commons.metric;
 
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Before;
@@ -10,17 +18,8 @@ import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-
-import static java.util.Arrays.asList;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
-
 @RunWith(SpringRunner.class)
-public class KafkaMetricsSetTest {
+public class KafkaMetricsTest {
 
     @MockBean
     private KafkaAdmin kafkaAdmin;
@@ -48,35 +47,36 @@ public class KafkaMetricsSetTest {
 
     @Test
     public void connectionToKafkaTopicsIsSuccess() {
-        KafkaMetricsSet kafkaMetricsSet = initKafkaMetricSet();
-        assertTrue(kafkaMetricsSet.connectionToKafkaTopicsIsSuccess());
+        KafkaMetrics kafkaMetrics = initKafkaMetricSet();
+        assertTrue(kafkaMetrics.connectionToKafkaTopicsIsSuccess());
     }
 
     @Test
     @SneakyThrows
     public void connectionToKafkaTopicsIsNotSuccess() {
-        KafkaMetricsSet kafkaMetricsSet = initKafkaMetricSet();
+        KafkaMetrics kafkaMetrics = initKafkaMetricSet();
         kafkaEmbedded.after();
-        assertFalse(kafkaMetricsSet.connectionToKafkaTopicsIsSuccess());
+        assertFalse(kafkaMetrics.connectionToKafkaTopicsIsSuccess());
     }
 
     @Test
     public void connectionToKafkaIsNotSuccessWithWrongTopic() {
-        KafkaMetricsSet kafkaMetricsSet = initNotExistTopic();
-        assertFalse(kafkaMetricsSet.connectionToKafkaTopicsIsSuccess());
+        KafkaMetrics kafkaMetrics = initNotExistTopic();
+        assertFalse(kafkaMetrics.connectionToKafkaTopicsIsSuccess());
     }
 
-    private KafkaMetricsSet initKafkaMetricSet() {
+    private KafkaMetrics initKafkaMetricSet() {
         mockConfig.put("bootstrap.servers", "localhost:9092");
         when(kafkaAdmin.getConfigurationProperties()).thenReturn(mockConfig);
-        return new KafkaMetricsSet(kafkaAdmin, 1000, asList("test_topic1", "test_topic2"));
+        return new KafkaMetrics(kafkaAdmin, 1000, asList("test_topic1", "test_topic2"));
     }
 
-    private KafkaMetricsSet initNotExistTopic() {
+    private KafkaMetrics initNotExistTopic() {
         mockConfig.put("bootstrap.servers", "localhost:9092");
         when(kafkaAdmin.getConfigurationProperties()).thenReturn(mockConfig);
-        return new KafkaMetricsSet(kafkaAdmin,
+        return new KafkaMetrics(kafkaAdmin,
             1000,
             asList("test_topic1", "test_topic2", "test_topic6"));
     }
 }
+
