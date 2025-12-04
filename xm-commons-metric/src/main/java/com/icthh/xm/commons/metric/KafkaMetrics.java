@@ -1,8 +1,14 @@
 package com.icthh.xm.commons.metric;
 
+import static java.util.Objects.nonNull;
+
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.MeterBinder;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.DescribeTopicsOptions;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
@@ -10,13 +16,6 @@ import org.apache.kafka.clients.admin.TopicDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaAdmin;
-import org.apache.commons.lang3.time.StopWatch;
-
-import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
-
-import static java.util.Objects.nonNull;
 
 public class KafkaMetrics implements MeterBinder {
 
@@ -56,7 +55,8 @@ public class KafkaMetrics implements MeterBinder {
                     log.info("Connection to Kafka topics is {}, time: {}", monitoringResult, executionTime.getTime());
                     return monitoringResult;
                 } catch (Exception e) {
-                    log.warn("Exception when try connect to kafka topics: {}, exception: {}, time: {}", metricTopics, e.getMessage(), executionTime.getTime());
+                    log.warn("Exception when try connect to kafka topics: {}, exception: {}, time: {}", metricTopics,
+                        e.getMessage(), executionTime.getTime());
                     return false;
                 }
             }

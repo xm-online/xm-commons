@@ -1,5 +1,13 @@
 package com.icthh.xm.commons.metric;
 
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Before;
@@ -9,15 +17,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-
-import static java.util.Arrays.asList;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 public class KafkaMetricsTest {
@@ -80,3 +79,4 @@ public class KafkaMetricsTest {
             asList("test_topic1", "test_topic2", "test_topic6"));
     }
 }
+
