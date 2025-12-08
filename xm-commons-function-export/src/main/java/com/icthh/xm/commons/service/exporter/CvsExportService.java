@@ -67,11 +67,18 @@ public class CvsExportService<T extends BaseRow> extends AbstractExportServiceIm
     }
 
     private ObjectWriter createCsvWriterWithHeaders(List<T> exportData) {
-        List<String> headers = Optional.ofNullable(exportData.getFirst().getHeaders()).orElse(List.of());
+        List<String> headers = Optional.ofNullable(exportData)
+            .filter(data -> !data.isEmpty())
+            .map(d -> d.getFirst().getHeaders())
+            .orElse(List.of());
 
         CsvSchema.Builder schemaBuilder = CsvSchema.builder();
         headers.forEach(schemaBuilder::addColumn);
-        CsvSchema schema = schemaBuilder.build().withHeader();
+        CsvSchema schema = schemaBuilder.build();
+
+        if (!headers.isEmpty()) {
+            schema = schema.withHeader();
+        }
 
         return csvMapper.writer(schema);
     }

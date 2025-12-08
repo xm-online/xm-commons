@@ -47,7 +47,7 @@ public class XlsxExportService<T extends BaseRow> extends AbstractExportServiceI
 
             Sheet sheet = workbook.createSheet(SHEET_NAME);
 
-            writeHeaderRow(sheet, result.getContent().getFirst());
+            writeHeaderRow(sheet, result.getContent());
             rowIndex++;
             while (true) {
 
@@ -67,8 +67,12 @@ public class XlsxExportService<T extends BaseRow> extends AbstractExportServiceI
         }
     }
 
-    private void writeHeaderRow(Sheet sheet, T firstRow) {
-        List<String> headers = Optional.ofNullable(firstRow.getHeaders()).orElse(List.of());
+    private void writeHeaderRow(Sheet sheet, List<T> firstRow) {
+        List<String> headers = Optional.ofNullable(firstRow)
+            .filter(data -> !data.isEmpty())
+            .map(d -> d.getFirst().getHeaders())
+            .orElse(List.of());
+
         fillRow(sheet.createRow(0), headers);
     }
 
