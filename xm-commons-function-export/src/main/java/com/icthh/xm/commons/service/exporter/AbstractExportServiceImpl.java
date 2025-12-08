@@ -21,7 +21,7 @@ public abstract class AbstractExportServiceImpl<T extends BaseRow> implements Ex
 
     private final FunctionExecutorService functionExecutorService;
 
-    protected AbstractExportServiceImpl(FunctionExecutorService functionExecutorService) {
+    public AbstractExportServiceImpl(FunctionExecutorService functionExecutorService) {
         this.functionExecutorService = functionExecutorService;
     }
 
@@ -32,13 +32,13 @@ public abstract class AbstractExportServiceImpl<T extends BaseRow> implements Ex
         Object result = functionExecutorService.execute(functionKey, functionInput, HttpMethod.GET.name());
 
         if (result == null) {
-            log.error("Empty export data for csv file");
-            throw new BusinessException("Empty export data for csv file; functionKey: " + functionKey + "; page: " + page);
+            log.error("Empty export data for file");
+            throw new BusinessException("Empty export data for file; functionKey: " + functionKey + "; page: " + page);
         }
 
         if (result instanceof List<?>) {
             List<T> resultList = (List<T>) result;
-            return new PageImpl<T>(resultList, Pageable.unpaged(), ((List<?>) result).size());
+            return new PageImpl<T>(resultList, Pageable.unpaged(), resultList.size());
         }
 
         if (result instanceof Page<?>) {
