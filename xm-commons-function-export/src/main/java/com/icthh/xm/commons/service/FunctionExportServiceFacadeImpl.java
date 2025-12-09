@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.service;
 
-import com.icthh.xm.commons.domain.spec.FunctionSpec;
+import com.icthh.xm.commons.domain.spec.IFunctionSpec;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,9 +14,9 @@ import static com.icthh.xm.commons.utils.Constants.FUNCTION_CALL_PRIVILEGE;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FunctionExportServiceFacadeImpl implements FunctionExportServiceFacade {
+public class FunctionExportServiceFacadeImpl<FS extends IFunctionSpec> implements FunctionExportServiceFacade {
 
-    private final FunctionService<FunctionSpec> functionService;
+    private final FunctionService<FS> functionService;
     private final FunctionTxControl functionTxControl;
     private final FunctionExecutorWrapper functionExecutorWrapper;
 
@@ -24,7 +24,7 @@ public class FunctionExportServiceFacadeImpl implements FunctionExportServiceFac
     public void execute(String functionKey, String fileFormat, Map<String, Object> functionInput, HttpServletResponse response) {
         functionService.validateFunctionKey(functionKey);
 
-        FunctionSpec functionSpec = functionService.findFunctionSpec(functionKey, HttpMethod.GET.name());
+        FS functionSpec = functionService.findFunctionSpec(functionKey, HttpMethod.GET.name());
         String functionSpecKey = functionSpec.getKey();
         functionService.checkPermissions(FUNCTION_CALL_PRIVILEGE, functionSpecKey);
 
