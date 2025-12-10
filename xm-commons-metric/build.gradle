@@ -8,21 +8,19 @@ dependencyManagement {
 
 dependencies {
     compile "org.springframework:spring-context"
-    compile "io.dropwizard.metrics:metrics-core"
-    compile "io.dropwizard.metrics:metrics-jvm"
-    compile "io.dropwizard.metrics:metrics-jmx"
     compile "com.ryantenney.metrics:metrics-spring:${versions.springMetrics}"
     compile 'org.springframework.kafka:spring-kafka'
 
     compileOnly "io.github.jhipster:jhipster-framework:${versions.jhipster}"
     compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
 
-    compile "io.prometheus:simpleclient_dropwizard:0.8.1"
     compile "io.micrometer:micrometer-registry-prometheus"
 
     testCompile 'junit:junit'
     testCompile 'org.mockito:mockito-core'
     testCompile 'org.assertj:assertj-core'
     testCompile ("org.springframework.boot:spring-boot-starter-test")
-    testCompile "org.springframework.kafka:spring-kafka-test"
+    testCompile ("org.springframework.kafka:spring-kafka-test") {
+        exclude(group: 'io.dropwizard.metrics', module: 'metrics-core')
+    }
 }
