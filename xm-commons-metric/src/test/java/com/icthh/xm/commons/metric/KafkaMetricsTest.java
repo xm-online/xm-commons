@@ -15,7 +15,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.core.KafkaAdmin;
-import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
+import org.springframework.kafka.test.rule.KafkaEmbedded;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
@@ -67,13 +67,13 @@ public class KafkaMetricsTest {
 
     private KafkaMetrics initKafkaMetricSet() {
         mockConfig.put("bootstrap.servers", "localhost:9092");
-        when(kafkaAdmin.getConfigurationProperties()).thenReturn(mockConfig);
+        when(kafkaAdmin.getConfig()).thenReturn(mockConfig);
         return new KafkaMetrics(kafkaAdmin, 1000, asList("test_topic1", "test_topic2"));
     }
 
     private KafkaMetrics initNotExistTopic() {
         mockConfig.put("bootstrap.servers", "localhost:9092");
-        when(kafkaAdmin.getConfigurationProperties()).thenReturn(mockConfig);
+        when(kafkaAdmin.getConfig()).thenReturn(mockConfig);
         return new KafkaMetrics(kafkaAdmin,
             1000,
             asList("test_topic1", "test_topic2", "test_topic6"));
