@@ -1,5 +1,7 @@
 package com.icthh.xm.commons.domainevent.db.service.mapper.impl;
 
+import static com.icthh.xm.commons.domainevent.db.util.ClassTypeCheckerUtil.isSimpleValue;
+
 import com.icthh.xm.commons.domainevent.db.domain.JpaEntityContext;
 import com.icthh.xm.commons.domainevent.db.domain.State;
 import com.icthh.xm.commons.domainevent.db.service.mapper.JpaEntityMapper;
@@ -11,10 +13,10 @@ import com.icthh.xm.commons.domainevent.service.builder.DomainEventFactory;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
-import com.icthh.xm.commons.topic.message.MessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 
 import java.util.LinkedHashMap;
@@ -30,6 +32,9 @@ public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
     public static final String TYPE_KEY = "typeKey";
 
     private final DomainEventFactory domainEventFactory;
+    
+    @Value("${xm.domainevent.db.include-collections:false}")
+    private boolean includeCollections;
 
     private TypeKeyAwareJpaEntityMapper self;
 
@@ -53,6 +58,11 @@ public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
         );
     }
 
+    /**
+     * Builds a domain event payload with control over including collection properties.
+     * If includeCollections is true, all properties (including collections) are included.
+     * If includeCollections is false, only simple values are included.
+     */
     DomainEventPayload buildDomainEventPayload(JpaEntityContext jpaEntityContext) {
         Map<String, Object> before = new LinkedHashMap<>();
         Map<String, Object> after = new LinkedHashMap<>();
@@ -60,9 +70,15 @@ public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
         for (Map.Entry<String, State> propertyNameToState : jpaEntityContext.getPropertyNameToStates().entrySet()) {
             String propertyName = propertyNameToState.getKey();
             State propertyState = propertyNameToState.getValue();
+            Object currentValue = propertyState.current();
+            Object previousValue = propertyState.previous();
 
-            before.put(propertyName, propertyState.previous());
-            after.put(propertyName, propertyState.current());
+            boolean includeProperty = includeCollections || (isSimpleValue(currentValue) && isSimpleValue(previousValue));
+
+            if (includeProperty) {
+                before.put(propertyName, previousValue);
+                after.put(propertyName, currentValue);
+            }
         }
 
         DbDomainEventPayload domainEventPayload = new DbDomainEventPayload();
