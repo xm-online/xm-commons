@@ -6,6 +6,7 @@ import com.icthh.xm.commons.domainevent.config.DbSourceConfig;
 import com.icthh.xm.commons.domainevent.config.Filter;
 import com.icthh.xm.commons.domainevent.config.XmDomainEventConfiguration;
 import com.icthh.xm.commons.domainevent.db.domain.Entity;
+import com.icthh.xm.commons.domainevent.db.domain.EntityLocation;
 import com.icthh.xm.commons.domainevent.db.domain.EntityWithTableAnnotation;
 import com.icthh.xm.commons.domainevent.db.domain.EntityWithoutTableAnnotation;
 import com.icthh.xm.commons.domainevent.db.domain.MetamodelMock;
@@ -19,10 +20,12 @@ import com.icthh.xm.commons.domainevent.service.builder.DomainEventBuilder;
 import com.icthh.xm.commons.domainevent.service.builder.DomainEventFactory;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
@@ -39,7 +42,11 @@ import static com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOp
 import static com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation.DELETE;
 import static com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation.UPDATE;
 import static com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventSource.DB;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
@@ -67,6 +74,28 @@ public class DatabaseSourceInterceptorUnitTest {
     private final static String DESCRIPTION = "DESCRIPTION";
     private final static String DESCRIPTION_NEW = "DESCRIPTION_NEW";
     private final static String TENANT_KEY = "RESTINTEST";
+    private final static String LOCATIONS_KEY_FIELD = "locations";
+    private static final List<EntityLocation> LOCATIONS_NEW = List.of(
+            new EntityLocation(
+                    "Kyiv",
+                    30.5383449,
+                    50.4265771,
+                    "second locations",
+                    "Bulvar 1",
+                    "Kyiv",
+                    1953L
+            ),
+            new EntityLocation(
+                    "Lviv",
+                    30.5383449,
+                    50.4265771,
+                    "whatever locations",
+                    "Bulvar 2",
+                    "Lviv",
+                    1953L
+            )
+    );
+
 
     @Mock
     private EntityManager entityManager;
@@ -82,6 +111,8 @@ public class DatabaseSourceInterceptorUnitTest {
     private DatabaseDslFilter databaseDslFilter;
     @Mock
     private TenantContextHolder tenantContextHolder;
+
+    private TypeKeyAwareJpaEntityMapper typeKeyAwareJpaEntityMapper;
 
     private JpaEntityMapper jpaEntityMapper;
 
@@ -103,7 +134,9 @@ public class DatabaseSourceInterceptorUnitTest {
 
         DomainEventFactory domainEventFactory = spy(new DomainEventFactory(domainEventBuilder, Optional.of(domainEventBuilder)));
         when(domainEventBuilder.getPrefilledBuilder()).thenReturn(DomainEvent.builder());
-        jpaEntityMapper = spy(new TypeKeyAwareJpaEntityMapper(domainEventFactory));
+        typeKeyAwareJpaEntityMapper = spy(new TypeKeyAwareJpaEntityMapper(domainEventFactory));
+        typeKeyAwareJpaEntityMapper.setSelf(typeKeyAwareJpaEntityMapper);
+        jpaEntityMapper = typeKeyAwareJpaEntityMapper;
 
         when(tenantContextHolder.getTenantKey()).thenReturn(TENANT_KEY);
 
@@ -305,6 +338,59 @@ public class DatabaseSourceInterceptorUnitTest {
         verify(eventPublisher).publish(DB.getCode(), expectedDbDomainEvent);
     }
 
+
+    @Test
+    @SneakyThrows
+    public void onSave_should_NOT_IncludeLocationsInEvent() {
+        String config = readConfigFile("/dbSourceConfig.yml");
+        DbSourceConfig sourceConfig = objectMapper.readValue(config, DbSourceConfig.class);
+
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(TENANT_KEY, DB.getCode());
+        doReturn(null).when(databaseFilter).lepFiltering(any(), any(), any());
+        doReturn(null).when(databaseDslFilter).lepFiltering(any(), any(), any());
+
+        databaseSourceInterceptor.onSave(
+                buildEntity(LOCATIONS_NEW, TYPE_KEY, NAME, STATE, KEY, DESCRIPTION, true),
+                ID,
+                new Object[]{LOCATIONS_NEW, TYPE_KEY, NAME, STATE, KEY, DESCRIPTION},
+                new String[]{LOCATIONS_KEY_FIELD, TYPE_KEY_FIELD, NAME_FIELD, STATE_KEY_FIELD, KEY_FIELD, DESCRIPTION_FIELD},
+                null
+        );
+
+        ArgumentCaptor<DomainEvent> eventCaptor = ArgumentCaptor.forClass(DomainEvent.class);
+        verify(eventPublisher).publish(eq(DB.getCode()), eventCaptor.capture());
+
+        DomainEvent actualEvent = eventCaptor.getValue();
+        assertNull(((DbDomainEventPayload) actualEvent.getPayload()).getAfter().get(LOCATIONS_KEY_FIELD));
+    }
+
+    @Test
+    @SneakyThrows
+    public void onSave_shouldIncludeLocationsInEvent() {
+        String config = readConfigFile("/dbSourceConfig.yml");
+        DbSourceConfig sourceConfig = objectMapper.readValue(config, DbSourceConfig.class);
+
+        doReturn(true).when(typeKeyAwareJpaEntityMapper).isIncludeCollections();
+        doReturn(sourceConfig).when(xmDomainEventConfiguration).getDbSourceConfig(TENANT_KEY, DB.getCode());
+        doReturn(null).when(databaseFilter).lepFiltering(any(), any(), any());
+        doReturn(null).when(databaseDslFilter).lepFiltering(any(), any(), any());
+
+        databaseSourceInterceptor.onSave(
+                buildEntity(LOCATIONS_NEW, TYPE_KEY, NAME, STATE, KEY, DESCRIPTION, true),
+                ID,
+                new Object[]{LOCATIONS_NEW, TYPE_KEY, NAME, STATE, KEY, DESCRIPTION},
+                new String[]{LOCATIONS_KEY_FIELD, TYPE_KEY_FIELD, NAME_FIELD, STATE_KEY_FIELD, KEY_FIELD, DESCRIPTION_FIELD},
+                null
+        );
+
+        ArgumentCaptor<DomainEvent> eventCaptor = ArgumentCaptor.forClass(DomainEvent.class);
+        verify(eventPublisher).publish(eq(DB.getCode()), eventCaptor.capture());
+
+        DomainEvent actualEvent = eventCaptor.getValue();
+        assertNotNull(((DbDomainEventPayload) actualEvent.getPayload()).getAfter().get(LOCATIONS_KEY_FIELD));
+        assertEquals(LOCATIONS_NEW, ((DbDomainEventPayload) actualEvent.getPayload()).getAfter().get(LOCATIONS_KEY_FIELD));
+    }
+
     @Test
     @SneakyThrows
     public void onDelete() {
@@ -348,6 +434,12 @@ public class DatabaseSourceInterceptorUnitTest {
             .lines().collect(Collectors.joining("\n"));
     }
 
+    private Entity buildEntity(List<EntityLocation> locations, String typeKey, String name, String stateKey, String key, String description, boolean withTable) {
+        Entity entity = buildEntity(typeKey, name, stateKey, key, description, withTable);
+        entity.setLocations(locations);
+        return entity;
+    }
+
     private Entity buildEntity(String typeKey, String name, String stateKey, String key, String description, boolean withTable) {
         Entity entity = withTable ? new EntityWithTableAnnotation() : new EntityWithoutTableAnnotation();
 
@@ -356,7 +448,6 @@ public class DatabaseSourceInterceptorUnitTest {
         entity.setStateKey(stateKey);
         entity.setKey(key);
         entity.setDescription(description);
-
         return entity;
     }
 
