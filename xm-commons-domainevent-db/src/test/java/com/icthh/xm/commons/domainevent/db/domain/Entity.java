@@ -1,5 +1,7 @@
 package com.icthh.xm.commons.domainevent.db.domain;
 
+import java.util.List;
+
 public abstract class Entity {
 
     private String typeKey;
@@ -11,6 +13,8 @@ public abstract class Entity {
     private String key;
 
     private String description;
+
+    private List<EntityLocation> locations;
 
     public String getTypeKey() {
         return typeKey;
@@ -50,5 +54,13 @@ public abstract class Entity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public List<EntityLocation> getLocations() {
+        return locations;
+    }
+
+    public void setLocations(List<EntityLocation> locations) {
+        this.locations = locations;
     }
 }

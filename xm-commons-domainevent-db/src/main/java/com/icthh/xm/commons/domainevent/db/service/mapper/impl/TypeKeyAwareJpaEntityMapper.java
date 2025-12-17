@@ -73,7 +73,7 @@ public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
             Object currentValue = propertyState.current();
             Object previousValue = propertyState.previous();
 
-            boolean includeProperty = includeCollections || (isSimpleValue(currentValue) && isSimpleValue(previousValue));
+            boolean includeProperty = isIncludeCollections() || (isSimpleValue(currentValue) && isSimpleValue(previousValue));
 
             if (includeProperty) {
                 before.put(propertyName, previousValue);
@@ -91,5 +91,9 @@ public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
     @Autowired
     public void setSelf(@Lazy TypeKeyAwareJpaEntityMapper self) {
         this.self = self;
+    }
+
+    public boolean isIncludeCollections() {
+        return includeCollections;
     }
 }
