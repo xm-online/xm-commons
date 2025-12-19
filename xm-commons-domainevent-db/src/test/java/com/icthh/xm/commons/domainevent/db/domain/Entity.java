@@ -16,6 +16,8 @@ public abstract class Entity {
 
     private List<EntityLocation> locations;
 
+    private EntityLink link;
+
     public String getTypeKey() {
         return typeKey;
     }
@@ -62,5 +64,13 @@ public abstract class Entity {
 
     public void setLocations(List<EntityLocation> locations) {
         this.locations = locations;
+    }
+
+    public EntityLink getLink() {
+        return link;
+    }
+
+    public void setLink(EntityLink link) {
+        this.link = link;
     }
 }
