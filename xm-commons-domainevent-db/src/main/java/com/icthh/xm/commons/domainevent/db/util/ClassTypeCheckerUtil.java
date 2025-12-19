@@ -2,6 +2,8 @@ package com.icthh.xm.commons.domainevent.db.util;
 
 import java.util.Collection;
 import java.util.Map;
+import org.hibernate.collection.spi.PersistentCollection;
+import org.hibernate.proxy.HibernateProxy;
 import org.springframework.beans.BeanUtils;
 
 public class ClassTypeCheckerUtil {
@@ -18,13 +20,15 @@ public class ClassTypeCheckerUtil {
         return BeanUtils.isSimpleValueType(value.getClass());
     }
 
-    public static boolean isCollections(Object value) {
+    public static boolean isCollectionOrAssociation(Object value) {
         if (value == null) {
             return false;
         }
 
-        return value instanceof Collection<?>
-                || value instanceof Map<?, ?>
+        return value instanceof HibernateProxy
+                || value instanceof PersistentCollection
+                || value instanceof Collection
+                || value instanceof Map
                 || value.getClass().isArray();
     }
 }
