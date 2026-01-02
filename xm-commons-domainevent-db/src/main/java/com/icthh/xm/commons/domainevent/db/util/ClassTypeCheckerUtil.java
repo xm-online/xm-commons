@@ -1,5 +1,7 @@
 package com.icthh.xm.commons.domainevent.db.util;
 
+import jakarta.persistence.Entity;
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Map;
 import org.hibernate.collection.spi.PersistentCollection;
@@ -29,6 +31,16 @@ public class ClassTypeCheckerUtil {
                 || value instanceof PersistentCollection
                 || value instanceof Collection
                 || value instanceof Map
-                || value.getClass().isArray();
+                || value.getClass().isArray()
+                || isEntity(value);
+    }
+
+    /**
+     * Check if the value is a JPA entity (association)
+     * @param value the value to check
+     * @return true if the value is an entity, false otherwise
+     */
+    private static boolean isEntity(Object value) {
+        return value.getClass().isAnnotationPresent(Entity.class);
     }
 }
