@@ -76,12 +76,15 @@ public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
             if (isIncludeCollections()) {
                 before.put(propertyName, previousValue);
                 after.put(propertyName, currentValue);
+                log.debug("Including collection property: before={}, after={}", previousValue, currentValue);
             } else {
                 if (!isCollectionOrAssociation(currentValue)) {
+                    log.debug("Adding simple property AFTER: name={}, value={} ", propertyName, currentValue);
                     after.put(propertyName, currentValue);
                 }
 
                 if (!isCollectionOrAssociation(previousValue)) {
+                    log.debug("Adding simple property BEFORE: name={}, value={} ", propertyName, currentValue);
                     before.put(propertyName, previousValue);
                 }
             }
