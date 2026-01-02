@@ -1,7 +1,5 @@
 package com.icthh.xm.commons.domainevent.db.util;
 
-import jakarta.persistence.Entity;
-import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Map;
 import org.hibernate.collection.spi.PersistentCollection;
