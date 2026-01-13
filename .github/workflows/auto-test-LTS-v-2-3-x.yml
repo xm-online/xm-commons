@@ -1,0 +1,31 @@
+name: Auto Tests
+on:
+    pull_request:
+        types: [opened,labeled,unlabeled]
+        branches:
+            - LTS_v2.3.x
+
+jobs:
+    auto-tests:
+
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@master
+              with:
+                  ref: ${{ github.head_ref }}
+
+            - name: Set up JDK
+              uses: actions/setup-java@v1
+              with:
+                  java-version: 11
+                  server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
+                  settings-path: ${{ github.workspace }} # location for the settings.xml file
+
+            - name: Run Auto Tests
+              env:
+                  event: ${{ github.event.action }}
+                  event_label_name: ${{ github.event.label.name }}
+              run: |
+                  chmod +x gradlew
+                  ./gradlew --no-daemon --refresh-dependencies clean check test
