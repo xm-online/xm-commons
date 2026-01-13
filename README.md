@@ -11,3 +11,5 @@ XM^online 2 - Common Utils and Endpoints
     ```
 3. Change xm-commons version in target MS in gradle.properties (for example entity)
 4. Start target MS.
+
+run tests
