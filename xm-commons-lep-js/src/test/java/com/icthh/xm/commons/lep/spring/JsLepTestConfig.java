@@ -1,5 +1,7 @@
 package com.icthh.xm.commons.lep.spring;
 
+import brave.Tracer;
+import brave.propagation.CurrentTraceContext;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
@@ -52,6 +54,16 @@ public class JsLepTestConfig {
     @Bean
     public TenantAliasService tenantAliasService() {
         return new TenantAliasServiceImpl(mock(CommonConfigRepository.class), mock(TenantListRepository.class));
+    }
+
+    @Bean
+    public Tracer tracer() {
+        return mock(Tracer.class);
+    }
+
+    @Bean
+    public CurrentTraceContext currentTraceContext() {
+        return mock(CurrentTraceContext.class);
     }
 
 }
