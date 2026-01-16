@@ -1,5 +1,7 @@
 package com.icthh.xm.commons.lep.spring;
 
+import brave.Tracer;
+import brave.propagation.CurrentTraceContext;
 import com.codahale.metrics.MetricRegistry;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
@@ -51,6 +53,16 @@ public class DynamicLepTestConfig extends GroovyLepEngineConfiguration {
     @Bean
     public MetricRegistry metricRegistry() {
         return new MetricRegistry();
+    }
+
+    @Bean
+    public Tracer tracer() {
+        return mock(Tracer.class);
+    }
+
+    @Bean
+    public CurrentTraceContext currentTraceContext() {
+        return mock(CurrentTraceContext.class);
     }
 
     @Bean

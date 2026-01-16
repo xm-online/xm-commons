@@ -13,6 +13,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import com.codahale.metrics.MetricRegistry;
 
 import static org.mockito.Mockito.mock;
 
@@ -43,6 +44,11 @@ public class TestConfig extends GroovyLepEngineConfiguration {
     @Bean
     public TenantAliasService tenantAliasService() {
         return new TenantAliasServiceImpl(mock(CommonConfigRepository.class), mock(TenantListRepository.class));
+    }
+
+    @Bean
+    public MetricRegistry metricRegistry() {
+        return new MetricRegistry();
     }
 
 }
