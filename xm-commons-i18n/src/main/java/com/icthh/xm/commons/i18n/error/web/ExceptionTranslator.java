@@ -184,6 +184,15 @@ public class ExceptionTranslator {
                                         .getMessage(ErrorConstants.ERR_METHOD_NOT_SUPPORTED));
     }
 
+    @ExceptionHandler(NoSuchFileException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseBody
+    public ErrorVM processNotFoundError(NoSuchFileException ex) {
+        log.debug("File not found", ex);
+        return new ErrorVM(ErrorConstants.ERR_NOTFOUND,
+            localizationErrorMessageService.getMessage(ErrorConstants.ERR_NOTFOUND));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorVM> processException(Exception ex) {
         log.error("An unexpected error occurred: {}", ex.getMessage(), ex);
