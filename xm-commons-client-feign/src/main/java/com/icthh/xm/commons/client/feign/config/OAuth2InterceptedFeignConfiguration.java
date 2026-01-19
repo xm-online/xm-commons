@@ -14,8 +14,8 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProvider
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder.ClientCredentialsGrantBuilder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.client.endpoint.DefaultClientCredentialsTokenResponseClient;
-import org.springframework.security.oauth2.client.endpoint.OAuth2ClientCredentialsGrantRequestEntityConverter;
+import org.springframework.security.oauth2.client.endpoint.DefaultOAuth2TokenRequestHeadersConverter;
+import org.springframework.security.oauth2.client.endpoint.RestClientClientCredentialsTokenResponseClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
@@ -67,14 +67,13 @@ public class OAuth2InterceptedFeignConfiguration {
     }
 
     @Bean
-    public DefaultClientCredentialsTokenResponseClient accessTokenResponseClient() {
-        DefaultClientCredentialsTokenResponseClient accessTokenResponseClient =
-            new DefaultClientCredentialsTokenResponseClient();
+    public RestClientClientCredentialsTokenResponseClient accessTokenResponseClient() {
+        RestClientClientCredentialsTokenResponseClient accessTokenResponseClient =
+            new RestClientClientCredentialsTokenResponseClient();
 
-        accessTokenResponseClient
-            .setRequestEntityConverter(
-                new TenantAwareGrantRequestEntityConverter(tenantContextHolder,
-                    new OAuth2ClientCredentialsGrantRequestEntityConverter()));
+        accessTokenResponseClient.addHeadersConverter(
+            new TenantAwareGrantRequestHeadersConverter(tenantContextHolder,
+                new DefaultOAuth2TokenRequestHeadersConverter<>()));
 
         return accessTokenResponseClient;
     }

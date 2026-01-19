@@ -12,29 +12,29 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
 import java.io.InputStream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  *
  */
 @Slf4j
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
     DynamicLepTestFileConfig.class,
     TenantContextConfiguration.class,
@@ -58,10 +58,10 @@ public class DynamicLepClassFileResolveIntTest {
     @Autowired
     private TemporaryFolder folder;
 
-    @Before
+    @BeforeEach
     @SneakyThrows
     public void init() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
 
         TenantContextUtils.setTenant(tenantContextHolder, "TEST");
         lepManager.beginThreadContext();
@@ -69,7 +69,7 @@ public class DynamicLepClassFileResolveIntTest {
         FileUtils.cleanDirectory(folder.getRoot());
     }
 
-    @After
+    @AfterEach
     public void destroy() {
         lepManager.endThreadContext();
     }

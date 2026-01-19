@@ -35,7 +35,7 @@ import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
@@ -138,7 +138,7 @@ public class MessageListenerContainerBuilder {
     }
 
     private Map<String, Object> buildConsumerConfig(TopicConfig topicConfig) {
-        Map<String, Object> props = kafkaProperties.buildConsumerProperties(null);
+        Map<String, Object> props = kafkaProperties.buildConsumerProperties();
 
         String groupIdFromConf = topicConfig.getGroupId();
         String groupId = StringUtils.isEmpty(groupIdFromConf) ? UUID.randomUUID().toString() : groupIdFromConf;

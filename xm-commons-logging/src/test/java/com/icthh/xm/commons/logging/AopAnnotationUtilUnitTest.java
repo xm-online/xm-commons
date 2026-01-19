@@ -1,25 +1,21 @@
 package com.icthh.xm.commons.logging;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
-
-import static org.junit.Assert.assertTrue;
 
 import com.icthh.xm.commons.logging.util.AopAnnotationUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Optional;
 
-/**
- *
- */
 public class AopAnnotationUtilUnitTest {
 
     @Mock
@@ -28,7 +24,7 @@ public class AopAnnotationUtilUnitTest {
     @Mock
     private MethodSignature signature;
 
-    @Before
+    @BeforeEach
     public void before() {
 
         MockitoAnnotations.initMocks(this);

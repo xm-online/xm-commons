@@ -1,13 +1,12 @@
 package com.icthh.xm.commons.web.spring.config;
 
 import com.fasterxml.jackson.datatype.hibernate6.Hibernate6Module;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.converter.json.SpringHandlerInstantiator;
+import org.springframework.http.support.JacksonHandlerInstantiator;
 
 @Configuration
 public class JacksonConfiguration {
@@ -21,11 +20,6 @@ public class JacksonConfiguration {
         return new JavaTimeModule();
     }
 
-    @Bean
-    public Jdk8Module jdk8TimeModule() {
-        return new Jdk8Module();
-    }
-
     /*
      * Support for Hibernate types in Jackson.
      */
@@ -36,10 +30,8 @@ public class JacksonConfiguration {
     }
 
     @Bean
-    public Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilder(
-            AutowireCapableBeanFactory beanFactory) {
-        return jacksonObjectMapperBuilder -> jacksonObjectMapperBuilder
-                .handlerInstantiator(new SpringHandlerInstantiator(beanFactory));
+    public JsonMapperBuilderCustomizer jsonMapperBuilderCustomizer(AutowireCapableBeanFactory beanFactory) {
+        return builder -> builder.handlerInstantiator(new JacksonHandlerInstantiator(beanFactory));
     }
 
 }

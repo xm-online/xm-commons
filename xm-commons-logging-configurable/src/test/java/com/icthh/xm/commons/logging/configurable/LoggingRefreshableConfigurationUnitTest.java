@@ -16,18 +16,17 @@ import com.icthh.xm.lep.api.LepManager;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.nio.charset.Charset;
-import java.time.Duration;
 import java.util.Optional;
 
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
@@ -40,7 +39,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 @Slf4j
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(
     classes = {LoggingRefreshableConfiguration.class,
         ServiceLoggingAspectConfiguration.class,
@@ -71,13 +70,13 @@ public class LoggingRefreshableConfigurationUnitTest {
     @Autowired
     private XmLepScriptConfigServerResourceLoader lepLoader;
 
-    @MockBean
+    @MockitoBean
     private TenantContextHolder tenantContextHolder;
 
     @Mock
     private TenantContext tenantContext;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         TestAppender.clearEvents();

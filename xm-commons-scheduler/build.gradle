@@ -31,7 +31,7 @@ dependencies {
     api "org.springframework.boot:spring-boot-starter-actuator"
     api "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
-    api "io.dropwizard.metrics:metrics-core:${versions.dropwizard}"
+    api "io.micrometer:micrometer-registry-prometheus"
 
     testImplementation "org.springframework.boot:spring-boot-test"
     testImplementation "org.springframework.kafka:spring-kafka-test"
