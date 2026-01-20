@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.web.spring.config;
 
-import com.fasterxml.jackson.datatype.hibernate6.Hibernate6Module;
+import com.fasterxml.jackson.datatype.hibernate7.Hibernate7Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
@@ -25,8 +25,8 @@ public class JacksonConfiguration {
      */
 
     @Bean
-    public Hibernate6Module hibernate6Module() {
-        return new Hibernate6Module();
+    public Hibernate7Module hibernate7Module() {
+        return new Hibernate7Module();
     }
 
     @Bean
