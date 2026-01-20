@@ -19,7 +19,6 @@ dependencies {
     api 'org.springframework:spring-tx'
     api 'org.springframework.security:spring-security-core'
     api 'org.springframework.boot:spring-boot-starter-validation'
-    api "org.glassfish:javax.el:${versions.javaxEl}" // TODO check it's need for test or real need in microservice
     api "org.hibernate.validator:hibernate-validator:${versions.hibernateValidation}"
     api 'com.jayway.jsonpath:json-path'
     api "org.apache.commons:commons-text:${versions.commonsText}"
