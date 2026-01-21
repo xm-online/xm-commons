@@ -8,9 +8,17 @@ databaseChangeLog:
       value: RAW(16)
       dbms: oracle
   - property:
+        name: uuidType
+        value: UUID
+        dbms: mariadb
+  - property:
       name: uuid_function
       value: uuid_generate_v4()
       dbms: postgresql
+  - property:
+        name: uuid_function
+        value: UUID()
+        dbms: mariadb
   - property:
       name: uuid_function
       value: RANDOM_UUID()
@@ -31,7 +39,10 @@ databaseChangeLog:
       name: json_type
       value: text
       dbms: oracle
-
+  - property:
+        name: json_type
+        value: JSON
+        dbms: mariadb
   - changeSet:
       id: 20221108133921
       author: vbilenko
