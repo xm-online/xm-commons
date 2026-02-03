@@ -23,6 +23,7 @@ import com.icthh.xm.commons.tenant.TenantContextHolder;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import lombok.SneakyThrows;
+import org.apache.kafka.common.protocol.types.Field;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,6 +78,7 @@ public class DatabaseSourceInterceptorUnitTest {
     private final static String TENANT_KEY = "RESTINTEST";
     private final static String LOCATIONS_KEY_FIELD = "locations";
     private final static String LINK_KEY_FIELD = "link";
+    private final static String DATA_KEY_FIELD = "data";
     private static final List<EntityLocation> LOCATIONS_NEW = List.of(
             new EntityLocation(
                     "Kyiv",
@@ -351,11 +353,12 @@ public class DatabaseSourceInterceptorUnitTest {
         doReturn(null).when(databaseFilter).lepFiltering(any(), any(), any());
         doReturn(null).when(databaseDslFilter).lepFiltering(any(), any(), any());
         EntityLink entityLink = new EntityLink("keyLink", "typeKeyLink", "nameLink");
+        Map<String, Object> data = Map.of("key1", "val1", "key2", "val2");
         databaseSourceInterceptor.onSave(
-                buildEntity(entityLink, LOCATIONS_NEW, TYPE_KEY, NAME, STATE, KEY, DESCRIPTION, true),
+                buildEntity(data, entityLink, LOCATIONS_NEW, TYPE_KEY, NAME, STATE, KEY, DESCRIPTION, true),
                 ID,
-                new Object[]{entityLink, LOCATIONS_NEW, TYPE_KEY, NAME, STATE, KEY, DESCRIPTION},
-                new String[]{LINK_KEY_FIELD, LOCATIONS_KEY_FIELD, TYPE_KEY_FIELD, NAME_FIELD, STATE_KEY_FIELD, KEY_FIELD, DESCRIPTION_FIELD},
+                new Object[]{data, entityLink, LOCATIONS_NEW, TYPE_KEY, NAME, STATE, KEY, DESCRIPTION},
+                new String[]{DATA_KEY_FIELD, LINK_KEY_FIELD, LOCATIONS_KEY_FIELD, TYPE_KEY_FIELD, NAME_FIELD, STATE_KEY_FIELD, KEY_FIELD, DESCRIPTION_FIELD},
                 null
         );
 
@@ -365,6 +368,8 @@ public class DatabaseSourceInterceptorUnitTest {
         DomainEvent actualEvent = eventCaptor.getValue();
         assertNull(((DbDomainEventPayload) actualEvent.getPayload()).getAfter().get(LOCATIONS_KEY_FIELD));
         assertNotNull(((DbDomainEventPayload) actualEvent.getPayload()).getAfter().get(LINK_KEY_FIELD));
+        Object dataMap = ((DbDomainEventPayload) actualEvent.getPayload()).getAfter().get(DATA_KEY_FIELD);
+        assertNotNull(dataMap);
     }
 
 
@@ -461,6 +466,14 @@ public class DatabaseSourceInterceptorUnitTest {
     private String readConfigFile(String path) {
         return new BufferedReader(new InputStreamReader(Objects.requireNonNull(this.getClass().getResourceAsStream(path))))
             .lines().collect(Collectors.joining("\n"));
+    }
+
+    private Entity buildEntity(Map<String, Object> data, EntityLink link, List<EntityLocation> locations, String typeKey, String name, String stateKey, String key, String description, boolean withTable) {
+        Entity entity = buildEntity(typeKey, name, stateKey, key, description, withTable);
+        entity.setLocations(locations);
+        entity.setLink(link);
+        entity.setData(data);
+        return entity;
     }
 
     private Entity buildEntity(EntityLink link, List<EntityLocation> locations, String typeKey, String name, String stateKey, String key, String description, boolean withTable) {
