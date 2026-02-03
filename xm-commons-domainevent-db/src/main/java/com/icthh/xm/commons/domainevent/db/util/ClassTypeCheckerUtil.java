@@ -28,7 +28,6 @@ public class ClassTypeCheckerUtil {
         return value instanceof HibernateProxy
                 || value instanceof PersistentCollection
                 || value instanceof Collection
-                || value instanceof Map
                 || value.getClass().isArray();
     }
 }
