@@ -3,6 +3,7 @@ package com.icthh.xm.commons.config.client.config;
 import static com.icthh.xm.commons.config.client.config.XmRestTemplateConfiguration.XM_CONFIG_REST_TEMPLATE;
 
 import com.icthh.xm.commons.config.client.api.ConfigService;
+import com.icthh.xm.commons.config.client.api.DefaultFetchConfigurationSettings;
 import com.icthh.xm.commons.config.client.api.FetchConfigurationSettings;
 import com.icthh.xm.commons.config.client.listener.ApplicationReadyEventListener;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
@@ -14,6 +15,7 @@ import com.icthh.xm.commons.config.client.service.CommonConfigService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.context.annotation.Bean;
@@ -52,9 +54,10 @@ public class XmConfigConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(FetchConfigurationSettings.class)
     public FetchConfigurationSettings fetchConfigurationSettings(@Value("${spring.application.name}") String applicationName,
                                                                  @Value("${application.config-fetch-all.enabled:false}") Boolean isFetchAll) {
-        return new FetchConfigurationSettings(applicationName, isFetchAll);
+        return new DefaultFetchConfigurationSettings(applicationName, isFetchAll);
     }
 
     @Bean

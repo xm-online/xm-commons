@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.config.client.api.ConfigService;
+import com.icthh.xm.commons.config.client.api.DefaultFetchConfigurationSettings;
 import com.icthh.xm.commons.config.client.api.FetchConfigurationSettings;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
@@ -51,7 +52,7 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
     @SneakyThrows
     public void init() {
         when(refreshableConfiguration.isListeningConfiguration(anyString())).thenReturn(true);
-        fetchConfigurationSettings = new FetchConfigurationSettings("test", true);
+        fetchConfigurationSettings = new DefaultFetchConfigurationSettings("test", true);
         configService = new CommonConfigService(fetchConfigurationSettings, commonConfigRepository);
 
         configKeys = List.of(
