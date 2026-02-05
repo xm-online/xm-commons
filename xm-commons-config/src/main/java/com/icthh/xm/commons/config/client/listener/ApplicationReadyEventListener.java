@@ -5,8 +5,8 @@ import com.icthh.xm.commons.config.client.repository.kafka.ConfigTopicConsumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.context.ApplicationListener;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -37,7 +37,7 @@ public class ApplicationReadyEventListener implements ApplicationListener<Applic
         ContainerProperties containerProps = new ContainerProperties(name);
         containerProps.setObservationEnabled(true);
 
-        Map<String, Object> props = kafkaProperties.buildConsumerProperties(null);
+        Map<String, Object> props = kafkaProperties.buildConsumerProperties();
         props.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
         ConsumerFactory<String, String> factory = new DefaultKafkaConsumerFactory<>(props);
 

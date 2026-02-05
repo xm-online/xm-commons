@@ -23,6 +23,9 @@ dependencies {
     implementation project(':xm-commons-lep')
     implementation project(':xm-commons-permission')
 
+    implementation "org.springframework.retry:spring-retry"
+
+    implementation "org.springframework.boot:spring-boot-starter-kafka:${versions.springBoot}"
     implementation "org.springframework.boot:spring-boot-starter-data-jpa:${versions.springBoot}"
 
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"

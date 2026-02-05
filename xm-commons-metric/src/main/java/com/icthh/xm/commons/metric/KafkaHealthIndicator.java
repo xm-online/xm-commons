@@ -7,13 +7,13 @@ import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.DescribeTopicsOptions;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.health.AbstractHealthIndicator;
-import org.springframework.boot.actuate.health.Health.Builder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.health.contributor.AbstractHealthIndicator;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.stereotype.Component;
 
 import static java.util.Objects.nonNull;
+import static org.springframework.boot.health.contributor.Health.Builder;
 
 @Slf4j
 @Component
@@ -41,7 +41,7 @@ public class KafkaHealthIndicator extends AbstractHealthIndicator {
 
         try (AdminClient adminClient = AdminClient.create(kafkaAdmin.getConfigurationProperties())) {
             DescribeTopicsResult describeTopicsResult = adminClient.describeTopics(List.of(systemTopic), describeTopicsOptions);
-            var topicDescriptionMap = describeTopicsResult.all().get();
+            var topicDescriptionMap = describeTopicsResult.allTopicNames().get();
             boolean monitoringResult = nonNull(topicDescriptionMap);
             if (monitoringResult) {
                 log.debug("Connection to kafka is {}, time: {}", monitoringResult, executionTime.getTime());

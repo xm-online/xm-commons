@@ -4,12 +4,8 @@ import static com.icthh.xm.commons.lep.spring.DynamicLepClassResolveIntTest.load
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import com.icthh.xm.commons.lep.TargetProceedingLep;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
-import com.icthh.xm.commons.lep.api.BaseLepContext;
-import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepManagementService;
-import com.icthh.xm.commons.lep.groovy.GroovyMapLepWrapperFactory;
 import com.icthh.xm.commons.lep.spring.TestLepContextCustomizer.CustomTestLepContext;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
@@ -17,9 +13,9 @@ import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,10 +23,10 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @Slf4j
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
     DynamicLepTestConfig.class,
     LepContextIntTest.TestCustomizationConfiguration.class,
@@ -52,7 +48,7 @@ public class LepContextIntTest {
     @Autowired
     private XmLepScriptConfigServerResourceLoader resourceLoader;
 
-    @Before
+    @BeforeEach
     public void init() {
         TenantContextUtils.setTenant(tenantContextHolder, "TEST");
         lepManagerService.beginThreadContext();

@@ -17,7 +17,7 @@ dependencies {
         exclude module: 'spring-boot-starter-tomcat'
     }
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate6"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate7"
     implementation "org.springframework.cloud:spring-cloud-commons"
     api "jakarta.servlet:jakarta.servlet-api"
     api "com.ecwid.consul:consul-api"

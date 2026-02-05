@@ -37,7 +37,9 @@ dependencies {
 
     api "commons-io:commons-io:${versions.commonsIo}"
 
-    testImplementation 'junit:junit'
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation "org.mockito:mockito-core"
     testImplementation 'org.springframework:spring-test'
 }
@@ -96,7 +98,6 @@ pmd {
     sourceSets = []
 }
 
-//sonarqube {
-//    skipProject = true
-//}
-
+test {
+    useJUnitPlatform()
+}

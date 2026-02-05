@@ -9,8 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
-import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
-import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
+import org.springframework.boot.jpa.autoconfigure.JpaProperties;
+import org.springframework.boot.liquibase.autoconfigure.LiquibaseProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.env.Environment;
@@ -25,9 +25,11 @@ import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.icthh.xm.commons.migration.db.Constants.CHANGE_LOG_PATH;
+import static com.icthh.xm.commons.migration.db.util.CollectionsUtils.firstOrNull;
 import static org.hibernate.cfg.AvailableSettings.MULTI_TENANT_CONNECTION_PROVIDER;
 import static org.hibernate.cfg.AvailableSettings.MULTI_TENANT_IDENTIFIER_RESOLVER;
 import static org.hibernate.cfg.AvailableSettings.JAKARTA_VALIDATION_FACTORY;
@@ -57,7 +59,7 @@ public abstract class DatabaseConfiguration {
         SpringLiquibase liquibase = new XmSpringLiquibase();
         liquibase.setDataSource(dataSource);
         liquibase.setChangeLog("classpath:config/liquibase/master.xml");
-        liquibase.setContexts(liquibaseProperties.getContexts());
+        liquibase.setContexts(firstOrNull(liquibaseProperties.getContexts()));
         liquibase.setDefaultSchema(liquibaseProperties.getDefaultSchema());
         liquibase.setDropFirst(liquibaseProperties.isDropFirst());
         if (env.acceptsProfiles(Profiles.of(SPRING_PROFILE_NO_LIQUIBASE))) {
@@ -76,7 +78,7 @@ public abstract class DatabaseConfiguration {
         MultiTenantSpringLiquibase liquibase = new XmMultiTenantSpringLiquibase();
         liquibase.setDataSource(dataSource);
         liquibase.setChangeLog(CHANGE_LOG_PATH);
-        liquibase.setContexts(liquibaseProperties.getContexts());
+        liquibase.setContexts(firstOrNull(liquibaseProperties.getContexts()));
         liquibase.setDefaultSchema(liquibaseProperties.getDefaultSchema());
         liquibase.setDropFirst(liquibaseProperties.isDropFirst());
         liquibase.setSchemas(schemaResolver.getSchemas());

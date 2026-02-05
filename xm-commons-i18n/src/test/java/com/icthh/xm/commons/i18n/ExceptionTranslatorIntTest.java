@@ -151,7 +151,7 @@ public class ExceptionTranslatorIntTest {
     public void testFieldValidationError() throws Exception {
         mockMvc.perform(post("/test/field-validation-error")
             .content(new ObjectMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
-            .contentType(MediaType.APPLICATION_JSON_UTF8))
+            .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_VALIDATION))
             .andExpect(jsonPath("$.error_description").value("Input parameters error"))
@@ -164,7 +164,7 @@ public class ExceptionTranslatorIntTest {
     public void testClassValidationError() throws Exception {
         mockMvc.perform(post("/test/class-validation-error")
             .content(new ObjectMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
-            .contentType(MediaType.APPLICATION_JSON_UTF8))
+            .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_VALIDATION))
             .andExpect(jsonPath("$.error_description").value("Input parameters error"))
@@ -188,7 +188,7 @@ public class ExceptionTranslatorIntTest {
     public void testDefaultClassValidationError() throws Exception {
         mockMvc.perform(post("/test/default-message-class-validation-error")
                             .content(new ObjectMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
-                            .contentType(MediaType.APPLICATION_JSON_UTF8))
+                            .contentType(MediaType.APPLICATION_JSON_VALUE))
                .andExpect(status().isBadRequest())
                .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_VALIDATION))
                .andExpect(jsonPath("$.error_description").value("Input parameters error"))
@@ -202,7 +202,7 @@ public class ExceptionTranslatorIntTest {
     public void testCustomMessageTestClassValidation() throws Exception {
         mockMvc.perform(post("/test/custom-message-class-validation-error")
                             .content(new ObjectMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
-                            .contentType(MediaType.APPLICATION_JSON_UTF8))
+                            .contentType(MediaType.APPLICATION_JSON_VALUE))
                .andExpect(status().isBadRequest())
                .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_VALIDATION))
                .andExpect(jsonPath("$.error_description").value("Input parameters error"))

@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.domainevent.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
@@ -12,7 +13,6 @@ import com.icthh.xm.commons.lep.spring.LepUpdateMode;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -23,7 +23,6 @@ import static org.mockito.Mockito.mock;
 
 @Configuration
 @ComponentScan({"com.icthh.xm.commons.lep.spring", "com.icthh.xm.commons.domainevent", "com.icthh.xm.commons.tenant"})
-@EnableAutoConfiguration
 public class TestLepTestConfig extends GroovyLepEngineConfiguration {
 
     public TestLepTestConfig(ConfigurableListableBeanFactory factory) {
@@ -61,4 +60,8 @@ public class TestLepTestConfig extends GroovyLepEngineConfiguration {
         return new TenantAliasServiceImpl(mock(CommonConfigRepository.class), mock(TenantListRepository.class));
     }
 
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
 }

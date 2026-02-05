@@ -9,15 +9,15 @@ import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -25,7 +25,7 @@ import java.util.Map;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
     JsLepTestConfig.class,
     TenantContextConfiguration.class,
@@ -49,13 +49,13 @@ public class JsLepIntTest {
     @Autowired
     private XmLepScriptConfigServerResourceLoader resourceLoader;
 
-    @Before
+    @BeforeEach
     public void init() {
         TenantContextUtils.setTenant(tenantContextHolder, "TEST");
         lepManagementService.beginThreadContext();
     }
 
-    @After
+    @AfterEach
     public void after() {
         lepManagementService.endThreadContext();
     }

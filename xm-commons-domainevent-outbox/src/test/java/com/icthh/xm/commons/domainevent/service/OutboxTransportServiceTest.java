@@ -40,7 +40,7 @@ public class OutboxTransportServiceTest {
     public void shouldFindAllDomainEvents() {
         PageRequest pageRequest = PageRequest.of(0, 10);
         PageImpl<Outbox> resultPage = new PageImpl<>(List.of(new Outbox(), new Outbox()));
-        Specification<Outbox> filter = Specification.where(null);
+        Specification<Outbox> filter = Specification.where(alwaysTrue());
         when(outboxRepository.findAll(eq(filter), eq(pageRequest))).thenReturn(resultPage);
         outboxTransportService.findAll(filter, pageRequest);
         verify(outboxRepository, times(1)).findAll(eq(filter), eq(pageRequest));
@@ -63,4 +63,7 @@ public class OutboxTransportServiceTest {
         verify(outboxRepository, times(1)).updateStatus(eq(requestStatus), eq(requestUuid));
     }
 
+    private static <T> Specification<T> alwaysTrue() {
+        return (root, query, cb) -> cb.conjunction();
+    }
 }
