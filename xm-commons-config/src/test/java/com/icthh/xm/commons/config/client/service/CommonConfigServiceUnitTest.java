@@ -12,7 +12,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.config.client.api.ConfigurationChangedListener;
-import com.icthh.xm.commons.config.client.api.DefaultFetchConfigurationSettings;
 import com.icthh.xm.commons.config.client.api.FetchConfigurationSettings;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
@@ -36,7 +35,7 @@ public class CommonConfigServiceUnitTest {
 
     @Before
     public void setUp() {
-        FetchConfigurationSettings fetchConfigurationSettings = new DefaultFetchConfigurationSettings("test", true);
+        FetchConfigurationSettings fetchConfigurationSettings = new FetchConfigurationSettings("test", true);
         configService = new CommonConfigService(fetchConfigurationSettings, commonConfigRepository);
     }
 
@@ -68,7 +67,7 @@ public class CommonConfigServiceUnitTest {
 
     @Test
     public void updateConfigurationsWhenFetchAllFalseAndPathNotMatch() {
-        FetchConfigurationSettings fetchConfigurationSettings = new DefaultFetchConfigurationSettings("test", false);
+        FetchConfigurationSettings fetchConfigurationSettings = new FetchConfigurationSettings("test", false);
         configService = spy(new CommonConfigService(fetchConfigurationSettings, commonConfigRepository));
 
         List<String> testPaths = Collections.singletonList("path");
@@ -83,7 +82,7 @@ public class CommonConfigServiceUnitTest {
 
     @Test
     public void updateConfigurationsWhenFetchAllFalseAndPathsHasMatch() {
-        FetchConfigurationSettings fetchConfigurationSettings = spy(new DefaultFetchConfigurationSettings("test", false));
+        FetchConfigurationSettings fetchConfigurationSettings = spy(new FetchConfigurationSettings("test", false));
         CommonConfigService configService = spy(new CommonConfigService(fetchConfigurationSettings, commonConfigRepository));
 
         when(fetchConfigurationSettings.getMsConfigPatterns()).thenReturn(List.of(
