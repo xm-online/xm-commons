@@ -2,27 +2,32 @@ package com.icthh.xm.commons.web.spring.config;
 
 import com.icthh.xm.commons.logging.LogstashConfigurer;
 import com.icthh.xm.commons.logging.LogstashConfigurer.XmLogstashConfig;
-import org.springframework.beans.factory.annotation.Value;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 @Configuration
+@RequiredArgsConstructor
+@EnableConfigurationProperties(LogstashProperties.class)
+@ConditionalOnProperty(prefix = "application.logging.logstash", name = "enabled", havingValue = "true")
 public class LogstashConfiguration {
 
-    public LogstashConfiguration(@Value("${spring.application.name}") String appName,
-                                 @Value("${server.port}") Integer appPort,
-                                 @Value("${spring.cloud.consul.discovery.instanceId}") String instanceId,
-                                 @Value("${application.logging.logstash.host}") String logstashHost,
-                                 @Value("${application.logging.logstash.port}") int logstashPort,
-                                 @Value("${application.logging.logstash.ring-buffer-size}") int ringBufferSize) {
+    private final LogstashProperties logstashProperties;
+    private final Environment env;
 
+    @PostConstruct
+    void initLogstash() {
         XmLogstashConfig config = new XmLogstashConfig(
-            appName,
-            appPort,
-            instanceId,
-            logstashHost,
-            logstashPort,
-            ringBufferSize);
+            env.getProperty("spring.application.name"),
+            env.getProperty("server.port", Integer.class, 5000),
+            env.getProperty("spring.cloud.consul.discovery.instanceId", "512"),
+            logstashProperties.getHost(),
+            logstashProperties.getPort(),
+            logstashProperties.getRingBufferSize()
+        );
         LogstashConfigurer.initLogstash(config);
     }
-
 }
