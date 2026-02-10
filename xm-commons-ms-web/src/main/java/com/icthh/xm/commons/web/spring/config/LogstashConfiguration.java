@@ -2,7 +2,6 @@ package com.icthh.xm.commons.web.spring.config;
 
 import com.icthh.xm.commons.logging.LogstashConfigurer;
 import com.icthh.xm.commons.logging.LogstashConfigurer.XmLogstashConfig;
-import tech.jhipster.config.JHipsterProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,16 +11,17 @@ public class LogstashConfiguration {
     public LogstashConfiguration(@Value("${spring.application.name}") String appName,
                                  @Value("${server.port}") Integer appPort,
                                  @Value("${spring.cloud.consul.discovery.instanceId}") String instanceId,
-                                 JHipsterProperties jhipsterProperties) {
+                                 @Value("${application.logging.logstash.host}") String logstashHost,
+                                 @Value("${application.logging.logstash.port}") int logstashPort,
+                                 @Value("${application.logging.logstash.ring-buffer-size}") int ringBufferSize) {
 
-        JHipsterProperties.Logging.Logstash logstash = jhipsterProperties.getLogging().getLogstash();
-
-        XmLogstashConfig config = new XmLogstashConfig(appName,
-                                                       appPort,
-                                                       instanceId,
-                                                       logstash.getHost(),
-                                                       logstash.getPort(),
-                                                       logstash.getRingBufferSize());
+        XmLogstashConfig config = new XmLogstashConfig(
+            appName,
+            appPort,
+            instanceId,
+            logstashHost,
+            logstashPort,
+            ringBufferSize);
         LogstashConfigurer.initLogstash(config);
     }
 

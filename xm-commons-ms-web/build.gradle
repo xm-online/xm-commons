@@ -12,7 +12,6 @@ dependencies {
     api project(":xm-commons-tenant")
     api project(":xm-commons-config")
 
-    compileOnly "tech.jhipster:jhipster-framework:${versions.jhipster}"
     implementation("org.springframework.boot:spring-boot-starter-web") {
         exclude module: 'spring-boot-starter-tomcat'
     }
