@@ -21,9 +21,10 @@ dependencies {
     api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
     api "org.apache.commons:commons-text:${versions.commonsText}"
     api "commons-io:commons-io:${versions.commonsIo}"
-    api ("org.codehaus.groovy:groovy-all:${versions.groovyAll}") {
-        exclude group: "org.codehaus.groovy", module: "groovy-testng"
+    api ("org.apache.groovy:groovy-all:${versions.groovyAll}") {
+        exclude group: "org.apache.groovy", module: "groovy-testng"
     }
+    api "org.antlr:antlr4-runtime:4.13.2"
 
     testImplementation 'junit:junit'
     testImplementation 'org.mockito:mockito-core'

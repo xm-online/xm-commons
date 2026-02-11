@@ -44,7 +44,7 @@ ext.versions = [
 
     hibernateTypes60           : '2.21.1',
 
-    groovyAll                  : '3.0.20',
+    groovyAll                  : '5.0.4',
 
     dropwizard                 : '4.2.25',
 
