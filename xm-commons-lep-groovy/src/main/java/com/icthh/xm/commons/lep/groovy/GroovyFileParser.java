@@ -2,15 +2,18 @@ package com.icthh.xm.commons.lep.groovy;
 
 import groovyjarjarantlr4.v4.runtime.CharStreams;
 import groovyjarjarantlr4.v4.runtime.CommonTokenStream;
-import groovyjarjarantlr4.v4.runtime.tree.ParseTreeListener;
+import groovyjarjarantlr4.v4.runtime.ParserRuleContext;
 import groovyjarjarantlr4.v4.runtime.tree.ParseTreeWalker;
-import groovyjarjarantlr4.v4.runtime.tree.xpath.XPathLexer;
+import groovyjarjarantlr4.v4.runtime.tree.ParseTreeListener;
+import groovyjarjarantlr4.v4.runtime.tree.ErrorNode;
+import groovyjarjarantlr4.v4.runtime.tree.TerminalNode;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.antlr.v4.runtime.Parser;
+import org.apache.groovy.parser.antlr4.GroovyLexer;
 import org.apache.groovy.parser.antlr4.GroovyParser;
 
 import java.util.HashSet;
@@ -37,9 +40,9 @@ public class GroovyFileParser {
     }
 
     private void parseGroovy(String source, GroovyParseListener listener) {
-        XPathLexer tokenSource = new XPathLexer(CharStreams.fromString(source));
-        GroovyParser parser = new GroovyParser(new CommonTokenStream(tokenSource));
-        ParseTreeWalker.DEFAULT.walk((ParseTreeListener) listener, parser.compilationUnit());
+        GroovyLexer lexer = new GroovyLexer(CharStreams.fromString(source));
+        GroovyParser parser = new GroovyParser(new CommonTokenStream(lexer));
+        ParseTreeWalker.DEFAULT.walk(listener, parser.compilationUnit());
     }
 
     @ToString
@@ -58,41 +61,60 @@ public class GroovyFileParser {
         }
     }
 
-    private static class GroovyParseListener extends Parser.TrimToSizeListener {
+    private static class GroovyParseListener implements ParseTreeListener {
         private final LinkedList<String> classNames = new LinkedList<>();
         private final GroovyFileMetadata metadata;
+        private boolean inAnnotation = false;
 
         public GroovyParseListener(GroovyFileMetadata metadata) {
             this.metadata = metadata;
         }
 
-        public void enterClassDeclaration(GroovyParser.ClassDeclarationContext ctx) {
-            String className = ctx.identifier().getText();
-            classNames.addLast(className);
-            metadata.getClasses().add(String.join("$", classNames));
+        @Override
+        public void visitTerminal(TerminalNode node) {
+            // Not used
         }
 
-        public void exitClassDeclaration(GroovyParser.ClassDeclarationContext ctx) {
-            classNames.removeLast();
+        @Override
+        public void visitErrorNode(ErrorNode node) {
+            // Not used
         }
 
-        public void enterFieldDeclaration(GroovyParser.FieldDeclarationContext ctx) {
-            if (ctx.getParent() != null && ctx.getParent().getText().contains("static")) {
-                String fieldName = ctx.variableDeclaration().variableDeclarators().variableDeclarator(0).variableDeclaratorId().getText();
-                metadata.getStaticFields().add(getCurrentClassName() + "." + fieldName);
+        @Override
+        public void enterEveryRule(ParserRuleContext ctx) {
+            if (ctx instanceof GroovyParser.AnnotationContext) {
+                inAnnotation = true;
+            } else if (ctx instanceof GroovyParser.ClassDeclarationContext classCtx) {
+                String className = classCtx.identifier().getText();
+                classNames.addLast(className);
+                metadata.getClasses().add(String.join("$", classNames));
+            } else if (ctx instanceof GroovyParser.FieldDeclarationContext fieldCtx) {
+                if (classNames.isEmpty() && !inAnnotation) {
+                    metadata.isScript = true;
+                } else if (!classNames.isEmpty() && fieldCtx.getParent() != null && fieldCtx.getParent().getText().contains("static")) {
+                    String fieldName = fieldCtx.variableDeclaration().variableDeclarators().variableDeclarator(0).variableDeclaratorId().getText();
+                    metadata.getStaticFields().add(getCurrentClassName() + "." + fieldName);
+                }
+            } else if (ctx instanceof GroovyParser.MethodDeclarationContext methodCtx) {
+                if (classNames.isEmpty() && !inAnnotation) {
+                    metadata.isScript = true;
+                } else if (!classNames.isEmpty() && methodCtx.getParent() != null && methodCtx.getParent().getText().contains("static")) {
+                    String methodName = methodCtx.methodName().identifier().getText();
+                    metadata.getStaticMethods().add(getCurrentClassName() + "." + methodName);
+                }
+            } else if (ctx instanceof GroovyParser.EnumConstantContext enumCtx) {
+                String constantName = enumCtx.identifier().getText();
+                metadata.getStaticFields().add(getCurrentClassName() + "." + constantName);
             }
         }
 
-        public void enterMethodDeclaration(GroovyParser.MethodDeclarationContext ctx) {
-            if (ctx.getParent() != null && ctx.getParent().getText().contains("static")) {
-                String methodName = ctx.methodName().identifier().getText();
-                metadata.getStaticMethods().add(getCurrentClassName() + "." + methodName);
+        @Override
+        public void exitEveryRule(ParserRuleContext ctx) {
+            if (ctx instanceof GroovyParser.AnnotationContext) {
+                inAnnotation = false;
+            } else if (ctx instanceof GroovyParser.ClassDeclarationContext) {
+                classNames.removeLast();
             }
-        }
-
-        public void enterEnumConstant(GroovyParser.EnumConstantContext ctx) {
-            String constantName = ctx.identifier().getText();
-            metadata.getStaticFields().add(getCurrentClassName() + "." + constantName);
         }
 
         private String getCurrentClassName() {
