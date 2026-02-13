@@ -19,7 +19,7 @@ public class GroovyFileParseUnitTest {
             "\n\n def med(def b){};\n" +
             "\n\n class TestClass2 {\n TestClass2(def lepContext) {} \n}\n";
 
-        GroovyFileParser.GroovyFileMetadata scriptMetaData = gfp.getFileMetaData(testScript);
+        GroovyFileParser.GroovyFileMetadata scriptMetaData = gfp.getFileMetaData("lep/testClass.groovy", testScript);
         assertTrue(scriptMetaData.isScript());
 
         String testClasses = "\n\n package TEST.testApp.lep.commons\n" +
@@ -36,7 +36,7 @@ public class GroovyFileParseUnitTest {
             "\n @TestAnnotation(value = \"test\")" +
             "\n class TestClass2 {\n TestClass2(def lepContext) {} \n}\n";
 
-        GroovyFileParser.GroovyFileMetadata classMetaData = gfp.getFileMetaData(testClasses);
+        GroovyFileParser.GroovyFileMetadata classMetaData = gfp.getFileMetaData("lep/TestAnnotation.groovy", testClasses);
         assertFalse(classMetaData.isScript());
     }
 
@@ -44,7 +44,7 @@ public class GroovyFileParseUnitTest {
     public void testParseAnonymousClass() throws RecognitionException {
         GroovyFileParser gfp = new GroovyFileParser();
         String source = loadFile("lep/Commons$$runAfterTransaction$$around.groovy");
-        gfp.getGroovyFileMetadata(source);
+        gfp.getGroovyFileMetadata("lep/Commons$$runAfterTransaction$$around.groovy", source);
     }
 
 }

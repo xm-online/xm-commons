@@ -58,7 +58,7 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
         LepStorage lepConfigStorage = lepStorageFactory.buildXmConfigLepStorage(tenant, lepFromConfig);
 
         Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata = new HashMap<>();
-        lepConfigStorage.forEach(lep -> lepMetadata.put(lep.metadataKey(), groovyFileParser.getFileMetaData(lep.readContent())));
+        lepConfigStorage.forEach(lep -> lepMetadata.put(lep.metadataKey(), groovyFileParser.getFileMetaData(lep.getPath(), lep.readContent())));
 
         LepResourceConnector lepResourceConnector = new LepResourceConnector(
             tenant,
