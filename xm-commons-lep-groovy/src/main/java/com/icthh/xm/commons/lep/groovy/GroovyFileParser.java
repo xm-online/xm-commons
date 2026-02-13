@@ -51,7 +51,7 @@ public class GroovyFileParser {
     }
 
     private void processClassNode(ClassNode classNode, GroovyFileMetadata metadata) {
-        String className = classNode.getName();
+        String className = classNode.getNameWithoutPackage();
         metadata.getClasses().add(className);
 
         for (FieldNode field : classNode.getFields()) {
