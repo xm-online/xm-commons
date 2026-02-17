@@ -4,28 +4,27 @@ import com.icthh.xm.commons.security.internal.XmAuthentication;
 import com.icthh.xm.commons.security.internal.XmAuthenticationDetails;
 import com.icthh.xm.commons.security.oauth2.JwtVerificationKeyClient;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Clock;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
-import io.jsonwebtoken.impl.DefaultClock;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.security.Key;
-import java.util.Arrays;
+import java.security.PublicKey;
+import java.time.Clock;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,28 +41,40 @@ public class TokenProvider {
 
     @Autowired
     public TokenProvider(JwtVerificationKeyClient jwtVerificationKeyClient) {
-        this(jwtVerificationKeyClient, DefaultClock.INSTANCE);
+        this(jwtVerificationKeyClient, Clock.systemUTC());
     }
 
     public TokenProvider(JwtVerificationKeyClient jwtVerificationKeyClient, Clock clock) {
         Key key = jwtVerificationKeyClient.getVerificationKey();
-        jwtParser = Jwts.parserBuilder().setSigningKey(key).setClock(clock).build();
+        var parserBuilder = Jwts.parser().clock(() -> Date.from(clock.instant()));
+
+        if (key instanceof SecretKey secretKey) {
+            parserBuilder.verifyWith(secretKey);
+        } else if (key instanceof PublicKey publicKey) {
+            parserBuilder.verifyWith(publicKey);
+        } else {
+            throw new IllegalArgumentException("Unsupported key type: " + key.getClass().getName());
+        }
+
+        jwtParser = parserBuilder.build();
     }
 
     public XmAuthentication getAuthentication(HttpServletRequest request, String token) {
-        Claims claims = jwtParser.parseClaimsJws(token).getBody();
+        final String normalizedToken = token.trim();
+        Claims claims = jwtParser.parseSignedClaims(normalizedToken).getPayload();
         Collection<? extends GrantedAuthority> authorities = getAuthorities(claims);
 
-        XmAuthenticationDetails principal = new XmAuthenticationDetails(claims, request, token);
-        return new XmAuthentication(principal, token, authorities);
+        XmAuthenticationDetails principal = new XmAuthenticationDetails(claims, request, normalizedToken);
+        return new XmAuthentication(principal, normalizedToken, authorities);
     }
 
     public XmAuthentication getAuthentication(ServerHttpRequest request, String token) {
-        Claims claims = this.jwtParser.parseClaimsJws(token).getBody();
+        final String normalizedToken = token.trim();
+        Claims claims = this.jwtParser.parseSignedClaims(normalizedToken).getPayload();
         Collection<? extends GrantedAuthority> authorities = getAuthorities(claims);
 
-        XmAuthenticationDetails principal = new XmAuthenticationDetails(claims, request, token);
-        return new XmAuthentication(principal, token, authorities);
+        XmAuthenticationDetails principal = new XmAuthenticationDetails(claims, request, normalizedToken);
+        return new XmAuthentication(principal, normalizedToken, authorities);
     }
 
     private Collection<? extends GrantedAuthority> getAuthorities(Claims claims) {
@@ -77,7 +88,7 @@ public class TokenProvider {
 
     public boolean validateToken(String authToken) {
         try {
-            jwtParser.parseClaimsJws(authToken);
+            jwtParser.parseSignedClaims(authToken);
             return true;
         } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException e) {
             log.info(INVALID_JWT_TOKEN, e);

@@ -1,13 +1,15 @@
 package com.icthh.xm.commons.web.spring.config;
 
-import com.fasterxml.jackson.datatype.hibernate6.Hibernate6Module;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.hibernate7.Hibernate7Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.converter.json.SpringHandlerInstantiator;
+import org.springframework.http.support.JacksonHandlerInstantiator;
 
 @Configuration
 public class JacksonConfiguration {
@@ -21,25 +23,27 @@ public class JacksonConfiguration {
         return new JavaTimeModule();
     }
 
-    @Bean
-    public Jdk8Module jdk8TimeModule() {
-        return new Jdk8Module();
-    }
-
     /*
      * Support for Hibernate types in Jackson.
      */
 
     @Bean
-    public Hibernate6Module hibernate6Module() {
-        return new Hibernate6Module();
+    public Hibernate7Module hibernate7Module() {
+        return new Hibernate7Module();
     }
 
     @Bean
-    public Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilder(
-            AutowireCapableBeanFactory beanFactory) {
-        return jacksonObjectMapperBuilder -> jacksonObjectMapperBuilder
-                .handlerInstantiator(new SpringHandlerInstantiator(beanFactory));
+    @ConditionalOnMissingBean(ObjectMapper.class)
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    }
+
+
+    @Bean
+    public JsonMapperBuilderCustomizer jsonMapperBuilderCustomizer(AutowireCapableBeanFactory beanFactory) {
+        return builder -> builder.handlerInstantiator(new JacksonHandlerInstantiator(beanFactory));
     }
 
 }

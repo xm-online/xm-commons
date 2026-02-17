@@ -4,6 +4,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.icthh.xm.commons.config.client.exception.ConflictUpdateConfigException;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,10 +12,11 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.cloud.client.loadbalancer.RestTemplateCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -64,8 +66,8 @@ public class XmRestTemplateConfiguration {
 
             log.info("createRestTemplate applying timeouts={}", timeoutProperties);
             restTemplateBuilder
-                .setConnectTimeout(timeoutProperties.getConnectionTimeout())
-                .setReadTimeout(timeoutProperties.getReadTimeout());
+                .connectTimeout(timeoutProperties.getConnectionTimeout())
+                .readTimeout(timeoutProperties.getReadTimeout());
         }
 
         RestTemplate restTemplate = restTemplateBuilder.build();
@@ -73,11 +75,11 @@ public class XmRestTemplateConfiguration {
         restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(UTF_8));
         restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
             @Override
-            public void handleError(ClientHttpResponse response) throws IOException {
+            public void handleError(URI url, HttpMethod method, ClientHttpResponse response) throws IOException {
                 if (response.getStatusCode() == HttpStatus.CONFLICT) {
                     throw new ConflictUpdateConfigException();
                 } else {
-                    super.handleError(response);
+                    super.handleError(url, method, response);
                 }
             }
         });

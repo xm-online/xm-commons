@@ -7,11 +7,11 @@ import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.gen.model.Tenant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Paths;
@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 @Builder
 @Slf4j
 @AllArgsConstructor
+@NoArgsConstructor(force = true)
 @RequiredArgsConstructor
 public class TenantConfigProvisioner implements TenantProvisioner {
 

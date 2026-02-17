@@ -6,9 +6,8 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.gen.model.Tenant;
-import com.icthh.xm.commons.tenantendpoint.provisioner.TenantListProvisioner;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -22,7 +21,7 @@ public class TenantListProvisionerUnitTest {
     @Mock
     private TenantListRepository tenantListRepository;
 
-    @Before
+    @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
 

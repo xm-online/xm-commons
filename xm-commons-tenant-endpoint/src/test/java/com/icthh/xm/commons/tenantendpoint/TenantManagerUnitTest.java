@@ -1,7 +1,6 @@
 package com.icthh.xm.commons.tenantendpoint;
 
-import static com.icthh.xm.commons.tenantendpoint.TenantManager.builder;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -12,8 +11,8 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.gen.model.Tenant;
 import com.icthh.xm.commons.tenantendpoint.provisioner.TenantProvisioner;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -32,12 +31,13 @@ public class TenantManagerUnitTest {
     @Mock
     private TenantProvisioner service2;
 
-    @Before
+    @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        tenantManager = builder().service(service1)
-                                 .service(service2)
-                                 .build();
+        tenantManager = TenantManager.builder()
+            .service(service1)
+            .service(service2)
+            .build();
     }
 
     @Test
@@ -105,12 +105,13 @@ public class TenantManagerUnitTest {
     @Test
     public void testHandleException() {
 
-        TenantManager manager = builder().service(service1)
-                                         .service(service2)
-                                         .exceptionHandler(e -> {
-                                             throw new IllegalStateException(e.getMessage());
-                                         })
-                                         .build();
+        TenantManager manager = TenantManager.builder()
+            .service(service1)
+            .service(service2)
+            .exceptionHandler(e -> {
+                throw new IllegalStateException(e.getMessage());
+            })
+            .build();
 
         doThrow(new RuntimeException("Bang 1!")).when(service1).createTenant(any());
         runWithExceptionExpected(() -> manager.createTenant(new Tenant().tenantKey(TENANT_KEY)),

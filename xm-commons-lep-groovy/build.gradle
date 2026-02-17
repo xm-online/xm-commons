@@ -25,11 +25,15 @@ dependencies {
         exclude group: "org.codehaus.groovy", module: "groovy-testng"
     }
 
-    testImplementation 'junit:junit'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.hamcrest:hamcrest-library'
-    testImplementation 'org.springframework:spring-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation "com.github.stefanbirkner:system-rules:${versions.systemRules}"
     testImplementation project(':xm-commons-lep-annotation-processor')
     testAnnotationProcessor project(':xm-commons-lep-annotation-processor')
+}
+
+test {
+    useJUnitPlatform()
 }
