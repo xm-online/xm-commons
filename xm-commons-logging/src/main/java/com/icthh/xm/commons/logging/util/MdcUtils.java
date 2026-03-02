@@ -1,14 +1,10 @@
 package com.icthh.xm.commons.logging.util;
 
-import org.apache.commons.codec.digest.DigestUtils;
+import java.util.Base64;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
-
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Utility class for MDC processing.
@@ -82,14 +78,12 @@ public final class MdcUtils {
      * @return request identity
      */
     public static String generateRid() {
-        byte[] encode = Base64.getEncoder().encode(DigestUtils.sha256(UUID.randomUUID().toString()));
-        try {
-            String rid = new String(encode, StandardCharsets.UTF_8.name());
-            rid = StringUtils.replaceChars(rid, "+/=", "");
-            return StringUtils.right(rid, RID_LENGTH);
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalStateException(e);
-        }
+        byte[] bytes = new byte[RID_LENGTH];
+        ThreadLocalRandom.current().nextBytes(bytes);
+        return Base64.getUrlEncoder()
+            .withoutPadding()
+            .encodeToString(bytes)
+            .substring(0, RID_LENGTH);
     }
 
 }
