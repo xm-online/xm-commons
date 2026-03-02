@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.security.internal;
 
 import com.icthh.xm.commons.security.jwt.TokenProvider;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.impl.FixedClock;
 import io.jsonwebtoken.security.SignatureException;
@@ -13,7 +14,6 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.core.context.SecurityContext;
 
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -57,7 +57,8 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
 
         Date date = Date.from(LocalDate.of(2022, 07, 06).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date));
-        XmAuthentication authentication = tokenProvider.getAuthentication(mockHttpServletRequest, token);
+        Claims claims = tokenProvider.validateToken(token);
+        XmAuthentication authentication = tokenProvider.getAuthentication(mockHttpServletRequest, token, claims);
         assertFalse(authentication.isClientOnly());
         var xmAuthContext = authToXmAuthContext(authentication);
         assertEquals("xm", xmAuthContext.getLogin().orElse(null));
@@ -81,7 +82,8 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
 
         Date date = Date.from(LocalDate.of(2022, 07, 06).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date));
-        XmAuthentication authentication = tokenProvider.getAuthentication(mockHttpServletRequest, token);
+        Claims claims = tokenProvider.validateToken(token);
+        XmAuthentication authentication = tokenProvider.getAuthentication(mockHttpServletRequest, token, claims);
         assertTrue(authentication.isClientOnly());
         var xmAuthContext = authToXmAuthContext(authentication);
         assertEquals("test", xmAuthContext.getLogin().orElse(null));
@@ -100,7 +102,8 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
         MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
         Date date = Date.from(LocalDate.of(2023, 07, 06).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date));
-        tokenProvider.getAuthentication(mockHttpServletRequest, token);
+        Claims claims = tokenProvider.validateToken(token);
+        tokenProvider.getAuthentication(mockHttpServletRequest, token, claims);
     }
 
     @Test(expected = SignatureException.class)
@@ -109,7 +112,8 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
         MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
         Date date = Date.from(LocalDate.of(2023, 07, 06).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date));
-        tokenProvider.getAuthentication(mockHttpServletRequest, token);
+        Claims claims = tokenProvider.validateToken(token);
+        tokenProvider.getAuthentication(mockHttpServletRequest, token, claims);
     }
 
     @SneakyThrows
