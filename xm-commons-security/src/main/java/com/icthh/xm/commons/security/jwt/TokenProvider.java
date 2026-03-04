@@ -45,6 +45,8 @@ public class TokenProvider {
 
     private final JwtParser jwtParser;
 
+    private final Clock jwtClock;
+
     private final Cache<String, Claims> tokenCache;
 
     @Autowired
@@ -54,6 +56,7 @@ public class TokenProvider {
 
     public TokenProvider(JwtVerificationKeyClient jwtVerificationKeyClient, Clock clock) {
         PublicKey key = jwtVerificationKeyClient.getVerificationKey();
+        jwtClock = clock;
         jwtParser = Jwts.parser().verifyWith(key).clock(clock).build();
         tokenCache = Caffeine.newBuilder()
             .maximumSize(TOKEN_CACHE_MAX_SIZE)
@@ -96,9 +99,9 @@ public class TokenProvider {
         return null;
     }
 
-    private Claims getClaims(String token) {
+    public Claims getClaims(String token) {
         Claims claims = tokenCache.get(token, t -> jwtParser.parseSignedClaims(t).getPayload());
-        if (claims != null && claims.getExpiration() != null && claims.getExpiration().before(Date.from(Instant.now()))) {
+        if (claims != null && claims.getExpiration() != null && claims.getExpiration().before(jwtClock.now())) {
             tokenCache.invalidate(token);
             throw new ExpiredJwtException(null, claims, "Token was expired");
         }
