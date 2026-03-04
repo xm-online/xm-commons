@@ -48,7 +48,7 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
 
     @Test
     public void testDecodeXmUserToken() {
-        String token = loadFileString("test/mockUserToken");
+        String token = loadFileString("test/mockUserToken").strip();
 
         MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
         mockHttpServletRequest.setRemoteAddr("mockRemoteAddr");
@@ -73,7 +73,7 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
 
     @Test
     public void testDecodeXmClientToken() {
-        String token = loadFileString("test/mockClientToken");
+        String token = loadFileString("test/mockClientToken").strip();
 
         MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
         mockHttpServletRequest.setRemoteAddr("mockRemoteAddr");
@@ -98,22 +98,18 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
 
     @Test(expected = ExpiredJwtException.class)
     public void testExpiredToken() {
-        String token = loadFileString("test/mockClientToken");
-        MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+        String token = loadFileString("test/mockClientToken").strip();
         Date date = Date.from(LocalDate.of(2023, 07, 06).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date));
-        Claims claims = tokenProvider.validateToken(token);
-        tokenProvider.getAuthentication(mockHttpServletRequest, token, claims);
+        tokenProvider.getClaims(token);
     }
 
     @Test(expected = SignatureException.class)
     public void testInvalidToken() {
-        String token = loadFileString("test/mockInvalidClientToken");
-        MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+        String token = loadFileString("test/mockInvalidClientToken").strip();
         Date date = Date.from(LocalDate.of(2023, 07, 06).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date));
-        Claims claims = tokenProvider.validateToken(token);
-        tokenProvider.getAuthentication(mockHttpServletRequest, token, claims);
+        tokenProvider.getClaims(token);
     }
 
     @SneakyThrows
