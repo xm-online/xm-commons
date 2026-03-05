@@ -42,7 +42,7 @@ import static org.springframework.http.HttpMethod.PUT;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api")
+@RequestMapping("${application.functions-api-prefix}")
 public class FunctionResource {
 
     @Value("${spring.application.name}")
@@ -58,7 +58,7 @@ public class FunctionResource {
     }
 
     @Timed
-    @GetMapping("/functions/{functionKey:.+}")
+    @GetMapping("/{functionKey:.+}")
     @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.GET.CALL')")
     @PrivilegeDescription("Privilege to call get function")
     public ResponseEntity<Object> callGetFunction(@PathVariable("functionKey") String functionKey,
@@ -68,7 +68,7 @@ public class FunctionResource {
     }
 
     @Timed
-    @PutMapping("/functions/{functionKey:.+}")
+    @PutMapping("/{functionKey:.+}")
     @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.PUT.CALL')")
     @PrivilegeDescription("Privilege to call put function")
     public ResponseEntity<Object> callPutFunction(@PathVariable("functionKey") String functionKey,
@@ -78,7 +78,7 @@ public class FunctionResource {
     }
 
     @Timed
-    @PatchMapping("/functions/{functionKey:.+}")
+    @PatchMapping("/{functionKey:.+}")
     @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.PATCH.CALL')")
     @PrivilegeDescription("Privilege to call patch function")
     public ResponseEntity<Object> callPatchFunction(@PathVariable("functionKey") String functionKey,
@@ -96,7 +96,7 @@ public class FunctionResource {
      * or with status 400 (Bad Request) if the FunctionResult has already an ID
      */
     @Timed
-    @PostMapping("/functions/{functionKey:.+}")
+    @PostMapping("/{functionKey:.+}")
     @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.CALL')")
     @PrivilegeDescription("Privilege to execute a function by specification key")
     public ResponseEntity<Object> callPostFunction(@PathVariable("functionKey") String functionKey,
@@ -106,7 +106,7 @@ public class FunctionResource {
     }
 
     @Timed
-    @PostMapping(value = "/functions/{functionKey:.+}", consumes = {
+    @PostMapping(value = "/{functionKey:.+}", consumes = {
         MediaType.APPLICATION_FORM_URLENCODED_VALUE
     })
     @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.CALL')")
@@ -126,7 +126,7 @@ public class FunctionResource {
      * or with status 400 (Bad Request) if the FunctionResult has already an ID
      */
     @Timed
-    @DeleteMapping("/functions/{functionKey:.+}")
+    @DeleteMapping("/{functionKey:.+}")
     @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.DELETE.CALL')")
     @PrivilegeDescription("Privilege to execute a function by key (key in entity specification)")
     public ResponseEntity<Object> callDeleteFunction(@PathVariable("functionKey") String functionKey,
@@ -145,7 +145,7 @@ public class FunctionResource {
      * or with status 400 (Bad Request) if the FunctionResult has already an ID
      */
     @Timed
-    @PostMapping("/functions/anonymous/{functionKey:.+}")
+    @PostMapping("/anonymous/{functionKey:.+}")
     public ResponseEntity<Object> callPostAnonymousFunction(@PathVariable("functionKey") String functionKey,
                                                             @RequestBody(required = false) Map<String, Object> functionInput) {
         FunctionResult result = functionService.executeAnonymous(functionKey, functionInput, POST.name());
@@ -153,7 +153,7 @@ public class FunctionResource {
     }
 
     @Timed
-    @PostMapping(value = "/functions/anonymous/{functionKey:.+}", consumes = {
+    @PostMapping(value = "/anonymous/{functionKey:.+}", consumes = {
         MediaType.APPLICATION_FORM_URLENCODED_VALUE,
     })
     public ResponseEntity<Object> callPostFormAnonymousFunction(@PathVariable("functionKey") String functionKey,
@@ -172,7 +172,7 @@ public class FunctionResource {
      * or with status 400 (Bad Request) if the FunctionResult has already an ID
      */
     @Timed
-    @GetMapping("/functions/anonymous/{functionKey:.+}")
+    @GetMapping("/anonymous/{functionKey:.+}")
     public ResponseEntity<Object> callGetAnonymousFunction(@PathVariable("functionKey") String functionKey,
                                                            @RequestParam(required = false) Map<String, Object> functionInput) {
         FunctionResult result = functionService.executeAnonymous(functionKey, functionInput, GET.name());
@@ -181,7 +181,7 @@ public class FunctionResource {
 
     @IgnoreLogginAspect
     @Timed
-    @GetMapping("/functions/**")
+    @GetMapping("/**")
     public ResponseEntity<Object> callGetFunction(HttpServletRequest request,
                                   @RequestParam(required = false) Map<String, Object> functionInput) {
         String functionKey = getFunctionKey(request);
@@ -190,7 +190,7 @@ public class FunctionResource {
 
     @IgnoreLogginAspect
     @Timed
-    @PostMapping(value = "/functions/**")
+    @PostMapping(value = "/**")
     public ResponseEntity<Object> callPostFunction(HttpServletRequest request,
                                                    @RequestBody(required = false) Map<String, Object> functionInput) {
         String functionKey = getFunctionKey(request);
@@ -199,7 +199,7 @@ public class FunctionResource {
 
     @IgnoreLogginAspect
     @Timed
-    @PostMapping(value = "/functions/**", consumes = {
+    @PostMapping(value = "/**", consumes = {
         MediaType.APPLICATION_FORM_URLENCODED_VALUE,
     })
     public ResponseEntity<Object> callPostFormFunction(HttpServletRequest request,
@@ -210,7 +210,7 @@ public class FunctionResource {
 
     @IgnoreLogginAspect
     @Timed
-    @PutMapping("/functions/**")
+    @PutMapping("/**")
     public ResponseEntity<Object> callPutFunction(HttpServletRequest request,
                                                   @RequestBody(required = false) Map<String, Object> functionInput) {
         String functionKey = getFunctionKey(request);
@@ -219,7 +219,7 @@ public class FunctionResource {
 
     @IgnoreLogginAspect
     @Timed
-    @PatchMapping("/functions/**")
+    @PatchMapping("/**")
     public ResponseEntity<Object> callPatchFunction(HttpServletRequest request,
                                                     @RequestBody(required = false) Map<String, Object> functionInput) {
         String functionKey = getFunctionKey(request);
@@ -228,7 +228,7 @@ public class FunctionResource {
 
     @IgnoreLogginAspect
     @Timed
-    @DeleteMapping("/functions/**")
+    @DeleteMapping("/**")
     public ResponseEntity<Object> callDeleteFunction(HttpServletRequest request,
                                                   @RequestBody(required = false) Map<String, Object> functionInput) {
         String functionKey = getFunctionKey(request);
@@ -237,7 +237,7 @@ public class FunctionResource {
 
     @IgnoreLogginAspect
     @Timed
-    @GetMapping("/functions/anonymous/**")
+    @GetMapping("/anonymous/**")
     public ResponseEntity<Object> callGetAnonymousFunction(HttpServletRequest request,
                                                   @RequestParam(required = false) Map<String, Object> functionInput) {
         String functionKey = getFunctionKey(request);
@@ -246,7 +246,7 @@ public class FunctionResource {
 
     @IgnoreLogginAspect
     @Timed
-    @PostMapping("/functions/anonymous/**")
+    @PostMapping("/anonymous/**")
     public ResponseEntity<Object> callPostAnonymousFunction(HttpServletRequest request,
                                                             @RequestBody(required = false) Map<String, Object> functionInput) {
         String functionKey = getFunctionKey(request);
@@ -255,7 +255,7 @@ public class FunctionResource {
 
     @IgnoreLogginAspect
     @Timed
-    @PostMapping(value = "/functions/anonymous/**", consumes = {
+    @PostMapping(value = "/anonymous/**", consumes = {
         MediaType.APPLICATION_FORM_URLENCODED_VALUE,
     })
     public ResponseEntity<Object> callPostFormAnonymousFunction(HttpServletRequest request,
