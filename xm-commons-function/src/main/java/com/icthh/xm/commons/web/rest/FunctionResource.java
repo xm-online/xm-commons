@@ -42,7 +42,7 @@ import static org.springframework.http.HttpMethod.PUT;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("${application.functions-api-prefix}")
+@RequestMapping("${application.functions-api-prefix:/api/functions}")
 public class FunctionResource {
 
     @Value("${spring.application.name}")
