@@ -1,6 +1,8 @@
 package com.icthh.xm.commons.domainevent.db.domain;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class Entity {
 
@@ -15,6 +17,10 @@ public abstract class Entity {
     private String description;
 
     private List<EntityLocation> locations;
+
+    private EntityLink link;
+
+    private Map<String, Object> data = new HashMap<>();
 
     public String getTypeKey() {
         return typeKey;
@@ -62,5 +68,21 @@ public abstract class Entity {
 
     public void setLocations(List<EntityLocation> locations) {
         this.locations = locations;
+    }
+
+    public EntityLink getLink() {
+        return link;
+    }
+
+    public void setLink(EntityLink link) {
+        this.link = link;
+    }
+
+    public Map<String, Object> getData() {
+        return data;
+    }
+
+    public void setData(Map<String, Object> data) {
+        this.data = data;
     }
 }

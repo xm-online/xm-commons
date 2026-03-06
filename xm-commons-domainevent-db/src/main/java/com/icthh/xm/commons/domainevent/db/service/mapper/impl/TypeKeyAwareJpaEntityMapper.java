@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.domainevent.db.service.mapper.impl;
 
-import static com.icthh.xm.commons.domainevent.db.util.ClassTypeCheckerUtil.isSimpleValue;
+import static com.icthh.xm.commons.domainevent.db.util.ClassTypeCheckerUtil.isCollectionOrAssociation;
 
 import com.icthh.xm.commons.domainevent.db.domain.JpaEntityContext;
 import com.icthh.xm.commons.domainevent.db.domain.State;
@@ -73,11 +73,20 @@ public class TypeKeyAwareJpaEntityMapper implements JpaEntityMapper {
             Object currentValue = propertyState.current();
             Object previousValue = propertyState.previous();
 
-            boolean includeProperty = isIncludeCollections() || (isSimpleValue(currentValue) && isSimpleValue(previousValue));
-
-            if (includeProperty) {
+            if (isIncludeCollections()) {
                 before.put(propertyName, previousValue);
                 after.put(propertyName, currentValue);
+                log.debug("Including collection property: before={}, after={}", previousValue, currentValue);
+            } else {
+                if (!isCollectionOrAssociation(currentValue)) {
+                    log.debug("Adding simple property AFTER: name={}, value={} ", propertyName, currentValue);
+                    after.put(propertyName, currentValue);
+                }
+
+                if (!isCollectionOrAssociation(previousValue)) {
+                    log.debug("Adding simple property BEFORE: name={}, value={} ", propertyName, currentValue);
+                    before.put(propertyName, previousValue);
+                }
             }
         }
 

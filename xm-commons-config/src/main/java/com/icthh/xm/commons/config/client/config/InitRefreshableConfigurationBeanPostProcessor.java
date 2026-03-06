@@ -10,6 +10,7 @@ import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.util.AntPathMatcher;
 
@@ -17,6 +18,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,7 +28,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
     public static final String LOG_CONFIG_EMPTY = "<CONFIG_EMPTY>";
     private static final String CONFIG_PATH = "/config/tenants/{tenantName}/**";
     private static final String COMMONS = "commons";
-    private final ConfigService configService;
+    private final ObjectProvider<ConfigService> configServiceProvider;
 
     private final Map<String, RefreshableConfiguration> refreshableConfigurations = new HashMap<>();
     private volatile Map<String, Configuration> configMap;
@@ -35,10 +37,10 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
     private final AntPathMatcher matcher = new AntPathMatcher();
     private final FetchConfigurationSettings fetchConfigurationSettings;
 
-    public InitRefreshableConfigurationBeanPostProcessor(ConfigService configService,
+    public InitRefreshableConfigurationBeanPostProcessor(ObjectProvider<ConfigService> configServiceProvider,
                                                          XmConfigProperties xmConfigProperties,
                                                          FetchConfigurationSettings fetchConfigurationSettings) {
-        this.configService = configService;
+        this.configServiceProvider = configServiceProvider;
         this.includedTenants = xmConfigProperties.getIncludeTenantUppercase();
         this.fetchConfigurationSettings = fetchConfigurationSettings;
         addLepCommons();
@@ -63,7 +65,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
 
     private Map<String, Configuration> getConfig() {
         if (configMap == null) {
-            configMap = configService.getConfigMapAntPattern(null, fetchConfigurationSettings.getMsConfigPatterns());
+            configMap = getConfigService().getConfigMapAntPattern(null, fetchConfigurationSettings.getMsConfigPatterns());
         }
         return configMap;
     }
@@ -75,7 +77,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
         log.info("refreshable configuration bean [{}] initialized by configMap with {} entries",
             getBeanName(refreshableConfiguration), configMap.size());
 
-        configService.addConfigurationChangedListener(new ConfigurationChangedListener() {
+        getConfigService().addConfigurationChangedListener(new ConfigurationChangedListener() {
             @Override
             public void onConfigurationChanged(Configuration configuration) {
                 onEntryChange(refreshableConfiguration, configuration);
@@ -172,5 +174,10 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
     private static String getValueHash(final String configContent) {
         return StringUtils.isEmpty(configContent) ? LOG_CONFIG_EMPTY :
                DigestUtils.md5Hex(configContent);
+    }
+
+    private ConfigService getConfigService() {
+        return Optional.ofNullable(configServiceProvider.getIfAvailable())
+            .orElseThrow(() -> new IllegalStateException("ConfigService is not available"));
     }
 }

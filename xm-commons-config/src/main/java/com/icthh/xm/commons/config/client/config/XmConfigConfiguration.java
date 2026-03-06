@@ -12,6 +12,7 @@ import com.icthh.xm.commons.config.client.repository.file.FileUpdateWatcher;
 import com.icthh.xm.commons.config.client.repository.kafka.ConfigTopicConsumer;
 import com.icthh.xm.commons.config.client.service.CommonConfigService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -66,8 +67,8 @@ public class XmConfigConfiguration {
 
     @Bean
     public InitRefreshableConfigurationBeanPostProcessor refreshableConfigurationPostProcessor(
-            ConfigService configService, XmConfigProperties xmConfigProperties, FetchConfigurationSettings fetchConfigurationSettings) {
-        return new InitRefreshableConfigurationBeanPostProcessor(configService, xmConfigProperties, fetchConfigurationSettings);
+            ObjectProvider<ConfigService> configServiceProvider, XmConfigProperties xmConfigProperties, FetchConfigurationSettings fetchConfigurationSettings) {
+        return new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, xmConfigProperties, fetchConfigurationSettings);
     }
 
     @Bean

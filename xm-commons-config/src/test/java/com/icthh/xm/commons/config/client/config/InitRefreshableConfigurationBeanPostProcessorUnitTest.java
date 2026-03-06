@@ -22,6 +22,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,6 +38,8 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
     private RefreshableConfiguration refreshableConfiguration;
     @Mock
     private CommonConfigRepository commonConfigRepository;
+    @Mock
+    private ObjectProvider<ConfigService> configServiceProvider;
     private ConfigService configService;
 
     private FetchConfigurationSettings fetchConfigurationSettings;
@@ -83,7 +86,7 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
     public void shouldContainIncludedTenantsAndCommons() {
 
         when(configProperties.getIncludeTenants()).thenReturn(Set.of("tenant1", "Tenant2"));
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configService, configProperties, fetchConfigurationSettings);
+        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings);
 
         List<String> configs = processor.initConfigPaths(refreshableConfiguration, configMap);
 
@@ -98,7 +101,7 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
     @Test
     public void shouldContainAllTenantsIfIncludePropertyEmpty() {
         when(configProperties.getIncludeTenants()).thenReturn(null);
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configService, configProperties, fetchConfigurationSettings);
+        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings);
 
         List<String> configs = processor.initConfigPaths(refreshableConfiguration, configMap);
 
@@ -108,8 +111,9 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
     @Test
     public void shouldContainAllTenantsIfIncludePropertyEmptyDuringUpdate() {
         when(configService.getConfigMapAntPattern(any(), any())).thenReturn(configMap);
+        when(configServiceProvider.getIfAvailable()).thenReturn(configService);
 
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configService, configProperties, fetchConfigurationSettings);
+        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings);
         processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
         processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
 
@@ -125,7 +129,8 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
     public void shouldContainIncludedTenantsAndCommonsDuringUpdate() {
         when(configProperties.getIncludeTenants()).thenReturn(Set.of("tenant1", "Tenant2"));
         when(configService.getConfigMapAntPattern(any(), any())).thenReturn(configMap);
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configService, configProperties, fetchConfigurationSettings);
+        when(configServiceProvider.getIfAvailable()).thenReturn(configService);
+        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings);
         processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
         processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
 
@@ -147,6 +152,15 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
         verify(refreshableConfiguration, times(2))
             .refreshFinished(argThat(argument -> assertListsEquals(argument, expectedUpdatedKeys)));
 
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldThrowExceptionWhenConfigServiceIsNotAvailable() {
+        when(configServiceProvider.getIfAvailable()).thenReturn(null);
+
+        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings);
+        processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
+        processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
     }
 
     private static <T extends Comparable<T>> boolean assertListsEquals(Collection<T> expected, Collection<T> actual) {
