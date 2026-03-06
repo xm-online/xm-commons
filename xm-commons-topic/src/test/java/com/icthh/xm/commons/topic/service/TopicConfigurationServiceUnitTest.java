@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.nio.charset.Charset;
@@ -21,6 +22,8 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -52,6 +55,8 @@ public class TopicConfigurationServiceUnitTest {
 
     @Test
     public void testOnRefresh() {
+        topicConfigurationService.onApplicationEvent(mock(ApplicationReadyEvent.class));
+
         String content = readConfig(CONFIG_1);
         TopicConsumersSpec topicConsumerSpec = getTopicConsumerSpec(content);
 
@@ -67,6 +72,8 @@ public class TopicConfigurationServiceUnitTest {
 
     @Test
     public void testOnRefreshWhenConfigWasRemoved() {
+        topicConfigurationService.onApplicationEvent(mock(ApplicationReadyEvent.class));
+
         topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(CONFIG_1));
         topicConfigurationService.onRefresh(UPDATE_KEY, null);
 
@@ -79,6 +86,8 @@ public class TopicConfigurationServiceUnitTest {
 
     @Test
     public void testOnRefreshWhenSpecNull() {
+        topicConfigurationService.onApplicationEvent(mock(ApplicationReadyEvent.class));
+
         Map<String, List<DynamicConsumer>> topicConsumers = topicConfigurationService.getTenantTopicConsumers();
         int sizeBeforeRefresh = topicConsumers.size();
 
@@ -88,6 +97,32 @@ public class TopicConfigurationServiceUnitTest {
 
         verify(topicDynamicConsumerConfiguration).sendRefreshDynamicConsumersEvent(eq(TENANT_KEY));
         verifyNoMoreInteractions(dynamicConsumerConfigurationService);
+    }
+
+    @Test
+    public void testOnRefreshBeforeApplicationReady_shouldNotSendEvent() {
+        topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(CONFIG_1));
+
+        Map<String, List<DynamicConsumer>> topicConsumers = topicConfigurationService.getTenantTopicConsumers();
+        assertEquals(1, topicConsumers.size());
+
+        verify(topicDynamicConsumerConfiguration, never()).sendRefreshDynamicConsumersEvent(eq(TENANT_KEY));
+    }
+
+    @Test
+    public void testOnApplicationReady_shouldSendEventsForAllTenants() {
+        String updateKeyTenant2 = "/config/tenants/test2/some-ms/topic-consumers.yml";
+
+        topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(CONFIG_1));
+        topicConfigurationService.onRefresh(updateKeyTenant2, readConfig(CONFIG_1));
+
+        verify(topicDynamicConsumerConfiguration, never()).sendRefreshDynamicConsumersEvent(eq(TENANT_KEY));
+        verify(topicDynamicConsumerConfiguration, never()).sendRefreshDynamicConsumersEvent(eq("test2"));
+
+        topicConfigurationService.onApplicationEvent(mock(ApplicationReadyEvent.class));
+
+        verify(topicDynamicConsumerConfiguration).sendRefreshDynamicConsumersEvent(eq(TENANT_KEY));
+        verify(topicDynamicConsumerConfiguration).sendRefreshDynamicConsumersEvent(eq("test2"));
     }
 
     @SneakyThrows
