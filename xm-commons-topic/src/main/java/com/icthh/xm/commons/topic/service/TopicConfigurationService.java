@@ -7,6 +7,8 @@ import com.icthh.xm.commons.topic.domain.DynamicConsumer;
 import com.icthh.xm.commons.topic.domain.TopicConsumersSpec;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
@@ -14,13 +16,15 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @Component
-public class TopicConfigurationService implements RefreshableConfiguration {
+public class TopicConfigurationService implements RefreshableConfiguration, ApplicationListener<ApplicationReadyEvent> {
 
     private static final String TENANT_NAME = "tenant";
 
+    private final AtomicBoolean applicationReady = new AtomicBoolean(false);
     private AntPathMatcher matcher = new AntPathMatcher();
     private ObjectMapper ymlMapper = new ObjectMapper(new YAMLFactory());
 
@@ -44,6 +48,14 @@ public class TopicConfigurationService implements RefreshableConfiguration {
         return matcher.match(configPath, updatedKey);
     }
 
+    @Override
+    public void onApplicationEvent(ApplicationReadyEvent event) {
+        applicationReady.set(true);
+        getTenantTopicConsumers().keySet().forEach(
+            topicDynamicConsumerConfiguration::sendRefreshDynamicConsumersEvent
+        );
+    }
+
     public Map<String, List<DynamicConsumer>> getTenantTopicConsumers() {
         return topicDynamicConsumerConfiguration.getTenantTopicConsumers();
     }
@@ -59,7 +71,9 @@ public class TopicConfigurationService implements RefreshableConfiguration {
             }, () -> log.warn("Skip processing of configuration: [{}]. Specification is null", updatedKey));
         }
 
-        topicDynamicConsumerConfiguration.sendRefreshDynamicConsumersEvent(tenantKey);
+        if (applicationReady.get()) {
+            topicDynamicConsumerConfiguration.sendRefreshDynamicConsumersEvent(tenantKey);
+        }
     }
 
     private String extractTenant(final String updatedKey) {

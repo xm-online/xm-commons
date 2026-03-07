@@ -2,6 +2,7 @@ package com.icthh.xm.commons.permission.service.custom;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.icthh.xm.commons.config.client.api.refreshable.ConfigWithKey;
@@ -64,15 +65,19 @@ public abstract class AbstractCustomPrivilegeSpecService implements CustomPrivil
     protected <S extends ConfigWithKey> void updateCustomPrivileges(Collection<S> specs, String privilegesPath,
                                                                     Configuration customPrivileges, String tenantKey) {
         val privileges = readPrivilegesConfig(customPrivileges);
+        val updatedCustomPrivileges = new HashMap<String, List<Map<String, Object>>>();
 
-        addCustomPrivileges(specs, privileges, tenantKey);
+        addCustomPrivileges(specs, updatedCustomPrivileges, tenantKey);
 
-        String content = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(privileges);
-        if (DigestUtils.sha1Hex(content).equals(sha1Hex(customPrivileges))) {
+        ObjectWriter prettyPrinter = mapper.writerWithDefaultPrettyPrinter();
+        String content = prettyPrinter.writeValueAsString(privileges);
+        String updatedContent = prettyPrinter.writeValueAsString(updatedCustomPrivileges);
+
+        if (DigestUtils.sha1Hex(content).equals(DigestUtils.sha1Hex(updatedContent))) {
             log.info("Privileges configuration not changed y path: {}", privilegesPath);
             return;
         }
-        commonConfigRepository.updateConfigFullPath(new Configuration(privilegesPath, content), sha1Hex(customPrivileges));
+        commonConfigRepository.updateConfigFullPath(new Configuration(privilegesPath, updatedContent), sha1Hex(customPrivileges));
     }
 
     private <S extends ConfigWithKey> void addCustomPrivileges(Collection<S> specs,
@@ -94,9 +99,14 @@ public abstract class AbstractCustomPrivilegeSpecService implements CustomPrivil
     @SneakyThrows
     private Map<String, List<Map<String, Object>>> readPrivilegesConfig(Configuration customPrivileges) {
         if (isConfigExists(customPrivileges)) {
-            return mapper.readValue(customPrivileges.getContent(),
-                new TypeReference<Map<String, List<Map<String, Object>>>>() {}
+            Map<String, List<Map<String, Object>>> privilegesConfigMap = mapper.readValue(customPrivileges.getContent(),
+                new TypeReference<Map<String, List<Map<String, Object>>>>() {
+                }
             );
+            privilegesConfigMap.forEach((sectionName, section) ->
+                section.sort(comparing(it -> String.valueOf(it.get("key")))));
+
+            return privilegesConfigMap;
         }
         return new HashMap<>();
     }
