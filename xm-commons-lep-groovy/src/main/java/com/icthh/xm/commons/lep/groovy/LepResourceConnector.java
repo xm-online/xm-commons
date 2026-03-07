@@ -51,7 +51,7 @@ public class LepResourceConnector implements ResourceConnector {
     }
 
     private GroovyFileMetadata toFileMetaData(XmLepConfigFile lep) {
-        return groovyFileParser.getFileMetaData(lep.readContent());
+        return groovyFileParser.getFileMetaData(lep.getPath(), lep.readContent());
     }
 
     @SneakyThrows
