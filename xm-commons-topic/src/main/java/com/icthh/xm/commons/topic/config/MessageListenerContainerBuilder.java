@@ -54,6 +54,7 @@ public class MessageListenerContainerBuilder {
 
     private final KafkaProperties kafkaProperties;
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTopicNameHandler kafkaTopicNameHandler;
 
     public AbstractMessageListenerContainer build(String tenantKey,
                                                   TopicConfig topicConfig,
@@ -66,7 +67,8 @@ public class MessageListenerContainerBuilder {
                 new StringDeserializer(),
                 new StringDeserializer());
 
-        ContainerProperties containerProperties = new ContainerProperties(topicConfig.getTopicName());
+        String prefixedTopicName = kafkaTopicNameHandler.getPrefixedTopicName(topicConfig.getTopicName(), tenantKey);
+        ContainerProperties containerProperties = new ContainerProperties(prefixedTopicName);
         containerProperties.setObservationEnabled(true);
         containerProperties.setAckMode(MANUAL_IMMEDIATE);
         if (topicConfig.getConsumeMessagePerSecondLimit() != null && topicConfig.getConsumeMessagePerSecondLimit() > 0) {
@@ -123,14 +125,15 @@ public class MessageListenerContainerBuilder {
                                    TopicConfig topicConfig) {
         String rawBody = String.valueOf(record.value());
         String deadLetterQueue = topicConfig.getDeadLetterQueue();
+        String prefixedDeadLetterQueue = kafkaTopicNameHandler.getPrefixedTopicName(deadLetterQueue, tenantKey);
 
         try {
             MessageRetryUtils.putRid(record, tenantKey, topicConfig.getTopicName());
 
             log.warn("send message to dead-letter [{}] due to retry count exceeded [{}], "
                     + "total processing time = {} ms, body = [{}]",
-                deadLetterQueue, getRetryCounter(record), getTotalProcessingTime(record), rawBody);
-            return new TopicPartition(deadLetterQueue, record.partition());
+                prefixedDeadLetterQueue, getRetryCounter(record), getTotalProcessingTime(record), rawBody);
+            return new TopicPartition(prefixedDeadLetterQueue, record.partition());
 
         } finally {
             MdcUtils.clear();

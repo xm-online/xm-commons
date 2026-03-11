@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.timeline.domain.ApiMaskConfig;
 import com.icthh.xm.commons.timeline.domain.ApiMaskRule;
+import com.icthh.xm.commons.topic.config.KafkaTopicProperties;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -38,6 +40,7 @@ public class TimelineEventProducer {
     private static final List<String> PREFIXES = asList("$.", "$.xmEntity.", "$.data.");
 
     private final KafkaTemplate<Integer, String> template;
+    private final KafkaTopicProperties kafkaTopicProperties;
     private final ObjectMapper mapper = new ObjectMapper();
     private final AntPathMatcher matcher = new AntPathMatcher();
 
@@ -104,15 +107,17 @@ public class TimelineEventProducer {
     /**
      * Send event to kafka.
      *
-     * @param topic   the kafka topic
+     * @param topic   the kafka topic (actually this is tenant in current usage)
      * @param content the event content
      */
     @Async
     public void send(String topic, String content) {
         try {
             if (!StringUtils.isBlank(content)) {
-                log.debug("Sending kafka event with data {} to topic {}", content, topic);
-                template.send(topic, content);
+                // In timeline context, 'topic' parameter is actually the tenant key
+                String prefixedTopic = kafkaTopicProperties.getPrefixedTopicName(topic, topic);
+                log.debug("Sending kafka event with data {} to topic {}", content, prefixedTopic);
+                template.send(prefixedTopic, content);
             }
         } catch (Exception e) {
             log.error("Error send timeline event", e);
