@@ -1,7 +1,6 @@
 package com.icthh.xm.commons.topic.config;
 
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -18,9 +17,8 @@ public class KafkaTopicNameHandler {
      * The prefix is applied on both producer and consumer sides.
      */
 
-    @Setter
     @Value("${application.kafka.addTenantPrefix:true}")
-    private Boolean addTenantPrefix;
+    private Boolean addTenantPrefix = true;
 
     /**
      * Get the topic name with tenant prefix if enabled.

@@ -23,8 +23,6 @@ public class KafkaTopicNameHandlerUnitTest {
 
     @Test
     public void testGetPrefixedTopicNameWithTenantPrefixEnabled() {
-        kafkaTopicNameHandler.setAddTenantPrefix(true);
-
         String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName("my-topic", "tenant1");
 
         assertEquals("tenant_topic_tenant1_my-topic", prefixedTopic);
@@ -32,8 +30,6 @@ public class KafkaTopicNameHandlerUnitTest {
 
     @Test
     public void testGetPrefixedTopicNameWithTenantPrefixDisabled() {
-        kafkaTopicNameHandler.setAddTenantPrefix(false);
-
         String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName("my-topic", "tenant1");
 
         assertEquals("my-topic", prefixedTopic);
@@ -41,8 +37,6 @@ public class KafkaTopicNameHandlerUnitTest {
 
     @Test
     public void testGetPrefixedTopicNameWithNullTenant() {
-        kafkaTopicNameHandler.setAddTenantPrefix(true);
-
         String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName("my-topic", null);
 
         assertEquals("my-topic", prefixedTopic);
@@ -50,8 +44,6 @@ public class KafkaTopicNameHandlerUnitTest {
 
     @Test
     public void testGetPrefixedTopicNameWithEmptyTenant() {
-        kafkaTopicNameHandler.setAddTenantPrefix(true);
-
         String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName("my-topic", "");
 
         assertEquals("my-topic", prefixedTopic);
@@ -59,8 +51,6 @@ public class KafkaTopicNameHandlerUnitTest {
 
     @Test
     public void testGetPrefixedTopicNameWithNullTopic() {
-        kafkaTopicNameHandler.setAddTenantPrefix(true);
-
         String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName(null, "tenant1");
 
         assertNull(prefixedTopic);
@@ -68,8 +58,6 @@ public class KafkaTopicNameHandlerUnitTest {
 
     @Test
     public void testGetPrefixedTopicNameWithSystemQueue() {
-        kafkaTopicNameHandler.setAddTenantPrefix(true);
-
         String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName("system_queue", "xm");
 
         assertEquals("tenant_topic_xm_system_queue", prefixedTopic);
@@ -77,8 +65,6 @@ public class KafkaTopicNameHandlerUnitTest {
 
     @Test
     public void testGetPrefixedTopicNameWithConfigTopic() {
-        kafkaTopicNameHandler.setAddTenantPrefix(true);
-
         String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName("config_topic", "demo");
 
         // Config topics should NOT be prefixed
@@ -87,8 +73,6 @@ public class KafkaTopicNameHandlerUnitTest {
 
     @Test
     public void testGetPrefixedTopicNameWithConfigTopicStartingWithConfig() {
-        kafkaTopicNameHandler.setAddTenantPrefix(true);
-
         String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName("config_queue", "demo");
 
         // Config topics should NOT be prefixed
@@ -97,8 +81,6 @@ public class KafkaTopicNameHandlerUnitTest {
 
     @Test
     public void testGetPrefixedTopicNameWithDynamicTopic() {
-        kafkaTopicNameHandler.setAddTenantPrefix(true);
-
         String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName("event.tenant1.entity", "tenant1");
 
         assertEquals("tenant_topic_tenant1_event.tenant1.entity", prefixedTopic);
