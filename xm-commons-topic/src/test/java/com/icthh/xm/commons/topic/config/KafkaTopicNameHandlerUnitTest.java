@@ -19,6 +19,7 @@ public class KafkaTopicNameHandlerUnitTest {
     public void setUp() {
         TenantContextUtils.setTenant(cth, "TEST");
         kafkaTopicNameHandler = new KafkaTopicNameHandler();
+        ReflectionTestUtils.setField(kafkaTopicNameHandler, "addTenantPrefix", true);
     }
 
     @Test
@@ -31,6 +32,7 @@ public class KafkaTopicNameHandlerUnitTest {
     @Test
     public void testGetPrefixedTopicNameWithTenantPrefixDisabled() {
         ReflectionTestUtils.setField(kafkaTopicNameHandler, "addTenantPrefix", false);
+
         String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName("my-topic", "tenant1");
 
         assertEquals("my-topic", prefixedTopic);
