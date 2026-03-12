@@ -147,6 +147,34 @@ public class AbstractCustomPrivilegeSpecServiceUnitTest {
     }
 
     @Test
+    public void shouldNotRemoveAndSortPrivilegesWithoutExtractor() {
+        String customOrderedPrivileges = """
+            ---
+            entity:
+            - key: "ENTITY.CUSTOM.PRIVILEGE2"
+            - key: "ENTITY.CUSTOM.PRIVILEGE1"
+            applications:
+            - key: "APPLICATION.PRODUCT"
+            - key: "APPLICATION.ACCOUNT.USER"
+            """;
+
+        Collection<ConfigWithKey> specs = new ArrayList<>();
+        Configuration existingConfig = new Configuration(PRIVILEGES_PATH, customOrderedPrivileges);
+        ArrayList<Map<String, String>> privileges = new ArrayList<>(List.of(
+            Map.of("key", "APPLICATION.ACCOUNT.USER"),
+            Map.of("key", "APPLICATION.PRODUCT")
+        ));
+
+        when(applicationExtractor.isEnabled(TENANT_KEY)).thenReturn(true);
+        when(applicationExtractor.getSectionName()).thenReturn("applications");
+        when(applicationExtractor.toPrivileges(eq(specs))).thenReturn(privileges);
+
+        service.updateCustomPrivileges(specs, PRIVILEGES_PATH, existingConfig, TENANT_KEY);
+
+        verify(commonConfigRepository, never()).updateConfigFullPath(configurationCaptor.capture(), eq(DigestUtils.sha1Hex(customOrderedPrivileges)));
+    }
+
+    @Test
     public void shouldPassNullHashWhenExistingConfigIsNull() {
         ArrayList<Map<String, String>> privileges = new ArrayList<>(List.of(
             Map.of("key", "APPLICATION.ACCOUNT.USER")
