@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.timeline.domain.ApiMaskConfig;
 import com.icthh.xm.commons.timeline.domain.ApiMaskRule;
-import com.icthh.xm.commons.topic.config.KafkaTopicProperties;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,7 +39,6 @@ public class TimelineEventProducer {
     private static final List<String> PREFIXES = asList("$.", "$.xmEntity.", "$.data.");
 
     private final KafkaTemplate<Integer, String> template;
-    private final KafkaTopicProperties kafkaTopicProperties;
     private final ObjectMapper mapper = new ObjectMapper();
     private final AntPathMatcher matcher = new AntPathMatcher();
 
@@ -115,9 +113,8 @@ public class TimelineEventProducer {
         try {
             if (!StringUtils.isBlank(content)) {
                 // In timeline context, 'topic' parameter is actually the tenant key
-                String prefixedTopic = kafkaTopicProperties.getPrefixedTopicName(topic, topic);
-                log.debug("Sending kafka event with data {} to topic {}", content, prefixedTopic);
-                template.send(prefixedTopic, content);
+                log.debug("Sending kafka event with data {} to topic {}", content, topic);
+                template.send(topic, content);
             }
         } catch (Exception e) {
             log.error("Error send timeline event", e);
