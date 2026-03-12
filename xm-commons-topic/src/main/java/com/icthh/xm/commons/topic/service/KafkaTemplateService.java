@@ -36,20 +36,6 @@ public class KafkaTemplateService {
     }
 
     /**
-     * Send the data to the provided topic with no key or partition (with tenant prefix support).
-     *
-     * @param topic  the topic.
-     * @param data   The data.
-     * @param tenant the tenant key for prefix
-     * @return a Future for the {@link SendResult}.
-     **/
-    @LoggingAspectConfig(inputExcludeParams = "data", resultDetails = false)
-    public CompletableFuture<SendResult<String, String>> send(String topic, String data, String tenant) {
-        String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName(topic, tenant);
-        return kafkaTemplate.send(prefixedTopic, data);
-    }
-
-    /**
      * Send the data to the provided topic with the provided key and partition.
      *
      * @param topic     the topic.

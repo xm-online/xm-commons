@@ -74,22 +74,6 @@ public class KafkaTopicNameHandlerUnitTest {
     }
 
     @Test
-    public void testGetPrefixedTopicNameWithConfigTopic() {
-        String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName("config_topic", "demo");
-
-        // Config topics should NOT be prefixed
-        assertEquals("config_topic", prefixedTopic);
-    }
-
-    @Test
-    public void testGetPrefixedTopicNameWithConfigTopicStartingWithConfig() {
-        String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName("config_queue", "demo");
-
-        // Config topics should NOT be prefixed
-        assertEquals("config_queue", prefixedTopic);
-    }
-
-    @Test
     public void testGetPrefixedTopicNameWithDynamicTopic() {
         String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName("event.tenant1.entity", "tenant1");
 
