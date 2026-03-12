@@ -17,8 +17,8 @@ public class KafkaTopicNameHandler {
      * The prefix is applied on both producer and consumer sides.
      */
 
-    @Value("${application.kafka.addTenantPrefix:true}")
-    private Boolean addTenantPrefix = true;
+    @Value("${application.kafka.addTenantPrefix:false}")
+    private Boolean addTenantPrefix = false;
 
     /**
      * Get the topic name with tenant prefix if enabled.
