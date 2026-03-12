@@ -29,7 +29,7 @@ import static com.icthh.xm.commons.utils.HttpRequestUtils.getFunctionKey;
  */
 @Slf4j
 @RestController
-@RequestMapping("${application.functions-api-prefix:/api/export/functions}")
+@RequestMapping("${application.functions-export-api-prefix:/api/export/functions}")
 @RequiredArgsConstructor
 public class FunctionExportResource {
 

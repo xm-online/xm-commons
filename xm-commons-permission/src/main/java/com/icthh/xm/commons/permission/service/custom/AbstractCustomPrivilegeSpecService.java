@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
 
 import static com.icthh.xm.commons.config.client.repository.TenantConfigRepository.PATH_CONFIG_TENANT;
 import static java.util.Comparator.comparing;
@@ -47,7 +48,7 @@ public abstract class AbstractCustomPrivilegeSpecService implements CustomPrivil
         updateCustomPrivileges(specs, privilegesPath, customPrivilegesConfig, tenantKey);
     }
 
-    protected  Configuration getConfigByPath(String privilegesPath) {
+    protected Configuration getConfigByPath(String privilegesPath) {
         log.info("Get custom-privileges actual config by path {}", privilegesPath);
 
         List<String> paths = List.of(privilegesPath);
@@ -65,9 +66,7 @@ public abstract class AbstractCustomPrivilegeSpecService implements CustomPrivil
     protected <S extends ConfigWithKey> void updateCustomPrivileges(Collection<S> specs, String privilegesPath,
                                                                     Configuration customPrivileges, String tenantKey) {
         val privileges = readPrivilegesConfig(customPrivileges);
-        val updatedCustomPrivileges = new HashMap<String, List<Map<String, Object>>>();
-
-        addCustomPrivileges(specs, updatedCustomPrivileges, tenantKey);
+        val updatedCustomPrivileges = applyCustomPrivileges(specs, privileges, tenantKey);
 
         ObjectWriter prettyPrinter = mapper.writerWithDefaultPrettyPrinter();
         String content = prettyPrinter.writeValueAsString(privileges);
@@ -80,10 +79,11 @@ public abstract class AbstractCustomPrivilegeSpecService implements CustomPrivil
         commonConfigRepository.updateConfigFullPath(new Configuration(privilegesPath, updatedContent), sha1Hex(customPrivileges));
     }
 
-    private <S extends ConfigWithKey> void addCustomPrivileges(Collection<S> specs,
-                                     Map<String, List<Map<String, Object>>> privileges,
-                                     String tenantKey) {
+    private <S extends ConfigWithKey> Map<String, List<Map<String, Object>>> applyCustomPrivileges(Collection<S> specs,
+                                                                                                   Map<String, List<Map<String, Object>>> privileges,
+                                                                                                   String tenantKey) {
         Map<String, List<Map<String, Object>>> customPrivileges = new HashMap<>();
+        Map<String, List<Map<String, Object>>> updatedCustomPrivileges = new LinkedHashMap<>(privileges);
 
         privilegesExtractors.stream()
             .filter(extractor -> extractor.isEnabled(tenantKey))
@@ -93,20 +93,21 @@ public abstract class AbstractCustomPrivilegeSpecService implements CustomPrivil
                 section.sort(comparing(it -> String.valueOf(it.get("key"))));
             });
 
-        privileges.putAll(customPrivileges);
+        updatedCustomPrivileges.putAll(customPrivileges);
+
+        customPrivileges.keySet().forEach(section ->
+            ofNullable(privileges.get(section))
+                .ifPresent(list -> list.sort(comparing(it -> String.valueOf(it.get("key")))))
+        );
+
+        return updatedCustomPrivileges;
     }
 
     @SneakyThrows
     private Map<String, List<Map<String, Object>>> readPrivilegesConfig(Configuration customPrivileges) {
         if (isConfigExists(customPrivileges)) {
-            Map<String, List<Map<String, Object>>> privilegesConfigMap = mapper.readValue(customPrivileges.getContent(),
-                new TypeReference<Map<String, List<Map<String, Object>>>>() {
-                }
-            );
-            privilegesConfigMap.forEach((sectionName, section) ->
-                section.sort(comparing(it -> String.valueOf(it.get("key")))));
-
-            return privilegesConfigMap;
+            return mapper.readValue(customPrivileges.getContent(),
+                new TypeReference<Map<String, List<Map<String, Object>>>>() {});
         }
         return new HashMap<>();
     }
