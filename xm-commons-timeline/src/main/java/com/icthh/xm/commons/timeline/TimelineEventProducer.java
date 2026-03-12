@@ -11,7 +11,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -77,7 +76,7 @@ public class TimelineEventProducer {
             data.put("tenant", tenant);
             data.put("msName", appName);
             data.put("operationName", getResourceName(request.getRequestURI())
-                + " " + getOperation(request.getMethod()));
+                    + " " + getOperation(request.getMethod()));
             data.put("operationUrl", request.getRequestURI());
             data.put("operationQueryString", request.getQueryString());
             data.put("startDate", startDate.toString());
@@ -105,14 +104,13 @@ public class TimelineEventProducer {
     /**
      * Send event to kafka.
      *
-     * @param topic   the kafka topic (actually this is tenant in current usage)
+     * @param topic   the kafka topic
      * @param content the event content
      */
     @Async
     public void send(String topic, String content) {
         try {
             if (!StringUtils.isBlank(content)) {
-                // In timeline context, 'topic' parameter is actually the tenant key
                 log.debug("Sending kafka event with data {} to topic {}", content, topic);
                 template.send(topic, content);
             }
