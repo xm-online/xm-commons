@@ -5,7 +5,7 @@ import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.internal.DefaultTenantContextHolder;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.BeforeEach;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -30,6 +30,7 @@ public class KafkaTopicNameHandlerUnitTest {
 
     @Test
     public void testGetPrefixedTopicNameWithTenantPrefixDisabled() {
+        ReflectionTestUtils.setField(kafkaTopicNameHandler, "addTenantPrefix", false);
         String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName("my-topic", "tenant1");
 
         assertEquals("my-topic", prefixedTopic);
@@ -61,6 +62,13 @@ public class KafkaTopicNameHandlerUnitTest {
         String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName("system_queue", "xm");
 
         assertEquals("tenant_topic_xm_system_queue", prefixedTopic);
+    }
+
+    @Test
+    public void testGetPrefixedTopicNameWithSystemTopic() {
+        String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName("system-topic", "tenant1");
+
+        assertEquals("tenant_topic_tenant1_system-topic", prefixedTopic);
     }
 
     @Test
