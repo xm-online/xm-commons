@@ -32,6 +32,9 @@ import static org.mockito.Mockito.when;
 @Slf4j
 public class SpringSecurityXmAuthenticationContextUnitTest {
 
+    private static final Integer TOKEN_CACHE_MAX_SIZE = 10000;
+    private static final Integer TOKEN_CACHE_EXPIRATION_SECONDS = 300;
+
     @Test
     public void testGetLoginForOAuth2() {
         XmAuthentication auth = mock(XmAuthentication.class);
@@ -56,7 +59,8 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
         mockHttpServletRequest.setSession(session);
 
         Date date = Date.from(LocalDate.of(2022, 07, 06).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date));
+        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date),
+            TOKEN_CACHE_MAX_SIZE, TOKEN_CACHE_EXPIRATION_SECONDS);
         Claims claims = tokenProvider.validateToken(token);
         XmAuthentication authentication = tokenProvider.getAuthentication(mockHttpServletRequest, token, claims);
         assertFalse(authentication.isClientOnly());
@@ -81,7 +85,8 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
         mockHttpServletRequest.setSession(session);
 
         Date date = Date.from(LocalDate.of(2022, 07, 06).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date));
+        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date),
+            TOKEN_CACHE_MAX_SIZE, TOKEN_CACHE_EXPIRATION_SECONDS);
         Claims claims = tokenProvider.validateToken(token);
         XmAuthentication authentication = tokenProvider.getAuthentication(mockHttpServletRequest, token, claims);
         assertTrue(authentication.isClientOnly());
@@ -100,7 +105,8 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
     public void testExpiredToken() {
         String token = loadFileString("test/mockClientToken").strip();
         Date date = Date.from(LocalDate.of(2023, 07, 06).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date));
+        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date),
+            TOKEN_CACHE_MAX_SIZE, TOKEN_CACHE_EXPIRATION_SECONDS);
         tokenProvider.getClaims(token);
     }
 
@@ -108,7 +114,8 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
     public void testInvalidToken() {
         String token = loadFileString("test/mockInvalidClientToken").strip();
         Date date = Date.from(LocalDate.of(2023, 07, 06).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date));
+        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date),
+            TOKEN_CACHE_MAX_SIZE, TOKEN_CACHE_EXPIRATION_SECONDS);
         tokenProvider.getClaims(token);
     }
 

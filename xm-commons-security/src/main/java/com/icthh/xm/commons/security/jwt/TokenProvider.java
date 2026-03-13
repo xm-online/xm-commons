@@ -17,14 +17,13 @@ import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.security.PublicKey;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -39,10 +38,6 @@ public class TokenProvider {
 
     private static final String INVALID_JWT_TOKEN = "Invalid JWT token.";
 
-    private static final Integer TOKEN_CACHE_MAX_SIZE = 10_000;
-
-    private static final Duration TOKEN_CACHE_EXPIRATION = Duration.ofMinutes(5);
-
     private final JwtParser jwtParser;
 
     private final Clock jwtClock;
@@ -50,17 +45,22 @@ public class TokenProvider {
     private final Cache<String, Claims> tokenCache;
 
     @Autowired
-    public TokenProvider(JwtVerificationKeyClient jwtVerificationKeyClient) {
-        this(jwtVerificationKeyClient, DefaultClock.INSTANCE);
+    public TokenProvider(JwtVerificationKeyClient jwtVerificationKeyClient,
+                         @Value("${application.jwt.token-cache-max-size:10000}") Integer tokenCacheMaxSize,
+                         @Value("${application.jwt.token-cache-expiration-seconds:300}") Integer tokenCacheExpirationInSeconds) {
+        this(jwtVerificationKeyClient, DefaultClock.INSTANCE, tokenCacheMaxSize, tokenCacheExpirationInSeconds);
     }
 
-    public TokenProvider(JwtVerificationKeyClient jwtVerificationKeyClient, Clock clock) {
+    public TokenProvider(JwtVerificationKeyClient jwtVerificationKeyClient,
+                         Clock clock,
+                         Integer tokenCacheMaxSize,
+                         Integer tokenCacheExpirationInSeconds) {
         PublicKey key = jwtVerificationKeyClient.getVerificationKey();
         jwtClock = clock;
         jwtParser = Jwts.parser().verifyWith(key).clock(clock).build();
         tokenCache = Caffeine.newBuilder()
-            .maximumSize(TOKEN_CACHE_MAX_SIZE)
-            .expireAfterWrite(TOKEN_CACHE_EXPIRATION)
+            .maximumSize(tokenCacheMaxSize)
+            .expireAfterWrite(Duration.ofSeconds(tokenCacheExpirationInSeconds))
             .build();
     }
 
@@ -101,7 +101,7 @@ public class TokenProvider {
 
     public Claims getClaims(String token) {
         Claims claims = tokenCache.get(token, t -> jwtParser.parseSignedClaims(t).getPayload());
-        if (claims != null && claims.getExpiration() != null && claims.getExpiration().before(jwtClock.now())) {
+        if (claims.getExpiration().before(jwtClock.now())) {
             tokenCache.invalidate(token);
             throw new ExpiredJwtException(null, claims, "Token was expired");
         }
