@@ -7,15 +7,15 @@ buildscript {
     }
 
     dependencies {
-        classpath("io.spring.gradle:dependency-management-plugin:1.0.11.RELEASE")
+        classpath("io.spring.gradle:dependency-management-plugin:1.1.7")
     }
 }
 
 // Plugin for support environment's with gradle.properties (gradle-local.properties is default local environment)
 plugins {
-    id 'net.saliman.properties' version "1.5.2"
-    id 'org.ajoberstar.grgit' version "5.0.0"
-    id "com.github.spotbugs" version '5.0.9'
+    id 'net.saliman.properties' version "1.6.0"
+    id 'org.ajoberstar.grgit' version "5.0.0-rc.3"
+    id "com.github.spotbugs" version '6.4.8'
     id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
     id 'maven-publish'
 }
@@ -56,9 +56,6 @@ subprojects {
 
     version = parent.version
 
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-
     [compileJava, compileTestJava]*.options.collect {
         options -> options.encoding = "UTF-8"
             options.compilerArgs << '-parameters'
@@ -79,6 +76,13 @@ subprojects {
         systemProperty("java.awt.headless", "true")
         systemProperty("testGroups", project.properties.get("testGroups"))
 
+        // Java 25 module system compatibility for Mockito
+        jvmArgs += [
+            '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
+            '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED',
+            '--add-opens', 'java.base/java.util=ALL-UNNAMED'
+        ]
+
         include '**/*UnitTest*'
         include '**/*IntTest*'
 
@@ -92,9 +96,9 @@ subprojects {
         }
     }
 
-    task testReport(type: TestReport) {
-        destinationDir = file("$buildDir/reports/tests")
-        reportOn test
+    tasks.register('testReport', TestReport) {
+        destinationDirectory = layout.buildDirectory.dir("reports/tests")
+        testResults.from(test)
     }
 
     test.finalizedBy(testReport)
@@ -102,7 +106,7 @@ subprojects {
     javadoc {
         description = "Generates project-level javadoc for use in -javadoc jar"
 
-        options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+        options.memberLevel = JavadocMemberLevel.PROTECTED
         options.author = true
         options.header = project.name
         options.use = true
@@ -115,12 +119,12 @@ subprojects {
         //logging.captureStandardOutput LogLevel.INFO  // suppress "## warnings" message
     }
 
-    task javadocJar(type: Jar) {
+    tasks.register('javadocJar', Jar) {
         getArchiveClassifier().set('javadoc')
         from javadoc
     }
 
-    task sourcesJar(type: Jar) {
+    tasks.register('sourcesJar', Jar) {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         getArchiveClassifier().set('sources')
         from sourceSets.main.allSource
@@ -130,13 +134,15 @@ subprojects {
         archives javadocJar, sourcesJar
     }
 
-    task allDeps(type: DependencyReportTask) {}
+    tasks.register('allDeps', DependencyReportTask) {}
 
     checkstyle {
         toolVersion = versions.checkstyle
         ignoreFailures = true
         configFile = rootProject.file('qa/checkstyle.xml')
         sourceSets = [sourceSets.main]
+        checkstyleMain.enabled = false // fixme: config file needs to be actualized to run checkstyle task
+        checkstyleTest.enabled = false
     }
 
     pmd {
@@ -145,6 +151,8 @@ subprojects {
         ignoreFailures = true
         ruleSetFiles = rootProject.files('qa/pmd.xml')
         sourceSets = [sourceSets.main]
+        pmdMain.enabled = false // fixme: config file needs to be actualized to run checkstyle task
+        pmdTest.enabled = false
     }
 
     // use `afterEvaluate` for init some pom values or jar manifest from sub-projects (for example: description)
@@ -289,11 +297,11 @@ boolean isRelease(Project project) {
 }
 
 clean.doFirst {
-    delete rootProject.buildDir
+    delete rootProject.layout.buildDirectory
 }
 
-task testReport(type: TestReport) {
-    destinationDir = file("$buildDir/reports/allTests")
+tasks.register('testReport', TestReport) {
+    destinationDirectory = layout.buildDirectory.dir("reports/allTests")
     // Include the results from the `test` task in all subprojects
-    reportOn subprojects*.test
+    testResults.from(subprojects*.test)
 }

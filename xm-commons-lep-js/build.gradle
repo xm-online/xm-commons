@@ -23,9 +23,15 @@ dependencies {
 
     implementation 'org.mozilla:rhino:1.7.14'
 
-    testImplementation 'junit:junit'
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.hamcrest:hamcrest-library'
     testImplementation 'org.springframework:spring-test'
     testImplementation "com.github.stefanbirkner:system-rules:${versions.systemRules}"
+}
+
+test {
+    useJUnitPlatform()
 }

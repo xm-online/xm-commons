@@ -17,11 +17,17 @@ dependencies {
 
     api "io.micrometer:micrometer-registry-prometheus"
 
-    testImplementation 'junit:junit'
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.assertj:assertj-core'
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.kafka:spring-kafka-test") {
         exclude(group: 'io.dropwizard.metrics', module: 'metrics-core')
     }
+}
+
+test {
+    useJUnitPlatform()
 }

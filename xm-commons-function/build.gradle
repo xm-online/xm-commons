@@ -27,10 +27,13 @@ dependencies {
     }
     api 'org.springframework.security:spring-security-core'
 
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.mockito:mockito-junit-jupiter'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
 }
 
 compileJava.dependsOn(processResources)
