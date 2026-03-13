@@ -34,7 +34,7 @@ import static org.springframework.http.HttpMethod.POST;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api")
+@RequestMapping("${application.functions-api-prefix:/api/functions}")
 @RequiredArgsConstructor
 public class FunctionUploadResource {
 
@@ -60,7 +60,7 @@ public class FunctionUploadResource {
      */
     @Deprecated(forRemoval = true)
     @Timed
-    @PostMapping(value = "/functions/**", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/**", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.UPLOAD.CALL')")
     @SneakyThrows
     @PrivilegeDescription("Privilege to call upload function")

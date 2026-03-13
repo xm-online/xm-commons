@@ -39,7 +39,7 @@ ext.versions = [
 
     mapstruct                  : '1.6.3',
 
-    groovyAll                  : '3.0.25',
+    groovyAll                  : '5.0.4',
 
     dropwizard                 : '4.2.31',
 

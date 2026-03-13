@@ -29,7 +29,7 @@ import static com.icthh.xm.commons.utils.HttpRequestUtils.getFunctionKey;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api")
+@RequestMapping("${application.functions-export-api-prefix:/api/export/functions}")
 @RequiredArgsConstructor
 public class FunctionExportResource {
 
@@ -43,7 +43,7 @@ public class FunctionExportResource {
     }
 
     @Timed
-    @GetMapping("/export/functions/{functionKey:.+}")
+    @GetMapping("/{functionKey:.+}")
     @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.EXPORT.CALL')")
     @PrivilegeDescription("Privilege to execute an export function by key")
     public ResponseEntity<Void> callExportFunction(@PathVariable("functionKey") String functionKey,
@@ -62,7 +62,7 @@ public class FunctionExportResource {
 
     @IgnoreLogginAspect
     @Timed
-    @GetMapping("/export/functions/**")
+    @GetMapping("/**")
     @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.EXPORT.CALL')")
     @PrivilegeDescription("Privilege to execute an export function by key")
     public ResponseEntity<Void> getCallExportFunction(HttpServletRequest request,
