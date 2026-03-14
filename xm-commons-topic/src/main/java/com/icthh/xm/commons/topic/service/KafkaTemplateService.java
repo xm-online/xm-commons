@@ -1,6 +1,8 @@
 package com.icthh.xm.commons.topic.service;
 
 import com.icthh.xm.commons.logging.LoggingAspectConfig;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
+import com.icthh.xm.commons.topic.config.KafkaTopicNameHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -17,6 +19,8 @@ import java.util.concurrent.CompletableFuture;
 public class KafkaTemplateService {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTopicNameHandler kafkaTopicNameHandler;
+    private final TenantContextHolder tenantContextHolder;
 
     /**
      * Send the data to the provided topic with no key or partition.
@@ -27,7 +31,8 @@ public class KafkaTemplateService {
      **/
     @LoggingAspectConfig(inputExcludeParams = "data", resultDetails = false)
     public CompletableFuture<SendResult<String, String>> send(String topic, String data) {
-        return kafkaTemplate.send(topic, data);
+        String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName(topic, tenantContextHolder.getTenantKey());
+        return kafkaTemplate.send(prefixedTopic, data);
     }
 
     /**
@@ -44,7 +49,8 @@ public class KafkaTemplateService {
                                                              Integer partition,
                                                              String key,
                                                              String data) {
-        return kafkaTemplate.send(topic, partition, key, data);
+        String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName(topic, tenantContextHolder.getTenantKey());
+        return kafkaTemplate.send(prefixedTopic, partition, key, data);
     }
 
     /**
@@ -77,9 +83,10 @@ public class KafkaTemplateService {
                                                               String key,
                                                               String data,
                                                               Map<String, Object> headers) {
+        String prefixedTopic = kafkaTopicNameHandler.getPrefixedTopicName(topic, tenantContextHolder.getTenantKey());
         MessageBuilder<String> builder = MessageBuilder
             .withPayload(data)
-            .setHeader(KafkaHeaders.TOPIC, topic)
+            .setHeader(KafkaHeaders.TOPIC, prefixedTopic)
             .setHeader(KafkaHeaders.KEY, key);
 
         if (partition != null) {
