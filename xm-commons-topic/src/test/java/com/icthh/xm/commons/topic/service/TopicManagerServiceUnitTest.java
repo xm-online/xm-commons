@@ -3,6 +3,7 @@ package com.icthh.xm.commons.topic.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.logging.trace.TraceWrapper;
+import com.icthh.xm.commons.topic.config.KafkaTopicNameHandler;
 import com.icthh.xm.commons.topic.domain.ConsumerHolder;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.domain.TopicConsumersSpec;
@@ -57,10 +58,13 @@ public class TopicManagerServiceUnitTest {
     @Mock
     private TraceWrapper traceWrapper;
 
+    @Mock
+    private KafkaTopicNameHandler kafkaTopicNameHandler;
+
 
     @Before
     public void setUp() {
-        topicManager = spy(new TopicManagerService(kafkaProperties, kafkaTemplate, traceWrapper));
+        topicManager = spy(new TopicManagerService(kafkaProperties, kafkaTemplate, traceWrapper, kafkaTopicNameHandler));
         doReturn(container).when(topicManager).buildListenerContainer(any(), any(), any());
     }
 
