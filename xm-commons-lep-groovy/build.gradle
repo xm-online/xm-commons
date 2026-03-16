@@ -34,15 +34,6 @@ dependencies {
     testAnnotationProcessor project(':xm-commons-lep-annotation-processor')
 }
 
-configurations.all {
-    resolutionStrategy.eachDependency { details ->
-        if (details.requested.group == 'org.apache.groovy') {
-            details.useVersion "${versions.groovyAll}"
-            details.because "Force Groovy 5 for all dependencies"
-        }
-    }
-}
-
 test {
     useJUnitPlatform()
 }

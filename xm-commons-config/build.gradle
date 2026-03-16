@@ -28,9 +28,7 @@ dependencies {
     implementation "org.springframework.retry:spring-retry"
     implementation "org.springframework.boot:spring-boot-starter-kafka"
     implementation 'org.springframework.cloud:spring-cloud-commons'
-    implementation('org.springframework.boot:spring-boot-starter-web') {
-        exclude module: 'spring-boot-starter-tomcat'
-    }
+    implementation('org.springframework.boot:spring-boot-starter-web')
     api 'org.springframework.kafka:spring-kafka'
     api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     api 'com.fasterxml.jackson.datatype:jackson-datatype-json-org'

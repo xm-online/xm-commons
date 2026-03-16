@@ -28,9 +28,7 @@ dependencies {
     api 'org.springframework.kafka:spring-kafka'
     api 'com.fasterxml.jackson.datatype:jackson-datatype-json-org'
 
-    implementation("org.springframework.boot:spring-boot-starter-web") {
-        exclude module: 'spring-boot-starter-tomcat'
-    }
+    implementation("org.springframework.boot:spring-boot-starter-web")
 
     testImplementation 'junit:junit'
     testImplementation 'org.mockito:mockito-core'

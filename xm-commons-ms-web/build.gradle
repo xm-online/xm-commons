@@ -12,9 +12,7 @@ dependencies {
     api project(":xm-commons-tenant")
     api project(":xm-commons-config")
 
-    implementation("org.springframework.boot:spring-boot-starter-web") {
-        exclude module: 'spring-boot-starter-tomcat'
-    }
+    implementation("org.springframework.boot:spring-boot-starter-web")
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate7"
     implementation "org.springframework.cloud:spring-cloud-commons"
