@@ -28,6 +28,7 @@ public class PermissionService implements RefreshableConfiguration {
     private final AntPathMatcher matcher = new AntPathMatcher();
 
     private final PermissionProperties permissionProperties;
+    private final PermissionMappingService permissionMappingService;
 
     @Value("${spring.application.name}")
     private String appName;
@@ -55,7 +56,7 @@ public class PermissionService implements RefreshableConfiguration {
                 permissions.remove(tenant);
                 log.info("Permission specification for tenant {} was removed", tenant);
             } else {
-                permissions.put(tenant, PermissionMapper.ymlToPermissions(config, appName));
+                permissions.put(tenant, permissionMappingService.ymlToPermissions(config));
                 log.info("Permission specification for tenant {} was updated", tenant);
             }
         } catch (Exception e) {
