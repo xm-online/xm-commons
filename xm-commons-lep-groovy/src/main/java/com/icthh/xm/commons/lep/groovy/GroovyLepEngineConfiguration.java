@@ -15,6 +15,7 @@ import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
 import com.icthh.xm.commons.lep.spring.ApplicationNameProvider;
 import com.icthh.xm.commons.lep.spring.LepContextActualClassDetector;
 import com.icthh.xm.commons.lep.spring.LepSpringConfiguration;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -47,6 +48,12 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     @Value("${application.lep.tenants-with-lep-warmup:#{T(java.util.Set).of('XM')}}")
     private Set<String> tenantsWithLepWarmup;
 
+    @Value("${application.lep.use-directory-compiled-sources:false}")
+    private Boolean useDirectoryCompiledSources;
+
+    @Value("${application.lep.target-directory-path:}")
+    private String targetDirectoryPath;
+
     public GroovyLepEngineConfiguration(@Value("${spring.application.name}") String appName) {
         super(appName);
     }
@@ -59,6 +66,10 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
                                                          LepPathResolver lepPathResolver,
                                                          GroovyFileParser groovyFileParser) {
         String appName = applicationNameProvider.getAppName();
+        if (useDirectoryCompiledSources && StringUtils.isBlank(targetDirectoryPath)) {
+            throw new IllegalArgumentException("targetDirectoryPath should be provided with useDirectoryCompiledSources=true");
+        }
+
         return new GroovyLepEngineFactory(
             appName,
             lepStorageFactory,
@@ -67,7 +78,9 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
             lepPathResolver,
             groovyFileParser,
             warmupScripts ? tenantsWithLepWarmup : emptySet(),
-            warmupScriptsForAllTenant
+            warmupScriptsForAllTenant,
+            useDirectoryCompiledSources,
+            targetDirectoryPath
         );
     }
 
