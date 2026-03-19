@@ -15,5 +15,7 @@ public interface GroovyEngineCreationStrategy {
                                      Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata,
                                      LepResourceConnector lepResourceConnector,
                                      LepPathResolver lepPathResolver,
-                                     boolean isWarmupEnabled);
+                                     boolean isWarmupEnabled,
+                                     boolean useDirectoryCompiledSources,
+                                     String targetDirectoryPath);
 }

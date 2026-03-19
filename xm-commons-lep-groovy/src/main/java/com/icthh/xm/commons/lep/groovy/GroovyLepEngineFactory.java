@@ -26,6 +26,8 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
     private final LepPathResolver lepPathResolver;
     private final Set<String> tenantWithWarmup;
     private final Boolean warmupScriptsForAllTenants;
+    private final Boolean useDirectoryCompileSources;
+    private final String targetDirectoryPath;
     private final GroovyEngineCreationStrategy groovyEngineCreationStrategy;
 
     private volatile ClassLoader classLoader;
@@ -37,7 +39,9 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
                                   LepPathResolver lepPathResolver,
                                   GroovyFileParser groovyFileParser,
                                   Set<String> tenantWithWarmup,
-                                  Boolean warmupScriptsForAllTenants) {
+                                  Boolean warmupScriptsForAllTenants,
+                                  Boolean useDirectoryCompileSources,
+                                  String targetDirectoryPath) {
         super(appName);
         this.lepPathResolver = lepPathResolver;
         this.lepStorageFactory = lepStorageFactory;
@@ -46,6 +50,8 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
         this.groovyFileParser = groovyFileParser;
         this.tenantWithWarmup = tenantWithWarmup;
         this.warmupScriptsForAllTenants = warmupScriptsForAllTenants;
+        this.useDirectoryCompileSources = useDirectoryCompileSources;
+        this.targetDirectoryPath = targetDirectoryPath;
     }
 
     @Override
@@ -77,7 +83,9 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
             lepMetadata,
             lepResourceConnector,
             lepPathResolver,
-            isWarmupEnabled
+            isWarmupEnabled,
+            useDirectoryCompileSources,
+            targetDirectoryPath
         );
     }
 }
