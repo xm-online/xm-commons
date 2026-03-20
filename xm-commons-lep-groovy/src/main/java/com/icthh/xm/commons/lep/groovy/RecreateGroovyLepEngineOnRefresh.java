@@ -15,7 +15,9 @@ public class RecreateGroovyLepEngineOnRefresh implements GroovyEngineCreationStr
                                         Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata,
                                         LepResourceConnector lepResourceConnector,
                                         LepPathResolver lepPathResolver,
-                                        boolean isWarmupEnabled) {
+                                        boolean isWarmupEnabled,
+                                        boolean useDirectoryCompiledSources,
+                                        String targetDirectoryPath) {
         return new GroovyLepEngine(
             tenant,
             leps,
@@ -24,7 +26,9 @@ public class RecreateGroovyLepEngineOnRefresh implements GroovyEngineCreationStr
             lepMetadata,
             lepResourceConnector,
             lepPathResolver,
-            isWarmupEnabled
+            isWarmupEnabled,
+            useDirectoryCompiledSources,
+            targetDirectoryPath
         );
     }
 }
