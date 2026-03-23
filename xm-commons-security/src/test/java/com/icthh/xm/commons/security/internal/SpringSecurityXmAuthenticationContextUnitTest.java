@@ -3,6 +3,7 @@ package com.icthh.xm.commons.security.internal;
 import com.icthh.xm.commons.security.jwt.TokenProvider;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.impl.FixedClock;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -13,10 +14,9 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.core.context.SecurityContext;
 
 import java.io.InputStream;
-import java.time.Clock;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Date;
 import java.util.Set;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -58,8 +58,8 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
         MockHttpSession session = new MockHttpSession(null, "mockTestSessionId");
         mockHttpServletRequest.setSession(session);
 
-        Instant instant = LocalDate.of(2022, 7, 6).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), Clock.fixed(instant, ZoneId.systemDefault()),
+        Date date = Date.from(LocalDate.of(2022, 07, 06).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date),
             TOKEN_CACHE_MAX_SIZE, TOKEN_CACHE_EXPIRATION_SECONDS);
         Claims claims = tokenProvider.validateToken(token);
         XmAuthentication authentication = tokenProvider.getAuthentication(mockHttpServletRequest, token, claims);
@@ -84,8 +84,8 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
         MockHttpSession session = new MockHttpSession(null, "mockTestSessionId");
         mockHttpServletRequest.setSession(session);
 
-        Instant instant = LocalDate.of(2022, 7, 6).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), Clock.fixed(instant, ZoneId.systemDefault()),
+        Date date = Date.from(LocalDate.of(2022, 07, 06).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date),
             TOKEN_CACHE_MAX_SIZE, TOKEN_CACHE_EXPIRATION_SECONDS);
         Claims claims = tokenProvider.validateToken(token);
         XmAuthentication authentication = tokenProvider.getAuthentication(mockHttpServletRequest, token, claims);
@@ -104,8 +104,8 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
     @Test(expected = ExpiredJwtException.class)
     public void testExpiredToken() {
         String token = loadFileString("test/mockClientToken").strip();
-        Instant instant = LocalDate.of(2023, 7, 6).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), Clock.fixed(instant, ZoneId.systemDefault()),
+        Date date = Date.from(LocalDate.of(2023, 07, 06).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date),
             TOKEN_CACHE_MAX_SIZE, TOKEN_CACHE_EXPIRATION_SECONDS);
         tokenProvider.getClaims(token);
     }
@@ -113,8 +113,8 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
     @Test(expected = SignatureException.class)
     public void testInvalidToken() {
         String token = loadFileString("test/mockInvalidClientToken").strip();
-        Instant instant = LocalDate.of(2023, 7, 6).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), Clock.fixed(instant, ZoneId.systemDefault()),
+        Date date = Date.from(LocalDate.of(2023, 07, 06).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), new FixedClock(date),
             TOKEN_CACHE_MAX_SIZE, TOKEN_CACHE_EXPIRATION_SECONDS);
         tokenProvider.getClaims(token);
     }
