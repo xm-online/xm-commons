@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.security.internal;
 
 import com.icthh.xm.commons.security.jwt.TokenProvider;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.SneakyThrows;
@@ -31,6 +32,9 @@ import static org.mockito.Mockito.when;
 @Slf4j
 public class SpringSecurityXmAuthenticationContextUnitTest {
 
+    private static final Integer TOKEN_CACHE_MAX_SIZE = 10000;
+    private static final Integer TOKEN_CACHE_EXPIRATION_SECONDS = 300;
+
     @Test
     public void testGetLoginForOAuth2() {
         XmAuthentication auth = mock(XmAuthentication.class);
@@ -47,7 +51,7 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
 
     @Test
     public void testDecodeXmUserToken() {
-        String token = loadFileString("test/mockUserToken");
+        String token = loadFileString("test/mockUserToken").strip();
 
         MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
         mockHttpServletRequest.setRemoteAddr("mockRemoteAddr");
@@ -55,8 +59,10 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
         mockHttpServletRequest.setSession(session);
 
         Instant instant = LocalDate.of(2022, 7, 6).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), Clock.fixed(instant, ZoneId.systemDefault()));
-        XmAuthentication authentication = tokenProvider.getAuthentication(mockHttpServletRequest, token);
+        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), Clock.fixed(instant, ZoneId.systemDefault()),
+            TOKEN_CACHE_MAX_SIZE, TOKEN_CACHE_EXPIRATION_SECONDS);
+        Claims claims = tokenProvider.validateToken(token);
+        XmAuthentication authentication = tokenProvider.getAuthentication(mockHttpServletRequest, token, claims);
         assertFalse(authentication.isClientOnly());
         var xmAuthContext = authToXmAuthContext(authentication);
         assertEquals("xm", xmAuthContext.getLogin().orElse(null));
@@ -71,7 +77,7 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
 
     @Test
     public void testDecodeXmClientToken() {
-        String token = loadFileString("test/mockClientToken");
+        String token = loadFileString("test/mockClientToken").strip();
 
         MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
         mockHttpServletRequest.setRemoteAddr("mockRemoteAddr");
@@ -79,8 +85,10 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
         mockHttpServletRequest.setSession(session);
 
         Instant instant = LocalDate.of(2022, 7, 6).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), Clock.fixed(instant, ZoneId.systemDefault()));
-        XmAuthentication authentication = tokenProvider.getAuthentication(mockHttpServletRequest, token);
+        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), Clock.fixed(instant, ZoneId.systemDefault()),
+            TOKEN_CACHE_MAX_SIZE, TOKEN_CACHE_EXPIRATION_SECONDS);
+        Claims claims = tokenProvider.validateToken(token);
+        XmAuthentication authentication = tokenProvider.getAuthentication(mockHttpServletRequest, token, claims);
         assertTrue(authentication.isClientOnly());
         var xmAuthContext = authToXmAuthContext(authentication);
         assertEquals("test", xmAuthContext.getLogin().orElse(null));
@@ -95,20 +103,20 @@ public class SpringSecurityXmAuthenticationContextUnitTest {
 
     @Test(expected = ExpiredJwtException.class)
     public void testExpiredToken() {
-        String token = loadFileString("test/mockClientToken");
-        MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+        String token = loadFileString("test/mockClientToken").strip();
         Instant instant = LocalDate.of(2023, 7, 6).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), Clock.fixed(instant, ZoneId.systemDefault()));
-        tokenProvider.getAuthentication(mockHttpServletRequest, token);
+        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), Clock.fixed(instant, ZoneId.systemDefault()),
+            TOKEN_CACHE_MAX_SIZE, TOKEN_CACHE_EXPIRATION_SECONDS);
+        tokenProvider.getClaims(token);
     }
 
     @Test(expected = SignatureException.class)
     public void testInvalidToken() {
-        String token = loadFileString("test/mockInvalidClientToken");
-        MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+        String token = loadFileString("test/mockInvalidClientToken").strip();
         Instant instant = LocalDate.of(2023, 7, 6).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), Clock.fixed(instant, ZoneId.systemDefault()));
-        tokenProvider.getAuthentication(mockHttpServletRequest, token);
+        TokenProvider tokenProvider = new TokenProvider(() -> loadFile("test/public.cer"), Clock.fixed(instant, ZoneId.systemDefault()),
+            TOKEN_CACHE_MAX_SIZE, TOKEN_CACHE_EXPIRATION_SECONDS);
+        tokenProvider.getClaims(token);
     }
 
     @SneakyThrows

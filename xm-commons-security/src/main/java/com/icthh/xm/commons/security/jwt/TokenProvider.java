@@ -1,30 +1,32 @@
 package com.icthh.xm.commons.security.jwt;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.icthh.xm.commons.security.internal.XmAuthentication;
 import com.icthh.xm.commons.security.internal.XmAuthenticationDetails;
 import com.icthh.xm.commons.security.oauth2.JwtVerificationKeyClient;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Clock;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.impl.DefaultClock;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
-import java.security.Key;
 import java.security.PublicKey;
-import java.time.Clock;
+import java.time.Duration;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,42 +41,42 @@ public class TokenProvider {
 
     private final JwtParser jwtParser;
 
+    private final Clock jwtClock;
+
+    private final Cache<String, Claims> tokenCache;
+
     @Autowired
-    public TokenProvider(JwtVerificationKeyClient jwtVerificationKeyClient) {
-        this(jwtVerificationKeyClient, Clock.systemUTC());
+    public TokenProvider(JwtVerificationKeyClient jwtVerificationKeyClient,
+                         @Value("${application.jwt.token-cache-max-size:10000}") Integer tokenCacheMaxSize,
+                         @Value("${application.jwt.token-cache-expiration-seconds:300}") Integer tokenCacheExpirationInSeconds) {
+        this(jwtVerificationKeyClient, DefaultClock.INSTANCE, tokenCacheMaxSize, tokenCacheExpirationInSeconds);
     }
 
-    public TokenProvider(JwtVerificationKeyClient jwtVerificationKeyClient, Clock clock) {
-        Key key = jwtVerificationKeyClient.getVerificationKey();
-        var parserBuilder = Jwts.parser().clock(() -> Date.from(clock.instant()));
-
-        if (key instanceof SecretKey secretKey) {
-            parserBuilder.verifyWith(secretKey);
-        } else if (key instanceof PublicKey publicKey) {
-            parserBuilder.verifyWith(publicKey);
-        } else {
-            throw new IllegalArgumentException("Unsupported key type: " + key.getClass().getName());
-        }
-
-        jwtParser = parserBuilder.build();
+    public TokenProvider(JwtVerificationKeyClient jwtVerificationKeyClient,
+                         Clock clock,
+                         Integer tokenCacheMaxSize,
+                         Integer tokenCacheExpirationInSeconds) {
+        PublicKey key = jwtVerificationKeyClient.getVerificationKey();
+        jwtClock = clock;
+        jwtParser = Jwts.parser().verifyWith(key).clock(clock).build();
+        tokenCache = Caffeine.newBuilder()
+            .maximumSize(tokenCacheMaxSize)
+            .expireAfterWrite(Duration.ofSeconds(tokenCacheExpirationInSeconds))
+            .build();
     }
 
-    public XmAuthentication getAuthentication(HttpServletRequest request, String token) {
-        final String normalizedToken = token.trim();
-        Claims claims = jwtParser.parseSignedClaims(normalizedToken).getPayload();
+    public XmAuthentication getAuthentication(HttpServletRequest request, String token, Claims claims) {
         Collection<? extends GrantedAuthority> authorities = getAuthorities(claims);
 
-        XmAuthenticationDetails principal = new XmAuthenticationDetails(claims, request, normalizedToken);
-        return new XmAuthentication(principal, normalizedToken, authorities);
+        XmAuthenticationDetails principal = new XmAuthenticationDetails(claims, request, token);
+        return new XmAuthentication(principal, token, authorities);
     }
 
-    public XmAuthentication getAuthentication(ServerHttpRequest request, String token) {
-        final String normalizedToken = token.trim();
-        Claims claims = this.jwtParser.parseSignedClaims(normalizedToken).getPayload();
+    public XmAuthentication getAuthentication(ServerHttpRequest request, String token, Claims claims) {
         Collection<? extends GrantedAuthority> authorities = getAuthorities(claims);
 
-        XmAuthenticationDetails principal = new XmAuthenticationDetails(claims, request, normalizedToken);
-        return new XmAuthentication(principal, normalizedToken, authorities);
+        XmAuthenticationDetails principal = new XmAuthenticationDetails(claims, request, token);
+        return new XmAuthentication(principal, token, authorities);
     }
 
     private Collection<? extends GrantedAuthority> getAuthorities(Claims claims) {
@@ -86,16 +88,24 @@ public class TokenProvider {
             .collect(Collectors.toList());
     }
 
-    public boolean validateToken(String authToken) {
+    public Claims validateToken(String authToken) {
         try {
-            jwtParser.parseSignedClaims(authToken);
-            return true;
+            return getClaims(authToken);
         } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException e) {
             log.info(INVALID_JWT_TOKEN, e);
         } catch (IllegalArgumentException e) {
             log.error("Token validation error {}", e.getMessage());
         }
 
-        return false;
+        return null;
+    }
+
+    public Claims getClaims(String token) {
+        Claims claims = tokenCache.get(token, t -> jwtParser.parseSignedClaims(t).getPayload());
+        if (claims.getExpiration().before(jwtClock.now())) {
+            tokenCache.invalidate(token);
+            throw new ExpiredJwtException(null, claims, "Token was expired");
+        }
+        return claims;
     }
 }
