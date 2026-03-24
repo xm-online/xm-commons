@@ -16,6 +16,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 
+import static com.icthh.xm.commons.security.RoleConstant.ADMIN;
 import static com.icthh.xm.commons.security.RoleConstant.SUPER_ADMIN;
 
 @EnableWebSecurity
@@ -78,7 +79,7 @@ public class SecurityConfiguration {
                     .requestMatchers("/management/prometheus").permitAll()
                     .requestMatchers("/management/prometheus/**").permitAll()
                     .requestMatchers("/management/**").hasAuthority(SUPER_ADMIN)
-                    .requestMatchers("/v3/api-docs/**").hasAuthority(SUPER_ADMIN)
+                    .requestMatchers("/v3/api-docs/**").hasAnyAuthority(SUPER_ADMIN, ADMIN)
                     .requestMatchers("/swagger-resources/configuration/ui").permitAll()
             );
         // @formatter:on
