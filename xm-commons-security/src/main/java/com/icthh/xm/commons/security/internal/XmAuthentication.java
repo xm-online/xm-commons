@@ -1,11 +1,12 @@
 package com.icthh.xm.commons.security.internal;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import static org.apache.commons.lang3.StringUtils.isNoneBlank;
 
@@ -16,7 +17,7 @@ public class XmAuthentication extends AbstractAuthenticationToken {
     private Object credentials;
 
     public XmAuthentication(XmAuthenticationDetails details, Object credentials) {
-        super(null);
+        super(Collections.emptyList());
         this.details = details;
         this.credentials = credentials;
         setAuthenticated(false);

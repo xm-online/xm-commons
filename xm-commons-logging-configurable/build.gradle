@@ -20,10 +20,14 @@ dependencies {
         exclude(group: 'ch.qos.logback')
     }
 
-    testImplementation "junit:junit"
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation "org.mockito:mockito-core"
     testImplementation 'org.springframework:spring-test'
     testImplementation "commons-io:commons-io:${versions.commonsIo}"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation project(':xm-commons-lep-groovy')
+}
+
+test {
+    useJUnitPlatform()
 }

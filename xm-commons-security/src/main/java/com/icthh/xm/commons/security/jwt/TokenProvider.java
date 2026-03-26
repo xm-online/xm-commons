@@ -15,11 +15,6 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.impl.DefaultClock;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
-import java.security.PublicKey;
-import java.time.Duration;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +23,12 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
+
+import java.security.PublicKey;
+import java.time.Duration;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class TokenProvider {

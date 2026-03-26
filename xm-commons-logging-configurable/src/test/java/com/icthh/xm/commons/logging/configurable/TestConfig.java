@@ -9,7 +9,6 @@ import com.icthh.xm.commons.lep.groovy.GroovyLepEngineConfiguration;
 import com.icthh.xm.commons.lep.spring.LepUpdateMode;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import org.mockito.Mockito;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +17,6 @@ import static org.mockito.Mockito.mock;
 
 @Configuration
 @ComponentScan("com.icthh.xm.commons.lep.spring")
-@EnableAutoConfiguration
 public class TestConfig extends GroovyLepEngineConfiguration {
 
     public TestConfig() {

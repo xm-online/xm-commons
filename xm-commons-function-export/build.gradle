@@ -18,15 +18,16 @@ dependencies {
     implementation "com.codahale.metrics:metrics-annotation:${versions.codahaleMetrics}"
     implementation("org.apache.poi:poi:${versions.poi}")
     implementation "org.apache.poi:poi-ooxml:${versions.poi}"
-    implementation('org.springframework.boot:spring-boot-starter-web') {
-        exclude module: 'spring-boot-starter-tomcat'
-    }
+    implementation('org.springframework.boot:spring-boot-starter-web')
     api 'org.springframework.security:spring-security-core'
+
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.mockito:mockito-junit-jupiter'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
 }
 
 compileJava.dependsOn(processResources)

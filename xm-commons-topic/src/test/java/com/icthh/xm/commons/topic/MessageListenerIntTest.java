@@ -29,6 +29,8 @@ import com.icthh.xm.commons.topic.domain.NotRetryableException;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
 import com.icthh.xm.commons.topic.service.TopicConfigurationService;
+
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import lombok.SneakyThrows;
@@ -40,14 +42,14 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.kafka.autoconfigure.KafkaAutoConfiguration;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -56,10 +58,10 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @Slf4j
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(properties = "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
                 classes = {KafkaAutoConfiguration.class})
 @EmbeddedKafka(topics = "kafka-queue", partitions = 1, controlledShutdown = true,
@@ -100,7 +102,7 @@ public class MessageListenerIntTest {
     private TopicConfigurationService topicConfigurationService;
 
 
-    @Before
+    @BeforeEach
     public void before() {
         doAnswer(invocation -> {
             ((Runnable) invocation.getArgument(1)).run();
@@ -112,7 +114,7 @@ public class MessageListenerIntTest {
         }).when(traceWrapper).runWithSpan(any(Message.class), any(MessageChannel.class), any(Runnable.class));
     }
 
-    @Before
+    @BeforeEach
     public void clearMessageHandlerInvocations() {
         clearInvocations(messageHandler);
     }
@@ -332,12 +334,12 @@ public class MessageListenerIntTest {
 
     private void initConsumers(Set<String> topics) {
         DefaultKafkaConsumerFactory<String, String> kafkaConsumerFactory =
-            new DefaultKafkaConsumerFactory<>(consumerProps(GROUP, "false", kafkaEmbedded),
+            new DefaultKafkaConsumerFactory<>(consumerProps(kafkaEmbedded, GROUP, false),
                 new StringDeserializer(),
                 new StringDeserializer());
         Consumer<String, String> consumer = kafkaConsumerFactory.createConsumer();
         consumer.subscribe(topics);
-        consumer.poll(0);
+        consumer.poll(Duration.ZERO);
         consumer.close();
     }
 
