@@ -25,7 +25,7 @@ dependencies {
 
     implementation "org.springframework.retry:spring-retry"
 
-    implementation "org.springframework.boot:spring-boot-starter-kafka:${versions.springBoot}"
+    api "org.springframework.boot:spring-boot-starter-kafka:${versions.springBoot}"
     implementation "org.springframework.boot:spring-boot-starter-data-jpa:${versions.springBoot}"
 
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
