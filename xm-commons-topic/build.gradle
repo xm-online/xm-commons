@@ -12,7 +12,7 @@ dependencies {
     api project(":xm-commons-lep")
     api project(":xm-commons-logging-trace")
 
-    api "org.springframework.boot:spring-boot-starter-kafka"
+    api "org.springframework.boot:spring-boot-starter-kafka:${versions.springBoot}"
 
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
 
