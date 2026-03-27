@@ -13,6 +13,7 @@ dependencies {
 
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+    implementation "com.networknt:json-schema-validator:${versions.jsonSchemaValidatorVersion}"
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
 
     api 'org.springframework.security:spring-security-core'
