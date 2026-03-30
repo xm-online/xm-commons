@@ -5,20 +5,18 @@ import com.icthh.xm.commons.lep.api.LepExecutorResolver;
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import com.icthh.xm.commons.lep.spring.LepUpdateMode;
+import com.icthh.xm.commons.lep.utils.XmLepUtils;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.util.AntPathMatcher;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,12 +66,7 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
         String tenant = lepPathResolver.getTenantFromPath(updatedKey);
         scriptsByTenant.computeIfAbsent(tenant, (path) -> new ConcurrentHashMap<>());
 
-        if (StringUtils.isBlank(configContent)) {
-            scriptsByTenant.get(tenant).remove(updatedKey);
-        } else {
-            XmLepConfigFile xmLepConfigFile = new XmLepConfigFile(updatedKey, configContent);
-            scriptsByTenant.get(tenant).put(updatedKey, xmLepConfigFile);
-        }
+        XmLepUtils.addToScriptsByTenant(tenant, scriptsByTenant, updatedKey, configContent);
 
         refreshImmediatelyIfSynchronousMode(updatedKey);
     }
@@ -110,7 +103,7 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
                     return false;
                 }
 
-                Map<String, List<XmLepConfigFile>> configToUpdate = prepareConfigs(tenantsToUpdate);
+                Map<String, List<XmLepConfigFile>> configToUpdate = XmLepUtils.prepareConfigs(tenantsToUpdate, scriptsByTenant);
                 lepManagementService.refreshEngines(configToUpdate);
                 return true;
             } catch (Throwable e) {
@@ -118,24 +111,6 @@ public class XmLepScriptConfigServerResourceLoader implements RefreshableConfigu
                 return false;
             }
         });
-    }
-
-    private Map<String, List<XmLepConfigFile>> prepareConfigs(Set<String> tenantsToUpdate) {
-        Collection<XmLepConfigFile> envConfigs = getConfigByTenant(ENV_COMMONS);
-        Map<String, List<XmLepConfigFile>> configToUpdate = new HashMap<>();
-        tenantsToUpdate.forEach(tenant -> {
-            List<XmLepConfigFile> tenantConfigToUpdate = new ArrayList<>();
-            tenantConfigToUpdate.addAll(envConfigs);
-            tenantConfigToUpdate.addAll(getConfigByTenant(tenant));
-            // very important that we copy call collections before pass to thread
-            configToUpdate.put(tenant, tenantConfigToUpdate);
-        });
-        return configToUpdate;
-    }
-
-    private Collection<XmLepConfigFile> getConfigByTenant(String tenant) {
-        Map<String, XmLepConfigFile> configMap = scriptsByTenant.get(tenant);
-        return configMap == null ? List.of() : configMap.values();
     }
 
     private Set<String> getTenantsToUpdate(Collection<String> paths) {
