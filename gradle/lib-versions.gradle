@@ -38,13 +38,13 @@ ext.versions = [
 
     hibernate                  : '6.5.3.Final',
 
-    jjwt                       : '0.11.5',
+    jjwt                       : '0.13.0',
 
     mapstruct                  : '1.5.5.Final',
 
     hibernateTypes60           : '2.21.1',
 
-    groovyAll                  : '3.0.20',
+    groovyAll                  : '5.0.4',
 
     dropwizard                 : '4.2.25',
 

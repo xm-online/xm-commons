@@ -3,6 +3,24 @@ package com.icthh.xm.commons.lep.groovy.annotation;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.similarity.LevenshteinDistance;
+
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.util.Arrays.stream;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toSet;
+import static org.codehaus.groovy.ast.expr.ArgumentListExpression.EMPTY_ARGUMENTS;
+import static org.codehaus.groovy.control.CompilePhase.CANONICALIZATION;
+
 import org.codehaus.groovy.ast.ASTNode;
 import org.codehaus.groovy.ast.AnnotatedNode;
 import org.codehaus.groovy.ast.AnnotationNode;
@@ -27,25 +45,8 @@ import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.Token;
-import org.codehaus.groovy.transform.AbstractASTTransformation;
 import org.codehaus.groovy.transform.GroovyASTTransformation;
-
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static java.util.Arrays.stream;
-import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toSet;
-import static org.codehaus.groovy.ast.expr.ArgumentListExpression.EMPTY_ARGUMENTS;
-import static org.codehaus.groovy.control.CompilePhase.CANONICALIZATION;
+import org.codehaus.groovy.transform.AbstractASTTransformation;
 
 @Slf4j
 @GroovyASTTransformation(phase = CANONICALIZATION)
@@ -133,12 +134,12 @@ public class LepServiceTransformation extends AbstractASTTransformation {
 
         if (constructor.isPresent() && constructor.get().getParameters().length > 0) {
             ConstructorNode original = constructor.get();
-            var constructorStatements = new ArrayList<Statement>(statements);
+            var constructorStatements = new ArrayList<>(statements);
             constructorStatements.add(original.getCode());
             original.setCode(new BlockStatement(constructorStatements, new VariableScope()));
         } else if (constructor.isPresent() && constructor.get().getParameters().length == 0) {
             ConstructorNode original = constructor.get();
-            var constructorStatements = new ArrayList<Statement>(statements);
+            var constructorStatements = new ArrayList<>(statements);
             constructorStatements.add(original.getCode());
             generatedConstructor.setCode(new BlockStatement(constructorStatements, new VariableScope()));
             classNode.removeConstructor(constructor.get());

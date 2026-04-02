@@ -11,6 +11,7 @@ dependencies {
     api project(":xm-commons-logging-web")
     api 'org.springframework.security:spring-security-config'
     api 'org.springframework.security:spring-security-web'
+    api "com.github.ben-manes.caffeine:caffeine"
 
     api "io.jsonwebtoken:jjwt-api:${versions.jjwt}"
     api "io.jsonwebtoken:jjwt-impl:${versions.jjwt}"
