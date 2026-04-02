@@ -3,6 +3,7 @@ package com.icthh.xm.commons.domainevent.db.service.kafka;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.logging.LoggingAspectConfig;
@@ -52,8 +53,8 @@ public class SystemQueueConsumer {
         MdcUtils.putRid();
         try {
             log.info("Consume event from topic [{}]", message.topic());
-            ObjectMapper mapper = new ObjectMapper()
-               ;
+            ObjectMapper mapper = JsonMapper.builder()
+               .build();
             ;
             try {
                 SystemEvent event = mapper.readValue(message.value(), SystemEvent.class);

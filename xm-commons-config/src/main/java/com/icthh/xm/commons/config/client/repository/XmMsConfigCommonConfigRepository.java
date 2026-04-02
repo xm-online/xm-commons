@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.config.client.repository;
 
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.client.repository.message.ConfigPatternRequest;
@@ -61,7 +62,7 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final TenantContextHolder tenantContextHolder;
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = JsonMapper.builder().build();
 
     @Override
     public Map<String, Configuration> getConfig(String commit) {

@@ -2,6 +2,7 @@ package com.icthh.xm.commons.config.client.repository.kafka;
 
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.domain.ConfigEvent;
@@ -16,7 +17,7 @@ import org.springframework.retry.annotation.Retryable;
 @RequiredArgsConstructor
 public class ConfigTopicConsumer {
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = JsonMapper.builder().build();
 
     private final ConfigService configService;
 

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ public class PrivilegeEventProducer {
 
     private final KafkaTemplate<String, String> template;
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = JsonMapper.builder().build();
 
     @Value("${spring.application.name}")
     private String appName;

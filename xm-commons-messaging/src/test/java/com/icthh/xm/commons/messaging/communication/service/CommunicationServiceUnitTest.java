@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.messaging.communication.service;
 
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.icthh.xm.commons.messaging.communication.CommunicationMessage;
 import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantContextHolder;

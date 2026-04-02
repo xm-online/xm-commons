@@ -2,6 +2,7 @@ package com.icthh.xm.commons.utils;
 
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.icthh.xm.commons.domain.FunctionResult;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +15,7 @@ import java.util.Map;
 public class ModelAndViewUtils {
 
     public static final String MVC_FUNC_RESULT = "modelAndView";
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = JsonMapper.builder().build();
 
     public static ModelAndView getMvcResult(FunctionResult result) {
         if (result == null) {

@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.client.repository.message.ConfigPatternRequest;
@@ -64,7 +65,7 @@ public class CommonConfigRepositoryUnitTest {
     @Mock
     private TenantContextHolder tenantContextHolder;
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = JsonMapper.builder().build();
 
     @Before
     public void setUp() {
