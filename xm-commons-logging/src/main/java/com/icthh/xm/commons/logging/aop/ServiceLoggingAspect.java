@@ -1,7 +1,9 @@
 package com.icthh.xm.commons.logging.aop;
 
+import com.icthh.xm.commons.logging.LoggingAspectConfig;
 import com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
+import com.icthh.xm.commons.logging.util.AopAnnotationUtils;
 import com.icthh.xm.commons.logging.util.BasePackageDetector;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -82,10 +84,14 @@ public class ServiceLoggingAspect {
 
         StopWatch stopWatch = StopWatch.createStarted();
 
+        Level logLevel = AopAnnotationUtils.getConfigAnnotation(joinPoint)
+            .map(LoggingAspectConfig::logLevel)
+            .orElse(LoggingAspectConfig.DEFAULT_LOG_LEVEL);
+
         try {
-            logStart(joinPoint, config);
+            logStart(joinPoint, config, logLevel);
             Object result = joinPoint.proceed();
-            logStop(joinPoint, result, stopWatch, config);
+            logStop(joinPoint, result, stopWatch, config, logLevel);
             return result;
         } catch (Exception e) {
             logError(joinPoint, e, stopWatch);
@@ -100,12 +106,14 @@ public class ServiceLoggingAspect {
     }
 
 
-    private void logStart(final JoinPoint joinPoint, LogConfiguration config) {
+    private void logStart(final JoinPoint joinPoint, LogConfiguration config, Level logLevel) {
         String callMethod = getCallMethod(joinPoint);
         if (config == null) {
-            log.info(LOG_START_PATTERN,
-                     callMethod,
-                     printInputParams(joinPoint));
+            logWithLevel(log,
+                         logLevel,
+                         LOG_START_PATTERN,
+                         callMethod,
+                         printInputParams(joinPoint));
             return;
         }
 
@@ -113,20 +121,26 @@ public class ServiceLoggingAspect {
             return;
         }
 
+        Level configLogLevel = config.getLevel();
+        logLevel = configLogLevel != null ? configLogLevel : logLevel;
+
         logWithLevel(log,
-                     config.getLevel(),
+                     logLevel,
                      LOG_START_PATTERN,
                      callMethod,
                      printInputParams(joinPoint, config.getLogInput()));
     }
 
-    private void logStop(final JoinPoint joinPoint, final Object result, final StopWatch stopWatch, LogConfiguration config) {
+    private void logStop(final JoinPoint joinPoint, final Object result, final StopWatch stopWatch,
+                         LogConfiguration config, Level logLevel) {
         String callMethod = getCallMethod(joinPoint);
         if (config == null) {
-            log.info(LOG_STOP_PATTERN,
-                     callMethod,
-                     printResult(joinPoint, result),
-                     stopWatch.getTime(TimeUnit.MILLISECONDS));
+            logWithLevel(log,
+                         logLevel,
+                         LOG_STOP_PATTERN,
+                         callMethod,
+                         printResult(joinPoint, result),
+                         stopWatch.getTime(TimeUnit.MILLISECONDS));
             return;
         }
 
@@ -134,8 +148,11 @@ public class ServiceLoggingAspect {
             return;
         }
 
+        Level configLogLevel = config.getLevel();
+        logLevel = configLogLevel == null ? logLevel : configLogLevel;
+
         logWithLevel(log,
-                     config.getLevel(),
+                     logLevel,
                      LOG_STOP_PATTERN,
                      callMethod,
                      printResult(joinPoint, result, config.getLogResult()),
