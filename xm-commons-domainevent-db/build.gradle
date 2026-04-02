@@ -23,6 +23,9 @@ dependencies {
     implementation project(':xm-commons-lep')
     implementation project(':xm-commons-permission')
 
+    // Source: https://mvnrepository.com/artifact/tools.jackson.dataformat/jackson-dataformat-yaml
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml:3.1.1")
+
     implementation "org.springframework.retry:spring-retry"
 
     implementation "org.springframework.boot:spring-boot-starter-kafka:${versions.springBoot}"

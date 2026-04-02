@@ -1,13 +1,13 @@
 package com.icthh.xm.commons.config.client.repository;
 
-import static com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance;
+import static tools.jackson.databind.type.TypeFactory.createDefaultInstance;
 import static com.icthh.xm.commons.config.client.utils.RequestUtils.createAuthHeaders;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableSet;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
-import com.fasterxml.jackson.databind.type.MapType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.type.CollectionType;
+import tools.jackson.databind.type.MapType;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.domain.Configuration;
@@ -166,8 +166,8 @@ public class TenantListRepository implements RefreshableConfiguration {
      * @return Map with application name as a key and set of tenant states as a value.
      */
     public static Map<String, Set<TenantState>> parseTenantStates(String tenantListJson, ObjectMapper mapper) throws java.io.IOException {
-        CollectionType setType = defaultInstance().constructCollectionType(HashSet.class, TenantState.class);
-        MapType type = defaultInstance().constructMapType(HashMap.class, defaultInstance().constructType(String.class), setType);
+        CollectionType setType = createDefaultInstance().constructCollectionType(HashSet.class, TenantState.class);
+        MapType type = createDefaultInstance().constructMapType(HashMap.class, createDefaultInstance().constructType(String.class), setType);
         Map<String, Set<TenantState>> map = mapper.readValue(tenantListJson, type);
         return Optional.ofNullable(map).orElse(new HashMap<>());
     }

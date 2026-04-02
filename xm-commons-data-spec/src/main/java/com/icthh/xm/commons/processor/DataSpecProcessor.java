@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.processor;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import com.icthh.xm.commons.domain.DataSpec;
 import com.icthh.xm.commons.listener.JsonListenerService;
 import lombok.extern.slf4j.Slf4j;
@@ -85,7 +85,7 @@ public abstract class DataSpecProcessor<S extends DataSpec> extends SpecProcesso
                                                  Map<String, Object> definitions) {
         try {
             definitions.put(definitionKey, jsonMapper.readValue(specification, Map.class));
-        } catch (JsonProcessingException exception) {
+        } catch (JacksonException exception) {
             log.warn("Definition specification by key: {} couldn't be parsed: {}", definitionKey, exception.getMessage());
         }
     }

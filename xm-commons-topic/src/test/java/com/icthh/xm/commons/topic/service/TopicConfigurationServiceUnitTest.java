@@ -1,7 +1,8 @@
 package com.icthh.xm.commons.topic.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.topic.domain.DynamicConsumer;
 import com.icthh.xm.commons.topic.domain.TopicConsumersSpec;
 import com.icthh.xm.commons.topic.message.MessageHandler;
@@ -132,7 +133,9 @@ public class TopicConfigurationServiceUnitTest {
 
     @SneakyThrows
     private TopicConsumersSpec getTopicConsumerSpec(String content) {
-        return new ObjectMapper(new YAMLFactory()).readValue(content, TopicConsumersSpec.class);
+        return YAMLMapper.builder()
+                .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+                .build().readValue(content, TopicConsumersSpec.class);
     }
 
 }

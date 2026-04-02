@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.security.spring.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletRequest;

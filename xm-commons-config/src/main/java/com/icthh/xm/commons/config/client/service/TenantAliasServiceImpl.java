@@ -5,8 +5,10 @@ import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
@@ -20,7 +22,9 @@ import org.apache.commons.lang3.StringUtils;
 @Slf4j
 public class TenantAliasServiceImpl implements TenantAliasService {
 
-    private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    private final ObjectMapper mapper = YAMLMapper.builder()
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .build();
 
     // tenant list repository present to ensure that ms config is up and running
     public TenantAliasServiceImpl(CommonConfigRepository commonConfigRepository,
@@ -48,7 +52,7 @@ public class TenantAliasServiceImpl implements TenantAliasService {
             this.tenantAliasTree = tenantAliasTree;
             log.info("Tenant aliases inited");
             log.trace("Tenant aliases inited: {}", config);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             log.error("Error parse tenant alias config", e);
         }
     }

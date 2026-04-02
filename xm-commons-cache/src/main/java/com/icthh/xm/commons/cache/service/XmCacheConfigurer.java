@@ -1,8 +1,9 @@
 package com.icthh.xm.commons.cache.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.cache.config.XmTenantLepCacheConfig;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +24,9 @@ public class XmCacheConfigurer implements RefreshableConfiguration {
 
     private final AntPathMatcher matcher = new AntPathMatcher();
 
-    private final ObjectMapper ymlMapper = new ObjectMapper(new YAMLFactory());
+    private final ObjectMapper ymlMapper = YAMLMapper.builder()
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .build();
 
     public XmCacheConfigurer(@Value("${spring.application.name}") String appName,
                              ApplicationEventPublisher applicationEventPublisher) {

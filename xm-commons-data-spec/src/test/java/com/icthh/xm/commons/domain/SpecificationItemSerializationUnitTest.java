@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.domain;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,7 +13,7 @@ public class SpecificationItemSerializationUnitTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    void testMethodsAreIgnoredWhenSerializingToJson() throws JsonProcessingException {
+    void testMethodsAreIgnoredWhenSerializingToJson() throws JacksonException {
         TestSpecificationItem item = new TestSpecificationItem();
         item.setInputSpec("input-spec");
         item.setInputForm("input-form");
@@ -35,7 +35,7 @@ public class SpecificationItemSerializationUnitTest {
     }
 
     @Test
-    void testDeserialization() throws JsonProcessingException {
+    void testDeserialization() throws JacksonException {
         String json = """
         {
             "key": "test-key",

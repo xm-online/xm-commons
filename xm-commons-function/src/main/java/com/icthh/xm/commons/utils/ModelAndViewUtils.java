@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.utils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.domain.FunctionResult;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;

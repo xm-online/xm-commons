@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.service.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.config.client.service.TenantConfigService;
 import com.icthh.xm.commons.permission.service.AbstractDynamicPermissionCheckService;
 import com.icthh.xm.commons.permission.service.PermissionCheckService;

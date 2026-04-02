@@ -7,7 +7,7 @@ import static com.icthh.xm.commons.utils.YamlPatchUtils.key;
 import static com.icthh.xm.commons.utils.YamlPatchUtils.updateSequenceItem;
 import static java.util.Objects.nonNull;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 import com.icthh.xm.commons.config.FunctionApiSpecConfiguration;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.service.CommonConfigService;

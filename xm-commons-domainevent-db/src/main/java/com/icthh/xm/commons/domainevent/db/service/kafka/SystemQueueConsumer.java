@@ -1,8 +1,9 @@
 package com.icthh.xm.commons.domainevent.db.service.kafka;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.logging.LoggingAspectConfig;
 import com.icthh.xm.commons.logging.util.MdcUtils;
@@ -52,8 +53,8 @@ public class SystemQueueConsumer {
         try {
             log.info("Consume event from topic [{}]", message.topic());
             ObjectMapper mapper = new ObjectMapper()
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            mapper.registerModule(new JavaTimeModule());
+               ;
+            ;
             try {
                 SystemEvent event = mapper.readValue(message.value(), SystemEvent.class);
 
@@ -67,7 +68,7 @@ public class SystemQueueConsumer {
 
                 systemConsumerService.acceptSystemEvent(event);
 
-            } catch (IOException e) {
+            } catch (JacksonException e) {
                 log.error("System queue message has incorrect format: '{}'", message.value(), e);
             }
         } finally {

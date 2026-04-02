@@ -15,6 +15,12 @@ dependencies {
 
     implementation "org.springframework.boot:spring-boot-starter-web:${versions.springBoot}"
 
+    // Source: https://mvnrepository.com/artifact/tools.jackson.dataformat/jackson-dataformat-yaml
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml:3.1.1")
+    // Source: https://mvnrepository.com/artifact/tools.jackson.core/jackson-core
+    implementation("tools.jackson.core:jackson-core:3.1.1")
+
+
     api 'com.jayway.jsonpath:json-path'
 
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"

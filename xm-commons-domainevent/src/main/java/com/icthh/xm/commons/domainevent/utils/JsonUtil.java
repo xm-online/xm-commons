@@ -1,13 +1,13 @@
 package com.icthh.xm.commons.domainevent.utils;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.ObjectReadContext;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.IOException;
 
 @Slf4j
 @UtilityClass
@@ -28,9 +28,9 @@ public class JsonUtil {
         if (json == null) {
             return values;
         }
-        try (JsonParser jParser = jsonFactory.createParser(json)) {
+        try (JsonParser jParser = jsonFactory.createParser(ObjectReadContext.empty(), json)) {
             while (jParser.nextToken() != JsonToken.END_OBJECT && !jParser.isClosed()) {
-                String fieldName = jParser.getCurrentName();
+                String fieldName = jParser.currentName();
 
                 if (fieldName == null) {
                     continue;
@@ -62,7 +62,7 @@ public class JsonUtil {
                     extractFromInnerLevel(jParser, values);
                 }
             }
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             log.trace(e.getMessage(), e);
         }
         return values;
@@ -72,7 +72,7 @@ public class JsonUtil {
     private void extractFromInnerLevel(JsonParser jParser, String[] result) {
         jParser.nextToken();
         while (jParser.nextToken() != JsonToken.END_OBJECT) {
-            String innerFieldName = jParser.getCurrentName();
+            String innerFieldName = jParser.currentName();
 
             if (result[ID] == null && ID_FIELD_NAME.equals(innerFieldName)) {
                 jParser.nextToken();

@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.processor.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import com.icthh.xm.commons.domain.DataSpec;
 import com.icthh.xm.commons.domain.DefinitionSpec;
 import com.icthh.xm.commons.domain.FormSpec;
@@ -153,7 +153,7 @@ public class FormSpecProcessorUnitTest {
         jsonListenerService.processTenantSpecification(TEST_TENANT,"json-forms/employeeForm.json", "{,}");
         formSpecProcessor.fullUpdateStateByTenant(TEST_TENANT, BASE_SPEC_KEY, inputBaseSpec.getForms());
 
-        assertThrows(JsonProcessingException.class, () ->
+        assertThrows(JacksonException.class, () ->
             formSpecProcessor.processDataSpec(TEST_TENANT, BASE_SPEC_KEY, itemSpec::setInputFormSpec, itemSpec::getInputFormSpec)
         );
     }

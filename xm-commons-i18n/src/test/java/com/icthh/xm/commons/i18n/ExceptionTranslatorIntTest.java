@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.i18n;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.exceptions.ErrorConstants;
 import com.icthh.xm.commons.i18n.config.MessageSourceConfig;
 import com.icthh.xm.commons.i18n.config.MockXmAuthenticationContextConfiguration;

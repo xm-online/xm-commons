@@ -3,7 +3,7 @@ package com.icthh.xm.commons.web.rest;
 import static org.springframework.http.HttpStatus.CREATED;
 
 import com.codahale.metrics.annotation.Timed;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.domain.FunctionSpecWithFileName;
 import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.commons.service.FunctionManageService;

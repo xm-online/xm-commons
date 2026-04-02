@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.domain.TestBaseSpecification;
 import com.icthh.xm.commons.domain.TestSpecificationItem;
 import lombok.SneakyThrows;

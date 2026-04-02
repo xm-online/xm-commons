@@ -1,8 +1,8 @@
 package com.icthh.xm.commons.config.client.repository.kafka;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+
 import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.domain.ConfigEvent;
 import com.icthh.xm.commons.logging.util.MdcUtils;
@@ -12,15 +12,11 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 
-import java.io.IOException;
-
 @Slf4j
 @RequiredArgsConstructor
 public class ConfigTopicConsumer {
 
-    private final ObjectMapper mapper = new ObjectMapper()
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .registerModule(new JavaTimeModule());
+    private final ObjectMapper mapper = new ObjectMapper();
 
     private final ConfigService configService;
 
@@ -42,7 +38,7 @@ public class ConfigTopicConsumer {
                 log.info("Process event from topic [{}], event_id ='{}', commit: '{}'",
                     message.topic(), event.getEventId(), event.getCommit());
                 configService.updateConfigurations(event.getCommit(), event.getPaths());
-            } catch (IOException e) {
+            } catch (JacksonException e) {
                 log.error("Config topic message has incorrect format: '{}'", message.value(), e);
             }
         } finally {
