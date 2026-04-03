@@ -6,9 +6,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+
 import com.icthh.xm.commons.messaging.event.system.SystemEvent;
 import com.icthh.xm.commons.permission.domain.Privilege;
 import com.icthh.xm.commons.permission.domain.mapper.PrivilegeMapper;
@@ -25,6 +26,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * The {@link PrivilegeEventProducerUnitTest} class.
@@ -73,10 +75,11 @@ public class PrivilegeEventProducerUnitTest {
      */
     private static class SysEventPrivilegeMatcher implements ArgumentMatcher<String> {
 
-        private final ObjectMapper jsonMapper = new ObjectMapper()
-            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-            .registerModule(new JavaTimeModule());
+        private final JsonMapper jsonMapper = JsonMapper.builder()
+                .changeDefaultPropertyInclusion(incl ->
+                        incl.withValueInclusion(JsonInclude.Include.NON_NULL)
+                )
+                .build();
 
         private final String privilegeKey;
         private final String appName;
@@ -89,7 +92,7 @@ public class PrivilegeEventProducerUnitTest {
         private SystemEvent toEvent(String str) {
             try {
                 return jsonMapper.readValue(str, SystemEvent.class);
-            } catch (IOException e) {
+            } catch (JacksonException e) {
                 throw new IllegalStateException(e);
             }
         }

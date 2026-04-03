@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.messaging.communication.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.messaging.communication.CommunicationMessage;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.topic.service.KafkaTemplateService;

@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.i18n;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.exceptions.ErrorConstants;
 import com.icthh.xm.commons.i18n.config.MessageSourceConfig;
 import com.icthh.xm.commons.i18n.config.MockXmAuthenticationContextConfiguration;
@@ -29,6 +29,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.nio.charset.Charset;
 import java.util.Optional;
+import tools.jackson.databind.json.JsonMapper;
 
 import static com.icthh.xm.commons.i18n.ExceptionTranslatorTestController.DEFAULT_MESSAGE;
 import static com.icthh.xm.commons.i18n.ExceptionTranslatorTestController.MY_CUSTOM_MESSAGE;
@@ -150,7 +151,7 @@ public class ExceptionTranslatorIntTest {
     @Test
     public void testFieldValidationError() throws Exception {
         mockMvc.perform(post("/test/field-validation-error")
-            .content(new ObjectMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
+            .content(JsonMapper.builder().build().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
             .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_VALIDATION))
@@ -163,7 +164,7 @@ public class ExceptionTranslatorIntTest {
     @Test
     public void testClassValidationError() throws Exception {
         mockMvc.perform(post("/test/class-validation-error")
-            .content(new ObjectMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
+            .content(JsonMapper.builder().build().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
             .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_VALIDATION))
@@ -187,7 +188,7 @@ public class ExceptionTranslatorIntTest {
     @Test
     public void testDefaultClassValidationError() throws Exception {
         mockMvc.perform(post("/test/default-message-class-validation-error")
-                            .content(new ObjectMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
+                            .content(JsonMapper.builder().build().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
                             .contentType(MediaType.APPLICATION_JSON_VALUE))
                .andExpect(status().isBadRequest())
                .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_VALIDATION))
@@ -201,7 +202,7 @@ public class ExceptionTranslatorIntTest {
     @Test
     public void testCustomMessageTestClassValidation() throws Exception {
         mockMvc.perform(post("/test/custom-message-class-validation-error")
-                            .content(new ObjectMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
+                            .content(JsonMapper.builder().build().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
                             .contentType(MediaType.APPLICATION_JSON_VALUE))
                .andExpect(status().isBadRequest())
                .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_VALIDATION))

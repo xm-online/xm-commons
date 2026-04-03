@@ -3,9 +3,11 @@ package com.icthh.xm.commons.i18n.spring.service;
 import static com.icthh.xm.commons.i18n.I18nConstants.LANGUAGE;
 import static com.icthh.xm.commons.tenant.TenantContextUtils.getTenantKey;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.i18n.spring.config.LocalizationMessageProperties;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
@@ -50,7 +52,9 @@ public class LocalizationMessageService implements RefreshableConfiguration {
      */
     private final ConcurrentHashMap<String, Map<String, Map<Locale, String>>> tenantLocalizedMessageConfig = new ConcurrentHashMap<>();
     private final AntPathMatcher matcher = new AntPathMatcher();
-    private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    private final ObjectMapper mapper = YAMLMapper.builder()
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+            .build();
 
     /**
      * Finds localized message template by code and current locale from config. If not found it
@@ -118,7 +122,7 @@ public class LocalizationMessageService implements RefreshableConfiguration {
                                 new TypeReference<Map<String, Map<Locale, String>>>() {});
                 tenantLocalizedMessageConfig.put(tenant, localizedMessages);
                 log.info("Localized error messages for tenant {} was updated", tenant);
-            } catch (IOException e) {
+            } catch (JacksonException e) {
                 throw new IllegalStateException("Error while reading config by path: {}" + key, e);
             }
         }

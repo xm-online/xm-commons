@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.scheduler.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.ObjectMapper;
+
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.scheduler.domain.ScheduledEvent;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 
 import java.util.Base64;
+import tools.jackson.databind.json.JsonMapper;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.endsWith;
@@ -52,7 +53,7 @@ public class SchedulerEventHandlerFacade implements MessageHandler {
     }
 
     private ObjectMapper initObjectMapper() {
-        return new ObjectMapper().registerModule(new JavaTimeModule());
+        return JsonMapper.builder().build();
     }
 
     @SneakyThrows

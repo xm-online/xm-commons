@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.domain.spec.FunctionApiSpecs;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
@@ -9,6 +9,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.InputStream;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -20,8 +21,8 @@ public class FunctionSpecReaderUtils {
 
     @SneakyThrows
     public static FunctionApiSpecs loadFunctionApiSpecByFile(String name) {
-        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        return mapper.readValue(loadFile("config/functions/" + name + ".yml"), FunctionApiSpecs.class);
+        return YAMLMapper.builder().build()
+                .readValue(loadFile("config/functions/" + name + ".yml"), FunctionApiSpecs.class);
     }
 
     @SneakyThrows

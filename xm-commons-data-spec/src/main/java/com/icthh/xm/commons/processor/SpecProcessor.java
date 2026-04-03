@@ -1,7 +1,9 @@
 package com.icthh.xm.commons.processor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.domain.DataSpec;
 import com.icthh.xm.commons.listener.JsonListenerService;
 import lombok.SneakyThrows;
@@ -34,8 +36,10 @@ public abstract class SpecProcessor<S extends DataSpec> implements ISpecProcesso
     public SpecProcessor(JsonListenerService jsonListenerService) {
         this.jsonListenerService = jsonListenerService;
         this.matcher = new AntPathMatcher();
-        this.jsonMapper = new ObjectMapper();
-        this.ymlMapper = new ObjectMapper(new YAMLFactory());
+        this.jsonMapper = JsonMapper.builder().build();
+        this.ymlMapper = YAMLMapper.builder()
+                .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+                .build();
     }
 
     public abstract String getSectionName();
@@ -44,8 +48,8 @@ public abstract class SpecProcessor<S extends DataSpec> implements ISpecProcesso
 
     @SneakyThrows
     protected Set<String> findDataSpecReferencesByPattern(String dataSpec, String refPattern) {
-        return new ObjectMapper().readTree(dataSpec)
-            .findValuesAsText(REF)
+        return JsonMapper.builder().build().readTree(dataSpec)
+            .findValuesAsString(REF)
             .stream()
             .filter(value -> matcher.matchStart(refPattern, value))
             .collect(Collectors.toSet());

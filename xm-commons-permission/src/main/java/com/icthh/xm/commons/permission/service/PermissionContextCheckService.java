@@ -1,9 +1,9 @@
 package com.icthh.xm.commons.permission.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.lep.api.LepAdditionalContext;
 import com.icthh.xm.commons.lep.api.LepAdditionalContextField;
@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import java.net.URI;
 import java.util.Map;
 import java.util.TreeMap;
+import tools.jackson.databind.json.JsonMapper;
 
 import static com.icthh.xm.commons.config.client.config.XmRestTemplateConfiguration.XM_CONFIG_REST_TEMPLATE;
 import static com.icthh.xm.commons.config.client.utils.RequestUtils.createAuthHeaders;
@@ -41,9 +42,7 @@ public class PermissionContextCheckService implements LepAdditionalContext<Permi
 
     public PermissionContextCheckService(@Qualifier(XM_CONFIG_REST_TEMPLATE) RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
-        this.objectMapper = new ObjectMapper()
-            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-            .registerModule(new JavaTimeModule());
+        this.objectMapper = JsonMapper.builder().build();
     }
 
     public boolean hasPermission(String permission) {

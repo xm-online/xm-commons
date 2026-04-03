@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.utils;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.icthh.xm.commons.domain.spec.IFunctionSpec;
 import com.icthh.xm.commons.swagger.model.BodyContent;
 import com.icthh.xm.commons.swagger.model.SwaggerContent;
@@ -55,14 +55,14 @@ public class SwaggerGeneratorUtils {
             return true;
         }
 
-        if (field.getValue().has("type") && field.getValue().get("type").asText().equals("object")) {
+        if (field.getValue().has("type") && field.getValue().get("type").asString().equals("object")) {
             log.warn("Object in query parameters is not supported");
             return true;
         }
 
-        if (field.getValue().has("type") && field.getValue().get("type").asText().equals("array")) {
+        if (field.getValue().has("type") && field.getValue().get("type").asString().equals("array")) {
             JsonNode items = field.getValue().get("items");
-            if (items.has("type") && items.get("type").asText().equals("object")) {
+            if (items.has("type") && items.get("type").asString().equals("object")) {
                 log.warn("Array of objects in query parameters is not supported");
                 return true;
             }

@@ -1,11 +1,12 @@
 package com.icthh.xm.commons.service.exporter;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SequenceWriter;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.StreamWriteFeature;
+import tools.jackson.databind.ObjectWriter;
+import tools.jackson.databind.SequenceWriter;
+import tools.jackson.dataformat.csv.CsvMapper;
+import tools.jackson.dataformat.csv.CsvSchema;
+
 import com.icthh.xm.commons.domain.BaseRow;
 import com.icthh.xm.commons.service.FunctionExecutorService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -84,9 +85,8 @@ public class CvsExportService<T extends BaseRow> extends AbstractExportServiceIm
     }
 
     private static CsvMapper buildCsvMapper() {
-        CsvMapper mapper = new CsvMapper();
-        mapper.configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true);
-        mapper.registerModule(new JavaTimeModule());
-        return mapper;
+        return CsvMapper.builder()
+                .configure(StreamWriteFeature.IGNORE_UNKNOWN, true)
+                .build();
     }
 }

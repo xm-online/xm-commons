@@ -3,9 +3,14 @@ package com.icthh.xm.commons.utils;
 import static java.lang.Math.abs;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static tools.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
+import tools.jackson.dataformat.yaml.YAMLGenerator;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +34,12 @@ import org.snakeyaml.engine.v2.nodes.SequenceNode;
 @Slf4j
 public class YamlPatchUtils {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+    private static final ObjectMapper objectMapper = YAMLMapper.builder()
+            .changeDefaultPropertyInclusion(incl ->
+                    incl.withValueInclusion(JsonInclude.Include.NON_NULL)
+            )
+            .disable(SORT_PROPERTIES_ALPHABETICALLY)
+            .build();
 
     public static String addObject(String yamlText, Object value, List<YamlPatchPattern> path) {
         var rootNode = loadYamlNode(yamlText);

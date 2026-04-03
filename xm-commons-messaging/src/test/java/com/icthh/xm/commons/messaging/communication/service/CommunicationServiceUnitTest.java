@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.messaging.communication.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.icthh.xm.commons.messaging.communication.CommunicationMessage;
 import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
@@ -28,7 +29,7 @@ public class CommunicationServiceUnitTest {
     private CommunicationService subject;
     private TenantContextHolder tenantContextHolder;
     private KafkaTemplateService kafkaTemplateService;
-    private ObjectMapper mapper = new ObjectMapper();
+    private ObjectMapper mapper = JsonMapper.builder().build();
 
     @Before
     public void setup() {

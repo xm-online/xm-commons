@@ -1,8 +1,8 @@
 package com.icthh.xm.commons.config.client.repository;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.client.repository.message.ConfigPatternRequest;
 import com.icthh.xm.commons.config.client.repository.message.ConfigurationUpdateMessage;
@@ -62,9 +62,7 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final TenantContextHolder tenantContextHolder;
 
-    private final ObjectMapper mapper = new ObjectMapper()
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .registerModule(new JavaTimeModule());
+    private final ObjectMapper mapper = JsonMapper.builder().build();
 
     @Override
     public Map<String, Configuration> getConfig(String commit) {

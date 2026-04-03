@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 import com.icthh.xm.commons.domain.FunctionSpecWithFileName;
 import com.icthh.xm.commons.domain.spec.IFunctionSpec;
 

@@ -1,8 +1,9 @@
 package com.icthh.xm.commons.config;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.domain.BaseSpecification;
 import com.icthh.xm.commons.enums.SpecPathPatternEnum;
@@ -45,7 +46,9 @@ public abstract class DataSpecificationService<S extends BaseSpecification> impl
         this.specType = specType;
         this.jsonListenerService = jsonListenerService;
         this.specProcessingService = specProcessingService;
-        this.objectMapper = new ObjectMapper(new YAMLFactory());
+        this.objectMapper = YAMLMapper.builder()
+                .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+                .build();
         this.specsByTenant = new ConcurrentHashMap<>();
         this.specFilesByTenant = new ConcurrentHashMap<>();
     }
@@ -68,7 +71,7 @@ public abstract class DataSpecificationService<S extends BaseSpecification> impl
         }
     }
 
-    private void processYmlSpec(String tenant, String updatedKey, String config) throws JsonProcessingException {
+    private void processYmlSpec(String tenant, String updatedKey, String config) throws JacksonException {
         if (StringUtils.isBlank(config)) {
             specFilesByTenant.get(tenant).remove(updatedKey);
             specsByTenant.get(tenant).remove(updatedKey);

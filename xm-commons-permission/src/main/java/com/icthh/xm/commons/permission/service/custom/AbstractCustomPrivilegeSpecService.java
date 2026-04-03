@@ -1,10 +1,9 @@
 package com.icthh.xm.commons.permission.service.custom;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectWriter;
+import tools.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.config.client.api.refreshable.ConfigWithKey;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
@@ -21,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.LinkedHashMap;
+import tools.jackson.dataformat.yaml.YAMLWriteFeature;
 
 import static com.icthh.xm.commons.config.client.repository.TenantConfigRepository.PATH_CONFIG_TENANT;
 import static java.util.Comparator.comparing;
@@ -33,7 +33,9 @@ public abstract class AbstractCustomPrivilegeSpecService implements CustomPrivil
     private static final String TENANT_NAME = "tenantName";
     private static final String CUSTOMER_PRIVILEGES_PATH = PATH_CONFIG_TENANT + "custom-privileges.yml";
 
-    private final YAMLFactory yamlFactory = new YAMLFactory().enable(YAMLGenerator.Feature.USE_PLATFORM_LINE_BREAKS);
+    private final YAMLFactory yamlFactory = YAMLFactory.builder()
+            .enable(YAMLWriteFeature.SPLIT_LINES)
+            .build();
 
     private final ObjectMapper mapper = new ObjectMapper(yamlFactory);
 

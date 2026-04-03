@@ -1,7 +1,8 @@
 package com.icthh.xm.commons.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.domain.TestBaseSpecification;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
@@ -20,7 +21,9 @@ public class TestReadSpecUtils {
 
     @SneakyThrows
     public static TestBaseSpecification loadBaseSpecByFileName(String name) {
-        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        ObjectMapper mapper = YAMLMapper.builder()
+                .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+                .build();
         return mapper.readValue(loadBaseSpecFileByName(name), TestBaseSpecification.class);
     }
 

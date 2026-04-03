@@ -11,5 +11,8 @@ dependencies {
     api project(":xm-commons-config")
     api "org.springframework.boot:spring-boot-starter-mail"
 
+    // Source: https://mvnrepository.com/artifact/tools.jackson.dataformat/jackson-dataformat-yaml
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml:3.1.1")
+
     testImplementation 'junit:junit'
 }

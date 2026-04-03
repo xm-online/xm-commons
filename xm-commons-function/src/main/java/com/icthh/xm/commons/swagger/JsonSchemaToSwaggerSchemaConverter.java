@@ -1,9 +1,10 @@
 package com.icthh.xm.commons.swagger;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.fasterxml.jackson.databind.node.JsonNodeFactory.instance;
+import static tools.jackson.databind.node.JsonNodeFactory.instance;
 import static com.icthh.xm.commons.utils.DataSpecConstants.DEFINITIONS;
 import static com.icthh.xm.commons.utils.DataSpecConstants.XM_DEFINITION;
 import static java.util.stream.Collectors.toList;
@@ -60,7 +61,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
     }
 
     public JsonSchemaToSwaggerSchemaConverter(String definitionSectionName, Set<String> definitionPrefixes) {
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = JsonMapper.builder().build();
         this.definitionSectionName = definitionSectionName;
         this.definitionPrefixes = definitionPrefixes;
     }
@@ -129,7 +130,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
             });
         } else if (json.isObject()) {
             convert(parent, fieldName, json, convertElement);
-            json.fields().forEachRemaining(it -> {
+            json.properties().iterator().forEachRemaining(it -> {
                 traverseSchema(json, it.getKey(), it.getValue(), convertElement);
             });
         }
@@ -154,7 +155,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
     }
 
     private void fixArrayDeclarations(ObjectNode object) {
-        if (object.has("type") && object.get("type").asText().equals("array")
+        if (object.has("type") && object.get("type").asString().equals("array")
             && object.has("items") && object.get("items").isArray() && object.get("items").size() == 1) {
             object.set("items", object.get("items").get(0));
         }
@@ -185,7 +186,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
             allOf = schema.putArray("allOf");
         }
 
-        deps.fields().forEachRemaining(entry -> {
+        deps.properties().iterator().forEachRemaining(entry -> {
             String key = entry.getKey();
             JsonNode value = entry.getValue();
 
@@ -215,7 +216,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
         }
 
         boolean schemaHasRefAndPropsOnOneLevel = schema.has("$ref") && schema.has("properties")
-            && schema.has("type") && schema.get("type").asText().equals("object");
+            && schema.has("type") && schema.get("type").asString().equals("object");
 
         if (!schemaHasRefAndPropsOnOneLevel) {
             return;
@@ -234,9 +235,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
             return;
         }
         List<String> toRewrite = new ArrayList<>();
-        Iterator<String> fieldNames = json.fieldNames();
-        while (fieldNames.hasNext()) {
-            String fieldName = fieldNames.next();
+        for (String fieldName : json.propertyNames()) {
             if (!supportedKeywords.contains(fieldName) && !fieldName.startsWith("x-")) {
                 toRewrite.add(fieldName);
             }
@@ -245,7 +244,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
     }
 
     private boolean insideProperties(JsonNode parent, String parentFieldName) {
-        return parentFieldName.equals("properties") && parent.has("type") && parent.get("type").asText().equals("object");
+        return parentFieldName.equals("properties") && parent.has("type") && parent.get("type").asString().equals("object");
     }
 
     private void processDefinitions(String typeName, ObjectNode json,
@@ -260,7 +259,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
 
         traverseSchema(instance.nullNode(), typeName, json, (parent, fieldName, object) -> {
             if (object.has("$ref")) {
-                String ref = object.get("$ref").asText();
+                String ref = object.get("$ref").asString();
                 Optional<String> definitionField = definitionPrefixes.stream().map(it -> "#/" + it + "/").filter(ref::startsWith).findFirst();
                 if (definitionField.isEmpty()) {
                     return;
@@ -269,7 +268,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
                 JsonNode currentNode = readByPath(ref, objectDefinitions);
                 String definitionName = getDefinitionName(typeName, originalDefinitions, typePath, currentNode);
                 if (currentNode != null && currentNode.isObject()) {
-                    ObjectNode definitionNode = currentNode.deepCopy();
+                    ObjectNode definitionNode = (ObjectNode) currentNode.deepCopy();
                     definitions.put(definitionName, definitionNode);
                     originalDefinitions.put(definitionName, definitionNode.deepCopy());
                     object.put("$ref", COMPONENTS_SCHEMAS + definitionName);
@@ -332,7 +331,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
             return;
         }
         if (type.has("$ref")) {
-            String ref = type.get("$ref").asText();
+            String ref = type.get("$ref").asString();
             if (definitionPrefixes.stream().map(it -> "#/" + it + "/").noneMatch(ref::startsWith)) {
                 throw new BusinessException("error.invalid.json.type.ref", "Invalid ref: " + ref,
                     Map.of("json", typeBlock.toString(), "fieldName", fieldName));
@@ -341,15 +340,15 @@ public class JsonSchemaToSwaggerSchemaConverter {
         }
         if (type.isArray()) {
             type.forEach(it -> {
-                if (!validTypes.contains(it.asText())) {
-                    throw new BusinessException("error.invalid.json.type", "Invalid type: " + it.asText(),
+                if (!validTypes.contains(it.asString())) {
+                    throw new BusinessException("error.invalid.json.type", "Invalid type: " + it.asString(),
                         Map.of("json", typeBlock.toString(), "fieldName", fieldName));
                 }
             });
             return;
         }
-        if (!validTypes.contains(type.asText())) {
-            throw new BusinessException("error.invalid.json.type", "Invalid type: " + type.asText(),
+        if (!validTypes.contains(type.asString())) {
+            throw new BusinessException("error.invalid.json.type", "Invalid type: " + type.asString(),
                 Map.of("json", typeBlock.toString(), "fieldName", fieldName));
         }
     }
@@ -362,22 +361,22 @@ public class JsonSchemaToSwaggerSchemaConverter {
 
         validateTypes(parent, fieldName, json);
 
-        if (type.isNull() || type.asText().equals("null")) {
+        if (type.isNull() || type.asString().equals("null")) {
             json.remove("type");
             json.put("nullable", true);
             return json;
         }
 
-        if (type.asText().equals("array") && !json.has("items")) {
+        if (type.asString().equals("array") && !json.has("items")) {
             json.putObject("items");
         }
 
         if (type.isArray()) {
             ArrayNode typeArrayNode = (ArrayNode) type;
-            Iterator<JsonNode> elements = typeArrayNode.elements();
+            Iterator<JsonNode> elements = typeArrayNode.elements().iterator();
             while (elements.hasNext()) {
                 var it = elements.next();
-                if (it.isNull() || it.asText().equals("null")) {
+                if (it.isNull() || it.asString().equals("null")) {
                     elements.remove();
                     json.put("nullable", true);
                 }
@@ -388,7 +387,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
             } else if (typeArrayNode.size() == 1) {
                 json.set("type", typeArrayNode.get(0));
             } else if (typeArrayNode.size() > 1) {
-                List<JsonNode> items = IteratorUtils.toList(typeArrayNode.elements());
+                List<JsonNode> items = IteratorUtils.toList(typeArrayNode.elements().iterator());
                 var types = items.stream().map(it -> object("type", it)).collect(toList());
                 json.set("anyOf", array(types));
                 json.remove("type");
@@ -426,7 +425,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
 
     private void rewriteExclusiveMinMax(ObjectNode json) {
         if (json.has("type") && (
-            json.get("type").asText().equals("number") || json.get("type").asText().equals("integer")
+            json.get("type").asString().equals("number") || json.get("type").asString().equals("integer")
         )) {
             if (json.has("exclusiveMinimum") && json.get("exclusiveMinimum").isNumber()) {
                 json.set("minimum", json.get("exclusiveMinimum"));
@@ -466,9 +465,9 @@ public class JsonSchemaToSwaggerSchemaConverter {
         }
 
         if (jsonNode.has("$ref")) {
-            inlineRef(jsonNode.get("$ref").asText(), (ObjectNode) jsonNode, definitions);
+            inlineRef(jsonNode.get("$ref").asString(), (ObjectNode) jsonNode, definitions);
         } else if (jsonNode.has("properties") && jsonNode.get("properties").has("$ref")) {
-            inlineRef(jsonNode.get("properties").get("$ref").asText(), (ObjectNode) jsonNode.get("properties"), definitions);
+            inlineRef(jsonNode.get("properties").get("$ref").asString(), (ObjectNode) jsonNode.get("properties"), definitions);
         }
     }
 
@@ -484,7 +483,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
         }
 
         var refObject = (ObjectNode) refNode;
-        refObject.fields().forEachRemaining(entry -> {
+        refObject.properties().iterator().forEachRemaining(entry -> {
             jsonNode.set(entry.getKey(), entry.getValue().deepCopy());
         });
     }
