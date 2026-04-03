@@ -1,5 +1,7 @@
 package com.icthh.xm.commons.logging;
 
+import com.icthh.xm.commons.logging.util.LogObjectPrinter.Level;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -16,6 +18,7 @@ public @interface LoggingAspectConfig {
     boolean DEFAULT_INPUT_COLLECTION_AWARE = false;
     boolean DEFAULT_RESULT_DETAILS = true;
     boolean DEFAULT_RESULT_COLLECTION_AWARE = true;
+    Level DEFAULT_LOG_LEVEL = Level.INFO;
 
     /**
      * If set prints method input parameters. Otherwise '#hidden#' string will be printed.
@@ -63,4 +66,9 @@ public @interface LoggingAspectConfig {
      */
     boolean resultCollectionAware() default DEFAULT_RESULT_COLLECTION_AWARE;
 
+    /**
+     * Logging level for method execution.
+     * * Default: INFO
+     */
+    Level logLevel() default Level.INFO;
 }
