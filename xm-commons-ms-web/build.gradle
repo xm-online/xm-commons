@@ -11,6 +11,7 @@ dependencies {
     api project(":xm-commons-logging-web")
     api project(":xm-commons-tenant")
     api project(":xm-commons-config")
+    api project(":xm-commons-lep-groovy")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation "tools.jackson.datatype:jackson-datatype-hibernate7"

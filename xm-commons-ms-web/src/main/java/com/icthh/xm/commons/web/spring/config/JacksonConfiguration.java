@@ -1,9 +1,12 @@
 package com.icthh.xm.commons.web.spring.config;
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.icthh.xm.commons.lep.groovy.config.GStringJsonSerializer;
+import groovy.lang.GString;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 import tools.jackson.datatype.hibernate7.Hibernate7Module;
 
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -36,9 +39,13 @@ public class JacksonConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(ObjectMapper.class)
-    public ObjectMapper objectMapper() {
+    public ObjectMapper objectMapper(GStringJsonSerializer gStringJsonSerializer) {
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(GString.class, gStringJsonSerializer);
+
         return JsonMapper.builder()
                 .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+                .addModule(module)
                 .build();
     }
 
