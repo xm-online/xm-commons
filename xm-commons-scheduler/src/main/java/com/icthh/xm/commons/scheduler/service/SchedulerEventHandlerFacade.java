@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 
 import java.util.Base64;
+import tools.jackson.databind.json.JsonMapper;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.endsWith;
@@ -52,7 +53,7 @@ public class SchedulerEventHandlerFacade implements MessageHandler {
     }
 
     private ObjectMapper initObjectMapper() {
-        return new ObjectMapper();
+        return JsonMapper.builder().build();
     }
 
     @SneakyThrows

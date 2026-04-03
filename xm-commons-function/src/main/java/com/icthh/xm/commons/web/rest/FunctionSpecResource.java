@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * The {@link FunctionSpecResource} class.
@@ -44,7 +45,7 @@ public class FunctionSpecResource {
     private final FunctionSpecService functionSpecService;
     private final AbstractFunctionService<?> functionService;
     private final FunctionManageService<?, FunctionSpecWithFileName<?>> functionManageService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
     @GetMapping(value = "/functions/dataschemas", produces = MediaType.APPLICATION_JSON_VALUE)
     @Timed

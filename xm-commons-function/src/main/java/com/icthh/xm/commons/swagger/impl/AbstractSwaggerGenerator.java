@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ObjectNode;
 
 import static com.icthh.xm.commons.utils.Constants.POST_URLENCODED;
@@ -47,7 +48,7 @@ public abstract class AbstractSwaggerGenerator implements SwaggerGenerator {
     private final JsonSchemaToSwaggerSchemaConverter jsonSchemaConverter;
     private final Map<String, Object> definitions = new LinkedHashMap<>();
     private final Map<String, Object> originalDefinitions = new LinkedHashMap<>();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.builder().build();
     private final DynamicSwaggerConfiguration configuration;
 
     public AbstractSwaggerGenerator(String baseUrl, DynamicSwaggerConfiguration configuration,

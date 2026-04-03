@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -41,7 +42,7 @@ public class AssertionUtils {
 
     @SneakyThrows
     public static void assertJsonEquals(String expected, String actual) {
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = JsonMapper.builder().build();
         assertFalse(expected == null && actual != null);
         assertFalse(expected != null && actual == null);
         if (expected != null) {

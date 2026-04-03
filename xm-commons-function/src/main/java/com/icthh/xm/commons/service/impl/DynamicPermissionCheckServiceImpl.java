@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Optional;
+import tools.jackson.databind.json.JsonMapper;
 
 import static com.icthh.xm.commons.utils.Constants.FUNCTIONS;
 import static com.icthh.xm.commons.utils.Constants.TENANT_CONFIG_DYNAMIC_CHECK_ENABLED;
@@ -25,7 +26,7 @@ public class DynamicPermissionCheckServiceImpl extends AbstractDynamicPermission
                                              TenantConfigService tenantConfigService) {
         super(permissionCheckService, xmAuthenticationContextHolder);
         this.tenantConfigService = tenantConfigService;
-        this.mapper = new ObjectMapper();
+        this.mapper = JsonMapper.builder().build();
     }
 
 

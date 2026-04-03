@@ -29,7 +29,7 @@ public class CommunicationServiceUnitTest {
     private CommunicationService subject;
     private TenantContextHolder tenantContextHolder;
     private KafkaTemplateService kafkaTemplateService;
-    private ObjectMapper mapper = new ObjectMapper();
+    private ObjectMapper mapper = JsonMapper.builder().build();
 
     @Before
     public void setup() {

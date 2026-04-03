@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.support.SimpleTransactionScope;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.mockito.Mockito.mock;
 
@@ -62,6 +63,6 @@ public class TestLepTestConfig extends GroovyLepEngineConfiguration {
 
     @Bean
     public ObjectMapper objectMapper() {
-        return new ObjectMapper();
+        return JsonMapper.builder().build();
     }
 }

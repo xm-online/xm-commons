@@ -6,6 +6,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableSet;
 
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.type.CollectionType;
 import tools.jackson.databind.type.MapType;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
@@ -39,7 +40,7 @@ public class TenantListRepository implements RefreshableConfiguration {
 
     private static final String SUSPENDED_STATE = "SUSPENDED";
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
     private final RestTemplate restTemplate;
 
