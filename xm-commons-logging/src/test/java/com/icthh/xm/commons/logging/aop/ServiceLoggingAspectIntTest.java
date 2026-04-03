@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.logging.aop;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
@@ -48,42 +49,31 @@ public class ServiceLoggingAspectIntTest {
 
     @Test
     public void shouldUseLogLevelFromAnnotation() {
-        Logger logger = (Logger) LoggerFactory.getLogger(ServiceLoggingAspect.class);
+        List<ILoggingEvent> logs = captureLogs(() -> service.testMethod("input"));
 
-        logger.setLevel(ch.qos.logback.classic.Level.DEBUG);
-
-        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
-        listAppender.start();
-        logger.addAppender(listAppender);
-
-        service.testMethod("input");
-
-        List<ILoggingEvent> logsList = listAppender.list;
-
-        assertTrue(
-            logsList.stream()
-                .anyMatch(event ->
-                    event.getLevel() == ch.qos.logback.classic.Level.DEBUG &&
-                        event.getFormattedMessage().contains("srv:start")
-                )
-        );
+        assertTrue(logs.stream()
+            .anyMatch(event ->
+                event.getLevel() == Level.DEBUG && event.getFormattedMessage().contains("srv:start")));
     }
 
     @Test
     public void shouldUseDefaultLogLevelWhenAnnotationMissing() {
+        List<ILoggingEvent> logs = captureLogs(() -> service.testDefault("input"));
+
+        assertTrue(logs.stream()
+            .anyMatch(event -> event.getLevel() == Level.INFO));
+    }
+
+    private List<ILoggingEvent> captureLogs(Runnable serviceCall) {
         Logger logger = (Logger) LoggerFactory.getLogger(ServiceLoggingAspect.class);
+        logger.setLevel(Level.DEBUG);
 
         ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
         listAppender.start();
         logger.addAppender(listAppender);
 
-        service.testDefault("input");
+        serviceCall.run();
 
-        List<ILoggingEvent> logsList = listAppender.list;
-
-        assertTrue(
-            logsList.stream()
-                .anyMatch(event -> event.getLevel() == ch.qos.logback.classic.Level.INFO)
-        );
+        return listAppender.list;
     }
 }

@@ -39,23 +39,20 @@ public class RestLoggingAspectIntTest {
     void shouldLogWhenNoIgnoreAnnotation() {
         testController.normalEndpoint();
 
-        verify(loggingConfigService, atLeastOnce())
-            .getApiLoggingConfig(any(), any(), any());
+        verify(loggingConfigService, atLeastOnce()).getApiLoggingConfig(any(), any(), any());
     }
 
     @Test
     void shouldNotLogWhenMethodHasIgnoreAnnotation() {
         testController.ignoredMethod();
 
-        verify(loggingConfigService, never())
-            .getApiLoggingConfig(any(), any(), any());
+        verify(loggingConfigService, never()).getApiLoggingConfig(any(), any(), any());
     }
 
     @Test
     void shouldNotLogWhenClassHasIgnoreAnnotation() {
         ignoredClassController.endpoint();
 
-        verify(loggingConfigService, never())
-            .getApiLoggingConfig(any(), any(), any());
+        verify(loggingConfigService, never()).getApiLoggingConfig(any(), any(), any());
     }
 }
