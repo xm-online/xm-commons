@@ -13,7 +13,6 @@ dependencies {
     api project(":xm-commons-config")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("tools.jackson.datatype:jackson-datatype-jsr310:3.0.0-rc2")
     implementation "tools.jackson.datatype:jackson-datatype-hibernate7"
     implementation "org.springframework.cloud:spring-cloud-commons"
     api "jakarta.servlet:jakarta.servlet-api"
