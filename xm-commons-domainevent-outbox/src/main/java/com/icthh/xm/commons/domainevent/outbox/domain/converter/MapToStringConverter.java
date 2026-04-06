@@ -21,7 +21,6 @@ public class MapToStringConverter implements AttributeConverter<Map<String, Obje
     private final ObjectMapper mapper = JsonMapper.builder().build();
 
     public MapToStringConverter() {
-        ;
     }
 
     @Override
