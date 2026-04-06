@@ -3,7 +3,9 @@ package com.icthh.xm.commons.web.spring.config;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.icthh.xm.commons.lep.groovy.config.GStringJsonSerializer;
 import groovy.lang.GString;
+import org.springframework.context.annotation.Primary;
 import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JacksonModule;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.module.SimpleModule;
@@ -33,19 +35,23 @@ public class JacksonConfiguration {
      */
 
     @Bean
+    public JacksonModule gStringModule(GStringJsonSerializer serializer) {
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(GString.class, serializer);
+        return module;
+    }
+
+    @Bean
     public Hibernate7Module hibernate7Module() {
         return new Hibernate7Module();
     }
 
     @Bean
     @ConditionalOnMissingBean(ObjectMapper.class)
-    public ObjectMapper objectMapper(GStringJsonSerializer gStringJsonSerializer) {
-        SimpleModule module = new SimpleModule();
-        module.addSerializer(GString.class, gStringJsonSerializer);
-
+    public ObjectMapper objectMapper(JacksonModule gStringModule) {
         return JsonMapper.builder()
                 .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-                .addModule(module)
+                .addModules(gStringModule)
                 .build();
     }
 
