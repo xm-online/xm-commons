@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.permission.service.custom;
 
 import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.ObjectWriter;
 import tools.jackson.dataformat.yaml.YAMLFactory;
@@ -20,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.LinkedHashMap;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 import tools.jackson.dataformat.yaml.YAMLWriteFeature;
 
 import static com.icthh.xm.commons.config.client.repository.TenantConfigRepository.PATH_CONFIG_TENANT;
@@ -33,11 +35,9 @@ public abstract class AbstractCustomPrivilegeSpecService implements CustomPrivil
     private static final String TENANT_NAME = "tenantName";
     private static final String CUSTOMER_PRIVILEGES_PATH = PATH_CONFIG_TENANT + "custom-privileges.yml";
 
-    private final YAMLFactory yamlFactory = YAMLFactory.builder()
-            .enable(YAMLWriteFeature.SPLIT_LINES)
+    private final ObjectMapper mapper = YAMLMapper.builder()
+            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
             .build();
-
-    private final ObjectMapper mapper = new ObjectMapper(yamlFactory);
 
     private final CommonConfigRepository commonConfigRepository;
 
