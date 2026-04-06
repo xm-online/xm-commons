@@ -16,9 +16,9 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-web:${versions.springBoot}"
 
     // Source: https://mvnrepository.com/artifact/tools.jackson.dataformat/jackson-dataformat-yaml
-    implementation("tools.jackson.dataformat:jackson-dataformat-yaml:3.1.1")
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
     // Source: https://mvnrepository.com/artifact/tools.jackson.core/jackson-core
-    implementation("tools.jackson.core:jackson-core:3.1.1")
+    implementation("tools.jackson.core:jackson-core")
 
 
     api 'com.jayway.jsonpath:json-path'

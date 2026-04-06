@@ -15,7 +15,7 @@ dependencies {
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
 
     // Source: https://mvnrepository.com/artifact/tools.jackson.dataformat/jackson-dataformat-csv
-    implementation("tools.jackson.dataformat:jackson-dataformat-csv:3.1.1")
+    implementation("tools.jackson.dataformat:jackson-dataformat-csv")
 
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-csv"
     implementation "com.codahale.metrics:metrics-annotation:${versions.codahaleMetrics}"

@@ -13,7 +13,7 @@ dependencies {
     api project(":xm-commons-logging-trace")
 
     // Source: https://mvnrepository.com/artifact/tools.jackson.dataformat/jackson-dataformat-yaml
-    implementation("tools.jackson.dataformat:jackson-dataformat-yaml:3.1.1")
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
 
     api "org.springframework.boot:spring-boot-starter-kafka:${versions.springBoot}"
 

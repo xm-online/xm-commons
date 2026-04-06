@@ -22,7 +22,7 @@ dependencies {
     api "org.apache.commons:commons-text:${versions.commonsText}"
 
     // Source: https://mvnrepository.com/artifact/tools.jackson.dataformat/jackson-dataformat-yaml
-    implementation("tools.jackson.dataformat:jackson-dataformat-yaml:3.1.1")
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
 
     testImplementation "jakarta.servlet:jakarta.servlet-api"
     testImplementation 'junit:junit'

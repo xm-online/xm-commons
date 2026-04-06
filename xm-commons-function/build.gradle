@@ -15,10 +15,10 @@ dependencies {
 
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
 
-    implementation "tools.jackson.core:jackson-databind:3.0.0"
-    implementation("tools.jackson.module:jackson-module-jsonSchema:3.1.1")
+    implementation "tools.jackson.core:jackson-databind"
+    implementation("tools.jackson.module:jackson-module-jsonSchema:${versions.toolJacksonVersion}")
     // Source: https://mvnrepository.com/artifact/tools.jackson.dataformat/jackson-dataformat-yaml
-    implementation("tools.jackson.dataformat:jackson-dataformat-yaml:3.1.1")
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
 
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.module:jackson-module-afterburner'

@@ -14,7 +14,7 @@ dependencies {
 
     api "jakarta.servlet:jakarta.servlet-api"
     // Source: https://mvnrepository.com/artifact/tools.jackson.dataformat/jackson-dataformat-yaml
-    implementation("tools.jackson.dataformat:jackson-dataformat-yaml:3.1.1")
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
 
     implementation 'org.springframework:spring-context'
     implementation 'org.springframework:spring-context-support'
