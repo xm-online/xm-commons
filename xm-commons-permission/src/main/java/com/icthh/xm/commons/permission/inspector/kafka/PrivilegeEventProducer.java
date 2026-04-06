@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.permission.inspector.kafka;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
@@ -26,7 +27,10 @@ public class PrivilegeEventProducer {
 
     private final KafkaTemplate<String, String> template;
 
-    private final ObjectMapper mapper = JsonMapper.builder().build();
+    private final ObjectMapper mapper = JsonMapper.builder()
+            .changeDefaultPropertyInclusion(incl ->
+                    incl.withValueInclusion(JsonInclude.Include.NON_NULL))
+            .build();
 
     @Value("${spring.application.name}")
     private String appName;

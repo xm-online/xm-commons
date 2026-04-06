@@ -192,7 +192,7 @@ public class FormSpecProcessor extends SpecProcessor<FormSpec> {
             ObjectNode objectNode = (ObjectNode) fromSpecNode;
             Map<String, JsonNode> objectMap = copyToMap(objectNode.properties().iterator());
             JsonNode keyNode = objectMap.get(KEY);
-            if (keyNode != null && keyNode.isValueNode()) {
+            if (keyNode != null) {
                 objectNode.put(KEY, prefix + '.' + keyNode.asText());
             } else if (objectMap.containsKey(REF)) {
                 objectNode.put(KEY, prefix);

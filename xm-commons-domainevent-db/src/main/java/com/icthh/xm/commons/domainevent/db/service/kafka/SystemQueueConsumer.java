@@ -19,8 +19,6 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-
 @Slf4j
 @Service
 public class SystemQueueConsumer {
@@ -54,8 +52,8 @@ public class SystemQueueConsumer {
         try {
             log.info("Consume event from topic [{}]", message.topic());
             ObjectMapper mapper = JsonMapper.builder()
-               .build();
-            ;
+                    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    .build();
             try {
                 SystemEvent event = mapper.readValue(message.value(), SystemEvent.class);
 

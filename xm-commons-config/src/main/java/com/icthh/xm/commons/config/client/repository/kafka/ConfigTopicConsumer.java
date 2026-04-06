@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.config.client.repository.kafka;
 
 import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -17,7 +18,9 @@ import org.springframework.retry.annotation.Retryable;
 @RequiredArgsConstructor
 public class ConfigTopicConsumer {
 
-    private final ObjectMapper mapper = JsonMapper.builder().build();
+    private final ObjectMapper mapper = JsonMapper.builder()
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
 
     private final ConfigService configService;
 

@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -65,7 +66,9 @@ public class CommonConfigRepositoryUnitTest {
     @Mock
     private TenantContextHolder tenantContextHolder;
 
-    private final ObjectMapper mapper = JsonMapper.builder().build();
+    private final ObjectMapper mapper = JsonMapper.builder()
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
 
     @Before
     public void setUp() {

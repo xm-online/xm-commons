@@ -7,9 +7,6 @@ import static tools.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALL
 
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.yaml.YAMLMapper;
-import tools.jackson.dataformat.yaml.YAMLGenerator;
-import tools.jackson.databind.MapperFeature;
-import tools.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import java.util.ArrayList;
@@ -35,9 +32,6 @@ import org.snakeyaml.engine.v2.nodes.SequenceNode;
 public class YamlPatchUtils {
 
     private static final ObjectMapper objectMapper = YAMLMapper.builder()
-            .changeDefaultPropertyInclusion(incl ->
-                    incl.withValueInclusion(JsonInclude.Include.NON_NULL)
-            )
             .disable(SORT_PROPERTIES_ALPHABETICALLY)
             .build();
 
