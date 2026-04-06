@@ -28,7 +28,7 @@ public class JsonValidationUtils {
     private final ObjectMapper objectMapper = YAMLMapper.builder()
             .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
             .build();
-    private final SchemaRegistry factory = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_4);
+    private final SchemaRegistry factory = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12);
 
     public static Set<Error> validateJson(Map<String, Object> data, Schema schema) {
         Set<Error> errors = validate(data, schema);
