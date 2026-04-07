@@ -2,6 +2,7 @@ package com.icthh.xm.commons.web.spring.config;
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.util.List;
+import tools.jackson.core.StreamReadFeature;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -39,7 +40,8 @@ public class JacksonConfiguration {
     @ConditionalOnMissingBean(ObjectMapper.class)
     public ObjectMapper objectMapper(List<JsonMapperBuilderCustomizer> customizers) {
         JsonMapper.Builder jsonBuilder = JsonMapper.builder()
-                .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+                .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+                        .enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION);
 
         customizers.forEach(c -> c.customize(jsonBuilder));
 

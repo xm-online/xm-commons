@@ -149,7 +149,7 @@ public class FormSpecProcessor extends SpecProcessor<FormSpec> {
             objectNode.remove(KEY);
         }
 
-        String refPath = firstNonNull(refNode, ymlMapper.createObjectNode()).asString("{}");
+        String refPath = firstNonNull(refNode, ymlMapper.createObjectNode()).asString("");
         String formSpec = specifications.getOrDefault(refPath, "{}");
         var fromSpecNode = this.convertSpecificationToObjectNodes(formSpec, refPath);
         processFromSpecNode(fromSpecNode, keyNode.isValueNode() ? keyNode.asString() : "");
