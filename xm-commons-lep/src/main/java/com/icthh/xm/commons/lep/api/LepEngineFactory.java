@@ -12,4 +12,6 @@ public abstract class LepEngineFactory {
     private final String appName;
 
     public abstract LepEngine createLepEngine(String tenant, List<XmLepConfigFile> configInLepFolder);
+
+    public abstract LepEngine createLepEngine(String tenant, List<XmLepConfigFile> configInLepFolder, String targetDirectoryPath);
 }
