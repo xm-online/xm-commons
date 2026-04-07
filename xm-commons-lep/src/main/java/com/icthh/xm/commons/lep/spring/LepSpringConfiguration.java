@@ -30,6 +30,7 @@ import com.icthh.xm.lep.api.LepManager;
 import com.icthh.xm.lep.core.CoreLepManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -76,16 +77,18 @@ public class LepSpringConfiguration {
 
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
-    @ConditionalOnMissingBean(XmLepScriptConfigServerResourceLoader.class)
+    @ConditionalOnProperty(name = "application.lep.precompiled-mode", havingValue = "false", matchIfMissing = true)
     public XmLepScriptConfigServerResourceLoader cfgResourceLoader(LepPathResolver lepPathResolver,
                                                                    LepManagementService lepManagementService,
                                                                    LepUpdateMode lepUpdateMode,
-                                                                   TenantContextHolder tenantContextHolder) {
+                                                                   TenantContextHolder tenantContextHolder,
+                                                                   LepRefreshService lepRefreshService) {
         return new XmLepScriptConfigServerResourceLoader(
             lepPathResolver,
             lepManagementService,
             lepUpdateMode,
-            tenantContextHolder
+            tenantContextHolder,
+            lepRefreshService
         );
     }
 

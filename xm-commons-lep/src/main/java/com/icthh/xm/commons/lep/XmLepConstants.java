@@ -43,6 +43,16 @@ public final class XmLepConstants {
      */
     public static final String SCRIPT_ANY_TYPE_KEY = "_ANY_";
 
+    /**
+     * LEP folder name for sources scripts.
+     */
+    public static final String SCRIPT_SOURCES_DIR = "sources";
+
+    /**
+     * LEP folder name for compiled scripts.
+     */
+    public static final String SCRIPT_COMPILED_DIR = "compiled";
+
     private XmLepConstants() {
         throw new UnsupportedOperationException("Prevent creation for constructor utils class");
     }
