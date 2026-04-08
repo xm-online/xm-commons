@@ -39,12 +39,13 @@ public class LepCompiler {
 
     private static final String LEP_PATH_PATTERN = "/config/tenants/*/%s/lep/**";
     private static final String ENV_LEP_PATH_PATTERN = "/config/tenants/" + ENV_COMMONS + "/lep/**";
+    private static final String EXPORT_PROFILE = "export";
 
     public static void main(String[] args) {
         new LepCompiler().execute(args);
     }
 
-    protected void execute(String[] args) {
+    public void execute(String[] args) {
         if (args.length != 2) {
             log.error("Usage: java LepCompiler <path-to-config-export.zip> <path-to-output>");
             System.exit(1);
@@ -81,7 +82,15 @@ public class LepCompiler {
         }
     }
 
-    protected static Map<String, Map<String, XmLepConfigFile>> readLepFilesFromZip(TenantAliasService tenantAliasService,
+    public ConfigurableApplicationContext createContext() {
+        SpringApplication app = new SpringApplication(LepCompilerConfiguration.class);
+        app.setWebApplicationType(org.springframework.boot.WebApplicationType.NONE);
+        app.setAdditionalProfiles(EXPORT_PROFILE);
+        app.setListeners(List.of(new EnvironmentPostProcessorApplicationListener()));
+        return app.run();
+    }
+
+    private static Map<String, Map<String, XmLepConfigFile>> readLepFilesFromZip(TenantAliasService tenantAliasService,
                                                                                    String zipPath,
                                                                                    String msName) throws IOException {
         AntPathMatcher pathMatcher = new AntPathMatcher();
@@ -125,14 +134,14 @@ public class LepCompiler {
         return segments[3];
     }
 
-    protected static String resolveOutputPath(String path, String msName) {
+    private static String resolveOutputPath(String path, String msName) {
         File file = new File(path);
         return file.isDirectory()
             ? new File(file, msName + "-compiled-lep.zip").getAbsolutePath()
             : path;
     }
 
-    protected static void writeSources(Map<String, List<XmLepConfigFile>> prepared, Path workDir) throws IOException {
+    private static void writeSources(Map<String, List<XmLepConfigFile>> prepared, Path workDir) throws IOException {
         for (Map.Entry<String, List<XmLepConfigFile>> entry : prepared.entrySet()) {
             String tenant = entry.getKey();
             for (XmLepConfigFile lep : entry.getValue()) {
@@ -146,15 +155,7 @@ public class LepCompiler {
         }
     }
 
-    protected ConfigurableApplicationContext createContext() {
-        SpringApplication app = new SpringApplication(LepCompilerConfiguration.class);
-        app.setWebApplicationType(org.springframework.boot.WebApplicationType.NONE);
-        app.setAdditionalProfiles("export");
-        app.setListeners(List.of(new EnvironmentPostProcessorApplicationListener()));
-        return app.run();
-    }
-
-    protected void preCompileAllTenants(String appName,
+    private void preCompileAllTenants(String appName,
                                         ConfigurableApplicationContext ctx,
                                         Map<String, List<XmLepConfigFile>> prepared,
                                         Path workDir) throws IOException {
@@ -190,7 +191,7 @@ public class LepCompiler {
         }
     }
 
-    protected static void zipDirectory(Path sourceDir, String outputPath) throws IOException {
+    private static void zipDirectory(Path sourceDir, String outputPath) throws IOException {
         Path outputFile = Paths.get(outputPath).toAbsolutePath().normalize();
 
         try (
