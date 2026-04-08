@@ -207,7 +207,7 @@ public abstract class AbstractSwaggerGenerator implements SwaggerGenerator {
         variablesInPath.forEach(variable -> {
             if (jsonNode.has("properties") && jsonNode.get("properties").has(variable)) {
                 ObjectNode object = (ObjectNode) jsonNode.get("properties");
-                tools.jackson.databind.JsonNode variableSchema = object.remove(variable);
+                JsonNode variableSchema = object.remove(variable);
                 Map<String, Object> schema = convertToMap(variableSchema);
                 parameters.put(variable, new SwaggerParameter(variable, true, schema));
             } else {
