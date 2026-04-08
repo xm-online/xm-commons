@@ -28,9 +28,13 @@ strategy implementation.
 
 Caches declared with `strategy: "REDIS"` are backed by Spring Data Redis.
 The Redis support is bundled directly into this module (previously a separate
-subproject) — `spring-boot-starter-data-redis` is an **optional** (`compileOnly`)
-dependency, so add it to your application's runtime classpath to enable the
-Redis strategy. The Redis auto-configuration is gated by both
+subproject). `spring-data-redis` and `lettuce-core` are pulled in transitively
+as `api` dependencies — no extra dependency is required in the consumer app.
+
+Note: this module intentionally does **not** depend on
+`spring-boot-starter-data-redis`, so Spring Boot's `RedisAutoConfiguration` is
+**not** activated. The Redis connection factory is created only by this
+module's own auto-configuration, gated by
 `@ConditionalOnClass(RedisConnectionFactory)` and the property below.
 
 Enable it via:
