@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.stereotype.Service;
 
+import static com.icthh.xm.commons.lep.utils.XmLepUtils.prepareConfigs;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @Slf4j
@@ -51,7 +52,7 @@ public class LepRefreshServiceImpl implements LepRefreshService {
                     return false;
                 }
 
-                Map<String, List<XmLepConfigFile>> configToUpdate = XmLepUtils.prepareConfigs(tenantsToUpdate, scriptsByTenant);
+                Map<String, List<XmLepConfigFile>> configToUpdate = prepareConfigs(tenantsToUpdate, scriptsByTenant);
                 if (StringUtils.isNotBlank(pathToWorkingDirectory)) {
                     lepManagementService.refreshEngines(configToUpdate, pathToWorkingDirectory);
                 } else {
