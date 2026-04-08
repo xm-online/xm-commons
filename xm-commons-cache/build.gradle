@@ -23,10 +23,6 @@ dependencies {
     implementation "commons-io:commons-io:${versions.commonsIo}"
     implementation "com.github.ben-manes.caffeine:caffeine:${versions.caffeine}"
 
-    api 'org.springframework.data:spring-data-redis'
-    api 'io.lettuce:lettuce-core'
-
-    testImplementation 'org.springframework.boot:spring-boot-starter-data-redis'
     testImplementation 'junit:junit'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.hamcrest:hamcrest-library'
