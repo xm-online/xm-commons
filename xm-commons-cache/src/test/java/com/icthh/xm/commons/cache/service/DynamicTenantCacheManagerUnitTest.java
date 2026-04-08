@@ -54,7 +54,7 @@ public class DynamicTenantCacheManagerUnitTest {
         try {
             dispatcher.getCache(TenantCacheManager.buildKey(TENANT, "missing"));
             fail("Expected IllegalStateException");
-        } catch (NullPointerException expected) {
+        } catch (IllegalStateException expected) {
             // ok
         }
     }
@@ -74,7 +74,7 @@ public class DynamicTenantCacheManagerUnitTest {
         try {
             dispatcher.getCache(TenantCacheManager.buildKey(TENANT, "c1"));
             fail("Expected IllegalStateException for unmapped strategy");
-        } catch (NullPointerException expected) {
+        } catch (IllegalStateException expected) {
             // ok
         }
         assertEquals(0, dispatcher.getCacheNames().size());
