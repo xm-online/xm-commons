@@ -23,6 +23,11 @@ dependencies {
     implementation "commons-io:commons-io:${versions.commonsIo}"
     implementation "com.github.ben-manes.caffeine:caffeine:${versions.caffeine}"
 
+    // Redis strategy is optional — Redis classes are loaded only when
+    // spring-data-redis is present on the runtime classpath of the consumer.
+    compileOnly 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-data-redis'
     testImplementation 'junit:junit'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.hamcrest:hamcrest-library'

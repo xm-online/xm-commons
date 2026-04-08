@@ -29,7 +29,7 @@ public class TenantAwareCacheManagerUnitTest {
         DynamicCaffeineCacheManager c = new DynamicCaffeineCacheManager(Ticker.systemTicker());
         XmTenantLepCacheConfig.XmCacheConfiguration tcache = CacheUtilityClass.buildCfg("tcache");
         InitCachesEvent e = new InitCachesEvent(this, TENANT, List.of(tcache));
-        c.onApplicationEvent(e);
+        c.applyTenantConfig(e);
         cth.getPrivilegedContext().destroyCurrentContext();
         TenantContextUtils.setTenant(cth, TENANT);
         cacheManager = new TenantAwareCacheManager(c, cth);
@@ -52,7 +52,7 @@ public class TenantAwareCacheManagerUnitTest {
         DynamicCaffeineCacheManager c = new DynamicCaffeineCacheManager(Ticker.systemTicker());
         XmTenantLepCacheConfig.XmCacheConfiguration tcache = CacheUtilityClass.buildCfg("tcache");
         InitCachesEvent e = new InitCachesEvent(this, TENANT, List.of(tcache));
-        c.onApplicationEvent(e);
+        c.applyTenantConfig(e);
         cth.getPrivilegedContext().destroyCurrentContext();
         TenantContextUtils.setTenant(cth, TENANT);
         cacheManager = new TenantAwareCacheManager(c, cth);
@@ -71,7 +71,7 @@ public class TenantAwareCacheManagerUnitTest {
         DynamicCaffeineCacheManager c = new DynamicCaffeineCacheManager(Ticker.systemTicker());
         XmTenantLepCacheConfig.XmCacheConfiguration tcache = CacheUtilityClass.buildCfg("tcache");
         InitCachesEvent e = new InitCachesEvent(this, TENANT, List.of(tcache));
-        c.onApplicationEvent(e);
+        c.applyTenantConfig(e);
         cth.getPrivilegedContext().destroyCurrentContext();
         TenantContextUtils.setTenant(cth, TENANT);
         cacheManager = new TenantAwareCacheManager(c, cth);
@@ -98,7 +98,7 @@ public class TenantAwareCacheManagerUnitTest {
         DynamicCaffeineCacheManager c = new DynamicCaffeineCacheManager(Ticker.systemTicker());
         XmTenantLepCacheConfig.XmCacheConfiguration tcache = CacheUtilityClass.buildCfg("tcache");
         InitCachesEvent e = new InitCachesEvent(this, TENANT, List.of(tcache));
-        c.onApplicationEvent(e);
+        c.applyTenantConfig(e);
         cth.getPrivilegedContext().destroyCurrentContext();
         TenantContextUtils.setTenant(cth, TENANT);
         cacheManager = new TenantAwareCacheManager(c, cth);

@@ -26,7 +26,7 @@ public class DynamicCaffeineCacheManagerUnitTest {
         dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker());
         XmTenantLepCacheConfig.XmCacheConfiguration c = CacheUtilityClass.buildCfg("tcache");
         InitCachesEvent e = new InitCachesEvent(this, "test", List.of(c));
-        dynamicCaffeineCacheManager.onApplicationEvent(e);
+        dynamicCaffeineCacheManager.applyTenantConfig(e);
         org.springframework.cache.Cache cache = dynamicCaffeineCacheManager.getCache(TenantCacheManager.buildKey("TEST", "tcache"));
         assertNotNull(cache);
     }
@@ -36,7 +36,7 @@ public class DynamicCaffeineCacheManagerUnitTest {
         dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker());
         XmTenantLepCacheConfig.XmCacheConfiguration c = CacheUtilityClass.buildCfg("tcache");
         InitCachesEvent e = new InitCachesEvent(this, "test", List.of(c));
-        dynamicCaffeineCacheManager.onApplicationEvent(e);
+        dynamicCaffeineCacheManager.applyTenantConfig(e);
         org.springframework.cache.Cache cache1 = dynamicCaffeineCacheManager.getCache(TenantCacheManager.buildKey("TEST", "tcache"));
         assertNotNull(cache1);
         org.springframework.cache.Cache cache2  = dynamicCaffeineCacheManager.getCache(TenantCacheManager.buildKey("TEST", "tcache"));
@@ -49,6 +49,17 @@ public class DynamicCaffeineCacheManagerUnitTest {
         dynamicCaffeineCacheManager.createNativeCaffeineCache("test");
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void ignoresRedisStrategyEntries() {
+        dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker());
+        XmTenantLepCacheConfig.XmCacheConfiguration c = CacheUtilityClass.buildCfg("rcache");
+        c.setStrategy("REDIS");
+        InitCachesEvent e = new InitCachesEvent(this, "test", List.of(c));
+        dynamicCaffeineCacheManager.applyTenantConfig(e);
+        // Caffeine should not have registered this entry → getCache throws
+        dynamicCaffeineCacheManager.getCache(TenantCacheManager.buildKey("TEST", "rcache"));
+    }
+
     @Test
     public void createCacheObject() {
         dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker());
@@ -56,7 +67,7 @@ public class DynamicCaffeineCacheManagerUnitTest {
         XmTenantLepCacheConfig.XmCacheConfiguration c = CacheUtilityClass.buildCfg("tcache");
 
         InitCachesEvent e = new InitCachesEvent(this, "test", List.of(c));
-        dynamicCaffeineCacheManager.onApplicationEvent(e);
+        dynamicCaffeineCacheManager.applyTenantConfig(e);
         Cache<Object, Object> test = dynamicCaffeineCacheManager.createNativeCaffeineCache(TenantCacheManager.buildKey("TEST", "tcache"));
         assertNotNull(test);
     }
