@@ -38,7 +38,7 @@ public class JacksonConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(ObjectMapper.class)
-    public ObjectMapper objectMapper(List<JsonMapperBuilderCustomizer> customizers) {
+    public JsonMapper objectMapper(List<JsonMapperBuilderCustomizer> customizers) {
         JsonMapper.Builder jsonBuilder = JsonMapper.builder()
                 .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
                         .enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION);
