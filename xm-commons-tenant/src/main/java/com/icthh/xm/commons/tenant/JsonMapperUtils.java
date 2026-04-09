@@ -6,10 +6,15 @@ import tools.jackson.databind.json.JsonMapper;
 
 public class JsonMapperUtils {
 
-    public static ObjectMapper getDefaultJsonMapper() {
+    public static ObjectMapper getJsonMapperWithIgnore() {
         return JsonMapper.builder()
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                 .build();
+    }
+
+
+    public static ObjectMapper getDefaultJsonMapper() {
+        return JsonMapper.builder().build();
     }
 
 }
