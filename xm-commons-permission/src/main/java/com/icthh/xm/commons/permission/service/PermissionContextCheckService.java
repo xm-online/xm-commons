@@ -2,7 +2,6 @@ package com.icthh.xm.commons.permission.service;
 
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.SerializationFeature;
 import com.icthh.xm.commons.tenant.JsonMapperUtils;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
