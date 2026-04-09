@@ -1,9 +1,9 @@
 package com.icthh.xm.commons.swagger.impl;
 
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ObjectNode;
 import com.icthh.xm.commons.config.swagger.DynamicSwaggerConfiguration;
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 import com.icthh.xm.commons.domain.DefaultFunctionResult;
 import com.icthh.xm.commons.swagger.JsonSchemaToSwaggerSchemaConverter;
 import com.icthh.xm.commons.swagger.model.ApiMethod;
@@ -17,7 +17,7 @@ import tools.jackson.module.jsonSchema.JsonSchemaGenerator;
 
 public class DefaultSwaggerGenerator extends AbstractSwaggerGenerator {
 
-    private final ObjectMapper objectMapper = JsonMapper.builder().build();
+    private final ObjectMapper objectMapper = JsonMapperUtils.getDefaultJsonMapper();
 
     public DefaultSwaggerGenerator(String baseUrl, DynamicSwaggerConfiguration configuration) {
         super(baseUrl, configuration, new JsonSchemaToSwaggerSchemaConverter());

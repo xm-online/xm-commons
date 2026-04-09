@@ -2,9 +2,8 @@ package com.icthh.xm.commons.permission.domain.mapper;
 
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.MapperFeature;
-import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.permission.domain.Permission;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -20,9 +19,7 @@ import java.util.TreeSet;
 @Slf4j
 public class PermissionMapper {
 
-    private final ObjectMapper mapper = YAMLMapper.builder()
-            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-            .build();
+    private final ObjectMapper mapper = YamlMapperUtils.yamlDefaultMapper();
 
     /**
      * Convert permissions collection to yml string.

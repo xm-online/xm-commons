@@ -1,10 +1,9 @@
 package com.icthh.xm.commons.config.swagger;
 
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.MapperFeature;
-import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -39,9 +38,7 @@ public class DynamicSwaggerRefreshableConfiguration implements RefreshableConfig
         this.specPath = "/config/tenants/{tenantName}/" + appName + "/swagger{suffix}.yml";
         this.specPathSeparator = "/config/tenants/{tenantName}/" + appName + "/{specName}.yml";
         this.tenantContextHolder = tenantContextHolder;
-        this.objectMapper = YAMLMapper.builder()
-                .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-                .build();
+        this.objectMapper = YamlMapperUtils.yamlDefaultMapper();
         this.matcher = new AntPathMatcher();
         this.config = new ConcurrentHashMap<>();
     }

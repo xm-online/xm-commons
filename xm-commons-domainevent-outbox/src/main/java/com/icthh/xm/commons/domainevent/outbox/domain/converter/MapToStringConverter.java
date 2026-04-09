@@ -3,7 +3,7 @@ package com.icthh.xm.commons.domainevent.outbox.domain.converter;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
@@ -18,7 +18,7 @@ import java.util.Map;
 @Converter
 public class MapToStringConverter implements AttributeConverter<Map<String, Object>, String> {
 
-    private final ObjectMapper mapper = JsonMapper.builder().build();
+    private final ObjectMapper mapper = JsonMapperUtils.getDefaultJsonMapper();
 
     public MapToStringConverter() {
     }

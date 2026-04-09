@@ -6,9 +6,8 @@ import static com.icthh.xm.commons.tenant.TenantContextUtils.getTenantKey;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.MapperFeature;
-import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import com.icthh.xm.commons.i18n.spring.config.LocalizationMessageProperties;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
@@ -24,7 +23,6 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.AntPathMatcher;
 
-import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -52,9 +50,7 @@ public class LocalizationMessageService implements RefreshableConfiguration {
      */
     private final ConcurrentHashMap<String, Map<String, Map<Locale, String>>> tenantLocalizedMessageConfig = new ConcurrentHashMap<>();
     private final AntPathMatcher matcher = new AntPathMatcher();
-    private final ObjectMapper mapper = YAMLMapper.builder()
-            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-            .build();
+    private final ObjectMapper mapper = YamlMapperUtils.yamlDefaultMapper();
 
     /**
      * Finds localized message template by code and current locale from config. If not found it

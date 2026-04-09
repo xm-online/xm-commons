@@ -3,6 +3,7 @@ package com.icthh.xm.commons.scheduler.service;
 import tools.jackson.databind.ObjectMapper;
 
 import com.icthh.xm.commons.logging.util.MdcUtils;
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 import com.icthh.xm.commons.scheduler.domain.ScheduledEvent;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
@@ -11,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 
 import java.util.Base64;
-import tools.jackson.databind.json.JsonMapper;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.endsWith;
@@ -53,7 +53,7 @@ public class SchedulerEventHandlerFacade implements MessageHandler {
     }
 
     private ObjectMapper initObjectMapper() {
-        return JsonMapper.builder().build();
+        return JsonMapperUtils.getDefaultJsonMapper();
     }
 
     @SneakyThrows

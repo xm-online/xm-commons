@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.config.client.repository;
 
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -63,9 +64,7 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final TenantContextHolder tenantContextHolder;
 
-    private final ObjectMapper mapper = JsonMapper.builder()
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .build();
+    private final ObjectMapper mapper = JsonMapperUtils.getDefaultJsonMapper();
 
     @Override
     public Map<String, Configuration> getConfig(String commit) {

@@ -1,9 +1,8 @@
 package com.icthh.xm.commons.domainevent.config;
 
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.MapperFeature;
-import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import com.icthh.xm.commons.domainevent.config.event.InitSourceEventPublisher;
 import com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventSource;
 import com.icthh.xm.commons.domainevent.service.Transport;
@@ -38,9 +37,7 @@ public class XmDomainEventConfiguration implements RefreshableConfiguration {
     }
 
     private final AntPathMatcher matcher = new AntPathMatcher();
-    private final ObjectMapper ymlMapper = YAMLMapper.builder()
-            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-            .build();
+    private final ObjectMapper ymlMapper = YamlMapperUtils.yamlDefaultMapper();
     private final InitSourceEventPublisher initSourceEventPublisher;
     private final ApplicationContext applicationContext;
     private final String configPath;

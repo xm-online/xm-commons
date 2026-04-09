@@ -2,9 +2,8 @@ package com.icthh.xm.commons.cache.service;
 
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.MapperFeature;
-import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.cache.config.XmTenantLepCacheConfig;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -24,9 +23,7 @@ public class XmCacheConfigurer implements RefreshableConfiguration {
 
     private final AntPathMatcher matcher = new AntPathMatcher();
 
-    private final ObjectMapper ymlMapper = YAMLMapper.builder()
-            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-            .build();
+    private final ObjectMapper ymlMapper = YamlMapperUtils.yamlDefaultMapper();
 
     public XmCacheConfigurer(@Value("${spring.application.name}") String appName,
                              ApplicationEventPublisher applicationEventPublisher) {

@@ -1,10 +1,9 @@
 package com.icthh.xm.commons.permission.domain.mapper;
 
 import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.permission.domain.Privilege;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,15 +13,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @UtilityClass
 @Slf4j
 public class PrivilegeMapper {
 
-    private final ObjectMapper mapper = YAMLMapper.builder()
-            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-            .build();
+    private final ObjectMapper mapper = YamlMapperUtils.yamlDefaultMapper();
 
     /**
      * Convert privileges collection to yml string.

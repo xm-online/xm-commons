@@ -2,9 +2,8 @@ package com.icthh.xm.commons.permission.service;
 
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.MapperFeature;
-import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.logging.LoggingAspectConfig;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import com.icthh.xm.commons.permission.domain.Permission;
 import com.icthh.xm.commons.permission.service.filter.PermissionMsNameFilter;
 import java.util.ArrayList;
@@ -23,9 +22,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PermissionMappingService {
 
-    private final ObjectMapper mapper = YAMLMapper.builder()
-            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-            .build();
+    private final ObjectMapper mapper = YamlMapperUtils.yamlDefaultMapper();
 
     private final PermissionMsNameFilter permissionMsNameFilter;
 

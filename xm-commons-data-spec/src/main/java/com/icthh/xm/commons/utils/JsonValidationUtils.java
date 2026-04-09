@@ -3,9 +3,8 @@ package com.icthh.xm.commons.utils;
 import java.util.HashSet;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.MapperFeature;
-import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.exceptions.BusinessException;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import com.networknt.schema.Schema;
 import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.SpecificationVersion;
@@ -25,9 +24,7 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class JsonValidationUtils {
 
-    private final ObjectMapper objectMapper = YAMLMapper.builder()
-            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-            .build();
+    private final ObjectMapper objectMapper = YamlMapperUtils.yamlDefaultMapper();
     private final SchemaRegistry factory = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12);
 
     public static Set<Error> validateJson(Map<String, Object> data, Schema schema) {

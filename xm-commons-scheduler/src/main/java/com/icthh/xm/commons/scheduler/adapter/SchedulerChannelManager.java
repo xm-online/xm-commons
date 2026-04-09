@@ -2,6 +2,7 @@ package com.icthh.xm.commons.scheduler.adapter;
 
 import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.domain.TenantState;
@@ -16,7 +17,6 @@ import org.springframework.context.event.EventListener;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import tools.jackson.databind.json.JsonMapper;
 
 import static com.icthh.xm.commons.config.client.repository.TenantListRepository.TENANTS_LIST_CONFIG_KEY;
 import static com.icthh.xm.commons.config.client.repository.TenantListRepository.isSuspended;
@@ -43,7 +43,7 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
                                    DynamicTopicConsumerConfiguration dynamicTopicConsumerConfiguration) {
         this.includedTenants = xmConfigProperties.getIncludeTenantLowercase();
         this.dynamicTopicConsumerConfiguration = dynamicTopicConsumerConfiguration;
-        this.objectMapper = JsonMapper.builder().build();
+        this.objectMapper = JsonMapperUtils.getDefaultJsonMapper();
     }
 
     @SneakyThrows

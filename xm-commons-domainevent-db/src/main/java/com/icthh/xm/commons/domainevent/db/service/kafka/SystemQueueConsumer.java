@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.domainevent.db.service.kafka;
 
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
@@ -51,9 +52,7 @@ public class SystemQueueConsumer {
         MdcUtils.putRid();
         try {
             log.info("Consume event from topic [{}]", message.topic());
-            ObjectMapper mapper = JsonMapper.builder()
-                    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                    .build();
+            ObjectMapper mapper = JsonMapperUtils.getDefaultJsonMapper();
             try {
                 SystemEvent event = mapper.readValue(message.value(), SystemEvent.class);
 

@@ -1,8 +1,10 @@
 package com.icthh.xm.commons.mail.provider;
 
+import static tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static tools.jackson.databind.DeserializationFeature.UNWRAP_ROOT_VALUE;
+
 import com.fasterxml.jackson.annotation.JsonRootName;
-import java.util.Arrays;
-import tools.jackson.databind.DeserializationFeature;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import tools.jackson.databind.ObjectMapper;
 
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
@@ -21,8 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
-import tools.jackson.dataformat.yaml.YAMLMapper;
-import tools.jackson.dataformat.yaml.YAMLWriteFeature;
 
 /**
  * Service allows to manage different Email providers per tenant using ms-config file.
@@ -73,10 +73,10 @@ public class MailProviderService implements RefreshableConfiguration {
 
             if (StringUtils.isNotEmpty(config)) {
 
-                ObjectMapper objectMapper = YAMLMapper.builder()
-                        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                        .enable(DeserializationFeature.UNWRAP_ROOT_VALUE)
-                        .build();
+                ObjectMapper objectMapper = YamlMapperUtils.yamlDeserializationMapper(Map.of(
+                        FAIL_ON_UNKNOWN_PROPERTIES, false,
+                        UNWRAP_ROOT_VALUE, true
+                ));
 
                 MailProviderConfig providerConfig = objectMapper.readValue(config, MailProviderConfig.class);
 

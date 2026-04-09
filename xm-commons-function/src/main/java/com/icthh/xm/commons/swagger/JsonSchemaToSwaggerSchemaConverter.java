@@ -2,10 +2,10 @@ package com.icthh.xm.commons.swagger;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 import com.icthh.xm.commons.exceptions.BusinessException;
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IteratorUtils;
@@ -61,7 +61,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
     }
 
     public JsonSchemaToSwaggerSchemaConverter(String definitionSectionName, Set<String> definitionPrefixes) {
-        this.objectMapper = JsonMapper.builder().build();
+        this.objectMapper = JsonMapperUtils.getDefaultJsonMapper();
         this.definitionSectionName = definitionSectionName;
         this.definitionPrefixes = definitionPrefixes;
     }

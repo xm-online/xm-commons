@@ -3,9 +3,8 @@ package com.icthh.xm.commons;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.MapperFeature;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.dataformat.yaml.YAMLMapper;
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,10 +22,8 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @UtilityClass
 public class ObjectMapperUtils {
 
-    private static final ObjectMapper jsonMapper = JsonMapper.builder().build();
-    private static final ObjectMapper ymlMapper = YAMLMapper.builder()
-            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-            .build();
+    private static final ObjectMapper jsonMapper = JsonMapperUtils.getDefaultJsonMapper();
+    private static final ObjectMapper ymlMapper = YamlMapperUtils.yamlDefaultMapper();
 
     public static Map<String, Object> deserializeToMap(String data) {
         try {

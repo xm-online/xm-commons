@@ -7,13 +7,11 @@ import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.MapperFeature;
-import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.config.domain.TenantAliasTree;
-import java.io.IOException;
 import java.util.Map;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -22,9 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 @Slf4j
 public class TenantAliasServiceImpl implements TenantAliasService {
 
-    private final ObjectMapper mapper = YAMLMapper.builder()
-            .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-            .build();
+    private final ObjectMapper mapper = YamlMapperUtils.yamlDefaultMapper();
 
     // tenant list repository present to ensure that ms config is up and running
     public TenantAliasServiceImpl(CommonConfigRepository commonConfigRepository,

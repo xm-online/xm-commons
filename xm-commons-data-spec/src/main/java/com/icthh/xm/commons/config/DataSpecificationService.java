@@ -2,9 +2,8 @@ package com.icthh.xm.commons.config;
 
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.MapperFeature;
-import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import com.icthh.xm.commons.domain.BaseSpecification;
 import com.icthh.xm.commons.enums.SpecPathPatternEnum;
 import com.icthh.xm.commons.listener.JsonListenerService;
@@ -16,8 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -46,9 +43,7 @@ public abstract class DataSpecificationService<S extends BaseSpecification> impl
         this.specType = specType;
         this.jsonListenerService = jsonListenerService;
         this.specProcessingService = specProcessingService;
-        this.objectMapper = YAMLMapper.builder()
-                .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-                .build();
+        this.objectMapper = YamlMapperUtils.yamlDefaultMapper();
         this.specsByTenant = new ConcurrentHashMap<>();
         this.specFilesByTenant = new ConcurrentHashMap<>();
     }

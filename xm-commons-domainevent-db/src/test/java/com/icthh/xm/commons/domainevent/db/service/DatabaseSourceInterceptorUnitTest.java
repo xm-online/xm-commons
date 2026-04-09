@@ -1,9 +1,8 @@
 package com.icthh.xm.commons.domainevent.db.service;
 
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.MapperFeature;
-import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.domainevent.config.DbSourceConfig;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import com.icthh.xm.commons.domainevent.config.Filter;
 import com.icthh.xm.commons.domainevent.config.XmDomainEventConfiguration;
 import com.icthh.xm.commons.domainevent.db.domain.Entity;
@@ -39,7 +38,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import tools.jackson.dataformat.yaml.YAMLFactory;
 
 import static com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation.CREATE;
 import static com.icthh.xm.commons.domainevent.domain.enums.DefaultDomainEventOperation.DELETE;
@@ -132,9 +130,7 @@ public class DatabaseSourceInterceptorUnitTest {
     @Before
     public void init() {
         MockitoAnnotations.initMocks(this);
-        objectMapper = YAMLMapper.builder()
-                .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-                .build();
+        objectMapper = YamlMapperUtils.yamlDefaultMapper();
 
         mocked = mockStatic(UUID.class);
         mocked.when(UUID::randomUUID).thenReturn(uuid);

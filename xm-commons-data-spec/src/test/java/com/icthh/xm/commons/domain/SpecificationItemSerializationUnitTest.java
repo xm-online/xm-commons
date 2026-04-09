@@ -3,7 +3,7 @@ package com.icthh.xm.commons.domain;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.json.JsonMapper;
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SpecificationItemSerializationUnitTest {
 
-    private final ObjectMapper objectMapper = JsonMapper.builder().build();
+    private final ObjectMapper objectMapper = JsonMapperUtils.getDefaultJsonMapper();
 
     @Test
     void testMethodsAreIgnoredWhenSerializingToJson() throws JacksonException {

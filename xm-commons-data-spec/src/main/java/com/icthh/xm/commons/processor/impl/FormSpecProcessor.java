@@ -3,11 +3,11 @@ package com.icthh.xm.commons.processor.impl;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ContainerNode;
 import tools.jackson.databind.node.ObjectNode;
 import com.icthh.xm.commons.domain.FormSpec;
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 import com.icthh.xm.commons.listener.JsonListenerService;
 import com.icthh.xm.commons.processor.SpecProcessor;
 import lombok.SneakyThrows;
@@ -176,7 +176,7 @@ public class FormSpecProcessor extends SpecProcessor<FormSpec> {
     @SneakyThrows
     private ContainerNode<?> convertSpecificationToObjectNodes(String specification, String ref) {
         try {
-            ObjectMapper objectMapper = JsonMapper.builder().build();
+            ObjectMapper objectMapper = JsonMapperUtils.getDefaultJsonMapper();
             return objectMapper.readValue(specification, ContainerNode.class);
         } catch (JacksonException e) {
             log.error("The form specification by ref: {} could not be processed. Error: {}", ref, e.getMessage());
