@@ -6,9 +6,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -24,10 +24,10 @@ public class RestLoggingAspectIntTest {
     @Autowired
     private IgnoredClassController ignoredClassController;
 
-    @MockBean
+    @MockitoBean
     private LoggingConfigService loggingConfigService;
 
-    @MockBean
+    @MockitoBean
     private BasePackageDetector basePackageDetector;
 
     @BeforeEach
