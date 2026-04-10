@@ -34,6 +34,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 @Slf4j
 public class GroovyLepEngine extends LepEngine {
 
+    public static final Pattern PACKAGE_PATTERN = Pattern.compile("^package\\s+([\\w.]+);?", Pattern.MULTILINE);
     public static final String LEP_PREFIX = "lep://";
     public static final String COMMONS_SCRIPT = "/Commons$$";
     private final String tenant;
@@ -97,36 +98,29 @@ public class GroovyLepEngine extends LepEngine {
         StopWatch stopWatch = StopWatch.createStarted();
         log.info("Start warmup lep scripts");
         GroovyClassLoader groovyClassLoader = gse.getGroovyClassLoader();
+
         this.leps.forEach(lep -> {
             try {
-                // skip classes that can't be are entry point, and will be compiled on import from other script
-                if (!isCommonsClass(lep.getPath())) {
-                    if (lepMetadata.containsKey(lep.metadataKey()) && lepMetadata.get(lep.metadataKey()).isScript()) {
-                        StopWatch warmUpTime = StopWatch.createStarted();
-                        log.info("START | Warmup lep {}", lep.getPath());
-
-                        if (useDirectoryCompiledSources) {
-                            String className = toGroovyClassName(lep);
-                            try {
-                                Class<?> loadClass = groovyClassLoader.loadClass(className, true, false);
-                                InvokerHelper.getMetaClass(loadClass);
-                                log.info("CACHE | Lep compiled sources {}, time {} ms",
-                                    lep.getPath(),
-                                    warmUpTime.getTime(MILLISECONDS));
-                                return;
-                            } catch (ClassNotFoundException ignored) {}
-                        }
-
-                        Class<?> scriptClass = gse.loadScriptByName(LEP_PREFIX + lep.getPath());
-                        InvokerHelper.getMetaClass(scriptClass); // build metaclass
-                        log.info("STOP | Warmup lep {}, time: {} ms", lep.getPath(), warmUpTime.getTime(MILLISECONDS));
-                    }
+                if (isCommonsClass(lep.getPath()) || !isScript(lep)) {
+                    return;
                 }
+
+                StopWatch warmUpTime = StopWatch.createStarted();
+                log.info("START | Warmup lep {}", lep.getPath());
+
+                if (useDirectoryCompiledSources && tryLoadFromCache(groovyClassLoader, lep, warmUpTime)) {
+                    return;
+                }
+
+                Class<?> scriptClass = gse.loadScriptByName(LEP_PREFIX + lep.getPath());
+                InvokerHelper.getMetaClass(scriptClass);
+                log.info("STOP | Warmup lep {}, time: {} ms", lep.getPath(), warmUpTime.getTime(MILLISECONDS));
             } catch (Throwable e) {
                 log.error("Error create script {}", lep.getPath(), e);
             }
         });
-        log.info("Stop warm-up LEP scripts, time = {} ms, ", stopWatch.getTime(MILLISECONDS));
+
+        log.info("Stop warm-up LEP scripts, time = {} ms", stopWatch.getTime(MILLISECONDS));
     }
 
     @Override
@@ -196,6 +190,22 @@ public class GroovyLepEngine extends LepEngine {
         return !path.contains(COMMONS_SCRIPT) && tenantCommonsFolders.stream().anyMatch(path::startsWith);
     }
 
+    private boolean isScript(XmLepConfigFile lep) {
+        return lepMetadata.containsKey(lep.metadataKey()) && lepMetadata.get(lep.metadataKey()).isScript();
+    }
+
+    private boolean tryLoadFromCache(GroovyClassLoader classLoader, XmLepConfigFile lep, StopWatch warmUpTime) {
+        try {
+            String className = toGroovyClassName(lep);
+            Class<?> loadClass = classLoader.loadClass(className, true, false);
+            InvokerHelper.getMetaClass(loadClass);
+            log.info("CACHE | Lep compiled sources {}, time {} ms", lep.getPath(), warmUpTime.getTime(MILLISECONDS));
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
     private String toGroovyClassName(XmLepConfigFile lep) {
         String fileName = extractFileName(lep.getPath());
         String className = fileName.replace("$", "_");
@@ -221,7 +231,7 @@ public class GroovyLepEngine extends LepEngine {
     }
 
     private String extractPackageName(String text) {
-        var matcher = Pattern.compile("^package\\s+([\\w.]+);?", Pattern.MULTILINE).matcher(text);
+        var matcher = PACKAGE_PATTERN.matcher(text);
         return matcher.find() ? matcher.group(1) : null;
     }
 
