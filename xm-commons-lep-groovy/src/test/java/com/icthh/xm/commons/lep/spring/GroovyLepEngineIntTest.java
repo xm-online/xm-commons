@@ -1,15 +1,19 @@
 package com.icthh.xm.commons.lep.spring;
 
-import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
-import com.icthh.xm.commons.lep.api.LepManagementService;
-import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
-import com.icthh.xm.commons.tenant.TenantContextHolder;
-import com.icthh.xm.commons.tenant.TenantContextUtils;
-import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
-import java.io.File;
-import java.util.Map;
+import com.icthh.xm.commons.lep.LepPathResolver;
+import com.icthh.xm.commons.lep.api.XmLepConfigFile;
+import com.icthh.xm.commons.lep.groovy.GroovyEngineCreationStrategy;
+import com.icthh.xm.commons.lep.groovy.GroovyFileParser;
+import com.icthh.xm.commons.lep.groovy.GroovyLepEngineFactory;
+import com.icthh.xm.commons.lep.groovy.config.LepCompilerConfiguration;
+import com.icthh.xm.commons.lep.groovy.storage.LepStorageFactory;
+import com.icthh.xm.commons.lep.impl.LoggingWrapper;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -18,75 +22,95 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
-@Slf4j
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = {
-    DynamicLepTestConfig.class,
-    TenantContextConfiguration.class,
-    XmAuthenticationContextConfiguration.class
+@ContextConfiguration(classes = {LepCompilerConfiguration.class})
+@ActiveProfiles("export")
+@TestPropertySource(properties = {
+    "spring.application.name=test"
 })
-@ActiveProfiles("resolveclasstest")
 public class GroovyLepEngineIntTest {
 
-    private static final String LEP_PATH = "/config/tenants/TEST/testApp/lep/service";
+    @Autowired
+    private ApplicationNameProvider applicationNameProvider;
 
     @Autowired
-    private LepManagementService lepManagerService;
+    private LepStorageFactory lepStorageFactory;
 
     @Autowired
-    private TenantContextHolder tenantContextHolder;
+    private GroovyEngineCreationStrategy groovyEngineCreationStrategy;
 
     @Autowired
-    private DynamicTestLepService testLepService;
+    private LoggingWrapper loggingWrapper;
 
     @Autowired
-    private XmLepScriptConfigServerResourceLoader resourceLoader;
+    private LepPathResolver lepPathResolver;
+
+    @Autowired
+    private GroovyFileParser groovyFileParser;
+
+    private Path targetDir;
+    private String appName;
 
     @Before
-    public void init() {
-        TenantContextUtils.setTenant(tenantContextHolder, "TEST");
-        lepManagerService.beginThreadContext();
+    public void setUp() throws IOException {
+        targetDir = Files.createTempDirectory("lep-compiled-test");
+        appName = applicationNameProvider.getAppName();
     }
 
     @After
+    @SneakyThrows
     public void tearDown() {
-        lepManagerService.endThreadContext();
+        FileUtils.deleteDirectory(targetDir.toFile());
     }
 
     @Test
-    @SneakyThrows
-    public void shouldCacheCompiledClassesAndReuseOnSecondCall() {
-        String code = "return 'cached'";
-        resourceLoader.onRefresh(LEP_PATH + "/TestLepMethodWithInput$$around.groovy", code);
+    public void shouldWriteCompiledClassesToTargetDirectory() {
+        String className = "Save";
+        createEngineForTenant("TEST", List.of(
+            new XmLepConfigFile("/config/tenants/TEST/" + appName + "/lep/service/" + className + ".groovy", "return 'compiled'")
+        ));
 
-        File targetDir = new File("/home/bvolokhenko/Desktop/lep-local-test");
-        assertNotNull(targetDir);
-
-        if (targetDir.exists()) {
-            FileUtils.cleanDirectory(targetDir);
-        }
-        assertEquals(0, countClassFiles(targetDir));
-
-        String result1 = testLepService.testLepMethod(Map.of("parameter", "value"));
-        assertEquals("cached", result1);
-
-        int classCountAfterFirstCall = countClassFiles(targetDir);
-        assertTrue(classCountAfterFirstCall > 0);
-        log.info("Class files after first call: {}", classCountAfterFirstCall);
-
-        String result2 = testLepService.testLepMethod(Map.of("parameter", "value"));
-        assertEquals("cached", result2);
-
-        int classCountAfterSecondCall = countClassFiles(targetDir);
-        assertEquals(classCountAfterFirstCall, classCountAfterSecondCall);
+        assertTrue(matchCompiledClassByName(className));
     }
 
-    private int countClassFiles(File dir) {
-        if (!dir.exists()) return 0;
-        return FileUtils.listFiles(dir, new String[]{"class"}, true).size();
+    @Test
+    public void shouldCompileMultipleScripts() {
+        String saveName = "Save";
+        String deleteName = "Delete";
+        createEngineForTenant("TEST", List.of(
+            new XmLepConfigFile("/config/tenants/TEST/" + appName + "/lep/service/" + saveName + ".groovy", "return 'save'"),
+            new XmLepConfigFile("/config/tenants/TEST/" + appName + "/lep/service/" + deleteName + ".groovy", "return 'delete'")
+        ));
+
+        assertTrue(matchCompiledClassByName(saveName));
+        assertTrue(matchCompiledClassByName(deleteName));
+    }
+
+    private void createEngineForTenant(String tenant, List<XmLepConfigFile> leps) {
+        GroovyLepEngineFactory factory = new GroovyLepEngineFactory(
+            appName,
+            lepStorageFactory,
+            groovyEngineCreationStrategy,
+            loggingWrapper,
+            lepPathResolver,
+            groovyFileParser,
+            Set.of(),
+            true,
+            true,
+            targetDir.toAbsolutePath().toString()
+        );
+        factory.setBeanClassLoader(Thread.currentThread().getContextClassLoader());
+        factory.createLepEngine(tenant, leps);
+    }
+
+    private boolean matchCompiledClassByName(String name) {
+        return FileUtils.listFiles(targetDir.toFile(), new String[]{"class"}, true)
+            .stream()
+            .anyMatch(path -> path.getAbsolutePath().endsWith(name + ".class"));
     }
 }
