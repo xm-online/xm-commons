@@ -176,7 +176,7 @@ public class TenantConfigRepositoryUnitTest {
 
     }
 
-//    @Test
+    @Test
     public void createConfigs() {
 
         List<Configuration> configs = new LinkedList<>();
