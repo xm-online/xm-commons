@@ -2,6 +2,7 @@ package com.icthh.xm.commons.lep.groovy;
 
 import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.LepPathResolver;
+import com.icthh.xm.commons.lep.XmLepConstants;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import com.icthh.xm.commons.lep.groovy.config.LepCompilerConfiguration;
 import com.icthh.xm.commons.lep.groovy.storage.LepStorageFactory;
@@ -148,7 +149,7 @@ public class LepCompiler {
                 String lepPath = lep.getPath().startsWith("/")
                     ? lep.getPath().substring(1)
                     : lep.getPath();
-                Path target = workDir.resolve(tenant).resolve("sources").resolve(lepPath);
+                Path target = workDir.resolve(tenant).resolve(XmLepConstants.SCRIPT_SOURCES_DIR).resolve(lepPath);
                 Files.createDirectories(target.getParent());
                 Files.writeString(target, lep.readContent(), StandardCharsets.UTF_8);
             }
@@ -167,7 +168,7 @@ public class LepCompiler {
 
         for (Map.Entry<String, List<XmLepConfigFile>> entry : prepared.entrySet()) {
             String tenant = entry.getKey();
-            Path compiledDir = workDir.resolve(tenant).resolve("compiled");
+            Path compiledDir = workDir.resolve(tenant).resolve(XmLepConstants.SCRIPT_COMPILED_DIR);
             Files.createDirectories(compiledDir);
 
             log.info("Compiling LEPs for tenant [{}] → {}", tenant, compiledDir);

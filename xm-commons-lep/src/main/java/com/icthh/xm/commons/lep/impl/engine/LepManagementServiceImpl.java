@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.lep.impl.engine;
 
+import com.icthh.xm.commons.lep.XmLepConstants;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepEngineFactory;
 import com.icthh.xm.commons.lep.api.LepEngineSession;
@@ -9,8 +10,10 @@ import com.icthh.xm.commons.lep.api.LepKey;
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
+import java.nio.file.Path;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 
 import java.util.List;
@@ -22,7 +25,6 @@ import static com.icthh.xm.commons.tenant.TenantContextUtils.getRequiredTenantKe
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparingInt;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.stream.Collectors.toUnmodifiableList;
 
 @Slf4j
 public class LepManagementServiceImpl implements LepManagementService {
@@ -51,6 +53,11 @@ public class LepManagementServiceImpl implements LepManagementService {
 
     @Override
     public void refreshEngines(Map<String, List<XmLepConfigFile>> configInLepFolder) {
+        refreshEngines(configInLepFolder, null);
+    }
+
+    @Override
+    public void refreshEngines(Map<String, List<XmLepConfigFile>> configInLepFolder, String pathToWorkingDirectory) {
         log.info("START | Start lep engines refresh for tenants {}", configInLepFolder.keySet());
         log.trace("Start lep engines refresh by configs {}", configInLepFolder.values());
 
@@ -62,7 +69,10 @@ public class LepManagementServiceImpl implements LepManagementService {
             log.info("START | Create lep engines for tenant: {} | configInLepFolder.size: {}", tenant, tenantConfigs.size());
             log.trace("START | Create lep engines for tenant: {} | configInLepFolder.size: {}", tenant, tenantConfigs);
 
-            List<LepEngine> engines = createEngines(tenantKey, tenantConfigs);
+            List<LepEngine> engines = StringUtils.isNotBlank(pathToWorkingDirectory)
+                ? createEnginesPrecompiledPath(tenantKey, tenantConfigs, pathToWorkingDirectory)
+                : createEngines(tenantKey, tenantConfigs);
+
             engines.forEach(engine -> destroyCallbacks.forEach(engine::addDestroyCallback));
             lepEnginesManager.update(tenant, engines);
 
@@ -80,7 +90,15 @@ public class LepManagementServiceImpl implements LepManagementService {
         return engineFactories.stream()
             .map(it -> it.createLepEngine(tenantKey, tenantConfigs))
             .sorted(comparingInt(LepEngine::order))
-            .collect(toUnmodifiableList());
+            .toList();
+    }
+
+    private List<LepEngine> createEnginesPrecompiledPath(String tenantKey, List<XmLepConfigFile> tenantConfigs, String pathToPrecompiledLep) {
+        String compiledPath = Path.of(pathToPrecompiledLep).resolve(tenantKey).resolve(XmLepConstants.SCRIPT_COMPILED_DIR).toString();
+        return engineFactories.stream()
+            .map(it -> it.createLepEngine(tenantKey, tenantConfigs, compiledPath))
+            .sorted(comparingInt(LepEngine::order))
+            .toList();
     }
 
     @Override
