@@ -3,7 +3,7 @@ package com.icthh.xm.commons.lep.spring;
 import com.icthh.xm.commons.lep.RefreshTaskExecutor;
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
-import com.icthh.xm.commons.lep.utils.XmLepUtils;
+import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,13 +21,14 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@IgnoreLogginAspect
 public class LepRefreshServiceImpl implements LepRefreshService {
 
     private final LepManagementService lepManagementService;
     private final RefreshTaskExecutor refreshExecutor = new RefreshTaskExecutor();
 
     @Override
-    public Future<?> refreshEngines(Set<String> tenantsToUpdate, Map<String, Map<String, XmLepConfigFile>> scriptsByTenant, boolean isInit) {
+    public Future<Boolean> refreshEngines(Set<String> tenantsToUpdate, Map<String, Map<String, XmLepConfigFile>> scriptsByTenant, boolean isInit) {
         return refreshEngines(tenantsToUpdate, scriptsByTenant, isInit, null);
     }
 
@@ -41,7 +42,7 @@ public class LepRefreshServiceImpl implements LepRefreshService {
         }
     }
 
-    private Future<?> refreshEngines(Set<String> tenantsToUpdate,
+    private Future<Boolean> refreshEngines(Set<String> tenantsToUpdate,
                                     Map<String, Map<String, XmLepConfigFile>> scriptsByTenant,
                                     boolean isInit,
                                     String pathToWorkingDirectory) {

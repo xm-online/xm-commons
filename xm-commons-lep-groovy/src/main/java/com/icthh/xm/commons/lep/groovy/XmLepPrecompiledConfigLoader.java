@@ -11,7 +11,6 @@ import com.icthh.xm.commons.lep.utils.XmLepUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
@@ -57,13 +57,17 @@ public class XmLepPrecompiledConfigLoader implements RefreshableConfiguration {
 
     @Override
     public void onRefresh(String updatedKey, String config) {
-        String tenant = extractTenant(updatedKey);
+        try {
+            String tenant = extractTenant(updatedKey);
 
-        XmLepPrecompiledConfig precompiledConfig = readConfig(updatedKey, config);
-        if (precompiledConfig != null && StringUtils.isNotBlank(precompiledConfig.getPathToPrecompiledLep())) {
-            precompiledConfigsByTenant.put(tenant, precompiledConfig);
-        } else {
-            precompiledConfigsByTenant.remove(tenant);
+            XmLepPrecompiledConfig precompiledConfig = readConfig(config);
+            if (precompiledConfig != null && StringUtils.isNotBlank(precompiledConfig.getPathToPrecompiledLep())) {
+                precompiledConfigsByTenant.put(tenant, precompiledConfig);
+            } else {
+                precompiledConfigsByTenant.remove(tenant);
+            }
+        } catch (Exception e) {
+            log.error("Error update configuration by key: {}", updatedKey, e);
         }
     }
 
@@ -93,13 +97,9 @@ public class XmLepPrecompiledConfigLoader implements RefreshableConfiguration {
         return variables.get(TENANT);
     }
 
-    private XmLepPrecompiledConfig readConfig(String updatedKey, String config) {
-        try {
-            return ymlMapper.readValue(config, XmLepPrecompiledConfig.class);
-        } catch (Exception e) {
-            log.error("Error reading lep precompiled config from path: {}", updatedKey, e);
-            return null;
-        }
+    @SneakyThrows
+    private XmLepPrecompiledConfig readConfig(String config) {
+        return ymlMapper.readValue(config, XmLepPrecompiledConfig.class);
     }
 
     protected void fetchZip(String zipPath, List<String> tenants) {
@@ -188,33 +188,28 @@ public class XmLepPrecompiledConfigLoader implements RefreshableConfiguration {
             }
 
             Collection<File> files = FileUtils.listFiles(sourcesDir.toFile(), null, true);
-            files.forEach(file -> {
-                try {
-                    String path = "/" + sourcesDir.relativize(file.toPath()).toString().replace('\\', '/');
-                    String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-                    XmLepUtils.addToScriptsByTenant(tenant, scriptsByTenant, path, content);
-                } catch (IOException e) {
-                    throw new UncheckedIOException("Failed to read: " + file, e);
-                }
-            });
+            files.forEach(file -> addSourceScriptByTenant(tenant, file, sourcesDir, scriptsByTenant));
         }
 
         return scriptsByTenant;
     }
 
+    @SneakyThrows
+    private static void addSourceScriptByTenant(String tenant, File file, Path sourcesDir, Map<String, Map<String, XmLepConfigFile>> scriptsByTenant) {
+        String path = "/" + sourcesDir.relativize(file.toPath()).toString().replace('\\', '/');
+        String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+        XmLepUtils.addToScriptsByTenant(tenant, scriptsByTenant, path, content);
+    }
+
+    @SneakyThrows
     protected String hashFile(String filePath) {
         try (FileInputStream fis = new FileInputStream(filePath)) {
             return DigestUtils.sha256Hex(fis);
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to compute hash for: " + filePath, e);
         }
     }
 
+    @SneakyThrows
     private static void deleteDirectory(Path dir) {
-        try {
-            FileUtils.deleteDirectory(dir.toFile());
-        } catch (IOException e) {
-            log.error("Failed to delete directory: {}", dir, e);
-        }
+        FileUtils.deleteDirectory(dir.toFile());
     }
 }

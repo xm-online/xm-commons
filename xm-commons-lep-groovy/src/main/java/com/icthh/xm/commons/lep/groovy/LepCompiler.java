@@ -85,9 +85,9 @@ public class LepCompiler {
 
     public ConfigurableApplicationContext createContext() {
         SpringApplication app = new SpringApplication(LepCompilerConfiguration.class);
-        app.setWebApplicationType(org.springframework.boot.WebApplicationType.NONE);
         app.setAdditionalProfiles(EXPORT_PROFILE);
         app.setListeners(List.of(new EnvironmentPostProcessorApplicationListener()));
+        app.setDefaultProperties(Map.of("spring.main.web-application-type", "none"));
         return app.run();
     }
 

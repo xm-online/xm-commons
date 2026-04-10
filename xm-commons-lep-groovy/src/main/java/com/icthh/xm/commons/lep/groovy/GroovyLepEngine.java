@@ -37,6 +37,7 @@ public class GroovyLepEngine extends LepEngine {
     public static final Pattern PACKAGE_PATTERN = Pattern.compile("^package\\s+([\\w.]+);?", Pattern.MULTILINE);
     public static final String LEP_PREFIX = "lep://";
     public static final String COMMONS_SCRIPT = "/Commons$$";
+    public static final String CLASSNAME_REGEX = "[$.\\-]";
     private final String tenant;
     private final LepStorage leps;
     private final GroovyScriptEngine gse;
@@ -108,7 +109,7 @@ public class GroovyLepEngine extends LepEngine {
                 StopWatch warmUpTime = StopWatch.createStarted();
                 log.info("START | Warmup lep {}", lep.getPath());
 
-                if (useDirectoryCompiledSources && tryLoadFromCache(groovyClassLoader, lep, warmUpTime)) {
+                if (useDirectoryCompiledSources && tryLoadCompiled(groovyClassLoader, lep, warmUpTime)) {
                     return;
                 }
 
@@ -149,10 +150,13 @@ public class GroovyLepEngine extends LepEngine {
     private Object executeLep(String key, LepKey lepKey, ProceedingLep lepMethod, BaseLepContext lepContext) {
         String scriptName = LEP_PREFIX + key + FILE_EXTENSION;
         if (useDirectoryCompiledSources) {
-            String className = toGroovyClassName(leps.getByPath(key));
-            return InvokerHelper.createScript(
-                gse.getGroovyClassLoader().loadClass(className, true, false),  new Binding(new HashMap<>(Map.of("lepContext", lepContext)))
-            ).run();
+            return loggingWrapper.doWithLogs(lepMethod, scriptName, lepKey, () -> {
+                String className = toGroovyClassName(leps.getByPath(key));
+                return InvokerHelper.createScript(
+                    gse.getGroovyClassLoader().loadClass(className, true, false),
+                    new Binding(new HashMap<>(Map.of("lepContext", lepContext)))
+                ).run();
+            });
         }
         return loggingWrapper.doWithLogs(lepMethod, scriptName, lepKey, () ->
             // map HAVE TO be mutable!
@@ -194,12 +198,12 @@ public class GroovyLepEngine extends LepEngine {
         return lepMetadata.containsKey(lep.metadataKey()) && lepMetadata.get(lep.metadataKey()).isScript();
     }
 
-    private boolean tryLoadFromCache(GroovyClassLoader classLoader, XmLepConfigFile lep, StopWatch warmUpTime) {
+    private boolean tryLoadCompiled(GroovyClassLoader classLoader, XmLepConfigFile lep, StopWatch warmUpTime) {
         try {
             String className = toGroovyClassName(lep);
             Class<?> loadClass = classLoader.loadClass(className, true, false);
             InvokerHelper.getMetaClass(loadClass);
-            log.info("CACHE | Lep compiled sources {}, time {} ms", lep.getPath(), warmUpTime.getTime(MILLISECONDS));
+            log.info("PRECOMPILED | Lep compiled sources {}, time {} ms", lep.getPath(), warmUpTime.getTime(MILLISECONDS));
             return true;
         } catch (ClassNotFoundException e) {
             return false;
@@ -208,7 +212,7 @@ public class GroovyLepEngine extends LepEngine {
 
     private String toGroovyClassName(XmLepConfigFile lep) {
         String fileName = extractFileName(lep.getPath());
-        String className = fileName.replace("$", "_");
+        String className = fileName.replaceAll(CLASSNAME_REGEX, "_");
         String packageName = extractPackageName(readString(lep));
 
         return packageName != null
