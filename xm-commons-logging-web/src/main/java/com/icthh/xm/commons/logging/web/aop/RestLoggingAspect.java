@@ -58,6 +58,11 @@ public class RestLoggingAspect {
         return className.startsWith(XM_BASE_PACKAGE) || className.startsWith(basePackage) || className.startsWith(detectedBasePackage);
     }
 
+    @Pointcut("@annotation(com.icthh.xm.commons.logging.aop.IgnoreLogginAspect) "
+        + "|| within(@com.icthh.xm.commons.logging.aop.IgnoreLogginAspect *)")
+    public void excluded() {
+    }
+
     @SuppressWarnings("squid:S1186") //suppress enpty method warning
     @Pointcut("@target(controllerMapping) && @annotation(methodMapping)")
     public void restControllerGetPointcut(RequestMapping controllerMapping, GetMapping methodMapping) {
@@ -78,70 +83,70 @@ public class RestLoggingAspect {
     public void restControllerDeletePointcut(RequestMapping controllerMapping, DeleteMapping methodMapping) {
     }
 
-    @Before("restControllerGetPointcut(controllerMapping, methodMapping)")
+    @Before("restControllerGetPointcut(controllerMapping, methodMapping) && !excluded()")
     public void logBeforeRest(JoinPoint joinPoint, RequestMapping controllerMapping, GetMapping methodMapping) {
         logStart(joinPoint, HttpMethod.GET.name(), controllerMapping.value(), methodMapping.value());
     }
 
-    @Before("restControllerPostPointcut(controllerMapping, methodMapping)")
+    @Before("restControllerPostPointcut(controllerMapping, methodMapping) && !excluded()")
     public void logBeforeRest(JoinPoint joinPoint, RequestMapping controllerMapping, PostMapping methodMapping) {
         logStart(joinPoint, HttpMethod.POST.name(), controllerMapping.value(), methodMapping.value());
     }
 
-    @Before("restControllerPutPointcut(controllerMapping, methodMapping)")
+    @Before("restControllerPutPointcut(controllerMapping, methodMapping) && !excluded()")
     public void logBeforeRest(JoinPoint joinPoint, RequestMapping controllerMapping, PutMapping methodMapping) {
         logStart(joinPoint, HttpMethod.PUT.name(), controllerMapping.value(), methodMapping.value());
     }
 
-    @Before("restControllerDeletePointcut(controllerMapping, methodMapping)")
+    @Before("restControllerDeletePointcut(controllerMapping, methodMapping) && !excluded()")
     public void logBeforeRest(JoinPoint joinPoint, RequestMapping controllerMapping, DeleteMapping
         methodMapping) {
         logStart(joinPoint, HttpMethod.DELETE.name(), controllerMapping.value(), methodMapping.value());
     }
 
-    @AfterReturning(value = "restControllerGetPointcut(controllerMapping, methodMapping)", returning = "result")
+    @AfterReturning(value = "restControllerGetPointcut(controllerMapping, methodMapping) && !excluded()", returning = "result")
     public void logAfterRest(JoinPoint joinPoint, RequestMapping controllerMapping, GetMapping methodMapping,
                              Object result) {
         logStop(joinPoint, HttpMethod.GET.name(), controllerMapping.value(), methodMapping.value(), result);
     }
 
-    @AfterReturning(value = "restControllerPostPointcut(controllerMapping, methodMapping)", returning = "result")
+    @AfterReturning(value = "restControllerPostPointcut(controllerMapping, methodMapping) && !excluded()", returning = "result")
     public void logAfterRest(JoinPoint joinPoint, RequestMapping controllerMapping, PostMapping methodMapping,
                              Object result) {
         logStop(joinPoint, HttpMethod.POST.name(), controllerMapping.value(), methodMapping.value(), result);
     }
 
-    @AfterReturning(value = "restControllerPutPointcut(controllerMapping, methodMapping)", returning = "result")
+    @AfterReturning(value = "restControllerPutPointcut(controllerMapping, methodMapping) && !excluded()", returning = "result")
     public void logAfterRest(JoinPoint joinPoint, RequestMapping controllerMapping, PutMapping methodMapping,
                              Object result) {
         logStop(joinPoint, HttpMethod.PUT.name(), controllerMapping.value(), methodMapping.value(), result);
     }
 
-    @AfterReturning(value = "restControllerDeletePointcut(controllerMapping, methodMapping)", returning = "result")
+    @AfterReturning(value = "restControllerDeletePointcut(controllerMapping, methodMapping) && !excluded()", returning = "result")
     public void logAfterRest(JoinPoint joinPoint, RequestMapping controllerMapping, DeleteMapping methodMapping,
                              Object result) {
         logStop(joinPoint, HttpMethod.DELETE.name(), controllerMapping.value(), methodMapping.value(), result);
     }
 
-    @AfterThrowing(value = "restControllerGetPointcut(controllerMapping, methodMapping)", throwing = "e")
+    @AfterThrowing(value = "restControllerGetPointcut(controllerMapping, methodMapping) && !excluded()", throwing = "e")
     public void logAfterRestThrowing(JoinPoint joinPoint, RequestMapping controllerMapping, GetMapping methodMapping,
                                      Throwable e) {
         logError(joinPoint, HttpMethod.GET.name(), controllerMapping.value(), methodMapping.value(), e);
     }
 
-    @AfterThrowing(value = "restControllerPostPointcut(controllerMapping, methodMapping)", throwing = "e")
+    @AfterThrowing(value = "restControllerPostPointcut(controllerMapping, methodMapping) && !excluded()", throwing = "e")
     public void logAfterRestThrowing(JoinPoint joinPoint, RequestMapping controllerMapping, PostMapping methodMapping,
                                      Throwable e) {
         logError(joinPoint, HttpMethod.POST.name(), controllerMapping.value(), methodMapping.value(), e);
     }
 
-    @AfterThrowing(value = "restControllerPutPointcut(controllerMapping, methodMapping)", throwing = "e")
+    @AfterThrowing(value = "restControllerPutPointcut(controllerMapping, methodMapping) && !excluded()", throwing = "e")
     public void logAfterRestThrowing(JoinPoint joinPoint, RequestMapping controllerMapping, PutMapping methodMapping,
                                      Throwable e) {
         logError(joinPoint, HttpMethod.PUT.name(), controllerMapping.value(), methodMapping.value(), e);
     }
 
-    @AfterThrowing(value = "restControllerDeletePointcut(controllerMapping, methodMapping)", throwing = "e")
+    @AfterThrowing(value = "restControllerDeletePointcut(controllerMapping, methodMapping) && !excluded()", throwing = "e")
     public void logAfterRestThrowing(JoinPoint joinPoint, RequestMapping controllerMapping, DeleteMapping methodMapping,
                                      Throwable e) {
         logError(joinPoint, HttpMethod.DELETE.name(), controllerMapping.value(), methodMapping.value(), e);
@@ -152,18 +157,18 @@ public class RestLoggingAspect {
     public void swaggerGeneratedEndpoint(RequestMapping controllerMapping, RequestMapping methodMapping) {
     }
 
-    @Before("swaggerGeneratedEndpoint(controllerMapping, methodMapping)")
+    @Before("swaggerGeneratedEndpoint(controllerMapping, methodMapping) && !excluded()")
     public void logBeforeRest(JoinPoint joinPoint, RequestMapping controllerMapping, RequestMapping methodMapping) {
         logStart(joinPoint, renderMethod(methodMapping.method()), controllerMapping.value(), methodMapping.value());
     }
 
-    @AfterReturning(value = "swaggerGeneratedEndpoint(controllerMapping, methodMapping)", returning = "result")
+    @AfterReturning(value = "swaggerGeneratedEndpoint(controllerMapping, methodMapping) && !excluded()", returning = "result")
     public void logAfterRest(JoinPoint joinPoint, RequestMapping controllerMapping, RequestMapping methodMapping,
                              Object result) {
         logStop(joinPoint, renderMethod(methodMapping.method()), controllerMapping.value(), methodMapping.value(), result);
     }
 
-    @AfterThrowing(value = "swaggerGeneratedEndpoint(controllerMapping, methodMapping)", throwing = "e")
+    @AfterThrowing(value = "swaggerGeneratedEndpoint(controllerMapping, methodMapping) && !excluded()", throwing = "e")
     public void logAfterRestThrowing(JoinPoint joinPoint, RequestMapping controllerMapping, RequestMapping methodMapping,
                                      Throwable e) {
         logError(joinPoint, renderMethod(methodMapping.method()), controllerMapping.value(), methodMapping.value(), e);
