@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.util.AntPathMatcher;
 
 import java.util.Collection;
@@ -34,24 +36,34 @@ public class InitRefreshableConfigurationProcessor {
     private final Set<String> includedTenants;
     private final AntPathMatcher matcher = new AntPathMatcher();
     private final FetchConfigurationSettings fetchConfigurationSettings;
+    private final ObjectProvider<LepContextRunner> lepContextRunnerProvider;
 
     public InitRefreshableConfigurationProcessor(ObjectProvider<ConfigService> configServiceProvider,
                                                  XmConfigProperties xmConfigProperties,
                                                  FetchConfigurationSettings fetchConfigurationSettings,
-                                                 List<RefreshableConfiguration> refreshableConfigurations) {
+                                                 List<RefreshableConfiguration> refreshableConfigurations,
+                                                 ObjectProvider<LepContextRunner> lepContextRunnerProvider) {
         this.configServiceProvider = configServiceProvider;
         this.includedTenants = xmConfigProperties.getIncludeTenantUppercase();
         this.fetchConfigurationSettings = fetchConfigurationSettings;
         this.refreshableConfigurations = refreshableConfigurations;
-        addLepCommons();
+        this.lepContextRunnerProvider = lepContextRunnerProvider;
 
-        initAll();
+        addLepCommons();
     }
 
+    @EventListener(ApplicationReadyEvent.class)
     private void initAll() {
         Map<String, Configuration> configMap = getConfigMap();
         for (RefreshableConfiguration bean : refreshableConfigurations) {
-            initBean(bean, configMap);
+            LepContextRunner runner = lepContextRunnerProvider.getIfAvailable();
+            if (runner != null && runner.isReady()) {
+                log.info("Initializing bean {} with LEP context", bean.getClass().getSimpleName());
+                runner.runInContext(() -> initBean(bean, configMap));
+            } else {
+                log.info("Initializing bean {} without LEP context", bean.getClass().getSimpleName());
+                initBean(bean, configMap);
+            }
         }
     }
 

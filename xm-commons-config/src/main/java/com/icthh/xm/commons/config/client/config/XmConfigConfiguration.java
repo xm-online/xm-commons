@@ -71,9 +71,11 @@ public class XmConfigConfiguration {
     @Bean
     public InitRefreshableConfigurationProcessor refreshableConfigurationPostProcessor(
             ObjectProvider<ConfigService> configServiceProvider, XmConfigProperties xmConfigProperties,
-            FetchConfigurationSettings fetchConfigurationSettings, List<RefreshableConfiguration> refreshableConfigurations) {
+            FetchConfigurationSettings fetchConfigurationSettings,
+            List<RefreshableConfiguration> refreshableConfigurations,
+            ObjectProvider<LepContextRunner> lepContextRunnerProvider) {
         return new InitRefreshableConfigurationProcessor(configServiceProvider, xmConfigProperties,
-            fetchConfigurationSettings, refreshableConfigurations);
+            fetchConfigurationSettings, refreshableConfigurations, lepContextRunnerProvider);
     }
 
     @Bean
