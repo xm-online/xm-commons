@@ -109,63 +109,63 @@ public class InitRefreshableConfigurationProcessorTest {
         assertListsEquals(new ArrayList<>(configMap.keySet()), configs);
     }
 
-//    @Test
-//    public void shouldContainAllTenantsIfIncludePropertyEmptyDuringUpdate() {
-//        List<RefreshableConfiguration> refreshableConfigurations = new ArrayList<>();
-//        when(configService.getConfigMapAntPattern(any(), any())).thenReturn(configMap);
-//        when(configServiceProvider.getIfAvailable()).thenReturn(configService);
-//
-//        processor = new InitRefreshableConfigurationProcessor(configServiceProvider, configProperties, fetchConfigurationSettings, refreshableConfigurations);
-//        processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
-//        processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
-//
-//        configService.updateConfigurations("commit", configKeys);
-//
-//        configKeys.forEach(configKey -> verify(refreshableConfiguration).onRefresh(eq(configKey), any()));
-//
-//        verify(refreshableConfiguration).refreshFinished(eq(configKeys));
-//
-//    }
-//
-//    @Test
-//    public void shouldContainIncludedTenantsAndCommonsDuringUpdate() {
-//        List<RefreshableConfiguration> refreshableConfigurations = new ArrayList<>();
-//        when(configProperties.getIncludeTenants()).thenReturn(Set.of("tenant1", "Tenant2"));
-//        when(configService.getConfigMapAntPattern(any(), any())).thenReturn(configMap);
-//        when(configServiceProvider.getIfAvailable()).thenReturn(configService);
-//        processor = new InitRefreshableConfigurationProcessor(configServiceProvider, configProperties, fetchConfigurationSettings, refreshableConfigurations);
-//        processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
-//        processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
-//
-//        configService.updateConfigurations("commit", configKeys);
-//
-//        var expectedUpdatedKeys = List.of("/config/tenants/TENANT1/dashboard/dashboards/ADMIN_METRICS-27.yml",
-//                                          "/config/tenants/TENANT2/custom-privileges.yml",
-//                                          "/config/tenants/TENANT1/uaa/uaa.yml",
-//                                          "/config/tenants/commons/lep/entity/MathService$$tenant.groovy");
-//
-//        configKeys.forEach(configKey -> {
-//            if (expectedUpdatedKeys.contains(configKey)) {
-//                verify(refreshableConfiguration, times(1)).onRefresh(eq(configKey), any());
-//            } else {
-//                verify(refreshableConfiguration, times(0)).onRefresh(eq(configKey), any());
-//            }
-//        });
-//
-//        verify(refreshableConfiguration, times(2))
-//            .refreshFinished(argThat(argument -> assertListsEquals(argument, expectedUpdatedKeys)));
-//
-//    }
-//
-//    @Test(expected = IllegalStateException.class)
-//    public void shouldThrowExceptionWhenConfigServiceIsNotAvailable() {
-//        List<RefreshableConfiguration> refreshableConfigurations = new ArrayList<>();
-//        when(configServiceProvider.getIfAvailable()).thenReturn(null);
-//
-//        processor = new InitRefreshableConfigurationProcessor(configServiceProvider, configProperties, fetchConfigurationSettings, refreshableConfigurations);
-//        processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
-//        processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
-//    }
+    @Test
+    public void shouldContainAllTenantsIfIncludePropertyEmptyDuringUpdate() {
+        List<RefreshableConfiguration> refreshableConfigurations = new ArrayList<>();
+        when(configService.getConfigMapAntPattern(any(), any())).thenReturn(configMap);
+        when(configServiceProvider.getIfAvailable()).thenReturn(configService);
+
+        processor = new InitRefreshableConfigurationProcessor(configServiceProvider, configProperties, fetchConfigurationSettings, refreshableConfigurations);
+        processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
+        processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
+
+        configService.updateConfigurations("commit", configKeys);
+
+        configKeys.forEach(configKey -> verify(refreshableConfiguration).onRefresh(eq(configKey), any()));
+
+        verify(refreshableConfiguration).refreshFinished(eq(configKeys));
+
+    }
+
+    @Test
+    public void shouldContainIncludedTenantsAndCommonsDuringUpdate() {
+        List<RefreshableConfiguration> refreshableConfigurations = new ArrayList<>();
+        when(configProperties.getIncludeTenants()).thenReturn(Set.of("tenant1", "Tenant2"));
+        when(configService.getConfigMapAntPattern(any(), any())).thenReturn(configMap);
+        when(configServiceProvider.getIfAvailable()).thenReturn(configService);
+        processor = new InitRefreshableConfigurationProcessor(configServiceProvider, configProperties, fetchConfigurationSettings, refreshableConfigurations);
+        processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
+        processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
+
+        configService.updateConfigurations("commit", configKeys);
+
+        var expectedUpdatedKeys = List.of("/config/tenants/TENANT1/dashboard/dashboards/ADMIN_METRICS-27.yml",
+                                          "/config/tenants/TENANT2/custom-privileges.yml",
+                                          "/config/tenants/TENANT1/uaa/uaa.yml",
+                                          "/config/tenants/commons/lep/entity/MathService$$tenant.groovy");
+
+        configKeys.forEach(configKey -> {
+            if (expectedUpdatedKeys.contains(configKey)) {
+                verify(refreshableConfiguration, times(1)).onRefresh(eq(configKey), any());
+            } else {
+                verify(refreshableConfiguration, times(0)).onRefresh(eq(configKey), any());
+            }
+        });
+
+        verify(refreshableConfiguration, times(2))
+            .refreshFinished(argThat(argument -> assertListsEquals(argument, expectedUpdatedKeys)));
+
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldThrowExceptionWhenConfigServiceIsNotAvailable() {
+        List<RefreshableConfiguration> refreshableConfigurations = new ArrayList<>();
+        when(configServiceProvider.getIfAvailable()).thenReturn(null);
+
+        processor = new InitRefreshableConfigurationProcessor(configServiceProvider, configProperties, fetchConfigurationSettings, refreshableConfigurations);
+        processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
+        processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
+    }
 
     private static <T extends Comparable<T>> boolean assertListsEquals(Collection<T> expected, Collection<T> actual) {
         ArrayList<T> mutableExpected = new ArrayList<>(expected);
