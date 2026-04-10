@@ -6,6 +6,7 @@ package com.icthh.xm.commons.security;
 public final class RoleConstant {
 
     public static final String SUPER_ADMIN = "SUPER-ADMIN";
+    public  static final String ADMIN = "ADMIN";
 
     private RoleConstant() {
     }
