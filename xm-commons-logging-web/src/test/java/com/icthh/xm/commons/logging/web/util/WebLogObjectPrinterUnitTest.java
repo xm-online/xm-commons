@@ -1,13 +1,13 @@
 package com.icthh.xm.commons.logging.web.util;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.logging.LoggingAspectConfig;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
@@ -33,7 +33,7 @@ public class WebLogObjectPrinterUnitTest {
     @Mock
     ResponseEntity responseEntity;
 
-    @Before
+    @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
         when(joinPoint.getSignature()).thenReturn(ms);
