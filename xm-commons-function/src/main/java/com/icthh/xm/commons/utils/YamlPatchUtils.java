@@ -4,8 +4,8 @@ import static java.lang.Math.abs;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +29,7 @@ import org.snakeyaml.engine.v2.nodes.SequenceNode;
 @Slf4j
 public class YamlPatchUtils {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+    private static final ObjectMapper objectMapper = YamlMapperUtils.yamlDefaultMapper();
 
     public static String addObject(String yamlText, Object value, List<YamlPatchPattern> path) {
         var rootNode = loadYamlNode(yamlText);

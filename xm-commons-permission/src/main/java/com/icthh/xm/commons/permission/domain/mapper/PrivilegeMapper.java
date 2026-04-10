@@ -1,9 +1,9 @@
 package com.icthh.xm.commons.permission.domain.mapper;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.permission.domain.Privilege;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,7 +18,7 @@ import java.util.TreeSet;
 @Slf4j
 public class PrivilegeMapper {
 
-    private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    private final ObjectMapper mapper = YamlMapperUtils.yamlDefaultMapper();
 
     /**
      * Convert privileges collection to yml string.

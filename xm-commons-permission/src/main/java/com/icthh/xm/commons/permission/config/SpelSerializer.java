@@ -1,16 +1,15 @@
 package com.icthh.xm.commons.permission.config;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ser.std.StdSerializer;
 import org.springframework.expression.Expression;
-
-import java.io.IOException;
 
 public class SpelSerializer extends StdSerializer<Expression> {
 
     public SpelSerializer() {
-        this(null);
+        this(Expression.class);
     }
 
     public SpelSerializer(Class<Expression> sc) {
@@ -18,7 +17,7 @@ public class SpelSerializer extends StdSerializer<Expression> {
     }
 
     @Override
-    public void serialize(Expression value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
-        jgen.writeString(value.getExpressionString());
+    public void serialize(Expression value, JsonGenerator gen, SerializationContext provider) throws JacksonException {
+        gen.writeString(value.getExpressionString());
     }
 }

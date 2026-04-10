@@ -3,8 +3,9 @@ package com.icthh.xm.commons.web.rest;
 import static org.springframework.http.HttpStatus.CREATED;
 
 import com.codahale.metrics.annotation.Timed;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.domain.FunctionSpecWithFileName;
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.commons.service.FunctionManageService;
 import com.icthh.xm.commons.service.FunctionSpecService;
@@ -44,7 +45,7 @@ public class FunctionSpecResource {
     private final FunctionSpecService functionSpecService;
     private final AbstractFunctionService<?> functionService;
     private final FunctionManageService<?, FunctionSpecWithFileName<?>> functionManageService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapperUtils.getDefaultJsonMapper();
 
     @GetMapping(value = "/functions/dataschemas", produces = MediaType.APPLICATION_JSON_VALUE)
     @Timed

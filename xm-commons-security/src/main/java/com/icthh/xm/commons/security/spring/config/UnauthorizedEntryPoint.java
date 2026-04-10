@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.security.spring.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.icthh.xm.commons.security.utils.JsonMapperUtils;
 import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,7 +15,7 @@ public final class UnauthorizedEntryPoint implements AuthenticationEntryPoint {
 	public void commence(HttpServletRequest request, HttpServletResponse response,
 						 AuthenticationException authException) throws IOException {
 		try (var writer = response.getWriter()) {
-			writer.print(new ObjectMapper().writeValueAsString(new ErrorVM(
+			writer.print(JsonMapperUtils.getDefaultJsonMapper().writeValueAsString(new ErrorVM(
 					"unauthorized",
 					"Full authentication is required to access this resource"
 			)));

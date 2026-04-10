@@ -1,11 +1,11 @@
 package com.icthh.xm.commons.config.client.api.refreshable;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.type.TypeFactory;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +44,7 @@ public abstract class AbstractRefreshableConfiguration<CONFIG, CONFIG_FILE> impl
     public abstract JavaType configFileJavaType(TypeFactory typeFactory);
 
     public ObjectMapper buildObjectMapper() {
-        return new ObjectMapper(new YAMLFactory());
+        return YamlMapperUtils.yamlDefaultMapper();
     }
 
     public void onUpdate(String tenantKey, CONFIG configuration) {

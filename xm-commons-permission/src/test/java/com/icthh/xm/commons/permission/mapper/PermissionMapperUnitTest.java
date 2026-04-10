@@ -46,7 +46,7 @@ public class PermissionMapperUnitTest {
     private ExpressionParser parser = new SpelExpressionParser();
 
     @Test
-    public void testCollectionToYml() throws Exception {
+    public void testCollectionToYml() {
         String yml = PermissionMapper.permissionsToYml(permissions());
 
         assertEquals(CORRECT_YML, yml);

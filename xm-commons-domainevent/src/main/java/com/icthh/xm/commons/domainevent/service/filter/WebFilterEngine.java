@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.domainevent.service.filter;
 
-import com.fasterxml.jackson.core.JsonFactory;
+import tools.jackson.core.json.JsonFactory;
 import com.icthh.xm.commons.domainevent.config.FilterConfig;
 import com.icthh.xm.commons.domainevent.config.XmDomainEventConfiguration;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;

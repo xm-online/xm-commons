@@ -21,6 +21,9 @@ dependencies {
     api 'com.jayway.jsonpath:json-path'
     api "org.apache.commons:commons-text:${versions.commonsText}"
 
+    // Source: https://mvnrepository.com/artifact/tools.jackson.dataformat/jackson-dataformat-yaml
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
+
     testImplementation "jakarta.servlet:jakarta.servlet-api"
     testImplementation 'junit:junit'
     testImplementation 'org.mockito:mockito-core'

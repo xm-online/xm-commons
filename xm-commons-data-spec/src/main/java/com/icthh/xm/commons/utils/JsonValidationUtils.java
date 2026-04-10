@@ -1,13 +1,14 @@
 package com.icthh.xm.commons.utils;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import java.util.HashSet;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.exceptions.BusinessException;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
-import com.networknt.schema.ValidationMessage;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
+import com.networknt.schema.Schema;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.SpecificationVersion;
+import com.networknt.schema.Error;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
@@ -23,11 +24,11 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class JsonValidationUtils {
 
-    private final ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
-    private final JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
+    private final ObjectMapper objectMapper = YamlMapperUtils.yamlDefaultMapper();
+    private final SchemaRegistry factory = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12);
 
-    public static Set<ValidationMessage> validateJson(Map<String, Object> data, JsonSchema schema) {
-        Set<ValidationMessage> errors = validate(data, schema);
+    public static Set<Error> validateJson(Map<String, Object> data, Schema schema) {
+        Set<Error> errors = validate(data, schema);
         if (!errors.isEmpty()) {
             log.error("Validation data report: {}", getReportErrorMessage(errors));
         }
@@ -36,8 +37,8 @@ public class JsonValidationUtils {
 
     @SneakyThrows
     public static void assertJson(Map<String, Object> data, String jsonSchema) {
-        JsonSchema schema = factory.getSchema(jsonSchema);
-        Set<ValidationMessage> errors = validate(data, schema);
+        Schema schema = factory.getSchema(jsonSchema);
+        Set<Error> errors = validate(data, schema);
         if (!errors.isEmpty()) {
             String message = getReportErrorMessage(errors);
             log.error("Validation data report: {}", message);
@@ -45,17 +46,17 @@ public class JsonValidationUtils {
         }
     }
 
-    private String getReportErrorMessage(Set<ValidationMessage> report) {
+    private String getReportErrorMessage(Set<Error> report) {
         return report.stream()
-            .map(ValidationMessage::getMessage)
+            .map(Error::getMessage)
             .collect(Collectors.joining(" | "));
     }
 
     @SneakyThrows
-    private Set<ValidationMessage> validate(Map<String, Object> data, JsonSchema jsonSchema) {
+    private Set<Error> validate(Map<String, Object> data, Schema jsonSchema) {
         log.debug("Validation data. map: {}", data);
         JsonNode dataNode = objectMapper.valueToTree(data);
-        return jsonSchema.validate(dataNode);
+        return new HashSet<>(jsonSchema.validate(dataNode));
     }
 
     public static class InvalidJsonException extends BusinessException {

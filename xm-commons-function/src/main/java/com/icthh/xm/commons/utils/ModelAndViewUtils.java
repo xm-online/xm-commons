@@ -1,8 +1,9 @@
 package com.icthh.xm.commons.utils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.domain.FunctionResult;
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.ModelAndView;
@@ -14,7 +15,7 @@ import java.util.Map;
 public class ModelAndViewUtils {
 
     public static final String MVC_FUNC_RESULT = "modelAndView";
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = JsonMapperUtils.getDefaultJsonMapper();
 
     public static ModelAndView getMvcResult(FunctionResult result) {
         if (result == null) {

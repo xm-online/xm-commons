@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.domainevent.outbox.service.mapper;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.domain.DomainEventPayload;
 import com.icthh.xm.commons.domainevent.outbox.domain.Outbox;
@@ -32,7 +32,7 @@ public abstract class DomainEventMapper {
 
     @Autowired
     public void setObjectMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper.copy();
+        this.objectMapper = objectMapper.rebuild().build();
     }
 
     @Mapping(target = "payload", source = "payload", qualifiedByName = "mapToDtoPayload")

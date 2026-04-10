@@ -23,6 +23,12 @@ dependencies {
         exclude group: 'com.vaadin.external.google', module: 'android-json'
     }
 
+    // Source: https://mvnrepository.com/artifact/tools.jackson.dataformat/jackson-dataformat-yaml
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
+
+    // Source: https://mvnrepository.com/artifact/tools.jackson.core/jackson-databind
+    implementation "tools.jackson.core:jackson-databind"
+
     api "commons-collections:commons-collections:${versions.commonsCollections}"
     implementation "org.springframework.boot:spring-boot-restclient"
     implementation "org.springframework.retry:spring-retry"
