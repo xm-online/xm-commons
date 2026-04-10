@@ -50,9 +50,9 @@ public class InitRefreshableConfigurationProcessor {
         this.lepContextRunnerProvider = lepContextRunnerProvider;
 
         addLepCommons();
+        initAll();
     }
 
-    @EventListener(ApplicationReadyEvent.class)
     private void initAll() {
         Map<String, Configuration> configMap = getConfigMap();
         for (RefreshableConfiguration bean : refreshableConfigurations) {
