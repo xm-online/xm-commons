@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class JsonValidationUtils {
 
     private final ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
-    private final SchemaRegistry factory = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12);
+    private final SchemaRegistry factory = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_4);
 
     public static Set<Error> validateJson(Map<String, Object> data, Schema schema) {
         Set<Error> errors = validate(data, schema);
