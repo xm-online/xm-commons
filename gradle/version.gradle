@@ -1,6 +1,6 @@
 import java.util.regex.Pattern
 
-version = "4.2.6"//detectSemVersion()
+version = "4.2.7"//detectSemVersion()
 
 
 
