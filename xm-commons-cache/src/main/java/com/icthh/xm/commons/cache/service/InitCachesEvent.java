@@ -6,7 +6,7 @@ import org.springframework.context.ApplicationEvent;
 
 import java.util.List;
 
-class InitCachesEvent extends ApplicationEvent {
+public class InitCachesEvent extends ApplicationEvent {
 
     @Getter
     private final String tenantKey;

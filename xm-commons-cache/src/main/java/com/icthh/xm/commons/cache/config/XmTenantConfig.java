@@ -1,13 +1,8 @@
 package com.icthh.xm.commons.cache.config;
 
-import com.github.benmanes.caffeine.cache.Ticker;
 import com.icthh.xm.commons.cache.TenantCacheManager;
-import com.icthh.xm.commons.cache.service.DynamicCaffeineCacheManager;
-import com.icthh.xm.commons.cache.service.TenantAwareCacheManager;
-import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.Cache;
 import org.springframework.context.annotation.Bean;
@@ -21,25 +16,13 @@ import java.util.List;
 @ConditionalOnProperty(value = "application.tenant-memory-cache.enabled", havingValue = "false", matchIfMissing = true)
 public class XmTenantConfig {
 
-    @Bean
-    @ConditionalOnMissingBean(Ticker.class)
-    public Ticker ticker() {
-        return Ticker.systemTicker();
-    }
-
-    @Bean
-    public DynamicCaffeineCacheManager dynamicCaffeineCacheManager(Ticker ticker) {
-        return new DynamicCaffeineCacheManager(ticker);
-    }
-
     /**
      * Default TenantCacheManager implementation for spring autowire
      */
     @Bean
     @Qualifier("lepCacheManager")
-    public TenantCacheManager tenantAwareCacheManager(DynamicCaffeineCacheManager caffeineCacheManager,
-                                                      TenantContextHolder tenantContextHolder) {
-        return new TenantAwareCacheManager(caffeineCacheManager, tenantContextHolder) {
+    public TenantCacheManager tenantAwareCacheManager() {
+        return new TenantCacheManager() {
 
             @Override
             public Cache getCache(String name) {
