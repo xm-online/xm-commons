@@ -1,5 +1,9 @@
 package com.icthh.xm.commons.utils;
 
+import static com.networknt.schema.SpecificationVersion.DRAFT_4;
+import static com.networknt.schema.path.PathType.LEGACY;
+
+import com.networknt.schema.SchemaRegistryConfig;
 import java.util.HashSet;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -7,7 +11,6 @@ import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import com.networknt.schema.Schema;
 import com.networknt.schema.SchemaRegistry;
-import com.networknt.schema.SpecificationVersion;
 import com.networknt.schema.Error;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
