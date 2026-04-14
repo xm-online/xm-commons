@@ -1,5 +1,9 @@
 package com.icthh.xm.commons.utils;
 
+import static com.networknt.schema.SpecificationVersion.DRAFT_4;
+import static com.networknt.schema.path.PathType.LEGACY;
+
+import com.networknt.schema.SchemaRegistryConfig;
 import java.util.HashSet;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -7,7 +11,6 @@ import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import com.networknt.schema.Schema;
 import com.networknt.schema.SchemaRegistry;
-import com.networknt.schema.SpecificationVersion;
 import com.networknt.schema.Error;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
@@ -25,7 +28,8 @@ import java.util.stream.Collectors;
 public class JsonValidationUtils {
 
     private final ObjectMapper objectMapper = YamlMapperUtils.yamlDefaultMapper();
-    private final SchemaRegistry factory = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12);
+    private final SchemaRegistry factory = SchemaRegistry.withDefaultDialect(DRAFT_4,
+        builder -> builder.schemaRegistryConfig(SchemaRegistryConfig.builder().pathType(LEGACY).build()));
 
     public static Set<Error> validateJson(Map<String, Object> data, Schema schema) {
         Set<Error> errors = validate(data, schema);
@@ -48,7 +52,7 @@ public class JsonValidationUtils {
 
     private String getReportErrorMessage(Set<Error> report) {
         return report.stream()
-            .map(Error::getMessage)
+            .map(error -> error.getInstanceLocation() + ": " + error.getMessage())
             .collect(Collectors.joining(" | "));
     }
 

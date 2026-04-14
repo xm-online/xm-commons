@@ -25,7 +25,8 @@ import java.util.stream.Collectors;
 public class JsonValidationUtils {
 
     private final ObjectMapper objectMapper = YamlMapperUtils.yamlDefaultMapper();
-    private final SchemaRegistry factory = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12);
+    private final SchemaRegistry factory = SchemaRegistry.withDefaultDialect(DRAFT_4,
+        builder -> builder.schemaRegistryConfig(SchemaRegistryConfig.builder().pathType(LEGACY).build()));
 
     public static Set<Error> validateJson(Map<String, Object> data, Schema schema) {
         Set<Error> errors = validate(data, schema);
@@ -48,7 +49,7 @@ public class JsonValidationUtils {
 
     private String getReportErrorMessage(Set<Error> report) {
         return report.stream()
-            .map(Error::getMessage)
+            .map(error -> error.getInstanceLocation() + ": " + error.getMessage())
             .collect(Collectors.joining(" | "));
     }
 
