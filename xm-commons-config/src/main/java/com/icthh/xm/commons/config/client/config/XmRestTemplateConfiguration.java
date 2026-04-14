@@ -65,7 +65,7 @@ public class XmRestTemplateConfiguration {
             ObjectUtils.anyNotNull(timeoutProperties.getConnectionTimeout(), timeoutProperties.getReadTimeout())) {
 
             log.info("createRestTemplate applying timeouts={}", timeoutProperties);
-            restTemplateBuilder
+            restTemplateBuilder = restTemplateBuilder
                 .connectTimeout(timeoutProperties.getConnectionTimeout())
                 .readTimeout(timeoutProperties.getReadTimeout());
         }
