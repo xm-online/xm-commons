@@ -31,7 +31,6 @@ public class CustomPostgreSQLDialect extends PostgreSQLDialect implements Custom
 
     @Override
     public void initializeFunctionRegistry(FunctionContributions functionContributions) {
-        super.initializeFunctionRegistry(functionContributions);
         BasicType<String> stringBasicType = functionContributions
             .getTypeConfiguration()
             .getBasicTypeRegistry()
@@ -42,6 +41,9 @@ public class CustomPostgreSQLDialect extends PostgreSQLDialect implements Custom
         functionContributions.getFunctionRegistry().registerPattern(TO_JSON_B_TEXT, TO_JSON_B_TEMPLATE_TEXT, stringBasicType);
         functionContributions.getFunctionRegistry().registerPattern(JSON_EXTRACT_PATH, JSON_EXTRACT_PATH_TEMPLATE, stringBasicType);
         functionContributions.getFunctionRegistry().registerPattern(JSON_EXTRACT_PATH_ARRAY, JSON_EXTRACT_PATH_TEMPLATE_ARRAY, stringBasicType);
+        functionContributions.getFunctionRegistry().registerPattern(JSON_EXTRACT_PATH_TEMPLATE_SIMPLE, JSON_EXTRACT_PATH_TEMPLATE, stringBasicType);
+
+        super.initializeFunctionRegistry(functionContributions);
     }
 
     @Override
