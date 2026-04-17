@@ -26,6 +26,8 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
     private final LepPathResolver lepPathResolver;
     private final Set<String> tenantWithWarmup;
     private final Boolean warmupScriptsForAllTenants;
+    private final Boolean precompiledMode;
+    private final String pathToWorkingDirectory;
     private final GroovyEngineCreationStrategy groovyEngineCreationStrategy;
 
     private volatile ClassLoader classLoader;
@@ -37,7 +39,9 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
                                   LepPathResolver lepPathResolver,
                                   GroovyFileParser groovyFileParser,
                                   Set<String> tenantWithWarmup,
-                                  Boolean warmupScriptsForAllTenants) {
+                                  Boolean warmupScriptsForAllTenants,
+                                  Boolean precompiledMode,
+                                  String pathToWorkingDirectory) {
         super(appName);
         this.lepPathResolver = lepPathResolver;
         this.lepStorageFactory = lepStorageFactory;
@@ -46,6 +50,8 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
         this.groovyFileParser = groovyFileParser;
         this.tenantWithWarmup = tenantWithWarmup;
         this.warmupScriptsForAllTenants = warmupScriptsForAllTenants;
+        this.precompiledMode = precompiledMode;
+        this.pathToWorkingDirectory = pathToWorkingDirectory;
     }
 
     @Override
@@ -55,6 +61,11 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
 
     @Override
     public LepEngine createLepEngine(String tenant, List<XmLepConfigFile> lepFromConfig) {
+        return createLepEngine(tenant, lepFromConfig, pathToWorkingDirectory);
+    }
+
+    @Override
+    public LepEngine createLepEngine(String tenant, List<XmLepConfigFile> lepFromConfig, String targetDirectoryPath) {
         LepStorage lepConfigStorage = lepStorageFactory.buildXmConfigLepStorage(tenant, lepFromConfig);
 
         Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata = new HashMap<>();
@@ -77,7 +88,10 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
             lepMetadata,
             lepResourceConnector,
             lepPathResolver,
-            isWarmupEnabled
+            isWarmupEnabled,
+            precompiledMode,
+            targetDirectoryPath
         );
+
     }
 }
