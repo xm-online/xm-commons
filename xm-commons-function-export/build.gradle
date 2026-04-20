@@ -18,7 +18,6 @@ dependencies {
     implementation("tools.jackson.dataformat:jackson-dataformat-csv")
 
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-csv"
-    implementation "com.codahale.metrics:metrics-annotation:${versions.codahaleMetrics}"
     implementation("org.apache.poi:poi:${versions.poi}")
     implementation "org.apache.poi:poi-ooxml:${versions.poi}"
     implementation('org.springframework.boot:spring-boot-starter-web')
