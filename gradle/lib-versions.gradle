@@ -1,17 +1,17 @@
 ext.versions = [
     gradle                     : '9.2.1',
-    checkstyle                 : '10.21.4',
-    spotbugToolVersion         : '4.9.8',
-    pmd                        : '7.16.0',
+    checkstyle                 : '13.4.0',
+    spotbugToolVersion         : '4.9.8.3',
+    pmd                        : '7.23.0',
 
     equalsverifier             : '3.19.1',
     commonsLang3               : '3.20.0',
-    commonsCodec               : '1.17.2',
-    commonsIo                  : '2.18.0',
+    commonsCodec               : '1.21.0',
+    commonsIo                  : '2.21.0',
     commonsCollections         : '3.2.2',
     commonsCollections4        : '4.5.0',
-    commonsText                : '1.13.0',
-    guava                      : '33.4.0-jre',
+    commonsText                : '1.15.0',
+    guava                      : '33.5.0-jre',
 
     springBoot                 : '4.0.4',
     springCloud                : '2025.1.1',
@@ -22,9 +22,9 @@ ext.versions = [
     jhipster                   : '8.1.0',
     lombok                     : '1.18.44',
     logstashLogbackEncoder     : '8.0',
-    caffeine                   : '3.2.0',
+    caffeine                   : '3.2.3',
 
-    swaggerCodegen             : '3.0.68',
+    swaggerCodegen             : '3.0.78',
     springfoxSwagger           : '3.0.0',
     reflections                : '0.10.2',
     hibernateValidation        : '8.0.2.Final',
@@ -33,7 +33,7 @@ ext.versions = [
 
     systemRules                : '1.19.0',
 
-    hibernate                  : '7.3.0.Final',
+    hibernate                  : '7.3.1.Final',
 
     jjwt                       : '0.13.0',
 
@@ -43,9 +43,9 @@ ext.versions = [
 
     dropwizard                 : '4.2.31',
 
-    lucene                     : '10.2.1',
+    lucene                     : '10.4.0',
 
-    jsonSchemaValidatorVersion : '3.0.1',
+    jsonSchemaValidatorVersion : '3.0.2',
     codahaleMetrics            : '3.0.2',
     intellijAnnotations        : '26.0.2',
     snakeyamlEngine            : '2.10',
