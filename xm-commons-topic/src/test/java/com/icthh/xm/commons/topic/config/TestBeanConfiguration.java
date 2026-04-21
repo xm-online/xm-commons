@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.topic.config;
 
+import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.logging.trace.TraceWrapper;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
@@ -54,7 +55,17 @@ public class TestBeanConfiguration {
 
     @Bean
     public TopicManagerService topicManagerService() {
-        return new TopicManagerService(kafkaProperties, kafkaTemplate, traceWrapper());
+        return new TopicManagerService(kafkaProperties, kafkaTemplate, traceWrapper(), kafkaTopicNameHandler());
+    }
+
+    @Bean
+    public KafkaTopicNameHandler kafkaTopicNameHandler() {
+        return new KafkaTopicNameHandler();
+    }
+
+    @Bean
+    public XmConfigProperties xmConfigProperties() {
+        return new XmConfigProperties();
     }
 
     @Bean
