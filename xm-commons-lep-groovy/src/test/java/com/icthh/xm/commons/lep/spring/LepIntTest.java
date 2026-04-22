@@ -80,6 +80,23 @@ public class LepIntTest {
 
     @Test
     @SneakyThrows
+    public void testInitLepEngineScriptApplied() {
+        // language=groovy
+        String code = """
+        import org.springframework.http.HttpHeaders
+        HttpHeaders headers = new HttpHeaders()
+        headers.set("testKey", "testValue1")
+        return headers.collect {
+            return it.key + ":" + it.value.first()
+        }.join('|')
+        """;
+        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy", code);
+        String result = testLepService.testLepMethod();
+        assertEquals("testKey:testValue1", result);
+    }
+
+    @Test
+    @SneakyThrows
     public void testLepContextCastToMap() {
         String code = loadFile("lep/TestLepContextCastToMap.groovy");
         resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethodWithInput$$around.groovy", code);

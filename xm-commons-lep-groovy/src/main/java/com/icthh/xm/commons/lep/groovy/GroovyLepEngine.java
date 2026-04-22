@@ -78,6 +78,7 @@ public class GroovyLepEngine extends LepEngine {
         this.lepMetadata.putAll(lepMetadata);
         this.lepPathResolver = lepPathResolver;
         this.tenantCommonsFolders = lepPathResolver.getLepCommonsPaths(tenant);
+        runInitScript(gse);
         if (isWarmupEnabled) {
             warmupScripts();
         } else {
@@ -108,12 +109,19 @@ public class GroovyLepEngine extends LepEngine {
     }
 
     private void runInitScript(GroovyScriptEngine gse) {
-        log.info("START run groovy lep engine init script");
+        log.info("START run groovy lep engine init script for tenant {}", tenant);
+        StopWatch stopWatch = StopWatch.createStarted();
         try {
-            gse.run();
-            log.info("STOP groovy lep engine init script");
+            Class<?> scriptClass = gse.getGroovyClassLoader().parseClass(INIT_SCRIPT, "InitLepEngine.groovy");
+            Binding binding = new Binding(new HashMap<>(Map.of(
+                "log", log,
+                "tenant", tenant
+            )));
+            InvokerHelper.createScript(scriptClass, binding).run();
+            log.info("STOP groovy lep engine init script for tenant {}, time: {} ms",
+                tenant, stopWatch.getTime(MILLISECONDS));
         } catch (Throwable e) {
-            log.error("Error run groovy lep engine init script", e);
+            log.error("Error run groovy lep engine init script for tenant {}", tenant, e);
         }
     }
 
