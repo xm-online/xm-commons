@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.domainevent.utils;
 
-import com.fasterxml.jackson.core.JsonFactory;
+import tools.jackson.core.json.JsonFactory;
 import org.junit.Assert;
 import org.junit.Test;
 

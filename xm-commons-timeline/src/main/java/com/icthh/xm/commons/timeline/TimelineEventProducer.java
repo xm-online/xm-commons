@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.timeline;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.icthh.xm.commons.security.utils.JsonMapperUtils;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.timeline.domain.ApiMaskConfig;
 import com.icthh.xm.commons.timeline.domain.ApiMaskRule;
@@ -38,7 +39,7 @@ public class TimelineEventProducer {
     private static final List<String> PREFIXES = asList("$.", "$.xmEntity.", "$.data.");
 
     private final KafkaTemplate<Integer, String> template;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = JsonMapperUtils.getDefaultJsonMapper();
     private final AntPathMatcher matcher = new AntPathMatcher();
 
     @Value("${spring.application.name}")

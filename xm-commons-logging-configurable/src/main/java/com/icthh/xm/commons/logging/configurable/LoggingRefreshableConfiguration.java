@@ -1,8 +1,8 @@
 package com.icthh.xm.commons.logging.configurable;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import com.icthh.xm.commons.logging.config.LoggingConfig;
 import com.icthh.xm.commons.logging.config.LoggingConfig.LepLogConfiguration;
 import com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration;
@@ -38,7 +38,7 @@ public class LoggingRefreshableConfiguration implements RefreshableConfiguration
     private final Map<String, MaskingService> maskingConfig = new ConcurrentHashMap<>();
 
     private final AntPathMatcher matcher = new AntPathMatcher();
-    private final ObjectMapper ymlMapper = new ObjectMapper(new YAMLFactory());
+    private final ObjectMapper ymlMapper = YamlMapperUtils.yamlDefaultMapper();
 
     private final TenantContextHolder tenantContextHolder;
     private final String mappingPath;

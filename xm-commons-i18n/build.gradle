@@ -13,16 +13,16 @@ dependencies {
     api "jakarta.servlet:jakarta.servlet-api"
 
     api 'org.slf4j:slf4j-api'
-    implementation('org.springframework.boot:spring-boot-starter-web') {
-        exclude module: 'spring-boot-starter-tomcat'
-    }
+    implementation('org.springframework.boot:spring-boot-starter-web')
     api 'org.springframework:spring-tx'
     api 'org.springframework.security:spring-security-core'
     api 'org.springframework.boot:spring-boot-starter-validation'
-    api "org.glassfish:javax.el:${versions.javaxEl}" // TODO check it's need for test or real need in microservice
     api "org.hibernate.validator:hibernate-validator:${versions.hibernateValidation}"
     api 'com.jayway.jsonpath:json-path'
     api "org.apache.commons:commons-text:${versions.commonsText}"
+
+    // Source: https://mvnrepository.com/artifact/tools.jackson.dataformat/jackson-dataformat-yaml
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
 
     testImplementation "jakarta.servlet:jakarta.servlet-api"
     testImplementation 'junit:junit'

@@ -1,8 +1,8 @@
 package com.icthh.xm.commons.config.client.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
@@ -34,7 +34,7 @@ public class TenantConfigService implements RefreshableConfiguration {
 
     private final AntPathMatcher matcher = new AntPathMatcher();
 
-    private ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    private ObjectMapper mapper = YamlMapperUtils.yamlDefaultMapper();
 
     private final TenantContextHolder tenantContextHolder;
 

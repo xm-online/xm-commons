@@ -8,8 +8,8 @@ import com.icthh.xm.commons.lep.api.LepContextFactory;
 import com.icthh.xm.commons.lep.groovy.GroovyLepEngineConfiguration;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
@@ -19,7 +19,7 @@ import static org.mockito.Mockito.mock;
  *
  */
 @Configuration
-@EnableAutoConfiguration
+@ComponentScan("com.icthh.xm.commons.lep.spring")
 @Profile("resolveclasstest")
 public class DynamicLepTestConfig extends GroovyLepEngineConfiguration {
 

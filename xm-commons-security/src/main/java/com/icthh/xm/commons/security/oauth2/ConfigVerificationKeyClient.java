@@ -1,12 +1,16 @@
 package com.icthh.xm.commons.security.oauth2;
 
 
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -32,18 +36,20 @@ public class ConfigVerificationKeyClient implements JwtVerificationKeyClient {
     @Override
     public byte[] fetchKeyContent() {
         try {
-            HttpEntity<Void> request = new HttpEntity<>(new HttpHeaders());
+            HttpHeaders headers = new HttpHeaders();
+            headers.setAccept(Collections.singletonList(MediaType.TEXT_PLAIN));
+            HttpEntity<Void> request = new HttpEntity<>(headers);
 
-            byte[] content = restTemplate.exchange(getPublicKeyEndpoint(),
-                HttpMethod.GET, request, byte[].class).getBody();
+            String stringContent = restTemplate.exchange(getPublicKeyEndpoint(),
+                HttpMethod.GET, request, String.class).getBody();
 
-            if (ArrayUtils.isEmpty(content)) {
+            if (StringUtils.isBlank(stringContent)) {
                 log.warn("Public key not fetched from endpoint: {}", getPublicKeyEndpoint());
                 return null;
             }
 
-            return content;
-        } catch (IllegalArgumentException ex) {
+            return stringContent.getBytes(StandardCharsets.UTF_8);
+        } catch (RestClientException ex) {
             log.error("Could not contact xm-ms-config to get public key, exception: {}", ex.getMessage());
             return null;
         }

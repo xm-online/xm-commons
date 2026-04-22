@@ -1,10 +1,9 @@
 package com.icthh.xm.commons.permission.inspector.kafka;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+
 import com.icthh.xm.commons.messaging.event.system.SystemEvent;
 import com.icthh.xm.commons.messaging.event.system.SystemEventType;
 import com.icthh.xm.commons.permission.domain.Privilege;
@@ -19,6 +18,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 @RequiredArgsConstructor
@@ -27,10 +27,10 @@ public class PrivilegeEventProducer {
 
     private final KafkaTemplate<String, String> template;
 
-    private final ObjectMapper mapper = new ObjectMapper()
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-        .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-        .registerModule(new JavaTimeModule());
+    private final ObjectMapper mapper = JsonMapper.builder()
+            .changeDefaultPropertyInclusion(incl ->
+                    incl.withValueInclusion(JsonInclude.Include.NON_NULL))
+            .build();
 
     @Value("${spring.application.name}")
     private String appName;
@@ -68,7 +68,7 @@ public class PrivilegeEventProducer {
     private Optional<String> serializeEvent(SystemEvent event) {
         try {
             return Optional.ofNullable(mapper.writeValueAsString(event));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.warn("Error while serializing system event: {}", event, e);
         }
 

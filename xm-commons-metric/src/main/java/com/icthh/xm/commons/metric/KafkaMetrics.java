@@ -50,7 +50,7 @@ public class KafkaMetrics implements MeterBinder {
                     DescribeTopicsResult describeTopicsResult = adminClient.describeTopics(
                         metricTopics,
                         describeTopicsOptions);
-                    Map<String, TopicDescription> topicDescriptionMap = describeTopicsResult.all().get();
+                    Map<String, TopicDescription> topicDescriptionMap = describeTopicsResult.allTopicNames().get();
                     boolean monitoringResult = nonNull(topicDescriptionMap);
                     log.info("Connection to Kafka topics is {}, time: {}", monitoringResult, executionTime.getTime());
                     return monitoringResult;

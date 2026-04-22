@@ -29,15 +29,15 @@ dependencies {
         exclude module: 'mapstruct'
     }
 
-    implementation("org.springframework.boot:spring-boot-starter-web") {
-        exclude module: 'spring-boot-starter-tomcat'
-    }
+    implementation("org.springframework.boot:spring-boot-starter-web")
 
     api "org.hibernate.validator:hibernate-validator:${versions.hibernateValidation}"
 
     api "commons-io:commons-io:${versions.commonsIo}"
 
-    testImplementation 'junit:junit'
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation "org.mockito:mockito-core"
     testImplementation 'org.springframework:spring-test'
 }
@@ -96,7 +96,6 @@ pmd {
     sourceSets = []
 }
 
-//sonarqube {
-//    skipProject = true
-//}
-
+test {
+    useJUnitPlatform()
+}

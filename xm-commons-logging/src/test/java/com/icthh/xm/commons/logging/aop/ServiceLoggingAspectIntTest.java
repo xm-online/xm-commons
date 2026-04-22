@@ -12,9 +12,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
@@ -31,10 +31,10 @@ import static org.mockito.Mockito.when;
 @Import({TestServiceWithLogLevel.class})
 public class ServiceLoggingAspectIntTest {
 
-    @MockBean
+    @MockitoBean
     private LoggingConfigService loggingConfigService;
 
-    @MockBean
+    @MockitoBean
     private BasePackageDetector basePackageDetector;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")

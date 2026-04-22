@@ -12,9 +12,9 @@ import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.util.GroovyScriptEngine;
 import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +29,7 @@ import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.runtime.InvokerHelper;
 
 import static com.icthh.xm.commons.lep.groovy.storage.LepStorage.FILE_EXTENSION;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @Slf4j
@@ -38,6 +39,7 @@ public class GroovyLepEngine extends LepEngine {
     public static final String LEP_PREFIX = "lep://";
     public static final String COMMONS_SCRIPT = "/Commons$$";
     public static final String CLASSNAME_REGEX = "[$.\\-]";
+    public static final String INIT_SCRIPT;
     private final String tenant;
     private final LepStorage leps;
     private final GroovyScriptEngine gse;
@@ -47,6 +49,16 @@ public class GroovyLepEngine extends LepEngine {
     private final Boolean useDirectoryCompiledSources;
 
     private final Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata = new ConcurrentHashMap<>();
+
+    static {
+        INIT_SCRIPT = loadFile("InitLepEngine.groovy");
+    }
+
+    @SneakyThrows
+    private static String loadFile(String name) {
+        InputStream content = GroovyLepEngine.class.getClassLoader().getResourceAsStream(name);
+        return IOUtils.toString(content, UTF_8);
+    }
 
     public GroovyLepEngine(String tenant,
                            LepStorage leps,
@@ -66,6 +78,7 @@ public class GroovyLepEngine extends LepEngine {
         this.lepMetadata.putAll(lepMetadata);
         this.lepPathResolver = lepPathResolver;
         this.tenantCommonsFolders = lepPathResolver.getLepCommonsPaths(tenant);
+        runInitScript(gse);
         if (isWarmupEnabled) {
             warmupScripts();
         } else {
@@ -93,6 +106,23 @@ public class GroovyLepEngine extends LepEngine {
         gse.setConfig(config);
         gse.getGroovyClassLoader().setShouldRecompile(true);
         return gse;
+    }
+
+    private void runInitScript(GroovyScriptEngine gse) {
+        log.info("START run groovy lep engine init script for tenant {}", tenant);
+        StopWatch stopWatch = StopWatch.createStarted();
+        try {
+            Class<?> scriptClass = gse.getGroovyClassLoader().parseClass(INIT_SCRIPT, "InitLepEngine.groovy");
+            Binding binding = new Binding(new HashMap<>(Map.of(
+                "log", log,
+                "tenant", tenant
+            )));
+            InvokerHelper.createScript(scriptClass, binding).run();
+            log.info("STOP groovy lep engine init script for tenant {}, time: {} ms",
+                tenant, stopWatch.getTime(MILLISECONDS));
+        } catch (Throwable e) {
+            log.error("Error run groovy lep engine init script for tenant {}", tenant, e);
+        }
     }
 
     private void warmupScripts() {
@@ -231,7 +261,7 @@ public class GroovyLepEngine extends LepEngine {
 
     @SneakyThrows
     private String readString(XmLepConfigFile value) {
-        return IOUtils.toString(value.getContentStream().getInputStream(), StandardCharsets.UTF_8);
+        return IOUtils.toString(value.getContentStream().getInputStream(), UTF_8);
     }
 
     private String extractPackageName(String text) {

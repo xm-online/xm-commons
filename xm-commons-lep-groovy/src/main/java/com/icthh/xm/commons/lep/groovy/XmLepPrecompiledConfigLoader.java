@@ -1,7 +1,5 @@
 package com.icthh.xm.commons.lep.groovy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.lep.XmLepConstants;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
@@ -24,12 +22,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.AntPathMatcher;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 public class XmLepPrecompiledConfigLoader implements RefreshableConfiguration {
@@ -43,7 +44,7 @@ public class XmLepPrecompiledConfigLoader implements RefreshableConfiguration {
 
     private final AtomicInteger version = new AtomicInteger(0);
     private final AntPathMatcher matcher = new AntPathMatcher();
-    private final ObjectMapper ymlMapper = new ObjectMapper(new YAMLFactory());
+    private final ObjectMapper ymlMapper = YamlMapperUtils.yamlDefaultMapper();
 
     private final Map<String, XmLepPrecompiledConfig> precompiledConfigsByTenant = new ConcurrentHashMap<>();
 

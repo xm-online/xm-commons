@@ -1,8 +1,9 @@
 package com.icthh.xm.commons.scheduler.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.ObjectMapper;
+
 import com.icthh.xm.commons.logging.util.MdcUtils;
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 import com.icthh.xm.commons.scheduler.domain.ScheduledEvent;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
@@ -52,7 +53,7 @@ public class SchedulerEventHandlerFacade implements MessageHandler {
     }
 
     private ObjectMapper initObjectMapper() {
-        return new ObjectMapper().registerModule(new JavaTimeModule());
+        return JsonMapperUtils.getDefaultJsonMapper();
     }
 
     @SneakyThrows

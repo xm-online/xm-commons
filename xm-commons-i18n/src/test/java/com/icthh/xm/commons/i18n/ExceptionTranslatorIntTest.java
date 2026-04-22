@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.i18n;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.exceptions.ErrorConstants;
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 import com.icthh.xm.commons.i18n.config.MessageSourceConfig;
 import com.icthh.xm.commons.i18n.config.MockXmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.i18n.error.web.ExceptionTranslator;
@@ -150,8 +150,8 @@ public class ExceptionTranslatorIntTest {
     @Test
     public void testFieldValidationError() throws Exception {
         mockMvc.perform(post("/test/field-validation-error")
-            .content(new ObjectMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
-            .contentType(MediaType.APPLICATION_JSON_UTF8))
+            .content(JsonMapperUtils.getDefaultJsonMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
+            .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_VALIDATION))
             .andExpect(jsonPath("$.error_description").value("Input parameters error"))
@@ -163,8 +163,8 @@ public class ExceptionTranslatorIntTest {
     @Test
     public void testClassValidationError() throws Exception {
         mockMvc.perform(post("/test/class-validation-error")
-            .content(new ObjectMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
-            .contentType(MediaType.APPLICATION_JSON_UTF8))
+            .content(JsonMapperUtils.getDefaultJsonMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
+            .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_VALIDATION))
             .andExpect(jsonPath("$.error_description").value("Input parameters error"))
@@ -187,8 +187,8 @@ public class ExceptionTranslatorIntTest {
     @Test
     public void testDefaultClassValidationError() throws Exception {
         mockMvc.perform(post("/test/default-message-class-validation-error")
-                            .content(new ObjectMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
-                            .contentType(MediaType.APPLICATION_JSON_UTF8))
+                            .content(JsonMapperUtils.getDefaultJsonMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
+                            .contentType(MediaType.APPLICATION_JSON_VALUE))
                .andExpect(status().isBadRequest())
                .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_VALIDATION))
                .andExpect(jsonPath("$.error_description").value("Input parameters error"))
@@ -201,8 +201,8 @@ public class ExceptionTranslatorIntTest {
     @Test
     public void testCustomMessageTestClassValidation() throws Exception {
         mockMvc.perform(post("/test/custom-message-class-validation-error")
-                            .content(new ObjectMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
-                            .contentType(MediaType.APPLICATION_JSON_UTF8))
+                            .content(JsonMapperUtils.getDefaultJsonMapper().writeValueAsBytes(new ExceptionTranslatorTestController.TestFieldValidation()))
+                            .contentType(MediaType.APPLICATION_JSON_VALUE))
                .andExpect(status().isBadRequest())
                .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_VALIDATION))
                .andExpect(jsonPath("$.error_description").value("Input parameters error"))

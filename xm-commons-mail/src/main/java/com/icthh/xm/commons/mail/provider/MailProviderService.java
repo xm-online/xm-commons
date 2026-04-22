@@ -1,12 +1,12 @@
 package com.icthh.xm.commons.mail.provider;
 
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
-import static com.fasterxml.jackson.databind.DeserializationFeature.UNWRAP_ROOT_VALUE;
+import static tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static tools.jackson.databind.DeserializationFeature.UNWRAP_ROOT_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
+import tools.jackson.databind.ObjectMapper;
+
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -73,10 +73,10 @@ public class MailProviderService implements RefreshableConfiguration {
 
             if (StringUtils.isNotEmpty(config)) {
 
-                ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
-                objectMapper.registerModule(new JavaTimeModule());
-                objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
-                objectMapper.configure(UNWRAP_ROOT_VALUE, true);
+                ObjectMapper objectMapper = YamlMapperUtils.yamlDeserializationMapper(Map.of(
+                        FAIL_ON_UNKNOWN_PROPERTIES, false,
+                        UNWRAP_ROOT_VALUE, true
+                ));
 
                 MailProviderConfig providerConfig = objectMapper.readValue(config, MailProviderConfig.class);
 

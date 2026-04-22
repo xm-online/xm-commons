@@ -21,9 +21,15 @@ dependencies {
         exclude(group: 'ch.qos.logback')
     }
 
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+
     testImplementation "junit:junit"
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation "org.mockito:mockito-core"
     testImplementation 'org.springframework:spring-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
 
+test {
+    useJUnitPlatform()
 }
