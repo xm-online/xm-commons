@@ -38,4 +38,9 @@ public class JsLepEngineFactory extends LepEngineFactory {
             loggingWrapper
         );
     }
+
+    @Override
+    public LepEngine createLepEngine(String tenant, List<XmLepConfigFile> configInLepFolder, String targetDirectoryPath) {
+        return createLepEngine(tenant, configInLepFolder);
+    }
 }

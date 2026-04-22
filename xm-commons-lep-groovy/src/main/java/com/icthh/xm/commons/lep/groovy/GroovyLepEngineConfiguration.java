@@ -4,6 +4,7 @@ import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.FileSystemUtils;
 import com.icthh.xm.commons.lep.LepPathResolver;
 import com.icthh.xm.commons.lep.TenantScriptStorage;
+import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.groovy.annotation.LepServiceTransformation;
 import com.icthh.xm.commons.lep.groovy.storage.ClassPathLepStorageFactory;
 import com.icthh.xm.commons.lep.groovy.storage.DirtyClassPathConfigLepStorageFactory;
@@ -14,9 +15,11 @@ import com.icthh.xm.commons.lep.impl.LoggingWrapper;
 import com.icthh.xm.commons.lep.impl.utils.ClassPathLepRepository;
 import com.icthh.xm.commons.lep.spring.ApplicationNameProvider;
 import com.icthh.xm.commons.lep.spring.LepContextActualClassDetector;
+import com.icthh.xm.commons.lep.spring.LepRefreshService;
 import com.icthh.xm.commons.lep.spring.LepSpringConfiguration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -47,6 +50,12 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     @Value("${application.lep.tenants-with-lep-warmup:#{T(java.util.Set).of('XM')}}")
     private Set<String> tenantsWithLepWarmup;
 
+    @Value("${application.lep.precompiled-mode:false}")
+    private Boolean precompiledMode;
+
+    @Value("${application.lep.path-to-working-directory:/tmp/precompiled/lep}")
+    private String pathToWorkingDirectory;
+
     public GroovyLepEngineConfiguration(@Value("${spring.application.name}") String appName) {
         super(appName);
     }
@@ -59,6 +68,7 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
                                                          LepPathResolver lepPathResolver,
                                                          GroovyFileParser groovyFileParser) {
         String appName = applicationNameProvider.getAppName();
+
         return new GroovyLepEngineFactory(
             appName,
             lepStorageFactory,
@@ -67,8 +77,17 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
             lepPathResolver,
             groovyFileParser,
             warmupScripts ? tenantsWithLepWarmup : emptySet(),
-            warmupScriptsForAllTenant
+            warmupScriptsForAllTenant,
+            precompiledMode,
+            pathToWorkingDirectory
         );
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "application.lep.precompiled-mode", havingValue = "true")
+    public XmLepPrecompiledConfigLoader xmLepPrecompiledConfigLoader(LepRefreshService lepRefreshService,
+                                                                     ApplicationNameProvider applicationNameProvider) {
+        return new XmLepPrecompiledConfigLoader(lepRefreshService, applicationNameProvider.getAppName(), pathToWorkingDirectory);
     }
 
     @Bean
