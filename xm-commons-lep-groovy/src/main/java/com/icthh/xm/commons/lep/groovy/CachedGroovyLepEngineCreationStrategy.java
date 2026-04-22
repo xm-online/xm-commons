@@ -18,7 +18,9 @@ public class CachedGroovyLepEngineCreationStrategy implements GroovyEngineCreati
                                         Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata,
                                         LepResourceConnector lepResourceConnector,
                                         LepPathResolver lepPathResolver,
-                                        boolean isWarmupEnabled) {
+                                        boolean isWarmupEnabled,
+                                        boolean useDirectoryCompiledSources,
+                                        String targetDirectoryPath) {
         return engineByTenant.computeIfAbsent(tenant, it ->
             new GroovyLepEngine(
                 tenant,
@@ -28,7 +30,9 @@ public class CachedGroovyLepEngineCreationStrategy implements GroovyEngineCreati
                 lepMetadata,
                 lepResourceConnector,
                 lepPathResolver,
-                isWarmupEnabled
+                isWarmupEnabled,
+                useDirectoryCompiledSources,
+                targetDirectoryPath
             )
         );
     }
