@@ -76,6 +76,12 @@ public class LepSpringConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(LepRefreshService.class)
+    public LepRefreshService lepRefreshService(LepManagementService lepManagementService) {
+        return new LepRefreshServiceImpl(lepManagementService);
+    }
+
+    @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
     @ConditionalOnProperty(name = "application.lep.precompiled-mode", havingValue = "false", matchIfMissing = true)
     public XmLepScriptConfigServerResourceLoader cfgResourceLoader(LepPathResolver lepPathResolver,
