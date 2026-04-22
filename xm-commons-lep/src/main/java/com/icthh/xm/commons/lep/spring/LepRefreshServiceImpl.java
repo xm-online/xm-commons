@@ -13,13 +13,11 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
-import org.springframework.stereotype.Service;
 
 import static com.icthh.xm.commons.lep.utils.XmLepUtils.prepareConfigs;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @Slf4j
-@Service
 @RequiredArgsConstructor
 @IgnoreLogginAspect
 public class LepRefreshServiceImpl implements LepRefreshService {
