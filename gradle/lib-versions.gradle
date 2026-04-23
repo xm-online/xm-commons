@@ -45,7 +45,6 @@ ext.versions = [
     lucene                     : '10.4.0',
 
     jsonSchemaValidatorVersion : '3.0.2',
-    codahaleMetrics            : '3.0.2',
     intellijAnnotations        : '26.0.2',
     snakeyamlEngine            : '2.10',
     toolJacksonVersion         : '3.1.1'

@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.web.rest;
 
-import com.codahale.metrics.annotation.Timed;
 import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.commons.swagger.DynamicSwaggerFunctionGenerator;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,7 +26,6 @@ public class FunctionApiDocsResource {
 
     private final DynamicSwaggerFunctionGenerator functionDocService;
 
-    @Timed
     @GetMapping("/functions/api-docs")
     @PrivilegeDescription("Privilege to get openapi documentation for functions api")
     public ResponseEntity<Object> callGetFunction(HttpServletRequest request,

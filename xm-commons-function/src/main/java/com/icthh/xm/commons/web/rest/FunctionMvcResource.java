@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.web.rest;
 
-import com.codahale.metrics.annotation.Timed;
 import com.icthh.xm.commons.domain.FunctionResult;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
@@ -54,7 +53,6 @@ public class FunctionMvcResource {
      * @param functionInput function input data context
      * @return ModelAndView object
      */
-    @Timed
     @PostMapping("/functions/mvc/{functionKey:.+}")
     @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.MVC.CALL')")
     @PrivilegeDescription("Privilege to execute a mvc function by key (key in entity specification)")
@@ -64,7 +62,6 @@ public class FunctionMvcResource {
         return getMvcResult(result);
     }
 
-    @Timed
     @PostMapping(value = "/functions/mvc/{functionKey:.+}", consumes = {
         MediaType.APPLICATION_FORM_URLENCODED_VALUE,
     })
@@ -75,7 +72,6 @@ public class FunctionMvcResource {
         return callMvcFunction(functionKey, functionInput);
     }
 
-    @Timed
     @PostMapping("/functions/anonymous/mvc/{functionKey:.+}")
     public ModelAndView callMvcAnonymousFunction(@PathVariable("functionKey") String functionKey,
                                                  @RequestBody(required = false) Map<String, Object> functionInput) {
@@ -83,7 +79,6 @@ public class FunctionMvcResource {
         return getMvcResult(result);
     }
 
-    @Timed
     @GetMapping("/functions/anonymous/mvc/{functionKey:.+}")
     public ModelAndView callMvcGetAnonymousFunction(@PathVariable("functionKey") String functionKey,
                                                     @RequestParam(required = false) Map<String, Object> functionInput) {
@@ -91,7 +86,6 @@ public class FunctionMvcResource {
         return getMvcResult(result);
     }
 
-    @Timed
     @PostMapping(value = "/functions/anonymous/mvc/{functionKey:.+}", consumes = {
         MediaType.APPLICATION_FORM_URLENCODED_VALUE,
     })
@@ -102,7 +96,6 @@ public class FunctionMvcResource {
     }
 
     @IgnoreLogginAspect
-    @Timed
     @PostMapping("/functions/mvc/**")
     public ModelAndView callMvcFunction(HttpServletRequest request,
                                         @RequestBody(required = false) Map<String, Object> functionInput) {
@@ -111,7 +104,6 @@ public class FunctionMvcResource {
     }
 
     @IgnoreLogginAspect
-    @Timed
     @PostMapping(value = "/functions/mvc/**", consumes = {
         MediaType.APPLICATION_FORM_URLENCODED_VALUE,
     })
@@ -122,7 +114,6 @@ public class FunctionMvcResource {
     }
 
     @IgnoreLogginAspect
-    @Timed
     @GetMapping("/functions/anonymous/mvc/**")
     public ModelAndView callMvcAnonymousGetFunction(HttpServletRequest request,
                                                     @RequestParam(required = false) Map<String, Object> functionInput) {
@@ -131,7 +122,6 @@ public class FunctionMvcResource {
     }
 
     @IgnoreLogginAspect
-    @Timed
     @PostMapping("/functions/anonymous/mvc/**")
     public ModelAndView callMvcAnonymousFunction(HttpServletRequest request,
                                                  @RequestBody(required = false) Map<String, Object> functionInput) {
@@ -140,7 +130,6 @@ public class FunctionMvcResource {
     }
 
     @IgnoreLogginAspect
-    @Timed
     @PostMapping(value = "/functions/anonymous/mvc/**", consumes = {
         MediaType.APPLICATION_FORM_URLENCODED_VALUE,
     })
