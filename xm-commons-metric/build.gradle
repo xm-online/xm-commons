@@ -8,7 +8,6 @@ dependencyManagement {
 
 dependencies {
     api "org.springframework:spring-context"
-    api "com.ryantenney.metrics:metrics-spring:${versions.springMetrics}"
     api 'org.springframework.kafka:spring-kafka'
     implementation "org.springframework.boot:spring-boot-starter-actuator"
 
@@ -16,6 +15,7 @@ dependencies {
     api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
 
     api "io.micrometer:micrometer-registry-prometheus"
+    api "io.micrometer:micrometer-registry-otlp"
 
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 
