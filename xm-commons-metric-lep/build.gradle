@@ -1,0 +1,23 @@
+apply plugin: 'io.spring.dependency-management'
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"
+    }
+}
+
+dependencies {
+    api project(':xm-commons-lep')
+    api project(':xm-commons-metric')
+
+    implementation "org.jetbrains:annotations:${versions.intellijAnnotations}"
+
+    testImplementation 'junit:junit'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.hamcrest:hamcrest-library'
+    testImplementation 'org.springframework:spring-test'
+}
+
+test {
+    useJUnitPlatform()
+}
