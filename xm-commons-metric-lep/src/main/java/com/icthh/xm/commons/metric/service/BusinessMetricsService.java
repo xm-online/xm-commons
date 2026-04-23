@@ -13,6 +13,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class BusinessMetricsService {
 
+    public static final String METRIC_LEP_EXECUTION_TIME = "lep.execution.time";
+    public static final String METRIC_LEP_EXECUTION_COUNT = "lep.execution.count";
+    public static final String STATUS_SUCCESS = "success";
+    public static final String STATUS_ERROR = "error";
+
     private final MeterRegistry meterRegistry;
 
     public void incrementCounter(String name, Map<String, String> tags) {
