@@ -23,7 +23,6 @@ import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryWithLepFactor
 import com.icthh.xm.commons.lep.spring.web.LepInterceptor;
 import com.icthh.xm.commons.logging.config.LoggingConfigService;
 import com.icthh.xm.commons.logging.util.BasePackageDetector;
-import com.icthh.xm.commons.metric.service.BusinessMetricsService;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.lep.api.LepKeyResolver;
@@ -159,8 +158,7 @@ public class LepSpringConfiguration {
                                                XmAuthenticationContextHolder xmAuthContextHolder,
                                                Optional<List<LepAdditionalContext<?>>> additionalContexts,
                                                Optional<List<LepContextCustomizer>> customizers,
-                                               CommonsService commonsService,
-                                               BusinessMetricsService metricsService) {
+                                               CommonsService commonsService) {
         return new LepContextServiceImpl(
             lepContextFactory,
             lepServiceFactory,
@@ -169,8 +167,7 @@ public class LepSpringConfiguration {
             xmAuthContextHolder,
             additionalContexts.orElse(List.of()),
             customizers.orElse(List.of()),
-            commonsService,
-            metricsService
+            commonsService
         );
     }
 

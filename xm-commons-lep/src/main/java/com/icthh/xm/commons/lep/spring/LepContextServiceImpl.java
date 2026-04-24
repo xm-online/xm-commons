@@ -9,7 +9,6 @@ import com.icthh.xm.commons.lep.commons.CommonsExecutor;
 import com.icthh.xm.commons.lep.commons.CommonsService;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryImpl;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryWithLepFactoryMethod;
-import com.icthh.xm.commons.metric.service.BusinessMetricsService;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.lep.api.LepMethod;
@@ -30,7 +29,6 @@ public class LepContextServiceImpl implements LepContextService {
     private final List<LepAdditionalContext<?>> additionalContexts;
     private final List<LepContextCustomizer> customizers;
     private final CommonsService commonsService;
-    private final BusinessMetricsService metricsService;
 
     @Override
     public final BaseLepContext createLepContext(LepEngine lepEngine, TargetProceedingLep lepMethod) {
@@ -42,7 +40,6 @@ public class LepContextServiceImpl implements LepContextService {
         baseLepContext.authContext = xmAuthContextHolder.getContext();
         baseLepContext.authContextHolder = xmAuthContextHolder;
         baseLepContext.commons = new CommonsExecutor(commonsService);
-        baseLepContext.metrics = metricsService;
         additionalContexts.forEach(context -> {
                 Object value = context.additionalContextValue(baseLepContext, lepEngine, lepMethod)
                     .map(Object.class::cast)

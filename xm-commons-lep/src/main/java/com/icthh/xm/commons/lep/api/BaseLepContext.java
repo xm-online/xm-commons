@@ -3,7 +3,6 @@ package com.icthh.xm.commons.lep.api;
 import com.icthh.xm.commons.lep.BaseProceedingLep;
 import com.icthh.xm.commons.lep.spring.LepThreadHelper;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactory;
-import com.icthh.xm.commons.metric.service.BusinessMetricsService;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContext;
@@ -24,7 +23,6 @@ public abstract class BaseLepContext {
     @Deprecated(forRemoval = true)
     public Object methodResult;
     public LepServiceFactory lepServices;
-    public BusinessMetricsService metrics;
 
     private transient Map<String, Object> additionalContext = new HashMap<>();
 
