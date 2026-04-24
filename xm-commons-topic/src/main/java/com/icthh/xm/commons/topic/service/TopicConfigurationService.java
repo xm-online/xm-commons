@@ -1,8 +1,8 @@
 package com.icthh.xm.commons.topic.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import com.icthh.xm.commons.topic.domain.DynamicConsumer;
 import com.icthh.xm.commons.topic.domain.TopicConsumersSpec;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ public class TopicConfigurationService implements RefreshableConfiguration, Appl
 
     private final AtomicBoolean applicationReady = new AtomicBoolean(false);
     private AntPathMatcher matcher = new AntPathMatcher();
-    private ObjectMapper ymlMapper = new ObjectMapper(new YAMLFactory());
+    private ObjectMapper ymlMapper = YamlMapperUtils.yamlDefaultMapper();
 
     private final String configPath;
 

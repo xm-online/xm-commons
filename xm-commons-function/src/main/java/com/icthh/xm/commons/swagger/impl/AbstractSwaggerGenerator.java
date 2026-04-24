@@ -1,11 +1,11 @@
 package com.icthh.xm.commons.swagger.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.config.swagger.DynamicSwaggerConfiguration;
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 import com.icthh.xm.commons.swagger.JsonSchemaToSwaggerSchemaConverter;
 import com.icthh.xm.commons.swagger.SwaggerGenerator;
 import com.icthh.xm.commons.swagger.model.ApiMethod;
@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import tools.jackson.databind.node.ObjectNode;
 
 import static com.icthh.xm.commons.utils.Constants.POST_URLENCODED;
 import static com.icthh.xm.commons.utils.SwaggerGeneratorUtils.getPathVariables;
@@ -47,7 +48,7 @@ public abstract class AbstractSwaggerGenerator implements SwaggerGenerator {
     private final JsonSchemaToSwaggerSchemaConverter jsonSchemaConverter;
     private final Map<String, Object> definitions = new LinkedHashMap<>();
     private final Map<String, Object> originalDefinitions = new LinkedHashMap<>();
-    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    private final ObjectMapper objectMapper = JsonMapperUtils.getDefaultJsonMapper();
     private final DynamicSwaggerConfiguration configuration;
 
     public AbstractSwaggerGenerator(String baseUrl, DynamicSwaggerConfiguration configuration,
@@ -171,7 +172,7 @@ public abstract class AbstractSwaggerGenerator implements SwaggerGenerator {
         if (METHODS_WITH_PARAMS.contains(httpMethod)) {
             if (jsonNode.isObject() && jsonNode.has("properties")) {
                 ObjectNode object = (ObjectNode) jsonNode.get("properties");
-                var fields = object.fields();
+                var fields = object.properties().iterator();
                 Set<String> requiredFields = getRequiredFieldsFromFromSchema(jsonNode);
 
                 while (fields.hasNext()) {

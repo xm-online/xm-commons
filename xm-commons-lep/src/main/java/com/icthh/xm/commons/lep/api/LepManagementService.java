@@ -6,6 +6,8 @@ import java.util.Map;
 public interface LepManagementService {
     boolean isLepEnginesInited();
     void refreshEngines(Map<String, List<XmLepConfigFile>> configInLepFolder);
+    void refreshEngines(Map<String, List<XmLepConfigFile>> configInLepFolder, String pathToPrecompiledLep);
+
     LepExecutor getLepExecutor(LepKey lepKey);
 
     LepEngineSession beginThreadContext();

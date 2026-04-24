@@ -54,8 +54,6 @@ public abstract class XmWebMvcConfigurerAdapter implements WebMvcConfigurer {
      */
     @Override
     public final void configurePathMatch(PathMatchConfigurer configurer) {
-        configurer.setUseSuffixPatternMatch(false);
-
         xmConfigurePathMatch(configurer);
     }
 

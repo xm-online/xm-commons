@@ -1,8 +1,8 @@
 package com.icthh.xm.commons.domainevent.db.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.domainevent.config.DbSourceConfig;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import com.icthh.xm.commons.domainevent.config.Filter;
 import com.icthh.xm.commons.domainevent.config.XmDomainEventConfiguration;
 import com.icthh.xm.commons.domainevent.db.domain.Entity;
@@ -23,7 +23,6 @@ import com.icthh.xm.commons.tenant.TenantContextHolder;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import lombok.SneakyThrows;
-import org.apache.kafka.common.protocol.types.Field;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -131,7 +130,7 @@ public class DatabaseSourceInterceptorUnitTest {
     @Before
     public void init() {
         MockitoAnnotations.initMocks(this);
-        objectMapper = new ObjectMapper(new YAMLFactory());
+        objectMapper = YamlMapperUtils.yamlDefaultMapper();
 
         mocked = mockStatic(UUID.class);
         mocked.when(UUID::randomUUID).thenReturn(uuid);

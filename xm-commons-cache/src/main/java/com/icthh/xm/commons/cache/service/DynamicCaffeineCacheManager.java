@@ -13,6 +13,7 @@ import org.springframework.context.ApplicationListener;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -21,10 +22,18 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.icthh.xm.commons.cache.config.XmTenantLepCacheConfig.CACHE_DEFAULTS;
+import static java.util.stream.Collectors.toList;
 
 @RequiredArgsConstructor
 @Slf4j
-public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements ApplicationListener<InitCachesEvent> {
+public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements StrategyCacheManager {
+
+    public static final String STRATEGY = "CAFFEINE";
+
+    @Override
+    public String getStrategyName() {
+        return STRATEGY;
+    }
 
     private final ConcurrentMap<String, Supplier<Caffeine>> cacheCfgMap = new ConcurrentHashMap<>(16);
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
@@ -32,11 +41,12 @@ public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements
     private final Ticker ticker;
 
     @Override
-    public void onApplicationEvent(InitCachesEvent event) {
+    public Set<String> applyTenantConfig(InitCachesEvent event) {
         final String tenantName = event.getTenantKey().toUpperCase();
 
         List<Pair<String, XmTenantLepCacheConfig.XmCacheConfiguration>> cacheConfigurationList =
             event.getCacheList().stream()
+                .filter(this::isOwnedStrategy)
                 .map(cfg -> Pair.of(TenantCacheManager.buildKey(tenantName,cfg.getCacheName()), cfg))
                 .toList();
 
@@ -47,12 +57,16 @@ public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements
                 final String cachePrefix = TenantCacheManager.buildPrefix(tenantName);
 
                 //remove all CFG for tenant
-                this.cacheCfgMap.entrySet().removeIf(entry -> entry.getKey().startsWith(cachePrefix));
+                Set<String> toRemove = this.cacheCfgMap.keySet().stream()
+                    .filter(entry -> entry.startsWith(cachePrefix))
+                    .collect(Collectors.toSet());
 
                 //add suppliers for cache builders
                 for (Pair<String, XmTenantLepCacheConfig.XmCacheConfiguration> pair: cacheConfigurationList) {
                     this.cacheCfgMap.put(pair.getKey(), () -> buildSpec(pair.getValue()));
+                    toRemove.remove(pair.getKey());
                 }
+                return toRemove;
             }
         } catch (InterruptedException e) {
             log.error("Tenant[" + tenantName + "] " +  e.getMessage(), e);
@@ -61,7 +75,12 @@ public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements
                 lock.writeLock().unlock();
             }
         }
+        return Set.of();
+    }
 
+    @Override
+    public void cleanTenantConfig(Set<String> cacheKeys) {
+        cacheKeys.forEach(cacheCfgMap::remove);
     }
 
     @Override
@@ -92,6 +111,11 @@ public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements
         }
         Objects.requireNonNull(cache, "Cache [" + name + "] is locked");
         return cache;
+    }
+
+    private boolean isOwnedStrategy(XmTenantLepCacheConfig.XmCacheConfiguration cfg) {
+        String s = cfg.getStrategy();
+        return s == null || s.isBlank() || STRATEGY.equalsIgnoreCase(s);
     }
 
     private Caffeine buildSpec(XmTenantLepCacheConfig.XmCacheConfiguration cacheConfiguration) {

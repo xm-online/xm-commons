@@ -6,11 +6,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
-import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
+import org.springframework.boot.liquibase.autoconfigure.LiquibaseProperties;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
+
+import static com.icthh.xm.commons.migration.db.util.CollectionsUtils.firstOrNull;
 
 @Slf4j
 @Component
@@ -31,7 +33,7 @@ public class LiquibaseRunner {
             liquibase.setResourceLoader(resourceLoader);
             liquibase.setDataSource(dataSource);
             liquibase.setChangeLog(changelogPath);
-            liquibase.setContexts(liquibaseProperties.getContexts());
+            liquibase.setContexts(firstOrNull(liquibaseProperties.getContexts()));
             liquibase.setDefaultSchema(schema);
             liquibase.setDropFirst(liquibaseProperties.isDropFirst());
             liquibase.setChangeLogParameters(liquibaseProperties.getParameters());

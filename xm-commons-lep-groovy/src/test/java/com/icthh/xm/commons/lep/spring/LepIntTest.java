@@ -1,7 +1,5 @@
 package com.icthh.xm.commons.lep.spring;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.spring.DynamicTestLepService.TestInput;
@@ -13,15 +11,13 @@ import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.time.StopWatch;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.slf4j.LoggerFactory;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -34,7 +30,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 @Slf4j
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
     DynamicLepTestConfig.class,
     TenantContextConfiguration.class,
@@ -55,7 +51,7 @@ public class LepIntTest {
     @Autowired
     private XmLepScriptConfigServerResourceLoader resourceLoader;
 
-    @Before
+    @BeforeEach
     public void init() {
         TenantContextUtils.setTenant(tenantContextHolder, "TEST");
         lepManagerService.beginThreadContext();
@@ -80,6 +76,23 @@ public class LepIntTest {
         assertEquals("resolved", result2);
         String result3 = testLepService.testLepMethodWithListExpression(input, "tvalue");
         assertEquals("resolved", result3);
+    }
+
+    @Test
+    @SneakyThrows
+    public void testInitLepEngineScriptApplied() {
+        // language=groovy
+        String code = """
+        import org.springframework.http.HttpHeaders
+        HttpHeaders headers = new HttpHeaders()
+        headers.set("testKey", "testValue1")
+        return headers.collect {
+            return it.key + ":" + it.value.first()
+        }.join('|')
+        """;
+        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy", code);
+        String result = testLepService.testLepMethod();
+        assertEquals("testKey:testValue1", result);
     }
 
     @Test

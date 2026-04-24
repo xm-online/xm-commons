@@ -12,6 +12,9 @@ dependencies {
     api "org.slf4j:slf4j-api"
     api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
 
+    // Source: https://mvnrepository.com/artifact/tools.jackson.dataformat/jackson-dataformat-yaml
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
+
     testImplementation "junit:junit"
     testImplementation "org.mockito:mockito-core"
     testImplementation "org.hamcrest:hamcrest-library"

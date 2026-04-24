@@ -1,20 +1,20 @@
 package com.icthh.xm.commons.logging.aop;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.icthh.xm.commons.logging.spring.config.ServiceLoggingAspectConfiguration;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * Test for AOP based logging.
  *
  * This test can be used as playground for pointcut testing.
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {AspectLoggingTestConfig.class, ServiceLoggingAspectConfiguration.class})
 public class AspectLoggingUnitTest {
 

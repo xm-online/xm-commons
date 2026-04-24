@@ -1,7 +1,8 @@
 package com.icthh.xm.commons.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.domain.TestBaseSpecification;
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 import com.icthh.xm.commons.domain.TestSpecificationItem;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
@@ -41,7 +42,7 @@ public class AssertionUtils {
 
     @SneakyThrows
     public static void assertJsonEquals(String expected, String actual) {
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = JsonMapperUtils.getDefaultJsonMapper();
         assertFalse(expected == null && actual != null);
         assertFalse(expected != null && actual == null);
         if (expected != null) {

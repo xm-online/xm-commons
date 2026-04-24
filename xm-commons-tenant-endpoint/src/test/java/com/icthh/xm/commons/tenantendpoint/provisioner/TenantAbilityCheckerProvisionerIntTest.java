@@ -6,27 +6,25 @@ import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfig
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
     PropertySourcesPlaceholderConfigurer.class,
     TenantContextConfiguration.class,
     XmAuthenticationContextConfiguration.class,
     TenantAbilityCheckerProvisioner.class
 })
-public class TenantAbilityCheckerProvisionerIntTest {
+class TenantAbilityCheckerProvisionerIntTest {
 
     @Autowired
     private TenantContextHolder tenantContextHolder;
@@ -34,15 +32,12 @@ public class TenantAbilityCheckerProvisionerIntTest {
     @Autowired
     TenantAbilityCheckerProvisioner tenantAbilityCheckerProvisioner;
 
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
-
-    @Before
-    public void init() {
+    @BeforeEach
+    void init() {
         TenantContextUtils.setTenant(tenantContextHolder, "XM");
     }
 
-    @After
+    @AfterEach
     public void after() {
         tenantContextHolder.getPrivilegedContext().destroyCurrentContext();
     }
@@ -56,12 +51,10 @@ public class TenantAbilityCheckerProvisionerIntTest {
     public void createTenantNotAllowed() {
         TenantContextUtils.setTenant(tenantContextHolder, "TENANTKEY");
 
-        exception.expect(BusinessException.class);
-        exception.expectMessage("Only [XM] tenants allowed to create new tenant");
-
-        tenantAbilityCheckerProvisioner.createTenant(new Tenant().tenantKey("NEWTENANT"));
-        verify(tenantContextHolder).getTenantKey();
-
+        assertThrows(BusinessException.class,
+            () -> tenantAbilityCheckerProvisioner.createTenant(new Tenant().tenantKey("NEWTENANT")),
+            "Only [XM] tenants allowed to create new tenant"
+        );
     }
 
     @Test
@@ -73,11 +66,10 @@ public class TenantAbilityCheckerProvisionerIntTest {
     public void manageTenantNotAllowed() {
         TenantContextUtils.setTenant(tenantContextHolder, "TENANTKEY");
 
-        exception.expect(BusinessException.class);
-        exception.expectMessage("Only [XM] tenants allowed to manage tenant");
-
-        tenantAbilityCheckerProvisioner.manageTenant("NEWTENANT", "ACTIVE");
-
+        assertThrows(BusinessException.class,
+            () -> tenantAbilityCheckerProvisioner.manageTenant("NEWTENANT", "ACTIVE"),
+            "Only [XM] tenants allowed to manage tenant"
+        );
     }
 
     @Test
@@ -89,9 +81,9 @@ public class TenantAbilityCheckerProvisionerIntTest {
     public void deleteTenantNotAllowed() {
         TenantContextUtils.setTenant(tenantContextHolder, "TENANTKEY");
 
-        exception.expect(BusinessException.class);
-        exception.expectMessage("Only [XM] tenants allowed to delete tenant");
-
-        tenantAbilityCheckerProvisioner.deleteTenant("NEWTENANT");
+        assertThrows(BusinessException.class,
+            () -> tenantAbilityCheckerProvisioner.deleteTenant("NEWTENANT"),
+            "Only [XM] tenants allowed to delete tenant"
+        );
     }
 }

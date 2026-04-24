@@ -13,6 +13,7 @@ dependencies {
 
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+    implementation "com.networknt:json-schema-validator:${versions.jsonSchemaValidatorVersion}"
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
 
     api 'org.springframework.security:spring-security-core'
@@ -20,6 +21,8 @@ dependencies {
     api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
     api 'org.slf4j:slf4j-api'
     api "com.google.guava:guava:${versions.guava}"
+
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-core'

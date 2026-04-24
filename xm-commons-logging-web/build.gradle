@@ -8,10 +8,12 @@ dependencyManagement {
 dependencies {
     api project(":xm-commons-logging")
 
-    api("org.springframework.boot:spring-boot-starter-web") {
-        exclude module: 'spring-boot-starter-tomcat'
-    }
+    api("org.springframework.boot:spring-boot-starter-web")
 
-    testImplementation "junit:junit"
-    testImplementation "org.mockito:mockito-core"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+test {
+    useJUnitPlatform()
 }

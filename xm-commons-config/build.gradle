@@ -23,11 +23,18 @@ dependencies {
         exclude group: 'com.vaadin.external.google', module: 'android-json'
     }
 
+    // Source: https://mvnrepository.com/artifact/tools.jackson.dataformat/jackson-dataformat-yaml
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
+
+    // Source: https://mvnrepository.com/artifact/tools.jackson.core/jackson-databind
+    implementation "tools.jackson.core:jackson-databind"
+
     api "commons-collections:commons-collections:${versions.commonsCollections}"
+    implementation "org.springframework.boot:spring-boot-restclient"
+    implementation "org.springframework.retry:spring-retry"
+    implementation "org.springframework.boot:spring-boot-starter-kafka"
     implementation 'org.springframework.cloud:spring-cloud-commons'
-    implementation('org.springframework.boot:spring-boot-starter-web') {
-        exclude module: 'spring-boot-starter-tomcat'
-    }
+    implementation('org.springframework.boot:spring-boot-starter-web')
     api 'org.springframework.kafka:spring-kafka'
     api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     api 'com.fasterxml.jackson.datatype:jackson-datatype-json-org'

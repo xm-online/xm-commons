@@ -1,8 +1,7 @@
 package com.icthh.xm.commons.topic.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.icthh.xm.commons.logging.trace.TraceWrapper;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import com.icthh.xm.commons.topic.domain.ConsumerHolder;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.domain.TopicConsumersSpec;
@@ -14,7 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 
@@ -154,7 +153,7 @@ public class TopicManagerServiceUnitTest {
 
     @SneakyThrows
     private TopicConsumersSpec getTopicConsumerSpec(String content) {
-        return new ObjectMapper(new YAMLFactory()).readValue(content, TopicConsumersSpec.class);
+        return YamlMapperUtils.yamlDefaultMapper().readValue(content, TopicConsumersSpec.class);
     }
 }
 

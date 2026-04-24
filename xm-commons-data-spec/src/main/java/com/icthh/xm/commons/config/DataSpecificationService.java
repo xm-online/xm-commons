@@ -1,9 +1,9 @@
 package com.icthh.xm.commons.config;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.tenant.YamlMapperUtils;
 import com.icthh.xm.commons.domain.BaseSpecification;
 import com.icthh.xm.commons.enums.SpecPathPatternEnum;
 import com.icthh.xm.commons.listener.JsonListenerService;
@@ -15,8 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -45,7 +43,7 @@ public abstract class DataSpecificationService<S extends BaseSpecification> impl
         this.specType = specType;
         this.jsonListenerService = jsonListenerService;
         this.specProcessingService = specProcessingService;
-        this.objectMapper = new ObjectMapper(new YAMLFactory());
+        this.objectMapper = YamlMapperUtils.yamlDefaultMapper();
         this.specsByTenant = new ConcurrentHashMap<>();
         this.specFilesByTenant = new ConcurrentHashMap<>();
     }
@@ -68,7 +66,7 @@ public abstract class DataSpecificationService<S extends BaseSpecification> impl
         }
     }
 
-    private void processYmlSpec(String tenant, String updatedKey, String config) throws JsonProcessingException {
+    private void processYmlSpec(String tenant, String updatedKey, String config) throws JacksonException {
         if (StringUtils.isBlank(config)) {
             specFilesByTenant.get(tenant).remove(updatedKey);
             specsByTenant.get(tenant).remove(updatedKey);

@@ -1,6 +1,6 @@
 package com.icthh.xm.commons.domainevent.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.domainevent.domain.DomainEvent;
 import com.icthh.xm.commons.domainevent.service.Transport;
 import com.icthh.xm.commons.logging.LoggingAspectConfig;

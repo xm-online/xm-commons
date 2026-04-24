@@ -1,8 +1,9 @@
 package com.icthh.xm.commons.service.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.config.client.service.TenantConfigService;
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 import com.icthh.xm.commons.permission.service.AbstractDynamicPermissionCheckService;
 import com.icthh.xm.commons.permission.service.PermissionCheckService;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
@@ -25,7 +26,7 @@ public class DynamicPermissionCheckServiceImpl extends AbstractDynamicPermission
                                              TenantConfigService tenantConfigService) {
         super(permissionCheckService, xmAuthenticationContextHolder);
         this.tenantConfigService = tenantConfigService;
-        this.mapper = new ObjectMapper();
+        this.mapper = JsonMapperUtils.getDefaultJsonMapper();
     }
 
 

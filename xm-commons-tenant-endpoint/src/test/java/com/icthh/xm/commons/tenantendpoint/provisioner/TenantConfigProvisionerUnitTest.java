@@ -1,9 +1,7 @@
 package com.icthh.xm.commons.tenantendpoint.provisioner;
 
-import static com.icthh.xm.commons.config.domain.Configuration.of;
-import static com.icthh.xm.commons.tenantendpoint.provisioner.TenantConfigProvisioner.builder;
 import static com.icthh.xm.commons.tenantendpoint.provisioner.TenantConfigProvisioner.prependTenantPath;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -11,8 +9,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import com.icthh.xm.commons.config.client.repository.TenantConfigRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.gen.model.Tenant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -28,13 +26,13 @@ public class TenantConfigProvisionerUnitTest {
     @Mock
     TenantConfigRepository tenantConfigRepository;
 
-    @Before
+    @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        tenantConfigProvisioner = builder()
+        tenantConfigProvisioner = TenantConfigProvisioner.builder()
             .tenantConfigRepository(tenantConfigRepository)
-            .configuration(of().path(prependTenantPath("/uaa/dir/file1.txt")).content("content 1").build())
-            .configuration(of().path(prependTenantPath("file2.txt")).content("content 2").build())
+            .configuration(Configuration.of().path(prependTenantPath("/uaa/dir/file1.txt")).content("content 1").build())
+            .configuration(Configuration.of().path(prependTenantPath("file2.txt")).content("content 2").build())
             .build();
     }
 
@@ -59,8 +57,8 @@ public class TenantConfigProvisionerUnitTest {
         tenantConfigProvisioner.createTenant(tenant);
 
         List<Configuration> expected = new ArrayList<>();
-        expected.add(of().path("/config/tenants/{tenantName}/uaa/dir/file1.txt").content("content 1").build());
-        expected.add(of().path("/config/tenants/{tenantName}/file2.txt").content("content 2").build());
+        expected.add(Configuration.of().path("/config/tenants/{tenantName}/uaa/dir/file1.txt").content("content 1").build());
+        expected.add(Configuration.of().path("/config/tenants/{tenantName}/file2.txt").content("content 2").build());
 
         verify(tenantConfigRepository).createConfigsFullPath(eq(TENANT_KEY), eq(expected));
     }
@@ -79,7 +77,9 @@ public class TenantConfigProvisionerUnitTest {
 
     @Test
     public void testNoProvisioningForEmptyConfig() {
-        tenantConfigProvisioner = builder().tenantConfigRepository(tenantConfigRepository).build();
+        tenantConfigProvisioner = TenantConfigProvisioner.builder()
+            .tenantConfigRepository(tenantConfigRepository)
+            .build();
         tenantConfigProvisioner.createTenant(new Tenant().tenantKey(TENANT_KEY));
         tenantConfigProvisioner.manageTenant(TENANT_KEY, "SUSPEND");
         tenantConfigProvisioner.deleteTenant(TENANT_KEY);

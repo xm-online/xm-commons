@@ -1,20 +1,12 @@
 package com.icthh.xm.commons.config.client.api.refreshable;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.type.TypeFactory;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.AntPathMatcher;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public abstract class SingleFileAbstractRefreshableConfiguration<CONFIG> extends AbstractRefreshableConfiguration<CONFIG, CONFIG> {

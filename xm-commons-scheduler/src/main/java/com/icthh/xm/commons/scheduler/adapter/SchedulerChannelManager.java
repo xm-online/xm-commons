@@ -1,7 +1,8 @@
 package com.icthh.xm.commons.scheduler.adapter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.config.domain.TenantState;
@@ -42,7 +43,7 @@ public class SchedulerChannelManager implements RefreshableConfiguration {
                                    DynamicTopicConsumerConfiguration dynamicTopicConsumerConfiguration) {
         this.includedTenants = xmConfigProperties.getIncludeTenantLowercase();
         this.dynamicTopicConsumerConfiguration = dynamicTopicConsumerConfiguration;
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = JsonMapperUtils.getDefaultJsonMapper();
     }
 
     @SneakyThrows
