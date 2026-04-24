@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.logging.trace;
 
 import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.propagation.Propagator;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -21,6 +23,7 @@ public class TraceWrapper {
     private static final String WRAP_QUOTE_TOKEN = "\"";
     private static final String KAFKA_PROCESSING_TIMER = "kafka.processing.timer";
     private static final String SPAN_NAME_FROM_MESSAGE = "on-message";
+    private static final String SPAN_NAME_KAFKA_PRODUCE = "kafka-produce";
 
     private final Tracer tracer;
     private final Propagator propagator;
@@ -41,6 +44,38 @@ public class TraceWrapper {
         Span.Builder spanBuilder = propagator.extract(getMessageHeadersMap(message), Map::get);
         Span span = spanBuilder.name(KAFKA_PROCESSING_TIMER).start();
         runWithExistingSpan(span, codeToRun);
+    }
+
+    public void injectSpan(MessageBuilder<?> builder) {
+        TraceContext ctx = getCurrentTraceContext();
+
+        if (ctx == null) {
+            Span span = tracer.nextSpan().name(SPAN_NAME_KAFKA_PRODUCE).start();
+            try (Tracer.SpanInScope ws = tracer.withSpan(span)) {
+                doInject(getCurrentTraceContext(), builder);
+            } finally {
+                span.end();
+            }
+        } else {
+            doInject(ctx, builder);
+        }
+    }
+
+    private TraceContext getCurrentTraceContext() {
+        return tracer.currentTraceContext().context();
+    }
+
+    private void doInject(TraceContext ctx, MessageBuilder<?> builder) {
+        if (ctx == null) {
+            return;
+        }
+
+        propagator.inject(ctx, builder,
+            (MessageBuilder<?> messageBuilder, String key, String value) -> {
+                if (messageBuilder != null) {
+                    messageBuilder.setHeader(key, value);
+                }
+            });
     }
 
     private void runWithExistingSpan(Span existingSpan, Runnable codeToRun) {
