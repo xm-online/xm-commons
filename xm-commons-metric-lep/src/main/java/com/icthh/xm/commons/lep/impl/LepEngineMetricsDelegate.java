@@ -1,16 +1,16 @@
 package com.icthh.xm.commons.lep.impl;
 
+import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.metric.service.BusinessMetricsService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StopWatch;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 @Slf4j
 @Component
@@ -26,45 +26,35 @@ public class LepEngineMetricsDelegate {
     private final TenantContextHolder tenantContextHolder;
 
     public Object recordLepExecutionMetrics(LepEngine engine, Object lepKey, String engineId, 
-                                          LepExecutionCallback callback) throws Throwable {
+                                          LepExecutionCallback callback) {
         log.info("LepEngine.invoke started: lepKey={}, engineId={}", lepKey, engineId);
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
-        
+
+        Map<String, String> tags = extractTags(engine, lepKey);
+
         try {
-            Object result = callback.execute();
-            stopWatch.stop();
-            
-            recordMetrics(engine, lepKey, stopWatch.getTotalTimeMillis(), BusinessMetricsService.STATUS_SUCCESS);
-            
-            log.info("LepEngine.invoke finished: lepKey={}, engineId={}, tookMs={}",
-                lepKey, engineId, stopWatch.getTotalTimeMillis());
+            Object result = metricsService.recordTimerWithPercentileHistogram(
+                BusinessMetricsService.METRIC_LEP_EXECUTION_TIME,
+                tags, makeExecute(callback)
+            );
+
+            metricsService.incrementCounter(BusinessMetricsService.METRIC_LEP_EXECUTION_COUNT, withStatus(tags, BusinessMetricsService.STATUS_SUCCESS));
+
+            log.info("LepEngine.invoke finished: lepKey={}, engineId={}", lepKey, engineId);
             return result;
-            
-        } catch (Throwable e) {
-            if (stopWatch.isRunning()) {
-                stopWatch.stop();
-            }
-            
-            recordMetrics(engine, lepKey, stopWatch.getTotalTimeMillis(), BusinessMetricsService.STATUS_ERROR);
-            
-            log.error("LepEngine.invoke failed: lepKey={}, engineId={}, tookMs={}",
-                lepKey, engineId, stopWatch.getTotalTimeMillis(), e);
+
+        } catch (RuntimeException e) {
+            metricsService.incrementCounter(BusinessMetricsService.METRIC_LEP_EXECUTION_COUNT, withStatus(tags, BusinessMetricsService.STATUS_ERROR));
+
+            log.error("LepEngine.invoke failed: lepKey={}, engineId={}", lepKey, engineId, e);
             throw e;
         }
     }
 
-    private void recordMetrics(LepEngine engine, Object lepKey, double executionTimeMs, String status) {
-        Map<String, String> tags = extractTags(engine, lepKey);
-        
-        metricsService.recordDistribution(BusinessMetricsService.METRIC_LEP_EXECUTION_TIME, tags, executionTimeMs);
-        metricsService.incrementCounter(BusinessMetricsService.METRIC_LEP_EXECUTION_COUNT, withStatus(tags, status));
-    }
 
     private Map<String, String> extractTags(LepEngine engine, Object lepKey) {
         return Map.of(
             TAG_TENANT, tenantContextHolder.getTenantKey(),
-            TAG_LEP_KEY, lepKey != null ? lepKey.toString() : "unknown",
+            TAG_LEP_KEY, lepKey != null ? lepKey.toString() : "noLepKey",
             TAG_ENGINE, engine.getClass().getSimpleName()
         );
     }
@@ -76,6 +66,17 @@ public class LepEngineMetricsDelegate {
             TAG_ENGINE, tags.get(TAG_ENGINE),
             TAG_STATUS, status
         );
+    }
+
+    @SneakyThrows
+    private Supplier<Object> makeExecute(LepExecutionCallback execution) {
+        return () -> {
+            try {
+                return execution.execute();
+            } catch (Throwable e) {
+                throw new BusinessException(e.getMessage());
+            }
+        };
     }
 
     @FunctionalInterface
