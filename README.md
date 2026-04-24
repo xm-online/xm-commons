@@ -9,5 +9,5 @@ XM^online 2 - Common Utils and Endpoints
     ```shell script
     ./gradlew clean publishToMavenLocal
     ```
-3. Change xm-commons version in target MS in gradle.properties (for example entity)
-4. Start target MS.
+3. Change xm-commons version in target MS in gradle.properties (for example entity).
+5. Start target MS.
