@@ -1,6 +1,6 @@
 # xm-commons
 
-XM^online 2 - Common Utils and Endpoints
+XME Platform - Common Utils and Endpoints
 
 ## Use commons for local development in other MS
 

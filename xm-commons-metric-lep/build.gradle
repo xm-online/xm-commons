@@ -3,19 +3,24 @@ apply plugin: 'io.spring.dependency-management'
 dependencyManagement {
     imports {
         mavenBom "org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
     }
 }
 
 dependencies {
     api project(':xm-commons-lep')
     api project(':xm-commons-metric')
+    api project(':xm-commons-config')
 
     implementation "org.jetbrains:annotations:${versions.intellijAnnotations}"
 
     testImplementation 'junit:junit'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.hamcrest:hamcrest-library'
     testImplementation 'org.springframework:spring-test'
+    testImplementation project(':xm-commons-lep-groovy')
 }
 
 test {
