@@ -36,7 +36,7 @@ public class LepEngineMetricsAspect {
 
     private LepEngine createMetricsProxy(LepEngine delegate) {
         Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(LepEngine.class);
+        enhancer.setSuperclass(delegate.getClass());
         enhancer.setCallback(new InvokeMetricsInterceptor(delegate, metricsDelegate));
         return (LepEngine) enhancer.create();
     }

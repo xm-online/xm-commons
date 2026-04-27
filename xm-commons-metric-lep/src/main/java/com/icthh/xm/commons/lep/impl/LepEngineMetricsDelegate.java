@@ -1,11 +1,15 @@
 package com.icthh.xm.commons.lep.impl;
 
+import static com.icthh.xm.commons.metric.service.BusinessMetricsService.METRIC_LEP_EXECUTION_COUNT;
+import static com.icthh.xm.commons.metric.service.BusinessMetricsService.METRIC_LEP_EXECUTION_TIME;
+import static com.icthh.xm.commons.metric.service.BusinessMetricsService.STATUS_ERROR;
+import static com.icthh.xm.commons.metric.service.BusinessMetricsService.STATUS_SUCCESS;
+
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.metric.service.BusinessMetricsService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -33,17 +37,17 @@ public class LepEngineMetricsDelegate {
 
         try {
             Object result = metricsService.recordTimerWithPercentileHistogram(
-                BusinessMetricsService.METRIC_LEP_EXECUTION_TIME,
+                METRIC_LEP_EXECUTION_TIME,
                 tags, makeExecute(callback)
             );
 
-            metricsService.incrementCounter(BusinessMetricsService.METRIC_LEP_EXECUTION_COUNT, withStatus(tags, BusinessMetricsService.STATUS_SUCCESS));
+            metricsService.incrementCounter(METRIC_LEP_EXECUTION_COUNT, withStatus(tags, STATUS_SUCCESS));
 
             log.info("LepEngine.invoke finished: lepKey={}, engineId={}", lepKey, engineId);
             return result;
 
-        } catch (RuntimeException e) {
-            metricsService.incrementCounter(BusinessMetricsService.METRIC_LEP_EXECUTION_COUNT, withStatus(tags, BusinessMetricsService.STATUS_ERROR));
+        } catch (Throwable e) {
+            metricsService.incrementCounter(METRIC_LEP_EXECUTION_COUNT, withStatus(tags, STATUS_ERROR));
 
             log.error("LepEngine.invoke failed: lepKey={}, engineId={}", lepKey, engineId, e);
             throw e;
@@ -68,7 +72,6 @@ public class LepEngineMetricsDelegate {
         );
     }
 
-    @SneakyThrows
     private Supplier<Object> makeExecute(LepExecutionCallback execution) {
         return () -> {
             try {
@@ -77,10 +80,5 @@ public class LepEngineMetricsDelegate {
                 throw new BusinessException(e.getMessage());
             }
         };
-    }
-
-    @FunctionalInterface
-    public interface LepExecutionCallback {
-        Object execute() throws Throwable;
     }
 }
