@@ -60,6 +60,8 @@ public class LepEngineMetricsDelegate {
             TAG_TENANT, tenantContextHolder.getTenantKey(),
             TAG_LEP_KEY, lepKey != null ? lepKey.toString() : "noLepKey",
             TAG_ENGINE, engine.getClass().getSimpleName()
+                        .replace("$$EnhancerByCGLIB$$", "")
+                        .replaceAll("\\d+$", "")
         );
     }
 
