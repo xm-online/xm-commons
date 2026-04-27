@@ -21,7 +21,6 @@ dependencies {
     testImplementation 'org.hamcrest:hamcrest-library'
     testImplementation 'org.springframework:spring-test'
     testImplementation project(':xm-commons-lep-groovy')
-    testImplementation project(':xm-commons-lep-annotation-processor')
 }
 
 test {
