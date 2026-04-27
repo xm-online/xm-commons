@@ -8,6 +8,7 @@ import static com.icthh.xm.commons.metric.service.BusinessMetricsService.STATUS_
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.metric.service.BusinessMetricsService;
+import com.icthh.xm.commons.metric.service.MetricsPercentileHistogramLep;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ public class LepEngineMetricsDelegate {
     private static final String TAG_ENGINE = "engine";
     private static final String TAG_STATUS = "status";
 
+    private final MetricsPercentileHistogramLep metricsPercentileLep;
     private final BusinessMetricsService metricsService;
     private final TenantContextHolder tenantContextHolder;
 
@@ -36,7 +38,7 @@ public class LepEngineMetricsDelegate {
         Map<String, String> tags = extractTags(engine, lepKey);
 
         try {
-            Object result = metricsService.recordTimerWithPercentileHistogram(
+            Object result = metricsPercentileLep.recordTimerWithPercentileHistogram(
                 METRIC_LEP_EXECUTION_TIME,
                 tags, makeExecute(callback)
             );
