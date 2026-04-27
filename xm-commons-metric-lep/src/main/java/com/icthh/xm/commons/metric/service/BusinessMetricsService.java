@@ -30,7 +30,7 @@ public class BusinessMetricsService implements LepAdditionalContext<BusinessMetr
     }
 
     public void incrementCounter(String name, Map<String, String> tags, double amount) {
-        meterRegistry.counter(toTenantMetricName(name), toTags(tags)).increment(amount);
+        meterRegistry.counter(toTenantMetricName(name), MetricsTagsUtil.toTags(tags)).increment(amount);
     }
 
     public void recordTimer(String name, Map<String, String> tags, long duration, TimeUnit unit) {
@@ -42,7 +42,7 @@ public class BusinessMetricsService implements LepAdditionalContext<BusinessMetr
     }
 
     public void recordDistribution(String name, Map<String, String> tags, double value) {
-        meterRegistry.summary(toTenantMetricName(name), toTags(tags)).record(value);
+        meterRegistry.summary(toTenantMetricName(name), MetricsTagsUtil.toTags(tags)).record(value);
     }
 
     private String toTenantMetricName(String name) {
@@ -50,15 +50,6 @@ public class BusinessMetricsService implements LepAdditionalContext<BusinessMetr
             METRIC_PREFIX,
             tenantContextHolder.getTenantKey().toLowerCase(),
             name);
-    }
-
-    private Tags toTags(Map<String, String> tags) {
-        if (tags == null || tags.isEmpty()) {
-            return Tags.empty();
-        }
-        return Tags.of(tags.entrySet().stream()
-            .map(e -> Tag.of(e.getKey(), e.getValue()))
-            .toList());
     }
 
     @Override
