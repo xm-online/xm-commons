@@ -1,11 +1,14 @@
 package com.icthh.xm.commons.metric.service;
 
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
+import com.icthh.xm.commons.lep.api.LepManagementService;
+import com.icthh.xm.commons.lep.impl.DefaultLepKey;
+import com.icthh.xm.commons.metric.config.TestLepTestConfig;
+import com.icthh.xm.commons.metric.lep.LepEngineMetricsAspect;
 import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfiguration;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
-import com.icthh.xm.lep.api.LepManager;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.distribution.HistogramSnapshot;
@@ -30,12 +33,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ContextConfiguration(classes = {
     TestLepTestConfig.class,
     TenantContextConfiguration.class,
-    XmAuthenticationContextConfiguration.class
+    MetricsPercentileHistogramLep.class,
+    XmAuthenticationContextConfiguration.class,
+    LepEngineMetricsAspect.class,
 })
-public class MetricsPercentileHistogramLepUnitTest {
+public class MetricsPercentileHistogramLepIntTest {
 
     @Autowired
-    private LepManager lepManager;
+    private LepManagementService lepManager;
 
     @Autowired
     private TenantContextHolder tenantContextHolder;
@@ -46,15 +51,15 @@ public class MetricsPercentileHistogramLepUnitTest {
     @Autowired
     private XmLepScriptConfigServerResourceLoader resourceLoader;
 
+    @Autowired
     private MeterRegistry meterRegistry;
+
+    @Autowired
     private MetricsPercentileHistogramLep metricsService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.initMocks(this);
-
-        meterRegistry = new SimpleMeterRegistry();
-        metricsService = new MetricsPercentileHistogramLep(meterRegistry);
     }
 
     @AfterEach
@@ -63,22 +68,21 @@ public class MetricsPercentileHistogramLepUnitTest {
         tenantContextHolder.getPrivilegedContext().destroyCurrentContext();
     }
 
+
+    private void setTenant(String tenantKey) {
+        tenantContextHolder.getPrivilegedContext().destroyCurrentContext();
+        TenantContextUtils.setTenant(tenantContextHolder, tenantKey);
+        lepManager.beginThreadContext();
+    }
+
     @Test
     public void testRecordTimerWithPercentileHistogramWithRealLep() {
         setTenant("test");
 
-        addLep("return [:]", "test");
+        addLep("return 'lep result'", "test");
 
         for (int i = 0; i < 10; i++) {
-            metricsService.recordTimerWithPercentileHistogram(
-                    METRIC_LEP_EXECUTION_TIME,
-                java.util.Map.of(
-                    "tenant", "test",
-                    "lepKey", "general.TestLep",
-                    "engine", "GroovyLepEngine"
-                ),
-                () -> lepService.testLep()
-            );
+            lepService.testLep();
         }
 
         verifyPercentileHistogramMetrics();
@@ -87,7 +91,7 @@ public class MetricsPercentileHistogramLepUnitTest {
     private void verifyPercentileHistogramMetrics() {
         Timer timer = meterRegistry.find(METRIC_LEP_EXECUTION_TIME)
             .tag("tenant", "test")
-            .tag("lepKey", "general.TestLep")
+            .tag("lepKey", new DefaultLepKey("services", "TestLep").toString())
             .tag("engine", "GroovyLepEngine")
             .timer();
 
@@ -113,16 +117,8 @@ public class MetricsPercentileHistogramLepUnitTest {
 
     }
 
-    private void setTenant(String tenantKey) {
-        tenantContextHolder.getPrivilegedContext().destroyCurrentContext();
-        TenantContextUtils.setTenant(tenantContextHolder, tenantKey);
-        lepManager.endThreadContext();
-        lepManager.beginThreadContext(ctx -> {
-        });
-    }
-
     private void addLep(String body, String tenant) {
-        String prefix = "/config/tenants/" + tenant.toUpperCase() + "/testApp/lep/resouce/general/";
+        String prefix = "/config/tenants/" + tenant.toUpperCase() + "/testApp/lep/services/";
         String key = prefix + "TestLep.groovy";
         resourceLoader.onRefresh(key, body);
     }

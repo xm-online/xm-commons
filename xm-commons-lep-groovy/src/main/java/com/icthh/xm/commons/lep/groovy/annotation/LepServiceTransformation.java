@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.lep.groovy.annotation;
 
 import com.icthh.xm.commons.lep.api.BaseLepContext;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 
@@ -11,6 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -80,10 +82,10 @@ public class LepServiceTransformation extends AbstractASTTransformation {
     }
 
     private static Set<String> toCanonicalNames(Set<Class<?>> typeHierarchy) {
-        return typeHierarchy.stream().map(Class::getCanonicalName).collect(Collectors.toSet());
+        return typeHierarchy.stream().map(Class::getCanonicalName).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
-    private static Set<Class<?>> buildTypeHierarchy(Class<? extends BaseLepContext> lepContextClass) {
+    private static Set<Class<?>> buildTypeHierarchy(Class<?> lepContextClass) {
         Set<Class<?>> typeHierarchy = new HashSet<>();
         Class<?> currentClass = lepContextClass;
         while (currentClass != null) {

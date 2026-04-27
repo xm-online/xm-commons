@@ -1,6 +1,7 @@
-package com.icthh.xm.commons.lep.impl;
+package com.icthh.xm.commons.metric.lep;
 
 import com.icthh.xm.commons.lep.api.LepEngine;
+import lombok.SneakyThrows;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -64,7 +65,8 @@ public class LepEngineMetricsAspect {
                         () -> invokeOnDelegate(method, args));
             }
 
-            private Object invokeOnDelegate(Method method, Object[] args) throws Throwable {
+            @SneakyThrows
+            private Object invokeOnDelegate(Method method, Object[] args) {
                 try {
                     return method.invoke(delegate, args);
                 } catch (InvocationTargetException e) {

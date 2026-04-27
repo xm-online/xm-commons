@@ -6,7 +6,7 @@ import com.icthh.xm.commons.lep.spring.LepService;
 /**
  * Service used for testing LEP in metrics module.
  */
-@LepService(group = "general")
+@LepService(group = "services")
 public class TestLepService {
 
     @LogicExtensionPoint("TestLep")
