@@ -1,12 +1,12 @@
-package com.icthh.xm.commons.lep.impl;
+package com.icthh.xm.commons.metric.lep;
 
 import static com.icthh.xm.commons.metric.service.BusinessMetricsService.METRIC_LEP_EXECUTION_COUNT;
 import static com.icthh.xm.commons.metric.service.BusinessMetricsService.METRIC_LEP_EXECUTION_TIME;
 import static com.icthh.xm.commons.metric.service.BusinessMetricsService.STATUS_ERROR;
 import static com.icthh.xm.commons.metric.service.BusinessMetricsService.STATUS_SUCCESS;
 
-import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.lep.api.LepEngine;
+import com.icthh.xm.commons.lep.api.LepKey;
 import com.icthh.xm.commons.metric.service.BusinessMetricsService;
 import com.icthh.xm.commons.metric.service.MetricsPercentileHistogramLep;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
@@ -31,31 +31,25 @@ public class LepEngineMetricsDelegate {
     private final BusinessMetricsService metricsService;
     private final TenantContextHolder tenantContextHolder;
 
-    public Object recordLepExecutionMetrics(LepEngine engine, Object lepKey, String engineId, 
-                                          LepExecutionCallback callback) {
-        log.info("LepEngine.invoke started: lepKey={}, engineId={}", lepKey, engineId);
+    public Object recordLepExecutionMetrics(LepEngine engine, Object lepKey, String engineId,
+                                            Supplier<Object> callback) {
+        log.debug("LepEngine.invoke started: lepKey={}, engineId={}", lepKey, engineId);
 
         Map<String, String> tags = extractTags(engine, lepKey);
-
         try {
             Object result = metricsPercentileLep.recordTimerWithPercentileHistogram(
                 METRIC_LEP_EXECUTION_TIME,
-                tags, makeExecute(callback)
+                tags, callback
             );
-
             metricsService.incrementCounter(METRIC_LEP_EXECUTION_COUNT, withStatus(tags, STATUS_SUCCESS));
-
-            log.info("LepEngine.invoke finished: lepKey={}, engineId={}", lepKey, engineId);
+            log.debug("LepEngine.invoke finished: lepKey={}, engineId={}", lepKey, engineId);
             return result;
-
         } catch (Throwable e) {
             metricsService.incrementCounter(METRIC_LEP_EXECUTION_COUNT, withStatus(tags, STATUS_ERROR));
-
-            log.error("LepEngine.invoke failed: lepKey={}, engineId={}", lepKey, engineId, e);
+            log.debug("LepEngine.invoke failed: lepKey={}, engineId={}", lepKey, engineId, e);
             throw e;
         }
     }
-
 
     private Map<String, String> extractTags(LepEngine engine, Object lepKey) {
         return Map.of(
@@ -74,15 +68,5 @@ public class LepEngineMetricsDelegate {
             TAG_ENGINE, tags.get(TAG_ENGINE),
             TAG_STATUS, status
         );
-    }
-
-    private Supplier<Object> makeExecute(LepExecutionCallback execution) {
-        return () -> {
-            try {
-                return execution.execute();
-            } catch (Throwable e) {
-                throw new BusinessException(e.getMessage());
-            }
-        };
     }
 }
