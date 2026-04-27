@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class BusinessMetricsService implements LepAdditionalContext<BusinessMetricsService> {
 
-    private static final String METRIC_PREFIX = "business.metrics.";
+    private static final String METRIC_PREFIX = "business.metrics";
 
     public static final String METRIC_LEP_EXECUTION_TIME = "lep.execution.time";
     public static final String METRIC_LEP_EXECUTION_COUNT = "lep.execution.count";
@@ -48,7 +48,7 @@ public class BusinessMetricsService implements LepAdditionalContext<BusinessMetr
     private String toTenantMetricName(String name) {
         return String.format("%s.%s.%s",
             METRIC_PREFIX,
-            tenantContextHolder.getTenantKey(),
+            tenantContextHolder.getTenantKey().toLowerCase(),
             name);
     }
 
@@ -79,8 +79,8 @@ public class BusinessMetricsService implements LepAdditionalContext<BusinessMetr
     }
 
     public interface BusinessMetricsServiceField extends LepAdditionalContextField {
-        String FIELD_NAME = "businessMetricsService";
-        default BusinessMetricsService getBusinessMetricsService() {
+        String FIELD_NAME = "metrics";
+        default BusinessMetricsService getMetrics() {
             return (BusinessMetricsService)get(FIELD_NAME);
         }
     }

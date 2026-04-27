@@ -25,7 +25,7 @@ public class PeriodGaugeMetricsService {
         String tenantLower = tenant.toLowerCase();
 
         for (CustomGauge metric : metrics) {
-            if (metric.getUpdatePeriodSeconds() != null) {
+            if (metric.getUpdatePeriodSeconds() != null && metric.getUpdatePeriodSeconds() > 0) {
                 ScheduledFuture<?> task = taskScheduler.scheduleAtFixedRate(
                     () -> customGaugeService.updateMetric(metric.getName(), tenant),
                     Duration.ofSeconds(metric.getUpdatePeriodSeconds())

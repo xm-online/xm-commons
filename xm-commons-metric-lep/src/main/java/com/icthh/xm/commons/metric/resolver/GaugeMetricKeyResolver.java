@@ -9,6 +9,6 @@ import org.springframework.stereotype.Component;
 public class GaugeMetricKeyResolver implements LepKeyResolver {
     @Override
     public List<String> segments(LepMethod method) {
-        return List.of(method.getParameter("gaugeName", String.class));
+        return List.of(method.getParameter("metricName", String.class));
     }
 }

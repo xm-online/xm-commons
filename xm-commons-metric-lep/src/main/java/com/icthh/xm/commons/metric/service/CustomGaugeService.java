@@ -40,7 +40,7 @@ public class CustomGaugeService {
 
     public Object getMetric(String name, CustomGauge config, String tenantKey) {
         return runInTenantContext(tenantKey, () -> {
-            if (config.getUpdatePeriodSeconds() == null) {
+            if (config.getUpdatePeriodSeconds() == null || config.getUpdatePeriodSeconds() <= 0) {
                 return self.metricByName(name);
             }
             return metricsCache.getOrDefault(tenantKey, emptyMap()).get(name);
@@ -51,8 +51,12 @@ public class CustomGaugeService {
         try {
             MdcUtils.putRid(MdcUtils.generateRid() + ":" + tenant);
             Object metricValue = runInTenantContext(tenant, () -> self.metricByName(metricName));
-            metricsCache.computeIfAbsent(tenant, k -> new ConcurrentHashMap<>())
-                .put(metricName, metricValue);
+            if (metricValue != null) {
+                metricsCache.computeIfAbsent(tenant, k -> new ConcurrentHashMap<>())
+                    .put(metricName, metricValue);
+            } else {
+                metricsCache.getOrDefault(tenant, emptyMap()).remove(metricName);
+            }
         } catch (Throwable e) {
             log.error("Error update metric", e);
         } finally {

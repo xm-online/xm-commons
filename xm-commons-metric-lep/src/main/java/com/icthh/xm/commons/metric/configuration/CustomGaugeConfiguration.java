@@ -37,7 +37,7 @@ public class CustomGaugeConfiguration implements RefreshableConfiguration {
         this.meterRegistry = meterRegistry;
         this.customGaugeService = customGaugeService;
         this.periodGaugeMetricsService = periodGaugeMetricsService;
-        this.mappingPath = "/config/tenants/{tenantName}/" + appName + "/metrics.yml";
+        this.mappingPath = "/config/tenants/{tenantName}/" + appName + "/gauge-metrics.yml";
     }
 
     public void onRefresh(String updatedKey, String config) {
