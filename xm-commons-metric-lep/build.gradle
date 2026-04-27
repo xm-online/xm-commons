@@ -13,10 +13,6 @@ dependencies {
     api project(':xm-commons-config')
 
     implementation "org.jetbrains:annotations:${versions.intellijAnnotations}"
-    implementation 'org.springframework.retry:spring-retry'
-    implementation 'org.springframework.cloud:spring-cloud-commons'
-
-
 
     testImplementation 'junit:junit'
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -26,7 +22,6 @@ dependencies {
     testImplementation 'org.springframework:spring-test'
     testImplementation project(':xm-commons-lep-groovy')
     testImplementation project(':xm-commons-lep-annotation-processor')
-    testAnnotationProcessor project(':xm-commons-lep-annotation-processor')
 }
 
 test {
