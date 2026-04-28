@@ -72,7 +72,7 @@ public class CustomGaugeConfiguration implements RefreshableConfiguration {
 
     private void cleanupTenant(String tenant) {
         String tenantLower = tenant.toLowerCase();
-        String metricPrefix = METRICS_PREFIX + "." + tenantLower;
+        String metricPrefix = METRICS_PREFIX + "." + tenantLower + ".";
 
         periodGaugeMetricsService.cancelGauges(tenantLower);
 

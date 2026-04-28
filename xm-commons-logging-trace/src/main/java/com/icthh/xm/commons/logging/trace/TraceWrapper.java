@@ -93,7 +93,12 @@ public class TraceWrapper {
 
     private Map<String, String> getRecordHeadersMap(ConsumerRecord<?, ?> record) {
         Map<String, String> headerMap = new HashMap<>();
-        record.headers().forEach(header -> headerMap.put(header.key(), unwrapQuotes(new String(header.value()))));
+        record.headers().forEach(header -> {
+            byte[] value = header.value();
+            if (value != null) {
+                headerMap.put(header.key(), unwrapQuotes(new String(value)));
+            }
+        });
         return headerMap;
     }
 
