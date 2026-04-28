@@ -1,6 +1,6 @@
 # xm-commons
 
-XM^online 2 - Common Utils and Endpoints
+XME Platform - Common Utils and Endpoints
 
 ## Use commons for local development in other MS
 
@@ -9,5 +9,5 @@ XM^online 2 - Common Utils and Endpoints
     ```shell script
     ./gradlew clean publishToMavenLocal
     ```
-3. Change xm-commons version in target MS in gradle.properties (for example entity)
+3. Change xm-commons version in target MS in gradle.properties (for example entity).
 4. Start target MS.

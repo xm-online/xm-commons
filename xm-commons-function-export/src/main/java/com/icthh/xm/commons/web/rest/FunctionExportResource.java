@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.web.rest;
 
-import com.codahale.metrics.annotation.Timed;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.commons.service.FunctionExportServiceFacade;
@@ -42,7 +41,6 @@ public class FunctionExportResource {
         this.self = self;
     }
 
-    @Timed
     @GetMapping("/{functionKey:.+}")
     @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.EXPORT.CALL')")
     @PrivilegeDescription("Privilege to execute an export function by key")
@@ -61,7 +59,6 @@ public class FunctionExportResource {
     }
 
     @IgnoreLogginAspect
-    @Timed
     @GetMapping("/**")
     @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.EXPORT.CALL')")
     @PrivilegeDescription("Privilege to execute an export function by key")

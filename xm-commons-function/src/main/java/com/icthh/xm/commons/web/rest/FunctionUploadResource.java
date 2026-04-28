@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.web.rest;
 
-import com.codahale.metrics.annotation.Timed;
 import com.icthh.xm.commons.domain.FunctionResult;
 import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.commons.service.FunctionServiceFacade;
@@ -59,7 +58,6 @@ public class FunctionUploadResource {
      * See <a href="https://jevera.atlassian.net/wiki/spaces/XMED/pages/1788870657/F+Gate+-+File+Upload">File Upload</a>
      */
     @Deprecated(forRemoval = true)
-    @Timed
     @PostMapping(value = "/**", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.UPLOAD.CALL')")
     @SneakyThrows
@@ -78,7 +76,6 @@ public class FunctionUploadResource {
     }
 
     @SneakyThrows
-    @Timed
     @PostMapping("/upload/functions/{functionKey:.+}")
     @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.UPLOAD.CALL')")
     @PrivilegeDescription("Privilege to execute an upload function by key")

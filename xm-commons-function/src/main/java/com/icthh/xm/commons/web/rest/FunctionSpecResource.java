@@ -2,7 +2,6 @@ package com.icthh.xm.commons.web.rest;
 
 import static org.springframework.http.HttpStatus.CREATED;
 
-import com.codahale.metrics.annotation.Timed;
 import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.domain.FunctionSpecWithFileName;
 import com.icthh.xm.commons.tenant.JsonMapperUtils;
@@ -48,7 +47,6 @@ public class FunctionSpecResource {
     private final ObjectMapper objectMapper = JsonMapperUtils.getDefaultJsonMapper();
 
     @GetMapping(value = "/functions/dataschemas", produces = MediaType.APPLICATION_JSON_VALUE)
-    @Timed
     @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'FUNCTION_SPEC.DATA_SCHEMA.GET')")
     @PrivilegeDescription("Privilege to get the function specification data schema")
     public ResponseEntity<List<DataSchemaResponse>> getDataSpecSchemas() {
@@ -56,7 +54,6 @@ public class FunctionSpecResource {
     }
 
     @GetMapping(value = XME_SPEC_API + "/all", produces = MediaType.APPLICATION_JSON_VALUE)
-    @Timed
     @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'FUNCTION_SPEC.GET_LIST')")
     @PrivilegeDescription("Privilege to get the function specification data schema")
     public ResponseEntity<Collection<?>> getAllFunctions() {
@@ -64,7 +61,6 @@ public class FunctionSpecResource {
     }
 
     @GetMapping(value = XME_SPEC_API + "/files", produces = MediaType.APPLICATION_JSON_VALUE)
-    @Timed
     @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'FUNCTION_SPEC.FILES.GET_LIST')")
     @PrivilegeDescription("Privilege to get the function specification data schema")
     public ResponseEntity<Collection<String>> getAllFiles() {
@@ -72,7 +68,6 @@ public class FunctionSpecResource {
     }
 
     @PostMapping(value = XME_SPEC_API, consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Timed
     @PreAuthorize("hasPermission({'body': #body}, 'FUNCTION_SPEC.ADD')")
     @PrivilegeDescription("Privilege to add a function specification")
     public ResponseEntity<Void> addFunction(@RequestBody Map<String, Object> body) {
@@ -82,7 +77,6 @@ public class FunctionSpecResource {
     }
 
     @PutMapping(value = XME_SPEC_API, consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Timed
     @PreAuthorize("hasPermission({'body': #body}, 'FUNCTION_SPEC.UPDATE')")
     @PrivilegeDescription("Privilege to add a function specification")
     public ResponseEntity<Void> updateFunction(@RequestBody Map<String, Object> body) {
@@ -92,7 +86,6 @@ public class FunctionSpecResource {
     }
 
     @DeleteMapping(value = XME_SPEC_API + "/{functionKey}")
-    @Timed
     @PreAuthorize("hasPermission({'fileKey': #fileKey, 'functionKey': #functionKey}, 'FUNCTION_SPEC.REMOVE')")
     @PrivilegeDescription("Privilege to remove a function specification")
     public ResponseEntity<Void> removeFunction(@PathVariable("functionKey") String functionKey) {

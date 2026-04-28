@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.topic.service;
 
 import com.icthh.xm.commons.logging.LoggingAspectConfig;
+import com.icthh.xm.commons.logging.trace.TraceWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -17,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 public class KafkaTemplateService {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final TraceWrapper traceWrapper;
 
     /**
      * Send the data to the provided topic with no key or partition.
@@ -27,7 +29,7 @@ public class KafkaTemplateService {
      **/
     @LoggingAspectConfig(inputExcludeParams = "data", resultDetails = false)
     public CompletableFuture<SendResult<String, String>> send(String topic, String data) {
-        return kafkaTemplate.send(topic, data);
+        return send(topic, null, null, data, null);
     }
 
     /**
@@ -44,7 +46,8 @@ public class KafkaTemplateService {
                                                              Integer partition,
                                                              String key,
                                                              String data) {
-        return kafkaTemplate.send(topic, partition, key, data);
+
+        return send(topic, partition, key, data, null);
     }
 
     /**
@@ -89,6 +92,8 @@ public class KafkaTemplateService {
         if (headers != null) {
             builder.copyHeaders(headers);
         }
+
+        traceWrapper.injectSpan(builder);
 
         Message<String> message = builder.build();
         return kafkaTemplate.send(message);
