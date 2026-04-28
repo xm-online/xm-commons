@@ -12,8 +12,6 @@ import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.distribution.HistogramSnapshot;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import java.util.Arrays;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,9 +106,6 @@ public class MetricsPercentileHistogramLepIntTest {
         assertNotNull(timer, "Timer not found");
 
         HistogramSnapshot snapshot = timer.takeSnapshot();
-
-        System.out.println("Count: " + snapshot.count());
-        System.out.println("Percentiles: " + Arrays.toString(snapshot.percentileValues()));
 
         assertTrue(snapshot.count() > 0, "No recordings in timer");
         assertTrue(snapshot.percentileValues().length > 0, "No histogram data");

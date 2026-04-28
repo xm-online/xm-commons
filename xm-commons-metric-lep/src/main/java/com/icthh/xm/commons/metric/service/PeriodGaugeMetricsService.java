@@ -30,9 +30,12 @@ public class PeriodGaugeMetricsService {
                     () -> customGaugeService.updateMetric(metric.getName(), tenant),
                     Duration.ofSeconds(metric.getUpdatePeriodSeconds())
                 );
-                scheduledTasks
+                ScheduledFuture<?> previous = scheduledTasks
                     .computeIfAbsent(tenantLower, k -> new ConcurrentHashMap<>())
                     .put(metric.getName(), task);
+                if (previous != null) {
+                    previous.cancel(false);
+                }
             }
         }
     }

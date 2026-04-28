@@ -44,15 +44,15 @@ public class CustomGaugeConfiguration implements RefreshableConfiguration {
         try {
             String tenant = matcher.extractUriTemplateVariables(mappingPath, updatedKey).get(TENANT_NAME);
 
-            cleanupTenant(tenant);
-
             if (StringUtils.isBlank(config)) {
+                cleanupTenant(tenant);
                 return;
             }
 
             List<CustomGauge> metrics = mapper.readValue(config, new TypeReference<>() {});
             log.info("Gauge metric configuration updated for tenant [{}]: {} metrics", tenant, metrics.size());
 
+            cleanupTenant(tenant);
             metrics.forEach(gauge -> registerGauge(gauge, tenant));
 
             periodGaugeMetricsService.scheduleGauges(metrics, tenant);

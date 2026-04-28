@@ -10,4 +10,4 @@ XME Platform - Common Utils and Endpoints
     ./gradlew clean publishToMavenLocal
     ```
 3. Change xm-commons version in target MS in gradle.properties (for example entity).
-5. Start target MS.
+4. Start target MS.
