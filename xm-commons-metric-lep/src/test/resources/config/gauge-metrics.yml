@@ -1,0 +1,5 @@
+---
+- name: TEST2
+  updatePeriodSeconds: 0
+- name: TEST
+  updatePeriodSeconds: 0
