@@ -19,7 +19,7 @@ public class PeriodGaugeMetricsService {
     private final CustomGaugeService customGaugeService;
 
     public PeriodGaugeMetricsService(@Qualifier("periodicMetricsTaskScheduler") TaskScheduler taskScheduler,
-                                   CustomGaugeService customGaugeService) {
+                                     CustomGaugeService customGaugeService) {
         this.taskScheduler = taskScheduler;
         this.customGaugeService = customGaugeService;
     }

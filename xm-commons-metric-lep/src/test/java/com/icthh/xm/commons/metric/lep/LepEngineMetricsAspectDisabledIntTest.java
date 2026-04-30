@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
     LepEngineMetricsAspect.class,
 })
 @TestPropertySource(properties = {
-    "xm.commons.lep.metrics.enabled=false"
+    "application.lep.metrics.enabled=false"
 })
 public class LepEngineMetricsAspectDisabledIntTest {
 

@@ -24,7 +24,7 @@ public class LepEngineMetricsAspect {
     private final boolean metricsEnabled;
 
     public LepEngineMetricsAspect(LepEngineMetricsDelegate metricsDelegate,
-                                  @Value("${xm.commons.lep.metrics.enabled:true}") boolean metricsEnabled) {
+                                  @Value("${application.lep.metrics.enabled:true}") boolean metricsEnabled) {
         this.metricsDelegate = metricsDelegate;
         this.metricsEnabled = metricsEnabled;
     }
