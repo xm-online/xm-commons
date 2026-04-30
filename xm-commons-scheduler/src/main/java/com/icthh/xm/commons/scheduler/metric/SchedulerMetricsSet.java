@@ -25,10 +25,16 @@ public class SchedulerMetricsSet implements MeterBinder {
         failedMessagesCounter = Counter.builder("failed.messages.count")
             .register(registry);
 
-        Gauge.builder("success.last.time", lastSuccess, ref -> ref.get().toEpochMilli())
+        Gauge.builder("success.last.time", lastSuccess, ref -> {
+            Instant instant = ref.get();
+            return instant == Instant.MIN ? 0 : instant.toEpochMilli();
+        })
             .register(registry);
 
-        Gauge.builder("failed.last.time", lastError, ref -> ref.get().toEpochMilli())
+        Gauge.builder("failed.last.time", lastError, ref -> {
+            Instant instant = ref.get();
+            return instant == Instant.MIN ? 0 : instant.toEpochMilli();
+        })
             .register(registry);
     }
 
