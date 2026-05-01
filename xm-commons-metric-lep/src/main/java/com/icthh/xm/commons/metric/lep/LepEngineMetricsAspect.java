@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.Factory;
 import org.springframework.cglib.proxy.MethodInterceptor;
@@ -20,9 +21,12 @@ import java.lang.reflect.Method;
 public class LepEngineMetricsAspect {
 
     private final LepEngineMetricsDelegate metricsDelegate;
+    private final boolean metricsEnabled;
 
-    public LepEngineMetricsAspect(LepEngineMetricsDelegate metricsDelegate) {
+    public LepEngineMetricsAspect(LepEngineMetricsDelegate metricsDelegate,
+                                  @Value("${application.lep.metrics.enabled:true}") boolean metricsEnabled) {
         this.metricsDelegate = metricsDelegate;
+        this.metricsEnabled = metricsEnabled;
     }
 
     @Around(
@@ -34,6 +38,11 @@ public class LepEngineMetricsAspect {
         if (!(result instanceof LepEngine realEngine)) {
             return result;
         }
+        
+        if (!metricsEnabled) {
+            return realEngine;
+        }
+        
         return createMetricsProxy(realEngine);
     }
 

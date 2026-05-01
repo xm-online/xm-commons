@@ -6,18 +6,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class PeriodGaugeMetricsService {
 
     private final TaskScheduler taskScheduler;
     private final CustomGaugeService customGaugeService;
+
+    public PeriodGaugeMetricsService(@Qualifier("periodicMetricsTaskScheduler") TaskScheduler taskScheduler,
+                                     CustomGaugeService customGaugeService) {
+        this.taskScheduler = taskScheduler;
+        this.customGaugeService = customGaugeService;
+    }
 
     private final Map<String, Map<String, ScheduledFuture<?>>> scheduledTasks = new ConcurrentHashMap<>();
 
