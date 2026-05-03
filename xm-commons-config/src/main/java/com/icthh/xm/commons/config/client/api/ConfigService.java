@@ -12,4 +12,5 @@ public interface ConfigService {
     Map<String, Configuration> getConfigMapAntPattern(String commit, Collection<String> patternPaths);
     void addConfigurationChangedListener(ConfigurationChangedListener listener);
     void updateConfigurations(String commit, Collection<String> paths);
+    void notifyUpdated(Configuration updatedConfig);
 }

@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,7 +33,7 @@ import java.util.Map;
 import java.util.Set;
 
 @RunWith(MockitoJUnitRunner.class)
-public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
+public class InitRefreshableConfigurationProcessorUnitTest {
 
     @Mock
     private RefreshableConfiguration refreshableConfiguration;
@@ -40,13 +41,18 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
     private CommonConfigRepository commonConfigRepository;
     @Mock
     private ObjectProvider<ConfigService> configServiceProvider;
+    @Mock
+    private ObjectProvider<LepContextRunner> lepContextRunnerProvider;
+    @Mock
+    private LepContextRunner lepContextRunner;
+
     private ConfigService configService;
 
     private FetchConfigurationSettings fetchConfigurationSettings;
 
     @Spy
     private XmConfigProperties configProperties;
-    private InitRefreshableConfigurationBeanPostProcessor processor;
+    private InitRefreshableConfigurationProcessor processor;
     private Map<String, Configuration> configMap;
     private List<String> configKeys;
 
@@ -84,9 +90,8 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
 
     @Test
     public void shouldContainIncludedTenantsAndCommons() {
-
         when(configProperties.getIncludeTenants()).thenReturn(Set.of("tenant1", "Tenant2"));
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings);
+        processor = createProcessor();
 
         List<String> configs = processor.initConfigPaths(refreshableConfiguration, configMap);
 
@@ -95,13 +100,12 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
                                   "/config/tenants/TENANT1/uaa/uaa.yml",
                                   "/config/tenants/commons/lep/entity/MathService$$tenant.groovy"
         ), configs);
-
     }
 
     @Test
     public void shouldContainAllTenantsIfIncludePropertyEmpty() {
         when(configProperties.getIncludeTenants()).thenReturn(null);
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings);
+        processor = createProcessor();
 
         List<String> configs = processor.initConfigPaths(refreshableConfiguration, configMap);
 
@@ -110,29 +114,20 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
 
     @Test
     public void shouldContainAllTenantsIfIncludePropertyEmptyDuringUpdate() {
-        when(configService.getConfigMapAntPattern(any(), any())).thenReturn(configMap);
-        when(configServiceProvider.getIfAvailable()).thenReturn(configService);
-
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings);
-        processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
-        processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
+        processor = createProcessor();
 
         configService.updateConfigurations("commit", configKeys);
 
         configKeys.forEach(configKey -> verify(refreshableConfiguration).onRefresh(eq(configKey), any()));
 
         verify(refreshableConfiguration).refreshFinished(eq(configKeys));
-
     }
 
     @Test
     public void shouldContainIncludedTenantsAndCommonsDuringUpdate() {
         when(configProperties.getIncludeTenants()).thenReturn(Set.of("tenant1", "Tenant2"));
-        when(configService.getConfigMapAntPattern(any(), any())).thenReturn(configMap);
-        when(configServiceProvider.getIfAvailable()).thenReturn(configService);
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings);
-        processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
-        processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
+
+        processor = createProcessor();
 
         configService.updateConfigurations("commit", configKeys);
 
@@ -151,16 +146,77 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
 
         verify(refreshableConfiguration, times(2))
             .refreshFinished(argThat(argument -> assertListsEquals(argument, expectedUpdatedKeys)));
-
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldThrowExceptionWhenConfigServiceIsNotAvailable() {
         when(configServiceProvider.getIfAvailable()).thenReturn(null);
 
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings);
-        processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
-        processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
+        new InitRefreshableConfigurationProcessor(
+            configServiceProvider,
+            configProperties,
+            fetchConfigurationSettings,
+            List.of(refreshableConfiguration),
+            lepContextRunnerProvider
+        );
+    }
+
+    @Test
+    public void shouldInitUsingLepContextWhenRunnerIsReady() {
+        when(configServiceProvider.getIfAvailable()).thenReturn(configService);
+        when(configService.getConfigMapAntPattern(any(), any())).thenReturn(configMap);
+
+        when(lepContextRunnerProvider.getIfAvailable()).thenReturn(lepContextRunner);
+        when(lepContextRunner.isReady()).thenReturn(true);
+
+        new InitRefreshableConfigurationProcessor(
+            configServiceProvider,
+            configProperties,
+            fetchConfigurationSettings,
+            List.of(refreshableConfiguration),
+            lepContextRunnerProvider
+        );
+
+        verify(lepContextRunner).runInContext(any());
+    }
+
+    @Test
+    public void shouldInitWithoutLepContextWhenRunnerIsNotReady() {
+        when(configServiceProvider.getIfAvailable()).thenReturn(configService);
+        when(configService.getConfigMapAntPattern(any(), any())).thenReturn(configMap);
+
+        when(lepContextRunnerProvider.getIfAvailable()).thenReturn(lepContextRunner);
+        when(lepContextRunner.isReady()).thenReturn(false);
+
+        new InitRefreshableConfigurationProcessor(
+            configServiceProvider,
+            configProperties,
+            fetchConfigurationSettings,
+            List.of(refreshableConfiguration),
+            lepContextRunnerProvider
+        );
+
+        verify(refreshableConfiguration).refreshableConfigurationInited();
+        verify(lepContextRunner, never()).runInContext(any());
+        configKeys.forEach(key ->
+            verify(refreshableConfiguration).onInit(eq(key), any())
+        );
+        verify(refreshableConfiguration, times(configKeys.size())).onInit(anyString(), any());
+    }
+
+    private InitRefreshableConfigurationProcessor createProcessor() {
+        when(configServiceProvider.getIfAvailable()).thenReturn(configService);
+        when(configService.getConfigMapAntPattern(any(), any())).thenReturn(configMap);
+
+        when(lepContextRunnerProvider.getIfAvailable()).thenReturn(null);
+
+        return new InitRefreshableConfigurationProcessor(
+            configServiceProvider,
+            configProperties,
+            fetchConfigurationSettings,
+            List.of(refreshableConfiguration),
+            lepContextRunnerProvider
+        );
     }
 
     private static <T extends Comparable<T>> boolean assertListsEquals(Collection<T> expected, Collection<T> actual) {
