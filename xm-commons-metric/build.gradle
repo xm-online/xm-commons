@@ -16,6 +16,7 @@ dependencies {
 
     api "io.micrometer:micrometer-registry-prometheus"
     api "io.micrometer:micrometer-registry-otlp"
+    api "io.micrometer:micrometer-java21"
 
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 
