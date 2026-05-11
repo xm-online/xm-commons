@@ -10,6 +10,7 @@ dependencies {
     api project(':xm-commons-lep')
 
     api "org.slf4j:slf4j-api"
+    api "org.springframework.boot:spring-boot-starter-opentelemetry"
 
     implementation 'io.micrometer:micrometer-tracing'
     implementation 'io.micrometer:micrometer-core'
