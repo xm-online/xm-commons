@@ -37,7 +37,7 @@ public class TokenProvider {
 
     private static final String AUTHORITIES_KEY = "authorities";
 
-    private static final String INVALID_JWT_TOKEN = "Invalid JWT token.";
+    private static final String INVALID_JWT_TOKEN = "Invalid JWT token. {}";
 
     private final JwtParser jwtParser;
 
@@ -92,7 +92,7 @@ public class TokenProvider {
         try {
             return getClaims(authToken);
         } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException e) {
-            log.info(INVALID_JWT_TOKEN, e);
+            log.info(INVALID_JWT_TOKEN, e.getMessage());
         } catch (IllegalArgumentException e) {
             log.error("Token validation error {}", e.getMessage());
         }
