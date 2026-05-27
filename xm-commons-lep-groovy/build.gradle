@@ -24,6 +24,14 @@ dependencies {
     api ("org.apache.groovy:groovy-all:${versions.groovyAll}") {
         exclude group: "org.apache.groovy", module: "groovy-testng"
     }
+
+// ==========================================================================================================
+// BACKWARD COMPATIBILITY dependencies for leps
+//
+// These com.fasterxml.jackson.module.* modules are explicitly included to maintain robust backward compatibility.
+// Removing or changing these types could break older leps which use old jackson2.
+// ==========================================================================================================
+
     api('com.fasterxml.jackson.module:jackson-module-parameter-names')
     api('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
     api('com.fasterxml.jackson.dataformat:jackson-dataformat-yaml')
