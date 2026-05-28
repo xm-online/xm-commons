@@ -37,6 +37,9 @@ dependencies {
     api('com.fasterxml.jackson.dataformat:jackson-dataformat-yaml')
     api('com.fasterxml.jackson.dataformat:jackson-dataformat-csv')
     api('com.fasterxml.jackson.datatype:jackson-datatype-jdk8')
+    api ('com.fasterxml.jackson.datatype:jackson-datatype-hppc')
+    api ('com.fasterxml.jackson.core:jackson-annotations')
+    api ('com.fasterxml.jackson.core:jackson-databind')
     api('com.fasterxml.jackson.datatype:jackson-datatype-hibernate7')
 
     testImplementation 'org.junit.jupiter:junit-jupiter'
