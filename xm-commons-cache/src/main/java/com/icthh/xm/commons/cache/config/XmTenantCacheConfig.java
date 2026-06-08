@@ -9,10 +9,8 @@ import com.icthh.xm.commons.cache.service.TenantAwareCacheManager;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 
 import java.util.List;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
