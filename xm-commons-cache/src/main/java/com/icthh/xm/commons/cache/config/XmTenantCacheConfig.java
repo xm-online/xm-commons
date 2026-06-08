@@ -9,16 +9,13 @@ import com.icthh.xm.commons.cache.service.TenantAwareCacheManager;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 
 import java.util.List;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnProperty(value = "application.tenant-cache.enabled", havingValue = "true")
-@EnableCaching
 public class XmTenantCacheConfig {
 
     @Bean
@@ -42,8 +39,7 @@ public class XmTenantCacheConfig {
         return new DynamicTenantCacheManager(strategies);
     }
 
-    @Bean
-    @Qualifier("tenantCacheManager")
+    @Bean("tenantCacheManager")
     public TenantCacheManager tenantAwareCacheManager(DynamicTenantCacheManager dynamicTenantCacheManager,
                                                       TenantContextHolder tenantContextHolder) {
         return new TenantAwareCacheManager(dynamicTenantCacheManager, tenantContextHolder);

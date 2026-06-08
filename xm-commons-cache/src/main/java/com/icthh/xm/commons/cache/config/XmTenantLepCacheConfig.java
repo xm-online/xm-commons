@@ -58,8 +58,7 @@ public class XmTenantLepCacheConfig {
      * @param dynamicTenantCacheManager - strategy-routing cache manager
      * @param tenantContextHolder - tenant context
      */
-    @Bean
-    @Qualifier("lepCacheManager")
+    @Bean("lepCacheManager")
     public TenantCacheManager lepCacheManager(DynamicTenantCacheManager dynamicTenantCacheManager,
                                               TenantContextHolder tenantContextHolder) {
         return new TenantAwareCacheManager(dynamicTenantCacheManager, tenantContextHolder);
