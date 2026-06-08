@@ -18,7 +18,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnProperty(value = "application.tenant-cache.enabled", havingValue = "true")
-@EnableCaching
 public class XmTenantCacheConfig {
 
     @Bean
@@ -42,8 +41,7 @@ public class XmTenantCacheConfig {
         return new DynamicTenantCacheManager(strategies);
     }
 
-    @Bean
-    @Qualifier("tenantCacheManager")
+    @Bean("tenantCacheManager")
     public TenantCacheManager tenantAwareCacheManager(DynamicTenantCacheManager dynamicTenantCacheManager,
                                                       TenantContextHolder tenantContextHolder) {
         return new TenantAwareCacheManager(dynamicTenantCacheManager, tenantContextHolder);
