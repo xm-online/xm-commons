@@ -8,6 +8,7 @@ import com.icthh.xm.commons.security.spring.config.XmAuthenticationContextConfig
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.spring.config.TenantContextConfiguration;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -182,6 +183,29 @@ public class DynamicLepClassFileResolveIntTest {
         Thread.sleep(110);
         String result = testLepService.testLepMethod();
         assertEquals("fileServiceWorks", result);
+    }
+
+    @Test
+    @SneakyThrows
+    public void testMetaMapProcessInLep() {
+        String content = "import java.util.TreeMap;\n" +
+                "import java.util.HashMap;\n" +
+                "import java.util.concurrent.ConcurrentHashMap;\n" +
+                "def map1 = [properties: 'abc']\n" +
+                "def map2 = new HashMap([properties: 'abc'])\n" +
+                "def map3 = new TreeMap(map2)\n" +
+                "def map4 = new ConcurrentHashMap(map2)\n" +
+
+                "def p1 = map1.properties\n" +
+                "def p2 = map2.properties\n" +
+                "def p3 = map3.properties\n" +
+                "def p4 = map4.properties\n" +
+
+                "return p1 + '-' + p2 + '-' + p3 + '-' + p4;";
+
+        createFile("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",  content);
+        String result = testLepService.testLepMethod();
+        assertEquals("abc-abc-abc-abc", result);
     }
 
     private void runTest(String suffix, String packageName, String path) throws InterruptedException {
