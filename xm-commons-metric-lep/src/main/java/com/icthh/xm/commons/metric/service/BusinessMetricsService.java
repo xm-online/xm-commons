@@ -9,9 +9,10 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-@Service
+@Component
 @RequiredArgsConstructor
 public class BusinessMetricsService implements LepAdditionalContext<BusinessMetricsService> {
 
