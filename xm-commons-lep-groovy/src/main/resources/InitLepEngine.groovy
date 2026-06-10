@@ -6,3 +6,9 @@ HttpHeaders.metaClass.collect = { Closure c ->
     log.warn("Method org.springframework.http.HttpHeaders.collect behavior changed, pls migrate to method forEach")
     delegate.headers.collect(c)
 }
+
+java.util.AbstractMap.metaClass.getProperties = { ->
+    delegate.containsKey('properties')
+            ? delegate.get('properties')
+            : org.codehaus.groovy.runtime.DefaultGroovyMethods.getProperties(delegate)
+}
