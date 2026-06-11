@@ -55,6 +55,9 @@ public class MessageListenerContainerBuilder {
         ConcurrentMessageListenerContainer<String, String> container =
               new ConcurrentMessageListenerContainer<>(kafkaConsumerFactory, containerProperties);
         container.setErrorHandler(new SeekToCurrentErrorHandler(topicConfig.getRetriesCount() + 1));
+        if (topicConfig.getConcurrency() != null) {
+            container.setConcurrency(topicConfig.getConcurrency());
+        }
         return container;
     }
 
