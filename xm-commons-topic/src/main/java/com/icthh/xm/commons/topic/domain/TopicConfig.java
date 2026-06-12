@@ -17,4 +17,5 @@ public class TopicConfig implements Serializable {
     private Boolean logBody = true;
     private Integer maxPollInterval;
     private String isolationLevel;
+    private Integer concurrency;
 }
