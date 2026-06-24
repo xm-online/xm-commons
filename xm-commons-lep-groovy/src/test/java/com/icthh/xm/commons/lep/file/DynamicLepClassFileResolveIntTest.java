@@ -44,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ActiveProfiles("resolvefiletest")
 public class DynamicLepClassFileResolveIntTest {
 
+
     @Autowired
     private LepManagementService lepManager;
 
@@ -204,8 +205,26 @@ public class DynamicLepClassFileResolveIntTest {
                 "return p1 + '-' + p2 + '-' + p3 + '-' + p4;";
 
         createFile("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy",  content);
+        Thread.sleep(110);
         String result = testLepService.testLepMethod();
         assertEquals("abc-abc-abc-abc", result);
+    }
+
+
+
+    @Test
+    @SneakyThrows
+    public void testUriComponentsBuilderFromHttpUrlInLep() {
+        String content = "import org.springframework.web.util.UriComponentsBuilder\n" +
+                "def builder = UriComponentsBuilder.fromHttpUrl('https://example.com/path?param=value')\n" +
+                "builder.queryParam('extra', 'added')\n" +
+                "return builder.build().toUriString();";
+
+        createFile("/config/tenants/TEST/testApp/lep/service/TestLepMethod$$around.groovy", content);
+        // this sleep is needed because groovy has debounce time to lep update
+        Thread.sleep(110);
+        String result = testLepService.testLepMethod();
+        assertEquals("https://example.com/path?param=value&extra=added", result);
     }
 
     private void runTest(String suffix, String packageName, String path) throws InterruptedException {
