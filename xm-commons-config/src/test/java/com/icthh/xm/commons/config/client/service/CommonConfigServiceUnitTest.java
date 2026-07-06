@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -18,6 +19,7 @@ import com.icthh.xm.commons.config.domain.Configuration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -36,7 +38,7 @@ public class CommonConfigServiceUnitTest {
     @Before
     public void setUp() {
         FetchConfigurationSettings fetchConfigurationSettings = new FetchConfigurationSettings("test", true);
-        configService = new CommonConfigService(fetchConfigurationSettings, commonConfigRepository);
+        configService = new CommonConfigService(fetchConfigurationSettings, commonConfigRepository, new ConfigurationOrderService());
     }
 
     @Test
@@ -68,7 +70,7 @@ public class CommonConfigServiceUnitTest {
     @Test
     public void updateConfigurationsWhenFetchAllFalseAndPathNotMatch() {
         FetchConfigurationSettings fetchConfigurationSettings = new FetchConfigurationSettings("test", false);
-        configService = spy(new CommonConfigService(fetchConfigurationSettings, commonConfigRepository));
+        configService = spy(new CommonConfigService(fetchConfigurationSettings, commonConfigRepository, new ConfigurationOrderService()));
 
         List<String> testPaths = Collections.singletonList("path");
         List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
@@ -83,7 +85,7 @@ public class CommonConfigServiceUnitTest {
     @Test
     public void updateConfigurationsWhenFetchAllFalseAndPathsHasMatch() {
         FetchConfigurationSettings fetchConfigurationSettings = spy(new FetchConfigurationSettings("test", false));
-        CommonConfigService configService = spy(new CommonConfigService(fetchConfigurationSettings, commonConfigRepository));
+        CommonConfigService configService = spy(new CommonConfigService(fetchConfigurationSettings, commonConfigRepository, new ConfigurationOrderService()));
 
         when(fetchConfigurationSettings.getMsConfigPatterns()).thenReturn(List.of(
                 "/config/tenants/commons/**",
@@ -173,6 +175,94 @@ public class CommonConfigServiceUnitTest {
                                                .onConfigurationChanged(refEq(new Configuration("path", null))));
         configurationListeners.forEach(configurationListener ->
                 verify(configurationListener).refreshFinished(Collections.singletonList("path")));
+    }
+
+    @Test
+    public void updateConfigurationsDispatchesInOrderYmlOrder() {
+        String orderPath = "/config/tenants/XM/order.yml";
+        String orderContent = "order:\n  - tenant-config.yml\n  - entity/**\n";
+        String tenantConfigPath = "/config/tenants/XM/tenant-config.yml";
+        String entityPath = "/config/tenants/XM/entity/specs.yml";
+        String otherPath = "/config/tenants/XM/webapp/settings.yml";
+
+        List<String> incoming = List.of(otherPath, entityPath, tenantConfigPath, orderPath);
+        Map<String, Configuration> config = Map.of(
+            orderPath, new Configuration(orderPath, orderContent),
+            tenantConfigPath, new Configuration(tenantConfigPath, "c1"),
+            entityPath, new Configuration(entityPath, "c2"),
+            otherPath, new Configuration(otherPath, "c3"));
+        when(commonConfigRepository.getConfig(eq("commit"), anyList())).thenReturn(config);
+
+        ConfigurationChangedListener listener = mock(ConfigurationChangedListener.class);
+        configService.addConfigurationChangedListener(listener);
+
+        configService.updateConfigurations("commit", incoming);
+
+        InOrder inOrder = inOrder(listener);
+        inOrder.verify(listener).onConfigurationChanged(refEq(config.get(orderPath)));
+        inOrder.verify(listener).onConfigurationChanged(refEq(config.get(tenantConfigPath)));
+        inOrder.verify(listener).onConfigurationChanged(refEq(config.get(entityPath)));
+        inOrder.verify(listener).onConfigurationChanged(refEq(config.get(otherPath)));
+        verify(listener).refreshFinished(List.of(orderPath, tenantConfigPath, entityPath, otherPath));
+    }
+
+    @Test
+    public void orderFromPreviousBatchAppliesToNextBatch() {
+        String orderPath = "/config/tenants/XM/order.yml";
+        Map<String, Configuration> firstBatch = Map.of(orderPath,
+            new Configuration(orderPath, "order:\n  - tenant-config.yml\n"));
+        when(commonConfigRepository.getConfig(eq("commit1"), anyList())).thenReturn(firstBatch);
+        configService.updateConfigurations("commit1", List.of(orderPath));
+
+        String tenantConfigPath = "/config/tenants/XM/tenant-config.yml";
+        String otherPath = "/config/tenants/XM/webapp/settings.yml";
+        Map<String, Configuration> secondBatch = Map.of(
+            tenantConfigPath, new Configuration(tenantConfigPath, "c1"),
+            otherPath, new Configuration(otherPath, "c2"));
+        when(commonConfigRepository.getConfig(eq("commit2"), anyList())).thenReturn(secondBatch);
+
+        ConfigurationChangedListener listener = mock(ConfigurationChangedListener.class);
+        configService.addConfigurationChangedListener(listener);
+        configService.updateConfigurations("commit2", List.of(otherPath, tenantConfigPath));
+
+        InOrder inOrder = inOrder(listener);
+        inOrder.verify(listener).onConfigurationChanged(refEq(secondBatch.get(tenantConfigPath)));
+        inOrder.verify(listener).onConfigurationChanged(refEq(secondBatch.get(otherPath)));
+        verify(listener).refreshFinished(List.of(tenantConfigPath, otherPath));
+    }
+
+    @Test
+    public void deletedOrderYmlOmittedFromRepositoryMapStillClearsOrdering() {
+        // batch 1: order.yml with content seeds ordering for tenant XM (tenant-config.yml delivered first)
+        String orderPath = "/config/tenants/XM/order.yml";
+        String tenantConfigPath = "/config/tenants/XM/tenant-config.yml";
+        String otherPath = "/config/tenants/XM/webapp/settings.yml";
+
+        Map<String, Configuration> firstBatch = Collections.singletonMap(orderPath,
+            new Configuration(orderPath, "order:\n  - tenant-config.yml\n"));
+        when(commonConfigRepository.getConfig(eq("commit1"), anyList())).thenReturn(firstBatch);
+        configService.updateConfigurations("commit1", List.of(orderPath));
+
+        // batch 2: order.yml is deleted. Production shape (XmMsConfigCommonConfigRepository): the deleted
+        // path is still dispatched (present in the incoming paths / commit) but ABSENT from the fetched
+        // map (getNonNullConfiguration fabricates the null Configuration for it). Without the paths-aware
+        // overload, this deletion would never reach updateOrder and the stale XM order would keep applying.
+        Map<String, Configuration> secondBatch = Map.of(
+            tenantConfigPath, new Configuration(tenantConfigPath, "c1"),
+            otherPath, new Configuration(otherPath, "c2"));
+        when(commonConfigRepository.getConfig(eq("commit2"), anyList())).thenReturn(secondBatch);
+
+        ConfigurationChangedListener listener = mock(ConfigurationChangedListener.class);
+        configService.addConfigurationChangedListener(listener);
+        configService.updateConfigurations("commit2", List.of(otherPath, tenantConfigPath, orderPath));
+
+        // ordering must no longer apply: original incoming order is preserved (no reorder to
+        // [orderPath, tenantConfigPath, otherPath] as the still-active stale order would have produced)
+        InOrder inOrder = inOrder(listener);
+        inOrder.verify(listener).onConfigurationChanged(refEq(new Configuration(otherPath, "c2")));
+        inOrder.verify(listener).onConfigurationChanged(refEq(new Configuration(tenantConfigPath, "c1")));
+        inOrder.verify(listener).onConfigurationChanged(refEq(new Configuration(orderPath, null)));
+        verify(listener).refreshFinished(List.of(otherPath, tenantConfigPath, orderPath));
     }
 
 }
