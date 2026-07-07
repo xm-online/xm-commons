@@ -10,9 +10,12 @@ import com.icthh.xm.commons.lep.api.LepKey;
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
+import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 
@@ -94,11 +97,30 @@ public class LepManagementServiceImpl implements LepManagementService {
     }
 
     private List<LepEngine> createEnginesPrecompiledPath(String tenantKey, List<XmLepConfigFile> tenantConfigs, String pathToPrecompiledLep) {
-        String compiledPath = Path.of(pathToPrecompiledLep).resolve(tenantKey).resolve(XmLepConstants.SCRIPT_COMPILED_DIR).toString();
+        Path versionedDir = Path.of(pathToPrecompiledLep);
+        Path tenantDir = versionedDir.resolve(tenantKey);
+        String compiledPath = tenantDir.resolve(XmLepConstants.SCRIPT_COMPILED_DIR).toString();
         return engineFactories.stream()
             .map(it -> it.createLepEngine(tenantKey, tenantConfigs, compiledPath))
+            // classes are loaded lazily for the whole engine lifetime, so the version directory
+            // is deleted exactly when the engine built from it is destroyed (on engines replace)
+            .peek(engine -> engine.addDestroyCallback(destroyed -> deletePrecompiledDir(tenantDir, versionedDir)))
             .sorted(comparingInt(LepEngine::order))
             .toList();
+    }
+
+    private static void deletePrecompiledDir(Path tenantDir, Path versionedDir) {
+        if (!Files.exists(tenantDir)) {
+            return;
+        }
+        log.info("Delete precompiled lep directory {} of the destroyed engine", tenantDir);
+        if (!FileUtils.deleteQuietly(tenantDir.toFile())) {
+            log.warn("Failed to delete precompiled lep directory {}", tenantDir);
+        }
+        File[] leftInVersionedDir = versionedDir.toFile().listFiles();
+        if (leftInVersionedDir != null && leftInVersionedDir.length == 0) {
+            FileUtils.deleteQuietly(versionedDir.toFile());
+        }
     }
 
     @Override
