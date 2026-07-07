@@ -53,6 +53,11 @@ public final class XmLepConstants {
      */
     public static final String SCRIPT_COMPILED_DIR = "compiled";
 
+    /**
+     * Jar file name with compiled lep classes inside the precompiled distribution.
+     */
+    public static final String SCRIPT_COMPILED_JAR = "compiled.jar";
+
     private XmLepConstants() {
         throw new UnsupportedOperationException("Prevent creation for constructor utils class");
     }

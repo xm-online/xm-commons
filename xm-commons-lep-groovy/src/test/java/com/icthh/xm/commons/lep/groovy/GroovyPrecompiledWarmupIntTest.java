@@ -9,9 +9,16 @@ import com.icthh.xm.commons.lep.groovy.config.LepCompilerConfiguration;
 import com.icthh.xm.commons.lep.groovy.storage.LepStorageFactory;
 import com.icthh.xm.commons.lep.impl.LoggingWrapper;
 import com.icthh.xm.commons.lep.spring.ApplicationNameProvider;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,6 +91,50 @@ public class GroovyPrecompiledWarmupIntTest {
             "script class expected to be warmed up from precompiled sources");
         assertTrue(hasPrecompiledLog(COMMONS_PATH),
             "commons class expected to be warmed up from precompiled sources");
+    }
+
+    @Test
+    void warmupLoadsClassesFromCompiledJar() throws Exception {
+        List<XmLepConfigFile> leps = List.of(
+            new XmLepConfigFile(COMMONS_PATH,
+                "package WARMTEST.testApp.lep.commons\nclass WarmService { def hello() { return 'ok' } }\n"),
+            new XmLepConfigFile(SCRIPT_PATH,
+                "import WARMTEST.testApp.lep.commons.WarmService\nreturn new WarmService().hello()\n")
+        );
+
+        Path compiledDir = tempDir.resolve("compiled");
+
+        // phase A: precompile into the directory, then pack it into compiled.jar like LepCompiler does
+        createFactory(compiledDir.toAbsolutePath().toString()).createLepEngine(TENANT, leps);
+        packToJar(compiledDir, tempDir.resolve("compiled.jar"));
+        FileUtils.deleteDirectory(compiledDir.toFile());
+
+        logAppender.list.clear();
+
+        // phase B: no class tree on disk - warmup must load precompiled classes from compiled.jar
+        createFactory(compiledDir.toAbsolutePath().toString()).createLepEngine(TENANT, leps);
+
+        assertTrue(hasPrecompiledLog(SCRIPT_PATH),
+            "script class expected to be loaded from compiled.jar");
+        assertTrue(hasPrecompiledLog(COMMONS_PATH),
+            "commons class expected to be loaded from compiled.jar");
+    }
+
+    private static void packToJar(Path dir, Path jar) throws Exception {
+        try (
+            ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(jar));
+            Stream<Path> files = Files.walk(dir)
+        ) {
+            files.filter(Files::isRegularFile).forEach(file -> {
+                try {
+                    zos.putNextEntry(new ZipEntry(dir.relativize(file).toString().replace('\\', '/')));
+                    zos.write(Files.readAllBytes(file));
+                    zos.closeEntry();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            });
+        }
     }
 
     private boolean hasPrecompiledLog(String configPath) {
