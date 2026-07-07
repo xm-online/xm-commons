@@ -132,7 +132,8 @@ public class GroovyLepEngine extends LepEngine {
 
         this.leps.forEach(lep -> {
             try {
-                if (isCommonsClass(lep.getPath()) || !isScript(lep)) {
+                boolean isWarmupByCompilation = !isCommonsClass(lep.getPath()) && isScript(lep);
+                if (!useDirectoryCompiledSources && !isWarmupByCompilation) {
                     return;
                 }
 
@@ -140,6 +141,11 @@ public class GroovyLepEngine extends LepEngine {
                 log.info("START | Warmup lep {}", lep.getPath());
 
                 if (useDirectoryCompiledSources && tryLoadCompiled(groovyClassLoader, lep, warmUpTime)) {
+                    return;
+                }
+
+                if (!isWarmupByCompilation) {
+                    // no precompiled class: commons and class files are compiled on demand
                     return;
                 }
 
