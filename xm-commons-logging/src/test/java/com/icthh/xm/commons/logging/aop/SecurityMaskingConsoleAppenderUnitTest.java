@@ -8,6 +8,10 @@ import static org.hamcrest.Matchers.not;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.LoggingEvent;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import net.logstash.logback.encoder.LogstashEncoder;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -26,6 +30,9 @@ public class SecurityMaskingConsoleAppenderUnitTest {
         event.setLoggerName(loggerName);
         event.setLevel(Level.INFO);
         event.setMessage(msg);
+        event.setThreadName(Thread.currentThread().getName());
+        event.setTimeStamp(System.currentTimeMillis());
+        event.setMDCPropertyMap(Collections.emptyMap());
         return event;
     }
 
@@ -49,21 +56,37 @@ public class SecurityMaskingConsoleAppenderUnitTest {
 
     @Test
     public void shouldReplaceMessageForJsonEncoderWhenContainsKeyword() {
+        LoggerContext ctx = new LoggerContext();
+
+        LogstashEncoder encoder = new LogstashEncoder();
+        encoder.setContext(ctx);
+        encoder.start();
+
         SecurityMaskingConsoleAppender appender = new SecurityMaskingConsoleAppender();
+        appender.setContext(ctx);
         appender.setKeywords("keyword:, keyword=");
         appender.setReplacementMessage(REPLACEMENT);
+        appender.setEncoder(encoder);
 
-        LoggingEvent safe = newEvent("test.json.logger", "safe json");
-        var safeResult = appender.applyMasking(safe);
+        String safeJson = appendAndCapture(appender, newEvent("test.json.logger", "safe json"));
+        assertThat(safeJson, containsString("safe json"));
+        assertThat(safeJson, not(containsString(REPLACEMENT)));
 
-        assertThat(safeResult.getFormattedMessage(), containsString("safe json"));
-        assertThat(safeResult.getFormattedMessage(), not(containsString(REPLACEMENT)));
+        String maskedJson = appendAndCapture(appender, newEvent("test.json.logger", "keyword=qwerty"));
+        assertThat(maskedJson, containsString(REPLACEMENT));
+        assertThat(maskedJson, not(containsString("keyword=qwerty")));
+    }
 
-        LoggingEvent sensitive = newEvent("test.json.logger", "keyword=qwerty");
-        var masked = appender.applyMasking(sensitive);
-
-        assertThat(masked.getFormattedMessage(), containsString(REPLACEMENT));
-        assertThat(masked.getFormattedMessage(), not(containsString("keyword=qwerty")));
+    private String appendAndCapture(SecurityMaskingConsoleAppender appender, LoggingEvent event) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        appender.start();
+        appender.setOutputStream(out);
+        try {
+            appender.doAppend(event);
+        } finally {
+            appender.stop();
+        }
+        return out.toString(StandardCharsets.UTF_8);
     }
 
     @Test
