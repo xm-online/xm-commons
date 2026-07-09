@@ -100,6 +100,17 @@ public class SecurityMaskingConsoleAppenderUnitTest {
     }
 
     @Test
+    public void shouldNotMaskWhenReplacementMessageMissing() {
+        SecurityMaskingConsoleAppender appender = new SecurityMaskingConsoleAppender();
+        appender.setKeywords("pin=");
+
+        LoggingEvent event = newEvent("test.no.replacement", "pin=0000");
+        var result = appender.applyMasking(event);
+
+        assertThat(result.getFormattedMessage(), is("pin=0000"));
+    }
+
+    @Test
     public void shouldReplaceMessageIgnoringCaseForPatternEncoder() {
         SecurityMaskingConsoleAppender appender = new SecurityMaskingConsoleAppender();
         appender.setKeywords("pin=");

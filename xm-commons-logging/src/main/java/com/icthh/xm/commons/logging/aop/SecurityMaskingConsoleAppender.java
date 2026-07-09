@@ -93,6 +93,19 @@ public class SecurityMaskingConsoleAppender extends ConsoleAppender<ILoggingEven
     }
 
     /**
+     * Validates configuration on startup and warns when masking keywords are configured
+     * without a usable replacement message, in which case masking stays disabled.
+     */
+    @Override
+    public void start() {
+        if (!keywords.isEmpty() && !hasReplacementMessage()) {
+            addWarn("Security masking keywords are configured but replacementMessage is missing or blank; "
+                + "masking is disabled until a valid replacementMessage is provided.");
+        }
+        super.start();
+    }
+
+    /**
      * Applies masking logic to the provided logging event.
      * This method is extracted for easier unit testing.
      *
@@ -102,6 +115,10 @@ public class SecurityMaskingConsoleAppender extends ConsoleAppender<ILoggingEven
     ILoggingEvent applyMasking(ILoggingEvent original) {
         if (original == null) {
             return null;
+        }
+
+        if (!hasReplacementMessage()) {
+            return original;
         }
 
         String msg = original.getFormattedMessage();
@@ -114,6 +131,15 @@ public class SecurityMaskingConsoleAppender extends ConsoleAppender<ILoggingEven
         }
 
         return original;
+    }
+
+    /**
+     * Checks whether a usable replacement message is configured.
+     *
+     * @return true if replacementMessage is present and not blank
+     */
+    private boolean hasReplacementMessage() {
+        return replacementMessage != null && !replacementMessage.isBlank();
     }
 
     /**

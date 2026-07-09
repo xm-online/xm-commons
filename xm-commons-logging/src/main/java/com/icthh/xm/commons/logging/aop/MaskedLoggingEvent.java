@@ -37,7 +37,6 @@ public class MaskedLoggingEvent implements ILoggingEvent {
 
     @Override
     public Object[] getArgumentArray() {
-        // повертаємо пустий масив, щоб енкодери не пробували форматувати старі аргументи
         return new Object[0];
     }
 
