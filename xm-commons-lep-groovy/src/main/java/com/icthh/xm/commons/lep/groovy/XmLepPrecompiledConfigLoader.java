@@ -47,6 +47,7 @@ public class XmLepPrecompiledConfigLoader implements RefreshableConfiguration {
     private final ObjectMapper ymlMapper = YamlMapperUtils.yamlDefaultMapper();
 
     private final Map<String, XmLepPrecompiledConfig> precompiledConfigsByTenant = new ConcurrentHashMap<>();
+    private final Map<String, String> appliedZipStateByTenant = new ConcurrentHashMap<>();
 
     public XmLepPrecompiledConfigLoader(LepRefreshService lepRefreshService,
                                         String appName,
@@ -66,6 +67,7 @@ public class XmLepPrecompiledConfigLoader implements RefreshableConfiguration {
                 precompiledConfigsByTenant.put(tenant, precompiledConfig);
             } else {
                 precompiledConfigsByTenant.remove(tenant);
+                appliedZipStateByTenant.remove(tenant);
             }
         } catch (Exception e) {
             log.error("Error update configuration by key: {}", updatedKey, e);
@@ -105,6 +107,14 @@ public class XmLepPrecompiledConfigLoader implements RefreshableConfiguration {
 
     protected void fetchZip(String zipPath, List<String> tenants) {
         String fileHash = hashFile(zipPath);
+        // the state is per tenant: comparing by zip path is not enough, because after a path
+        // switch A -> B -> A the zip at A is unchanged while the engines are built from B
+        String zipState = zipPath + "|" + fileHash;
+        if (tenants.stream().allMatch(tenant -> zipState.equals(appliedZipStateByTenant.get(tenant)))) {
+            log.info("Skip lep engines refresh: zip [{}] content unchanged for tenants {}", zipPath, tenants);
+            return;
+        }
+
         Path tempDir = pathToWorkingDirectory.resolve(fileHash);
 
         try {
@@ -124,6 +134,7 @@ public class XmLepPrecompiledConfigLoader implements RefreshableConfiguration {
 
             log.info("Refreshing LEP engines for tenants {} from version {}", sourcesByTenant.keySet(), currentVersion);
             lepRefreshService.initOrRefresh(sourcesByTenant.keySet(), sourcesByTenant, versionedDir.toAbsolutePath().toString());
+            sourcesByTenant.keySet().forEach(tenant -> appliedZipStateByTenant.put(tenant, zipState));
 
         } catch (IOException e) {
             log.error("Failed to process zip [{}] for tenants {}", zipPath, tenants, e);

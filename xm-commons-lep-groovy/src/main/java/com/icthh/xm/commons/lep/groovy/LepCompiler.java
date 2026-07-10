@@ -170,6 +170,9 @@ public class LepCompiler {
             String tenant = entry.getKey();
             Path compiledDir = workDir.resolve(tenant).resolve(XmLepConstants.SCRIPT_COMPILED_DIR);
             Files.createDirectories(compiledDir);
+            // a leftover jar from an interrupted run would be picked up by the warmup instead of
+            // recompiling, and then overwritten with an incomplete one - always compile from scratch
+            Files.deleteIfExists(compiledDir.resolveSibling(XmLepConstants.SCRIPT_COMPILED_JAR));
 
             log.info("Compiling LEPs for tenant [{}] → {}", tenant, compiledDir);
 
@@ -189,7 +192,40 @@ public class LepCompiler {
             factory.setBeanClassLoader(Thread.currentThread().getContextClassLoader());
 
             factory.createLepEngine(tenant, entry.getValue());
+
+            packCompiledClassesToJar(compiledDir);
         }
+    }
+
+    /**
+     * Packs the compiled class tree into a single jar, so the distribution zip contains one
+     * entry per tenant instead of tens of thousands of class files (unzip on refresh becomes
+     * a single sequential copy, and URLClassLoader mounts the jar directly).
+     */
+    private static void packCompiledClassesToJar(Path compiledDir) throws IOException {
+        Path jarFile = compiledDir.resolveSibling(XmLepConstants.SCRIPT_COMPILED_JAR);
+
+        try (
+            ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(jarFile.toFile()));
+            Stream<Path> files = Files.walk(compiledDir)
+        ) {
+            // jar must have at least one entry, so the root directory entry is always added
+            zos.putNextEntry(new ZipEntry("META-INF/"));
+            zos.closeEntry();
+
+            files.filter(Files::isRegularFile).forEach(file -> {
+                try {
+                    String entryName = compiledDir.relativize(file).toString().replace('\\', '/');
+                    zos.putNextEntry(new ZipEntry(entryName));
+                    zos.write(Files.readAllBytes(file));
+                    zos.closeEntry();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            });
+        }
+
+        FileUtils.deleteDirectory(compiledDir.toFile());
     }
 
     private static void zipDirectory(Path sourceDir, String outputPath) throws IOException {

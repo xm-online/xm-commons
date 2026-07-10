@@ -1,6 +1,9 @@
 package com.icthh.xm.commons.lep.groovy;
 
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -10,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
 import java.util.Set;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.InnerClassNode;
 import org.codehaus.groovy.control.SourceUnit;
@@ -20,10 +24,36 @@ import org.codehaus.groovy.ast.MethodNode;
 @Slf4j
 public class GroovyFileParser {
 
+    private static final int METADATA_CACHE_MAX_SIZE = 10_000;
+
+    // metadata depends only on the source text, so unchanged files skip the AST parse on engine refresh
+    private final Map<String, GroovyFileMetadata> metadataByContentHash;
+
+    public GroovyFileParser() {
+        this(METADATA_CACHE_MAX_SIZE);
+    }
+
+    public GroovyFileParser(int metadataCacheMaxSize) {
+        this.metadataByContentHash = Collections.synchronizedMap(
+            new LinkedHashMap<>(256, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, GroovyFileMetadata> eldest) {
+                    return size() > metadataCacheMaxSize;
+                }
+            });
+    }
+
     @SneakyThrows
     public GroovyFileMetadata getFileMetaData(String filePath, String source) {
         try {
-            return getGroovyFileMetadata(filePath, source);
+            String contentHash = DigestUtils.sha256Hex(source);
+            GroovyFileMetadata cached = metadataByContentHash.get(contentHash);
+            if (cached != null) {
+                return cached;
+            }
+            GroovyFileMetadata metadata = getGroovyFileMetadata(filePath, source);
+            metadataByContentHash.put(contentHash, metadata);
+            return metadata;
         } catch (Exception e) {
             log.error("Error parsing groovy source: {}", e.getMessage(), e);
             return new GroovyFileMetadata();

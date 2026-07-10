@@ -2,6 +2,7 @@ package com.icthh.xm.commons.lep.groovy;
 
 import com.icthh.xm.commons.lep.LepPathResolver;
 import com.icthh.xm.commons.lep.ProceedingLep;
+import com.icthh.xm.commons.lep.XmLepConstants;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepKey;
@@ -15,6 +16,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,7 +134,8 @@ public class GroovyLepEngine extends LepEngine {
 
         this.leps.forEach(lep -> {
             try {
-                if (isCommonsClass(lep.getPath()) || !isScript(lep)) {
+                boolean isWarmupByCompilation = !isCommonsClass(lep.getPath()) && isScript(lep);
+                if (!useDirectoryCompiledSources && !isWarmupByCompilation) {
                     return;
                 }
 
@@ -140,6 +143,11 @@ public class GroovyLepEngine extends LepEngine {
                 log.info("START | Warmup lep {}", lep.getPath());
 
                 if (useDirectoryCompiledSources && tryLoadCompiled(groovyClassLoader, lep, warmUpTime)) {
+                    return;
+                }
+
+                if (!isWarmupByCompilation) {
+                    // no precompiled class: commons and class files are compiled on demand
                     return;
                 }
 
@@ -256,7 +264,17 @@ public class GroovyLepEngine extends LepEngine {
 
     @SneakyThrows
     private URLClassLoader buildCachingClassLoader(ClassLoader parent, File targetDir) {
-        return new URLClassLoader(new URL[]{targetDir.toURI().toURL()}, parent);
+        List<URL> urls = new ArrayList<>();
+        // new distribution layout: classes are packed into a jar next to the compiled directory,
+        // URLClassLoader reads them directly from the jar without unpacking the class tree
+        File compiledJar = new File(targetDir.getParentFile(), XmLepConstants.SCRIPT_COMPILED_JAR);
+        if (compiledJar.isFile()) {
+            urls.add(compiledJar.toURI().toURL());
+        }
+        // the directory stays on the classpath: old layout distributions keep classes there,
+        // and it is the target directory for classes compiled at runtime
+        urls.add(targetDir.toURI().toURL());
+        return new URLClassLoader(urls.toArray(new URL[0]), parent);
     }
 
     @SneakyThrows

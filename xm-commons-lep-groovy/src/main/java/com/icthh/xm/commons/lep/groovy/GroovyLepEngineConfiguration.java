@@ -77,7 +77,9 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
             lepPathResolver,
             groovyFileParser,
             warmupScripts ? tenantsWithLepWarmup : emptySet(),
-            warmupScriptsForAllTenant,
+            // in precompiled mode warmup is cheap (no compilation), and skipping it moves
+            // the classloading + metaclass cost to the first request after every refresh
+            warmupScripts && (warmupScriptsForAllTenant || Boolean.TRUE.equals(precompiledMode)),
             precompiledMode,
             pathToWorkingDirectory
         );
