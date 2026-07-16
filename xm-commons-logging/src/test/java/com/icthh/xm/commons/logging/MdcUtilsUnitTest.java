@@ -83,4 +83,26 @@ public class MdcUtilsUnitTest {
         assertNull(MDC.get("key"));
     }
 
+    @Test
+    public void shouldPutExecTime0OnMdc_whenRidNotSet() {
+        assertNull(MDC.get("execTime"));
+
+        long execTime = MdcUtils.putExecTimeMs();
+
+        assertEquals(0L, execTime);
+        assertEquals("0", MDC.get("execTime"));
+    }
+
+    @Test
+    @SneakyThrows
+    public void testPutExecTimeMs() throws InterruptedException {
+        MdcUtils.putRid();
+        Thread.sleep(1L);
+
+        long execTime = MdcUtils.putExecTimeMs();
+
+        assertTrue(execTime > 0);
+        assertEquals(String.valueOf(execTime), MDC.get("execTime"));
+        assertEquals(execTime, MdcUtils.getExecTimeMs());
+    }
 }
