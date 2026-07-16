@@ -15,6 +15,7 @@ public final class MdcUtils {
     private static final String RID = "rid";
     private static final String TIME = "time";
     private static final long LONG_ZERO = 0L;
+    private static final String EXEC_TIME_MDC_KEY = "execTime";
 
     private MdcUtils() {
         throw new IllegalAccessError("Access not allowed");
@@ -66,6 +67,12 @@ public final class MdcUtils {
     public static long getExecTimeMs(String key) {
         long timeNs = getTimeNs(key);
         return timeNs == LONG_ZERO ? LONG_ZERO : TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timeNs);
+    }
+
+    public static long putExecTimeMs() {
+        long execTime = getExecTimeMs();
+        MDC.put(EXEC_TIME_MDC_KEY, String.valueOf(execTime));
+        return execTime;
     }
 
     public static void clear() {
