@@ -11,8 +11,13 @@ import lombok.Getter;
 import lombok.ToString;
 import org.springframework.cglib.beans.BeanMap;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 /**
@@ -20,33 +25,58 @@ import java.util.stream.Stream;
  */
 public class FilterConverter {
 
-    @SuppressWarnings("unchecked")
+    private static final Map<Class<?>, Set<String>> TYPE_FIELDS = new ConcurrentHashMap<>();
+
     public static <T> QueryPart toJpql(T criteria) {
+        return toJpql(toBeanMap(criteria), Set.of());
+    }
+
+    public static <T> QueryPart toJpql(Class<T> type, Object criteria) {
+        Set<String> typeFields = TYPE_FIELDS.computeIfAbsent(type, FilterConverter::resolveTypeFields);
+        return toJpql(toBeanMap(criteria), typeFields);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> Map<String, Filter> toBeanMap(T criteria) {
         BeanMap.Generator gen = new BeanMap.Generator();
         gen.setBean(criteria);
         gen.setContextClass(criteria.getClass());
-        BeanMap beanMap = gen.create();
-        return toJpql(beanMap);
+        return gen.create();
     }
 
-    private static QueryPart toJpql(Map<String, Filter> filterMap) {
+    private static Set<String> resolveTypeFields(Class<?> type) {
+        Set<String> fieldNames = new HashSet<>();
+        for (Class<?> current = type; current != null && current != Object.class; current = current.getSuperclass()) {
+            for (Field field : current.getDeclaredFields()) {
+                if (!field.isSynthetic() && !Modifier.isStatic(field.getModifiers())) {
+                    fieldNames.add(field.getName());
+                }
+            }
+        }
+        return fieldNames;
+    }
+
+    private static QueryPart toJpql(Map<String, Filter> filterMap, Set<String> typeFields) {
 
         return filterMap.entrySet()
                         .stream()
                         .filter(s -> s.getValue() != null)
-                        .flatMap(FilterConverter::resolveExpression)
+                        .flatMap(entry -> resolveExpression(entry, typeFields))
                         .collect(QueryPart::new,
                                  QueryPart::accumulateExpression,
                                  QueryPart::combineQueryParts
                         );
     }
 
-    private static Stream<Expression> resolveExpression(Map.Entry<String, Filter> entry) {
+    private static Stream<Expression> resolveExpression(Map.Entry<String, Filter> entry,
+                                                        Set<String> typeFields) {
 
         Stream.Builder<Expression> expressions = Stream.builder();
 
         Filter<?> filter = entry.getValue();
-        String fieldName = preProcessForeignKeyFieldToJpql(entry.getKey());
+        String fieldName = typeFields.contains(entry.getKey())
+                           ? entry.getKey()
+                           : preProcessForeignKeyFieldToJpql(entry.getKey());
 
         if (filter.getEquals() != null) {
             expressions.add(new Expression(fieldName, Operation.EQUALS, filter.getEquals()));
