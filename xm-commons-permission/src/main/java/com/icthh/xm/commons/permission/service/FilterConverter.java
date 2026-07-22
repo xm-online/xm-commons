@@ -14,7 +14,9 @@ import org.springframework.cglib.beans.BeanMap;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
@@ -23,14 +25,14 @@ import java.util.stream.Stream;
  */
 public class FilterConverter {
 
-    private static final Map<Class<?>, Map<String, Field>> TYPE_FIELDS = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, Set<String>> TYPE_FIELDS = new ConcurrentHashMap<>();
 
     public static <T> QueryPart toJpql(T criteria) {
-        return toJpql(toBeanMap(criteria), Map.of());
+        return toJpql(toBeanMap(criteria), Set.of());
     }
 
     public static <T> QueryPart toJpql(Class<T> type, Object criteria) {
-        Map<String, Field> typeFields = TYPE_FIELDS.computeIfAbsent(type, FilterConverter::resolveTypeFields);
+        Set<String> typeFields = TYPE_FIELDS.computeIfAbsent(type, FilterConverter::resolveTypeFields);
         return toJpql(toBeanMap(criteria), typeFields);
     }
 
@@ -42,19 +44,19 @@ public class FilterConverter {
         return gen.create();
     }
 
-    private static Map<String, Field> resolveTypeFields(Class<?> type) {
-        Map<String, Field> fields = new HashMap<>();
+    private static Set<String> resolveTypeFields(Class<?> type) {
+        Set<String> fieldNames = new HashSet<>();
         for (Class<?> current = type; current != null && current != Object.class; current = current.getSuperclass()) {
             for (Field field : current.getDeclaredFields()) {
                 if (!field.isSynthetic() && !Modifier.isStatic(field.getModifiers())) {
-                    fields.putIfAbsent(field.getName(), field);
+                    fieldNames.add(field.getName());
                 }
             }
         }
-        return fields;
+        return fieldNames;
     }
 
-    private static QueryPart toJpql(Map<String, Filter> filterMap, Map<String, Field> typeFields) {
+    private static QueryPart toJpql(Map<String, Filter> filterMap, Set<String> typeFields) {
 
         return filterMap.entrySet()
                         .stream()
@@ -67,12 +69,12 @@ public class FilterConverter {
     }
 
     private static Stream<Expression> resolveExpression(Map.Entry<String, Filter> entry,
-                                                        Map<String, Field> typeFields) {
+                                                        Set<String> typeFields) {
 
         Stream.Builder<Expression> expressions = Stream.builder();
 
         Filter<?> filter = entry.getValue();
-        String fieldName = typeFields.containsKey(entry.getKey())
+        String fieldName = typeFields.contains(entry.getKey())
                            ? entry.getKey()
                            : preProcessForeignKeyFieldToJpql(entry.getKey());
 
