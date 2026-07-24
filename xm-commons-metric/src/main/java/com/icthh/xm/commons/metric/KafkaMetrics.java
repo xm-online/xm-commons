@@ -52,7 +52,7 @@ public class KafkaMetrics implements MeterBinder {
                         describeTopicsOptions);
                     Map<String, TopicDescription> topicDescriptionMap = describeTopicsResult.allTopicNames().get();
                     boolean monitoringResult = nonNull(topicDescriptionMap);
-                    log.info("Connection to Kafka topics is {}, time: {}", monitoringResult, executionTime.getTime());
+                    log.debug("Connection to Kafka topics is {}, time: {}", monitoringResult, executionTime.getTime());
                     return monitoringResult;
                 } catch (Exception e) {
                     log.warn("Exception when try connect to kafka topics: {}, exception: {}, time: {}", metricTopics,
