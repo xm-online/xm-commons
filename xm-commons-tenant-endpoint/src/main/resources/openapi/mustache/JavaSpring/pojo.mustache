@@ -1,60 +1,39 @@
 {{!
-Changed toString() POJO method implementation to avoid new lines.
+Copy of the swagger-codegen-generators JavaSpring (handlebars) pojo template with two changes:
+ - toString() renders on a single line instead of the default multi-line form;
+ - the @NotUndefined marker is dropped, so that no io.swagger.configuration support classes
+   and no jackson-databind-nullable dependency are needed (see model.mustache).
 Original template is here:
-https://github.com/swagger-api/swagger-codegen/blob/master/modules/swagger-codegen/src/main/resources/JavaSpring/pojo.mustach
+https://github.com/swagger-api/swagger-codegen-generators/blob/master/src/main/resources/handlebars/JavaSpring/pojo.mustache
 }}
 /**
  * {{#description}}{{.}}{{/description}}{{^description}}{{classname}}{{/description}}
- */
-{{#description}}
-@ApiModel(description = "{{{description}}}")
-{{/description}}
-{{#useBeanValidation}}
-@Validated
-{{/useBeanValidation}}
-{{>generatedAnnotation}}
-{{#discriminator}}
-{{>typeInfoAnnotation}}
-{{/discriminator}}
-{{>xmlAnnotation}}
-{{#notNullJacksonAnnotation}}
-@JsonInclude(JsonInclude.Include.NON_NULL)
-{{/notNullJacksonAnnotation}}
-{{#ignoreUnknownJacksonAnnotation}}
-@JsonIgnoreProperties(ignoreUnknown = true)
-{{/ignoreUnknownJacksonAnnotation}}
-{{#additionalModelTypeAnnotations}}{{{.}}}
-{{/additionalModelTypeAnnotations}}
-public class {{classname}} {{#parent}}extends {{{parent}}}{{/parent}} {{#serializableModel}}implements Serializable{{/serializableModel}} {
+ */{{#description}}
+{{#useOas2}}@ApiModel{{/useOas2}}{{^useOas2}}@Schema{{/useOas2}}(description = "{{{description}}}"){{/description}}
+{{#useBeanValidation}}@Validated{{/useBeanValidation}}
+{{>generatedAnnotation}}{{#discriminator}}{{>typeInfoAnnotation}}{{/discriminator}}{{>xmlAnnotation}}
+{{#notNullJacksonAnnotation}}@JsonInclude(JsonInclude.Include.NON_NULL){{/notNullJacksonAnnotation}}
+
+public class {{classname}} {{#parent}}extends {{{parent}}}{{/parent}} {{#serializableModel}}implements Serializable {{#interfaceModels}}, {{classname}}{{^@last}}, {{/@last}}{{#@last}} {{/@last}}{{/interfaceModels}}{{/serializableModel}}{{^serializableModel}}{{#interfaceModels}}{{#@first}}implements {{/@first}}{{classname}}{{^@last}}, {{/@last}}{{#@last}}{{/@last}}{{/interfaceModels}}{{/serializableModel}} {
 {{#serializableModel}}
   private static final long serialVersionUID = 1L;
 
 {{/serializableModel}}
   {{#vars}}
+    {{#baseItems this}}
     {{#isEnum}}
-    {{^isContainer}}
 {{>enumClass}}
-    {{/isContainer}}
     {{/isEnum}}
-    {{#items.isEnum}}
-      {{#items}}
-      {{^isContainer}}
-{{>enumClass}}
-      {{/isContainer}}
-      {{/items}}
-    {{/items.isEnum}}
+    {{/baseItems}}
   {{#jackson}}
+    {{#vendorExtensions.x-is-discriminator-property}}
+  @JsonTypeId
+    {{/vendorExtensions.x-is-discriminator-property}}
+    {{^vendorExtensions.x-is-discriminator-property}}
   @JsonProperty("{{baseName}}"){{#withXml}}
-  {{^isXmlWrapped}}
-  @JacksonXmlProperty({{#isXmlAttribute}}isAttribute = true, {{/isXmlAttribute}}{{#xmlNamespace}}namespace="{{xmlNamespace}}", {{/xmlNamespace}}localName = "{{#xmlName}}{{xmlName}}{{/xmlName}}{{^xmlName}}{{baseName}}{{/xmlName}}")
-  {{/isXmlWrapped}}
-  {{#isXmlWrapped}}
-  // Is a container wrapped={{isXmlWrapped}}
-  // items.xmlName={{items.xmlName}}
-  @JacksonXmlProperty({{#xmlNamespace}}namespace="{{xmlNamespace}}", {{/xmlNamespace}}localName = "{{#items.xmlName}}{{items.xmlName}}{{/items.xmlName}}{{^items.xmlName}}{{items.baseName}}{{/items.xmlName}}")
-  @JacksonXmlElementWrapper(useWrapping = {{isXmlWrapped}}, {{#xmlNamespace}}namespace="{{xmlNamespace}}", {{/xmlNamespace}}localName = "{{#xmlName}}{{xmlName}}{{/xmlName}}{{^xmlName}}{{baseName}}{{/xmlName}}")
-  {{/isXmlWrapped}}
-  {{/withXml}}{{/jackson}}
+  @JacksonXmlProperty({{#isXmlAttribute}}isAttribute = true, {{/isXmlAttribute}}{{#xmlNamespace}}namespace="{{xmlNamespace}}", {{/xmlNamespace}}localName = "{{#xmlName}}{{xmlName}}{{/xmlName}}{{^xmlName}}{{baseName}}{{/xmlName}}"){{/withXml}}
+    {{/vendorExtensions.x-is-discriminator-property}}
+  {{/jackson}}
   {{#gson}}
   @SerializedName("{{baseName}}")
   {{/gson}}
@@ -63,12 +42,11 @@ public class {{classname}} {{#parent}}extends {{{parent}}}{{/parent}} {{#seriali
   private {{{datatypeWithEnum}}} {{name}}{{#required}} = {{{defaultValue}}}{{/required}}{{^required}} = null{{/required}};
   {{/isContainer}}
   {{^isContainer}}
-  private {{{datatypeWithEnum}}} {{name}} = {{{defaultValue}}};
+{{#useBeanValidation}}{{>beanValidationVariable}}{{/useBeanValidation}}{{^useBeanValidation}}  private {{{datatypeWithEnum}}} {{name}} = {{{defaultValue}}};{{/useBeanValidation}}
   {{/isContainer}}
-
   {{/vars}}
   {{#vars}}
-  public {{classname}} {{name}}({{{datatypeWithEnum}}} {{name}}) {
+{{#useBeanValidation}}{{>beanValidationFluentSetter}}{{/useBeanValidation}}{{^useBeanValidation}}  public {{classname}} {{name}}({{{datatypeWithEnum}}} {{name}}) { {{/useBeanValidation}}
     this.{{name}} = {{name}};
     return this;
   }
@@ -111,19 +89,18 @@ public class {{classname}} {{#parent}}extends {{{parent}}}{{/parent}} {{#seriali
    * maximum: {{maximum}}
   {{/maximum}}
    * @return {{name}}
-  **/
+   **/
  {{#vendorExtensions.extraAnnotation}}
   {{{vendorExtensions.extraAnnotation}}}
   {{/vendorExtensions.extraAnnotation}}
-  @ApiModelProperty({{#example}}example = "{{{example}}}", {{/example}}{{#required}}required = {{required}}, {{/required}}{{#isReadOnly}}readOnly = {{{isReadOnly}}}, {{/isReadOnly}}value = "{{{description}}}")
-{{#useBeanValidation}}{{>beanValidation}}{{/useBeanValidation}}  public {{{datatypeWithEnum}}} {{#isBoolean}}is{{/isBoolean}}{{getter}}() {
+  {{#useOas2}}@ApiModelProperty({{#example}}example = "{{{example}}}", {{/example}}{{#required}}required = {{required}}, {{/required}}{{#isReadOnly}}readOnly = {{{isReadOnly}}}, {{/isReadOnly}}value = "{{{description}}}"){{/useOas2}}
+  {{^useOas2}}@Schema({{#example}}example = "{{{example}}}", {{/example}}{{#required}}required = {{required}}, {{/required}}{{#isReadOnly}}accessMode = Schema.AccessMode.READ_ONLY, {{/isReadOnly}}description = "{{{description}}}"){{/useOas2}}
+  {{#useBeanValidation}}{{>beanValidationGetter}}{{/useBeanValidation}}{{^useBeanValidation}}public {{{datatypeWithEnum}}} {{getter}}() { {{/useBeanValidation}}
     return {{name}};
   }
-
-  public void {{setter}}({{{datatypeWithEnum}}} {{name}}) {
+{{#useBeanValidation}}{{>beanValidationSetter}}{{/useBeanValidation}}{{^useBeanValidation}}  public void {{setter}}({{{datatypeWithEnum}}} {{name}}) { {{/useBeanValidation}}
     this.{{name}} = {{name}};
   }
-
   {{/vars}}
 
   @Override
@@ -157,8 +134,7 @@ public class {{classname}} {{#parent}}extends {{{parent}}}{{/parent}} {{#seriali
   }
 
   /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
+   * Convert the given object to string on a single line.
    */
   private String toOneLineString(java.lang.Object o) {
     if (o == null) {

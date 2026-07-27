@@ -1,5 +1,5 @@
-import io.swagger.codegen.DefaultGenerator
-import io.swagger.codegen.config.CodegenConfigurator
+import io.swagger.codegen.v3.DefaultGenerator
+import io.swagger.codegen.v3.config.CodegenConfigurator
 
 buildscript {
 
@@ -7,8 +7,13 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
 
+    configurations.classpath {
+        exclude group: 'io.swagger', module: 'swagger-codegen'
+    }
+
     dependencies {
         classpath("io.swagger.codegen.v3:swagger-codegen:${versions.swaggerCodegen}")
+        classpath("io.swagger.codegen.v3:swagger-codegen-generators:${versions.swaggerCodegenGenerators}")
     }
 }
 
@@ -26,6 +31,7 @@ dependencies {
     api project(':xm-commons-config')
     implementation("org.springframework.boot:spring-boot-starter-web")
 
+    api "io.swagger.core.v3:swagger-annotations:${versions.swaggerAnnotations}"
     api "org.hibernate.validator:hibernate-validator:${versions.hibernateValidation}"
 
     api "commons-io:commons-io:${versions.commonsIo}"
@@ -39,6 +45,7 @@ dependencies {
 
 
 def swaggerSourceFile = 'src/main/resources/swagger-spec/tenant/swagger-tenant-spec.yaml'
+def swaggerTemplateFolder = 'src/main/resources/openapi/mustache/JavaSpring'
 def swaggerTargetFolder = 'build/generated-sources'
 
 sourceSets {
@@ -50,21 +57,30 @@ sourceSets {
 task generateApi {
 
     inputs.file("$projectDir/$swaggerSourceFile")
+    inputs.dir("$projectDir/$swaggerTemplateFolder")
     outputs.dir("$projectDir/$swaggerTargetFolder")
 
     doLast {
         def config = new CodegenConfigurator()
-        config.setInputSpec("file:///$projectDir/$swaggerSourceFile")
+        // v3 takes the spec location via setInputSpecURL - setInputSpec now expects the
+        // already parsed spec content, not a path.
+        config.setInputSpecURL(file(swaggerSourceFile).toURI().toString())
         config.setOutputDir("$projectDir")
         config.setLang('spring')
-        config.setTemplateDir("$projectDir/src/main/resources/openapi/mustache/JavaSpring")
+        config.setTemplateDir("$projectDir/$swaggerTemplateFolder")
         config.setAdditionalProperties([
             //'interfaceOnly': 'true',
             'delegatePattern': 'true',
             'apiPackage'     : 'com.icthh.xm.commons.gen.api',
             'modelPackage'   : 'com.icthh.xm.commons.gen.model',
             'sourceFolder'   : swaggerTargetFolder,
-            'jakarta'        : 'true'
+            'jakarta'        : 'true',
+            // Emit OAS3 annotations (io.swagger.v3.oas.annotations) instead of the legacy
+            // Swagger 1.x ones. springdoc only understands these, so this is what makes the
+            // generated api show up with descriptions in /v3/api-docs.
+            // Must be a real boolean: handlebars treats the non-empty string "false" as truthy
+            // and would silently take the OAS2 branch of the templates.
+            'useOas2'        : false
         ])
         new DefaultGenerator().opts(config.toClientOptInput()).generate()
     }
