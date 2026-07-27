@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -13,12 +14,14 @@ import com.icthh.xm.commons.config.client.api.FetchConfigurationSettings;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.service.CommonConfigService;
+import com.icthh.xm.commons.config.client.service.ConfigurationOrderService;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.SneakyThrows;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -27,6 +30,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,13 +53,14 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
     private InitRefreshableConfigurationBeanPostProcessor processor;
     private Map<String, Configuration> configMap;
     private List<String> configKeys;
+    private final ConfigurationOrderService configurationOrderService = new ConfigurationOrderService();
 
     @Before
     @SneakyThrows
     public void init() {
         when(refreshableConfiguration.isListeningConfiguration(anyString())).thenReturn(true);
         fetchConfigurationSettings = new FetchConfigurationSettings("test", true);
-        configService = new CommonConfigService(fetchConfigurationSettings, commonConfigRepository);
+        configService = new CommonConfigService(fetchConfigurationSettings, commonConfigRepository, configurationOrderService);
 
         configKeys = List.of(
             "/config/tenants/TENANT1/dashboard/dashboards/ADMIN_METRICS-27.yml",
@@ -86,7 +91,7 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
     public void shouldContainIncludedTenantsAndCommons() {
 
         when(configProperties.getIncludeTenants()).thenReturn(Set.of("tenant1", "Tenant2"));
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings);
+        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings, configurationOrderService);
 
         List<String> configs = processor.initConfigPaths(refreshableConfiguration, configMap);
 
@@ -101,7 +106,7 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
     @Test
     public void shouldContainAllTenantsIfIncludePropertyEmpty() {
         when(configProperties.getIncludeTenants()).thenReturn(null);
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings);
+        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings, configurationOrderService);
 
         List<String> configs = processor.initConfigPaths(refreshableConfiguration, configMap);
 
@@ -113,7 +118,7 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
         when(configService.getConfigMapAntPattern(any(), any())).thenReturn(configMap);
         when(configServiceProvider.getIfAvailable()).thenReturn(configService);
 
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings);
+        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings, configurationOrderService);
         processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
         processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
 
@@ -130,7 +135,7 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
         when(configProperties.getIncludeTenants()).thenReturn(Set.of("tenant1", "Tenant2"));
         when(configService.getConfigMapAntPattern(any(), any())).thenReturn(configMap);
         when(configServiceProvider.getIfAvailable()).thenReturn(configService);
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings);
+        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings, configurationOrderService);
         processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
         processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
 
@@ -158,9 +163,34 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
     public void shouldThrowExceptionWhenConfigServiceIsNotAvailable() {
         when(configServiceProvider.getIfAvailable()).thenReturn(null);
 
-        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings);
+        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings, configurationOrderService);
         processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
         processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
+    }
+
+    @Test
+    public void shouldInitInOrderDefinedByOrderYml() {
+        String orderPath = "/config/tenants/TENANT1/order.yml";
+        String uaaPath = "/config/tenants/TENANT1/uaa/uaa.yml";
+        String dashboardPath = "/config/tenants/TENANT1/dashboard/dashboards/ADMIN_METRICS-27.yml";
+
+        Map<String, Configuration> orderedConfigMap = new LinkedHashMap<>();
+        orderedConfigMap.put(uaaPath, Configuration.of().build());
+        orderedConfigMap.put(dashboardPath, Configuration.of().build());
+        orderedConfigMap.put(orderPath, Configuration.of().content("order:\n  - uaa/**\n").build());
+
+        when(configService.getConfigMapAntPattern(any(), any())).thenReturn(orderedConfigMap);
+        when(configServiceProvider.getIfAvailable()).thenReturn(configService);
+
+        processor = new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties, fetchConfigurationSettings, configurationOrderService);
+        processor.postProcessBeforeInitialization(refreshableConfiguration, "refreshableConfiguration");
+        processor.postProcessAfterInitialization(refreshableConfiguration, "refreshableConfiguration");
+
+        InOrder order = inOrder(refreshableConfiguration);
+        order.verify(refreshableConfiguration).onInit(eq(orderPath), any());
+        order.verify(refreshableConfiguration).onInit(eq(uaaPath), any());
+        order.verify(refreshableConfiguration).onInit(eq(dashboardPath), any());
+        verify(refreshableConfiguration).refreshFinished(List.of(orderPath, uaaPath, dashboardPath));
     }
 
     private static <T extends Comparable<T>> boolean assertListsEquals(Collection<T> expected, Collection<T> actual) {
