@@ -25,6 +25,9 @@ public class LepCompilerConfiguration {
     @Value("${spring.application.name:}")
     private String appName;
 
+    @Value("${application.lep.file-metadata-cache-size:" + GroovyFileParser.DEFAULT_METADATA_CACHE_MAX_SIZE + "}")
+    private int fileMetadataCacheSize;
+
     @Bean
     public ApplicationNameProvider applicationNameProvider() {
         return new ApplicationNameProvider(appName);
@@ -59,7 +62,7 @@ public class LepCompilerConfiguration {
 
     @Bean
     public GroovyFileParser groovyFileParser() {
-        return new GroovyFileParser();
+        return new GroovyFileParser(fileMetadataCacheSize);
     }
 
     @Bean

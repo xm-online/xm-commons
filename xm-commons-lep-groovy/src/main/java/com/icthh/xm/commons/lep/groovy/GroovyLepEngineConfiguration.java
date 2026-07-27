@@ -56,6 +56,9 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     @Value("${application.lep.path-to-working-directory:/tmp/precompiled/lep}")
     private String pathToWorkingDirectory;
 
+    @Value("${application.lep.file-metadata-cache-size:" + GroovyFileParser.DEFAULT_METADATA_CACHE_MAX_SIZE + "}")
+    private int fileMetadataCacheSize;
+
     public GroovyLepEngineConfiguration(@Value("${spring.application.name}") String appName) {
         super(appName);
     }
@@ -107,7 +110,7 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     @Bean
     @ConditionalOnMissingBean(GroovyFileParser.class)
     public GroovyFileParser groovyFileParser() {
-        return new GroovyFileParser();
+        return new GroovyFileParser(fileMetadataCacheSize);
     }
 
     @Bean

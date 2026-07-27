@@ -12,7 +12,7 @@ public class GroovyFileParseUnitTest {
 
     @Test
     public void testDetectOutsideCode() {
-        GroovyFileParser gfp = new GroovyFileParser();
+        GroovyFileParser gfp = new GroovyFileParser(GroovyFileParser.DEFAULT_METADATA_CACHE_MAX_SIZE);
 
         String testScript = "\n\n package TEST.testApp.lep.commons\n" +
             "\n\n class TestClass {\n TestClass(def lepContext) {} \n}\n" +
@@ -42,7 +42,7 @@ public class GroovyFileParseUnitTest {
 
     @Test
     public void testParseAnonymousClass() throws RecognitionException {
-        GroovyFileParser gfp = new GroovyFileParser();
+        GroovyFileParser gfp = new GroovyFileParser(GroovyFileParser.DEFAULT_METADATA_CACHE_MAX_SIZE);
         String source = loadFile("lep/Commons$$runAfterTransaction$$around.groovy");
         gfp.getGroovyFileMetadata("lep/Commons$$runAfterTransaction$$around.groovy", source);
     }

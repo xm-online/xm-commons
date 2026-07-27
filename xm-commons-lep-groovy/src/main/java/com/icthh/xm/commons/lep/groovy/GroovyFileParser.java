@@ -24,16 +24,20 @@ import org.codehaus.groovy.ast.MethodNode;
 @Slf4j
 public class GroovyFileParser {
 
-    private static final int METADATA_CACHE_MAX_SIZE = 10_000;
+    /**
+     * Default upper bound of {@code application.lep.file-metadata-cache-size}. The real cardinality is the
+     * number of distinct lep sources of all tenants, so this bound is only a runaway guard, not a working size.
+     */
+    public static final int DEFAULT_METADATA_CACHE_MAX_SIZE = 10_000_000;
+
+    @Getter
+    private final int metadataCacheMaxSize;
 
     // metadata depends only on the source text, so unchanged files skip the AST parse on engine refresh
     private final Map<String, GroovyFileMetadata> metadataByContentHash;
 
-    public GroovyFileParser() {
-        this(METADATA_CACHE_MAX_SIZE);
-    }
-
     public GroovyFileParser(int metadataCacheMaxSize) {
+        this.metadataCacheMaxSize = metadataCacheMaxSize;
         this.metadataByContentHash = Collections.synchronizedMap(
             new LinkedHashMap<>(256, 0.75f, true) {
                 @Override
