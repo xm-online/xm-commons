@@ -24,11 +24,6 @@ dependencyManagement {
 dependencies {
 
     api project(':xm-commons-config')
-
-    implementation("io.springfox:springfox-swagger2:${versions.springfoxSwagger}") {
-        exclude module: 'mapstruct'
-    }
-
     implementation("org.springframework.boot:spring-boot-starter-web")
 
     api "org.hibernate.validator:hibernate-validator:${versions.hibernateValidation}"
