@@ -21,7 +21,7 @@ dependencies {
     api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
     api "commons-io:commons-io:${versions.commonsIo}"
 
-    implementation 'org.mozilla:rhino:1.7.14'
+    implementation 'org.mozilla:rhino:1.7.14.1'
 
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 

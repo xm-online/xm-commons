@@ -36,7 +36,7 @@ public class CriteriaPermittedRepository {
                                           final Object criteria,
                                           final Pageable page,
                                           final String privilegeKey) {
-        FilterConverter.QueryPart queryPart = FilterConverter.toJpql(criteria);
+        FilterConverter.QueryPart queryPart = FilterConverter.toJpql(type, criteria);
 
         Page<T> result;
         if (queryPart.isEmpty()) {
@@ -55,7 +55,7 @@ public class CriteriaPermittedRepository {
     public <T> long countByCondition(final Class<T> type,
                                      final Object criteria,
                                      final String privilegeKey) {
-        FilterConverter.QueryPart queryPart = FilterConverter.toJpql(criteria);
+        FilterConverter.QueryPart queryPart = FilterConverter.toJpql(type, criteria);
 
         long result;
         if (queryPart.isEmpty()) {
