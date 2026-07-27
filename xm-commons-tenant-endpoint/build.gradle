@@ -62,8 +62,6 @@ task generateApi {
 
     doLast {
         def config = new CodegenConfigurator()
-        // v3 takes the spec location via setInputSpecURL - setInputSpec now expects the
-        // already parsed spec content, not a path.
         config.setInputSpecURL(file(swaggerSourceFile).toURI().toString())
         config.setOutputDir("$projectDir")
         config.setLang('spring')
@@ -75,11 +73,6 @@ task generateApi {
             'modelPackage'   : 'com.icthh.xm.commons.gen.model',
             'sourceFolder'   : swaggerTargetFolder,
             'jakarta'        : 'true',
-            // Emit OAS3 annotations (io.swagger.v3.oas.annotations) instead of the legacy
-            // Swagger 1.x ones. springdoc only understands these, so this is what makes the
-            // generated api show up with descriptions in /v3/api-docs.
-            // Must be a real boolean: handlebars treats the non-empty string "false" as truthy
-            // and would silently take the OAS2 branch of the templates.
             'useOas2'        : false
         ])
         new DefaultGenerator().opts(config.toClientOptInput()).generate()
