@@ -21,8 +21,11 @@ import org.apache.commons.lang3.time.StopWatch;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import static com.icthh.xm.commons.tenant.TenantContextUtils.getRequiredTenantKeyValue;
 import static java.util.Collections.emptyList;
@@ -64,7 +67,7 @@ public class LepManagementServiceImpl implements LepManagementService {
         log.info("START | Start lep engines refresh for tenants {}", configInLepFolder.keySet());
         log.trace("Start lep engines refresh by configs {}", configInLepFolder.values());
 
-        configInLepFolder.keySet().forEach(tenantKey -> {
+        forEachTenantInParallel(configInLepFolder.keySet(), tenantKey -> {
             StopWatch timer = StopWatch.createStarted();
 
             String tenant = tenantKey.toUpperCase();
@@ -87,6 +90,27 @@ public class LepManagementServiceImpl implements LepManagementService {
         }
 
         log.info("STOP | Finish lep engines refresh");
+    }
+
+    /**
+     * Engine creation of one tenant is independent of the others: everything it touches is either immutable
+     * (factories, storage factories, path resolver) or keyed by tenant in a concurrent map (engines by tenant,
+     * the engine creation strategy cache, the lep metadata cache). Parallelism is capped at half of the cores
+     * because building an engine compiles a whole tenant into a fresh classloader - the peak heap grows with
+     * every tenant built at the same time, and the leps of the remaining tenants still have to fit next to it.
+     */
+    private void forEachTenantInParallel(Set<String> tenantKeys, Consumer<String> createEnginesForTenant) {
+        int parallelism = tenantKeys.size() < 2
+            ? 1
+            : Math.clamp(Runtime.getRuntime().availableProcessors() / 2, 1, tenantKeys.size());
+        if (parallelism < 2) {
+            tenantKeys.forEach(createEnginesForTenant);
+            return;
+        }
+        log.info("Create lep engines for {} tenants in {} threads", tenantKeys.size(), parallelism);
+        try (ForkJoinPool pool = new ForkJoinPool(parallelism)) {
+            pool.submit(() -> tenantKeys.parallelStream().forEach(createEnginesForTenant)).join();
+        }
     }
 
     private List<LepEngine> createEngines(String tenantKey, List<XmLepConfigFile> tenantConfigs) {

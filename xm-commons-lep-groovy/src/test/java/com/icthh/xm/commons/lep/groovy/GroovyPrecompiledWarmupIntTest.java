@@ -29,6 +29,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringJUnitConfig(LepCompilerConfiguration.class)
@@ -120,6 +124,85 @@ public class GroovyPrecompiledWarmupIntTest {
             "commons class expected to be loaded from compiled.jar");
     }
 
+    @Test
+    void initScriptIsExecutedInDynamicMode() {
+        List<XmLepConfigFile> leps = List.of(
+            new XmLepConfigFile(SCRIPT_PATH, "return 'ok'\n")
+        );
+
+        createFactory(tempDir.resolve("compiled").toAbsolutePath().toString(), false)
+            .createLepEngine(TENANT, leps);
+
+        assertTrue(hasLog("STOP groovy lep engine init script for tenant " + TENANT),
+            "init script expected to be executed");
+        assertFalse(hasLog("Error run groovy lep engine init script"),
+            "init script expected to run without an error");
+    }
+
+    @Test
+    void initScriptIsExecutedInPrecompiledMode() throws Exception {
+        List<XmLepConfigFile> leps = List.of(
+            new XmLepConfigFile(SCRIPT_PATH, "return 'ok'\n")
+        );
+
+        Path compiledDir = tempDir.resolve("compiled");
+
+        // phase A: precompile - the same way LepCompiler produces the zip content
+        createFactory(compiledDir.toAbsolutePath().toString()).createLepEngine(TENANT, leps);
+
+        packToJar(compiledDir, tempDir.resolve("compiled.jar"));
+        FileUtils.deleteDirectory(compiledDir.toFile());
+        logAppender.list.clear();
+
+        // phase B: no class tree on disk - the engine still has to run the init script
+        createFactory(compiledDir.toAbsolutePath().toString()).createLepEngine(TENANT, leps);
+
+        assertTrue(hasLog("STOP groovy lep engine init script for tenant " + TENANT),
+            "init script expected to be executed");
+        assertFalse(hasLog("Error run groovy lep engine init script"),
+            "init script expected to run without an error");
+    }
+
+    @Test
+    void initScriptIsCompiledOncePerJvmAndSharedByEveryEngine() {
+        assertSame(GroovyLepEngine.initScriptClass(), GroovyLepEngine.initScriptClass(),
+            "the init script class must be compiled once and cached");
+        assertNotSame(GroovyLepEngine.class.getClassLoader(),
+            GroovyLepEngine.initScriptClass().getClassLoader(),
+            "the init script must be compiled into its own classloader");
+    }
+
+    @Test
+    void engineCreationRunsTheInitScriptWithoutRecompilingIt() {
+        List<XmLepConfigFile> leps = List.of(
+            new XmLepConfigFile(SCRIPT_PATH, "return 'ok'\n")
+        );
+
+        // the class may already be compiled by another test of this JVM - make the state explicit
+        GroovyLepEngine.initScriptClass();
+        logAppender.list.clear();
+
+        // dynamic mode with warmup, then precompiled mode: neither may compile the init script again
+        createFactory(tempDir.resolve("dynamic").toAbsolutePath().toString(), false).createLepEngine(TENANT, leps);
+        createFactory(tempDir.resolve("compiled").toAbsolutePath().toString()).createLepEngine(TENANT, leps);
+
+        assertFalse(hasLog("Compile groovy lep engine init script"),
+            "the init script must not be compiled again for a new engine");
+        assertEquals(2, countLog("STOP groovy lep engine init script for tenant " + TENANT),
+            "every engine must still run the init script");
+    }
+
+    private boolean hasLog(String fragment) {
+        return countLog(fragment) > 0;
+    }
+
+    private long countLog(String fragment) {
+        return logAppender.list.stream()
+            .map(ILoggingEvent::getFormattedMessage)
+            .filter(message -> message.contains(fragment))
+            .count();
+    }
+
     private static void packToJar(Path dir, Path jar) throws Exception {
         try (
             ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(jar));
@@ -145,6 +228,10 @@ public class GroovyPrecompiledWarmupIntTest {
     }
 
     private GroovyLepEngineFactory createFactory(String compiledDir) {
+        return createFactory(compiledDir, true);
+    }
+
+    private GroovyLepEngineFactory createFactory(String compiledDir, boolean precompiledMode) {
         GroovyLepEngineFactory factory = new GroovyLepEngineFactory(
             applicationNameProvider.getAppName(),
             lepStorageFactory,
@@ -154,7 +241,7 @@ public class GroovyPrecompiledWarmupIntTest {
             groovyFileParser,
             Set.of(),
             true,
-            true,
+            precompiledMode,
             compiledDir
         );
         factory.setBeanClassLoader(Thread.currentThread().getContextClassLoader());
