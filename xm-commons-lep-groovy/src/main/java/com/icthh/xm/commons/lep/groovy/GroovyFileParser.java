@@ -33,11 +33,20 @@ public class GroovyFileParser {
     @Getter
     private final int metadataCacheMaxSize;
 
+    /** EXPERIMENTAL, off by default. See {@code application.lep.experimental-metadata-prescan}. */
+    @Getter
+    private final boolean experimentalPrescanEnabled;
+
     // metadata depends only on the source text, so unchanged files skip the AST parse on engine refresh
     private final Map<String, GroovyFileMetadata> metadataByContentHash;
 
     public GroovyFileParser(int metadataCacheMaxSize) {
+        this(metadataCacheMaxSize, false);
+    }
+
+    public GroovyFileParser(int metadataCacheMaxSize, boolean experimentalPrescanEnabled) {
         this.metadataCacheMaxSize = metadataCacheMaxSize;
+        this.experimentalPrescanEnabled = experimentalPrescanEnabled;
         this.metadataByContentHash = Collections.synchronizedMap(
             new LinkedHashMap<>(256, 0.75f, true) {
                 @Override
@@ -65,6 +74,17 @@ public class GroovyFileParser {
     }
 
     public GroovyFileMetadata getGroovyFileMetadata(String filePath, String source) {
+        if (experimentalPrescanEnabled && !GroovySourceScanner.mayDeclareType(source)) {
+            // a source without any type declaration compiles to a bare script class and holds nothing
+            // importable, so its metadata is already known and the AST does not have to be built
+            GroovyFileMetadata metadata = new GroovyFileMetadata();
+            metadata.setScript(true);
+            return metadata;
+        }
+        return parseGroovyFileMetadata(filePath, source);
+    }
+
+    protected GroovyFileMetadata parseGroovyFileMetadata(String filePath, String source) {
         GroovyFileMetadata metadata = new GroovyFileMetadata();
 
         SourceUnit sourceUnit = SourceUnit.create(filePath, source);

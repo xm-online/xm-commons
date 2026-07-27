@@ -8,6 +8,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GroovyFileParserConfigIntTest {
 
@@ -23,13 +25,19 @@ public class GroovyFileParserConfigIntTest {
         void metadataCacheSizeFallsBackToDefault() {
             assertEquals(GroovyFileParser.DEFAULT_METADATA_CACHE_MAX_SIZE, groovyFileParser.getMetadataCacheMaxSize());
         }
+
+        @Test
+        void experimentalPrescanIsDisabledByDefault() {
+            assertFalse(groovyFileParser.isExperimentalPrescanEnabled());
+        }
     }
 
     @SpringJUnitConfig(LepCompilerConfiguration.class)
     @ActiveProfiles("export")
     @TestPropertySource(properties = {
         "spring.application.name=testApp",
-        "application.lep.file-metadata-cache-size=17"
+        "application.lep.file-metadata-cache-size=17",
+        "application.lep.experimental-metadata-prescan=true"
     })
     static class ConfiguredCacheSizeTest {
 
@@ -39,6 +47,11 @@ public class GroovyFileParserConfigIntTest {
         @Test
         void metadataCacheSizeIsTakenFromConfiguration() {
             assertEquals(17, groovyFileParser.getMetadataCacheMaxSize());
+        }
+
+        @Test
+        void experimentalPrescanIsTakenFromConfiguration() {
+            assertTrue(groovyFileParser.isExperimentalPrescanEnabled());
         }
     }
 }
