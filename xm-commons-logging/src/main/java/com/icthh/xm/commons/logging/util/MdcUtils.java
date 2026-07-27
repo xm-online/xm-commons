@@ -16,6 +16,8 @@ public final class MdcUtils {
     private static final String TIME = "time";
     private static final long LONG_ZERO = 0L;
     private static final String EXEC_TIME_MDC_KEY = "execTime";
+    private static final String TENANT_MDC_KEY = "tenant";
+    private static final String CLIENT_ID_MDC_KEY = "clientId";
 
     private MdcUtils() {
         throw new IllegalAccessError("Access not allowed");
@@ -73,6 +75,14 @@ public final class MdcUtils {
         long execTime = getExecTimeMs();
         MDC.put(EXEC_TIME_MDC_KEY, String.valueOf(execTime));
         return execTime;
+    }
+
+    public static void putTenant(String tenant) {
+        MDC.put(TENANT_MDC_KEY, tenant);
+    }
+
+    public static void putClientId(String clientId) {
+        MDC.put(CLIENT_ID_MDC_KEY, clientId);
     }
 
     public static void clear() {
