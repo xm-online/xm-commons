@@ -78,11 +78,15 @@ public final class MdcUtils {
     }
 
     public static void putTenant(String tenant) {
-        MDC.put(TENANT_MDC_KEY, tenant);
+        if (tenant != null) {
+            MDC.put(TENANT_MDC_KEY, tenant);
+        }
     }
 
     public static void putClientId(String clientId) {
-        MDC.put(CLIENT_ID_MDC_KEY, clientId);
+        if (clientId != null) {
+            MDC.put(CLIENT_ID_MDC_KEY, clientId);
+        }
     }
 
     public static void clear() {
