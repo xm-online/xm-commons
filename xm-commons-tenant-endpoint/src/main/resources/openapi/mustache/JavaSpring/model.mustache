@@ -4,6 +4,12 @@ JsonNullable / NotUndefined helper imports dropped. Both validationMode values (
 loose) pull them in, but this module has no required+nullable fields, so they were only
 forcing a jackson-databind-nullable dependency and io.swagger.configuration support classes
 into a published library. See pojo.mustache, which drops the matching @NotUndefined marker.
+
+Branches that the generator options in build.gradle can never reach are stripped, so this
+template only renders what it actually emits. It assumes jakarta=true, useBeanValidation=true
+and validationMode=strict (the codegen defaults), and that serializableModel and withXml stay
+unset. That drops the javax.* validation imports, java.io.Serializable and the Jackson/JAXB
+XML imports. Changing any of those options means restoring the matching branch from upstream.
 Original template is here:
 https://github.com/swagger-api/swagger-codegen-generators/blob/master/src/main/resources/handlebars/JavaSpring/model.mustache
 }}
@@ -13,39 +19,12 @@ package {{package}};
 import java.util.Objects;
 {{#imports}}import {{import}};
 {{/imports}}
-{{#serializableModel}}
-import java.io.Serializable;
-{{/serializableModel}}
-{{#useBeanValidation}}
 import org.springframework.validation.annotation.Validated;
-{{#isStrictValidation}}
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
-{{/isStrictValidation}}
-{{#jakarta}}
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
-{{/jakarta}}
-{{^jakarta}}
-import javax.validation.Valid;
-import javax.validation.constraints.*;
-{{/jakarta}}
-{{/useBeanValidation}}
-{{#jackson}}
-{{#withXml}}
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-{{/withXml}}
-{{/jackson}}
-{{#withXml}}
-{{#jakarta}}
-import jakarta.xml.bind.annotation.*;
-{{/jakarta}}
-{{^jakarta}}
-import javax.xml.bind.annotation.*;
-{{/jakarta}}
-{{/withXml}}
 {{/x-is-composed-model}}
 
 {{#models}}
