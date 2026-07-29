@@ -24,16 +24,29 @@ import org.codehaus.groovy.ast.MethodNode;
 @Slf4j
 public class GroovyFileParser {
 
-    private static final int METADATA_CACHE_MAX_SIZE = 10_000;
+    /**
+     * Default upper bound of {@code application.lep.file-metadata-cache-size}. The real cardinality is the
+     * number of distinct lep sources of all tenants, so this bound is only a runaway guard, not a working size.
+     */
+    public static final int DEFAULT_METADATA_CACHE_MAX_SIZE = 10_000_000;
+
+    @Getter
+    private final int metadataCacheMaxSize;
+
+    /** EXPERIMENTAL, off by default. See {@code application.lep.experimental-metadata-prescan}. */
+    @Getter
+    private final boolean experimentalPrescanEnabled;
 
     // metadata depends only on the source text, so unchanged files skip the AST parse on engine refresh
     private final Map<String, GroovyFileMetadata> metadataByContentHash;
 
-    public GroovyFileParser() {
-        this(METADATA_CACHE_MAX_SIZE);
+    public GroovyFileParser(int metadataCacheMaxSize) {
+        this(metadataCacheMaxSize, false);
     }
 
-    public GroovyFileParser(int metadataCacheMaxSize) {
+    public GroovyFileParser(int metadataCacheMaxSize, boolean experimentalPrescanEnabled) {
+        this.metadataCacheMaxSize = metadataCacheMaxSize;
+        this.experimentalPrescanEnabled = experimentalPrescanEnabled;
         this.metadataByContentHash = Collections.synchronizedMap(
             new LinkedHashMap<>(256, 0.75f, true) {
                 @Override
@@ -61,6 +74,17 @@ public class GroovyFileParser {
     }
 
     public GroovyFileMetadata getGroovyFileMetadata(String filePath, String source) {
+        if (experimentalPrescanEnabled && !GroovySourceScanner.mayDeclareType(source)) {
+            // a source without any type declaration compiles to a bare script class and holds nothing
+            // importable, so its metadata is already known and the AST does not have to be built
+            GroovyFileMetadata metadata = new GroovyFileMetadata();
+            metadata.setScript(true);
+            return metadata;
+        }
+        return parseGroovyFileMetadata(filePath, source);
+    }
+
+    protected GroovyFileMetadata parseGroovyFileMetadata(String filePath, String source) {
         GroovyFileMetadata metadata = new GroovyFileMetadata();
 
         SourceUnit sourceUnit = SourceUnit.create(filePath, source);

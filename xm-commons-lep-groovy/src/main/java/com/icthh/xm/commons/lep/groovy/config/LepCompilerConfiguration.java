@@ -25,6 +25,16 @@ public class LepCompilerConfiguration {
     @Value("${spring.application.name:}")
     private String appName;
 
+    @Value("${application.lep.file-metadata-cache-size:" + GroovyFileParser.DEFAULT_METADATA_CACHE_MAX_SIZE + "}")
+    private int fileMetadataCacheSize;
+
+    /**
+     * EXPERIMENTAL. Skips the groovy AST parse for leps that declare no type, which is decided by a character
+     * level pre-scan instead of the groovy front end. Off by default.
+     */
+    @Value("${application.lep.experimental-metadata-prescan:false}")
+    private boolean experimentalMetadataPrescan;
+
     @Bean
     public ApplicationNameProvider applicationNameProvider() {
         return new ApplicationNameProvider(appName);
@@ -59,7 +69,7 @@ public class LepCompilerConfiguration {
 
     @Bean
     public GroovyFileParser groovyFileParser() {
-        return new GroovyFileParser();
+        return new GroovyFileParser(fileMetadataCacheSize, experimentalMetadataPrescan);
     }
 
     @Bean

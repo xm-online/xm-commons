@@ -13,7 +13,7 @@ public class GroovyFileParserCacheUnitTest {
     @Test
     public void testMetadataCachedByContentHash() {
         AtomicInteger parseCount = new AtomicInteger();
-        GroovyFileParser gfp = new GroovyFileParser() {
+        GroovyFileParser gfp = new GroovyFileParser(GroovyFileParser.DEFAULT_METADATA_CACHE_MAX_SIZE) {
             @Override
             public GroovyFileMetadata getGroovyFileMetadata(String filePath, String source) {
                 parseCount.incrementAndGet();

@@ -29,6 +29,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.runtime.InvokerHelper;
+import org.springframework.util.function.SingletonSupplier;
 
 import static com.icthh.xm.commons.lep.groovy.storage.LepStorage.FILE_EXTENSION;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -41,7 +42,20 @@ public class GroovyLepEngine extends LepEngine {
     public static final String LEP_PREFIX = "lep://";
     public static final String COMMONS_SCRIPT = "/Commons$$";
     public static final String CLASSNAME_REGEX = "[$.\\-]";
+    public static final String INIT_SCRIPT_NAME = "InitLepEngine.groovy";
     public static final String INIT_SCRIPT;
+
+    /**
+     * The init script is a fixed resource of this library that only patches a few meta classes - it references
+     * nothing of a tenant, so its class does not have to belong to the classloader of an engine. Compiling it
+     * once per JVM keeps every engine creation, and there is one per config refresh per tenant, from
+     * recompiling the very same source over and over.
+     */
+    private static final GroovyClassLoader INIT_SCRIPT_CLASS_LOADER =
+        new GroovyClassLoader(GroovyLepEngine.class.getClassLoader());
+    private static final SingletonSupplier<Class<?>> INIT_SCRIPT_CLASS =
+        SingletonSupplier.of(GroovyLepEngine::compileInitScript);
+
     private final String tenant;
     private final LepStorage leps;
     private final GroovyScriptEngine gse;
@@ -53,7 +67,7 @@ public class GroovyLepEngine extends LepEngine {
     private final Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata = new ConcurrentHashMap<>();
 
     static {
-        INIT_SCRIPT = loadFile("InitLepEngine.groovy");
+        INIT_SCRIPT = loadFile(INIT_SCRIPT_NAME);
     }
 
     @SneakyThrows
@@ -80,7 +94,7 @@ public class GroovyLepEngine extends LepEngine {
         this.lepMetadata.putAll(lepMetadata);
         this.lepPathResolver = lepPathResolver;
         this.tenantCommonsFolders = lepPathResolver.getLepCommonsPaths(tenant);
-        runInitScript(gse);
+        runInitScript();
         if (isWarmupEnabled) {
             warmupScripts();
         } else {
@@ -110,21 +124,36 @@ public class GroovyLepEngine extends LepEngine {
         return gse;
     }
 
-    private void runInitScript(GroovyScriptEngine gse) {
+    private void runInitScript() {
         log.info("START run groovy lep engine init script for tenant {}", tenant);
         StopWatch stopWatch = StopWatch.createStarted();
         try {
-            Class<?> scriptClass = gse.getGroovyClassLoader().parseClass(INIT_SCRIPT, "InitLepEngine.groovy");
             Binding binding = new Binding(new HashMap<>(Map.of(
                 "log", log,
                 "tenant", tenant
             )));
-            InvokerHelper.createScript(scriptClass, binding).run();
+            InvokerHelper.createScript(initScriptClass(), binding).run();
             log.info("STOP groovy lep engine init script for tenant {}, time: {} ms",
                 tenant, stopWatch.getTime(MILLISECONDS));
         } catch (Throwable e) {
             log.error("Error run groovy lep engine init script for tenant {}", tenant, e);
         }
+    }
+
+    /**
+     * Compiles the init script on the first engine of the JVM and hands the very same class to every engine
+     * after it. Each engine still runs it with its own binding, so the behaviour per tenant is unchanged.
+     */
+    static Class<?> initScriptClass() {
+        return INIT_SCRIPT_CLASS.obtain();
+    }
+
+    private static Class<?> compileInitScript() {
+        StopWatch stopWatch = StopWatch.createStarted();
+        Class<?> scriptClass = INIT_SCRIPT_CLASS_LOADER.parseClass(INIT_SCRIPT, INIT_SCRIPT_NAME);
+        log.info("Compile groovy lep engine init script {}, time: {} ms",
+            INIT_SCRIPT_NAME, stopWatch.getTime(MILLISECONDS));
+        return scriptClass;
     }
 
     private void warmupScripts() {
