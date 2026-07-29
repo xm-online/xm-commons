@@ -10,6 +10,7 @@ import org.hibernate.type.descriptor.jdbc.BinaryJdbcType;
 import org.hibernate.type.descriptor.jdbc.spi.JdbcTypeRegistry;
 
 import java.sql.Types;
+import org.hibernate.type.spi.TypeConfiguration;
 
 public class CustomPostgreSQLDialect extends PostgreSQLDialect implements CustomDialect {
 
@@ -27,15 +28,28 @@ public class CustomPostgreSQLDialect extends PostgreSQLDialect implements Custom
     public static final String TO_JSON_B_TEXT = "to_json_b_text";
     public static final String TO_JSON_B_TEMPLATE_TEXT = "to_jsonb(?1::text)";
 
+    private static final String TEXT_FIELD = "?1 ->> ?2";
+    private static final String INT_FIELD = "(?1 ->> ?2)::int";
+
+    public static final String JSON_FIELD_INT = "json_field_int";
+    public static final String JSON_FIELD_TEXT = "json_field_text";
+
     public static final String BYTEA_TYPE = "bytea";
 
     @Override
     public void initializeFunctionRegistry(FunctionContributions functionContributions) {
-        BasicType<String> stringBasicType = functionContributions
-            .getTypeConfiguration()
-            .getBasicTypeRegistry()
-            .resolve(StandardBasicTypes.STRING);
+        TypeConfiguration typeConfiguration = functionContributions.getTypeConfiguration();
 
+        BasicType<String> stringBasicType = typeConfiguration
+                .getBasicTypeRegistry()
+                .resolve(StandardBasicTypes.STRING);
+
+        BasicType<Integer> intBasicType = typeConfiguration
+                .getBasicTypeRegistry()
+                .resolve(StandardBasicTypes.INTEGER);
+
+        functionContributions.getFunctionRegistry().registerPattern(JSON_FIELD_TEXT, TEXT_FIELD, stringBasicType);
+        functionContributions.getFunctionRegistry().registerPattern(JSON_FIELD_INT, INT_FIELD, intBasicType);
         functionContributions.getFunctionRegistry().registerPattern(JSON_QUERY, JSON_QUERY_TEMPLATE, stringBasicType);
         functionContributions.getFunctionRegistry().registerPattern(TO_JSON_B, TO_JSON_B_TEMPLATE, stringBasicType);
         functionContributions.getFunctionRegistry().registerPattern(TO_JSON_B_TEXT, TO_JSON_B_TEMPLATE_TEXT, stringBasicType);
