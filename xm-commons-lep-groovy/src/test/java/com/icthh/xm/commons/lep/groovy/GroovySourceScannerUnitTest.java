@@ -104,7 +104,7 @@ public class GroovySourceScannerUnitTest {
         assertTrue(GroovySourceScanner.mayDeclareType("def s = 'unterminated\nclass Broken { }\n"),
             "an unterminated string must not hide a declaration behind it");
 
-        GroovyFileMetadata metadata = parser.getFileMetaData("lep/Broken.groovy", "class\nBroken { }\n");
+        GroovyFileMetadata metadata = parser.getFileMetaData("engine", "lep/Broken.groovy", "class\nBroken { }\n");
         assertTrue(metadata.getClasses().isEmpty(), "a source that does not compile has no metadata");
     }
 

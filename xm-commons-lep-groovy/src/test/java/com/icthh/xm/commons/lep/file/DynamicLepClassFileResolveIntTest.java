@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
@@ -42,6 +43,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
     XmAuthenticationContextConfiguration.class
 })
 @ActiveProfiles("resolvefiletest")
+@TestPropertySource(properties = {
+    // FILE storage is written to directly with no config-service push notifying a refresh, so
+    // GroovyScriptEngine's own polling is the only thing that notices a changed lep source - see
+    // RecreateGroovyLepEngineOnRefresh, which otherwise never re-checks
+    "application.lep.recreate-groovy-engine-on-refresh=false"
+})
 public class DynamicLepClassFileResolveIntTest {
 
 

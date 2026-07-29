@@ -76,7 +76,8 @@ public class GroovyLepEngine extends LepEngine {
         return IOUtils.toString(content, UTF_8);
     }
 
-    public GroovyLepEngine(String tenant,
+    public GroovyLepEngine(String engineId,
+                           String tenant,
                            LepStorage leps,
                            LoggingWrapper loggingWrapper,
                            ClassLoader classLoader,
@@ -85,12 +86,14 @@ public class GroovyLepEngine extends LepEngine {
                            LepPathResolver lepPathResolver,
                            boolean isWarmupEnabled,
                            boolean useDirectoryCompiledSources,
-                           String targetDirectoryPath) {
+                           String targetDirectoryPath,
+                           int minimumRecompilationInterval) {
+        super(engineId);
         this.tenant = tenant;
         this.leps = leps;
         this.loggingWrapper = loggingWrapper;
         this.useDirectoryCompiledSources = useDirectoryCompiledSources;
-        this.gse = buildGroovyEngine(classLoader, lepResourceConnector, targetDirectoryPath);
+        this.gse = buildGroovyEngine(classLoader, lepResourceConnector, targetDirectoryPath, minimumRecompilationInterval);
         this.lepMetadata.putAll(lepMetadata);
         this.lepPathResolver = lepPathResolver;
         this.tenantCommonsFolders = lepPathResolver.getLepCommonsPaths(tenant);
@@ -104,7 +107,8 @@ public class GroovyLepEngine extends LepEngine {
 
     protected GroovyScriptEngine buildGroovyEngine(ClassLoader classLoader,
                                                    LepResourceConnector lepResourceConnector,
-                                                   String targetDirectoryPath) {
+                                                   String targetDirectoryPath,
+                                                   int minimumRecompilationInterval) {
         GroovyScriptEngine gse;
         CompilerConfiguration config;
         if (useDirectoryCompiledSources) {
@@ -118,7 +122,8 @@ public class GroovyLepEngine extends LepEngine {
         }
 
         config.setRecompileGroovySource(true);
-        config.setMinimumRecompilationInterval(50);
+        config.setMinimumRecompilationInterval(minimumRecompilationInterval);
+        config.getOptimizationOptions().put(CompilerConfiguration.INVOKEDYNAMIC, false);
         gse.setConfig(config);
         gse.getGroovyClassLoader().setShouldRecompile(true);
         return gse;
@@ -163,20 +168,10 @@ public class GroovyLepEngine extends LepEngine {
 
         this.leps.forEach(lep -> {
             try {
-                boolean isWarmupByCompilation = !isCommonsClass(lep.getPath()) && isScript(lep);
-                if (!useDirectoryCompiledSources && !isWarmupByCompilation) {
-                    return;
-                }
-
                 StopWatch warmUpTime = StopWatch.createStarted();
                 log.info("START | Warmup lep {}", lep.getPath());
 
                 if (useDirectoryCompiledSources && tryLoadCompiled(groovyClassLoader, lep, warmUpTime)) {
-                    return;
-                }
-
-                if (!isWarmupByCompilation) {
-                    // no precompiled class: commons and class files are compiled on demand
                     return;
                 }
 

@@ -10,8 +10,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CachedGroovyLepEngineCreationStrategy implements GroovyEngineCreationStrategy {
 
     private final Map<String, GroovyLepEngine> engineByTenant = new ConcurrentHashMap<>();
+    private final int minimumRecompilationInterval;
 
-    public GroovyLepEngine createEngine(String tenant,
+    public CachedGroovyLepEngineCreationStrategy(int minimumRecompilationInterval) {
+        this.minimumRecompilationInterval = minimumRecompilationInterval;
+    }
+
+    public GroovyLepEngine createEngine(String engineId,
+                                        String tenant,
                                         LepStorage leps,
                                         LoggingWrapper loggingWrapper,
                                         ClassLoader classLoader,
@@ -23,6 +29,7 @@ public class CachedGroovyLepEngineCreationStrategy implements GroovyEngineCreati
                                         String targetDirectoryPath) {
         return engineByTenant.computeIfAbsent(tenant, it ->
             new GroovyLepEngine(
+                engineId,
                 tenant,
                 leps,
                 loggingWrapper,
@@ -32,7 +39,8 @@ public class CachedGroovyLepEngineCreationStrategy implements GroovyEngineCreati
                 lepPathResolver,
                 isWarmupEnabled,
                 useDirectoryCompiledSources,
-                targetDirectoryPath
+                targetDirectoryPath,
+                minimumRecompilationInterval
             )
         );
     }

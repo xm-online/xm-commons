@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -20,6 +21,8 @@ import org.codehaus.groovy.control.SourceUnit;
 
 import org.codehaus.groovy.ast.FieldNode;
 import org.codehaus.groovy.ast.MethodNode;
+
+import static java.lang.Boolean.TRUE;
 
 @Slf4j
 public class GroovyFileParser {
@@ -40,6 +43,9 @@ public class GroovyFileParser {
     // metadata depends only on the source text, so unchanged files skip the AST parse on engine refresh
     private final Map<String, GroovyFileMetadata> metadataByContentHash;
 
+    // the lep engines that asked for each cached source, so an entry lives exactly as long as an engine holds it
+    private final Map<String, Map<String, Boolean>> engineIdsByContentHash = new ConcurrentHashMap<>();
+
     public GroovyFileParser(int metadataCacheMaxSize) {
         this(metadataCacheMaxSize, false);
     }
@@ -57,9 +63,15 @@ public class GroovyFileParser {
     }
 
     @SneakyThrows
-    public GroovyFileMetadata getFileMetaData(String filePath, String source) {
+    public GroovyFileMetadata getFileMetaData(String engineId, String filePath, String source) {
         try {
             String contentHash = DigestUtils.sha256Hex(source);
+            // the owner is registered before the entry is cached, so a concurrent release of another
+            // engine cannot drop what is being put here
+            engineIdsByContentHash
+                .computeIfAbsent(contentHash, it -> new ConcurrentHashMap<>())
+                .putIfAbsent(engineId, TRUE);
+
             GroovyFileMetadata cached = metadataByContentHash.get(contentHash);
             if (cached != null) {
                 return cached;
@@ -71,6 +83,21 @@ public class GroovyFileParser {
             log.error("Error parsing groovy source: {}", e.getMessage(), e);
             return new GroovyFileMetadata();
         }
+    }
+
+    /**
+     * Drops the metadata of every source that no live lep engine holds any more. The cache map is touched
+     * only for the sources actually released, which on a config refresh are the ones that changed or went
+     * away - the rest are already held by the engine created for the new config.
+     */
+    public void releaseEngine(String engineId) {
+        engineIdsByContentHash.forEach((contentHash, engineIds) -> {
+            if (engineIds.remove(engineId) != null
+                && engineIds.isEmpty()
+                && engineIdsByContentHash.remove(contentHash, engineIds)) {
+                metadataByContentHash.remove(contentHash);
+            }
+        });
     }
 
     public GroovyFileMetadata getGroovyFileMetadata(String filePath, String source) {

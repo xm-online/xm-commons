@@ -8,7 +8,8 @@ import java.util.Map;
 
 public class RecreateGroovyLepEngineOnRefresh implements GroovyEngineCreationStrategy {
 
-    public GroovyLepEngine createEngine(String tenant,
+    public GroovyLepEngine createEngine(String engineId,
+                                        String tenant,
                                         LepStorage leps,
                                         LoggingWrapper loggingWrapper,
                                         ClassLoader classLoader,
@@ -19,6 +20,7 @@ public class RecreateGroovyLepEngineOnRefresh implements GroovyEngineCreationStr
                                         boolean useDirectoryCompiledSources,
                                         String targetDirectoryPath) {
         return new GroovyLepEngine(
+            engineId,
             tenant,
             leps,
             loggingWrapper,
@@ -28,7 +30,10 @@ public class RecreateGroovyLepEngineOnRefresh implements GroovyEngineCreationStr
             lepPathResolver,
             isWarmupEnabled,
             useDirectoryCompiledSources,
-            targetDirectoryPath
+            targetDirectoryPath,
+            // this strategy recreates the whole engine (and its resource connector) on every lep change,
+            // so GroovyScriptEngine's own source-freshness polling can never observe a change on its own
+            Integer.MAX_VALUE
         );
     }
 }
