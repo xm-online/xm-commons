@@ -8,7 +8,8 @@ import java.util.Map;
 
 public interface GroovyEngineCreationStrategy {
 
-        GroovyLepEngine createEngine(String tenant,
+        GroovyLepEngine createEngine(String engineId,
+                                     String tenant,
                                      LepStorage leps,
                                      LoggingWrapper loggingWrapper,
                                      ClassLoader classLoader,

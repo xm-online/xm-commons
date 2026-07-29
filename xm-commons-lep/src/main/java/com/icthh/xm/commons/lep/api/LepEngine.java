@@ -10,8 +10,16 @@ import java.util.UUID;
 public abstract class LepEngine {
 
     @Getter
-    private final String id = UUID.randomUUID().toString();
+    private final String id;
     private final List<DestroyCallback> destroyCallbacks = new ArrayList<>();
+
+    protected LepEngine() {
+        this(UUID.randomUUID().toString());
+    }
+
+    protected LepEngine(String id) {
+        this.id = id;
+    }
 
     public int order() {
         return 0;

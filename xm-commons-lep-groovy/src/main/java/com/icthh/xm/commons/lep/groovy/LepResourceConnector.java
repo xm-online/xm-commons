@@ -36,12 +36,15 @@ public class LepResourceConnector implements ResourceConnector {
     private final LepConnectionCache lepConnectionCache;
     private final LepPathResolver lepPathResolver;
     private final String tenantKey;
+    private final String engineId;
 
-    public LepResourceConnector(String tenantKey,
+    public LepResourceConnector(String engineId,
+                                String tenantKey,
                                 LepPathResolver lepPathResolver,
                                 LepStorage leps,
                                 Map<String, GroovyFileMetadata> lepMetadata,
                                 GroovyFileParser groovyFileParser) {
+        this.engineId = engineId;
         this.tenantKey = tenantKey;
         this.leps = leps;
         this.lepConnectionCache = leps.buildCache();
@@ -51,7 +54,7 @@ public class LepResourceConnector implements ResourceConnector {
     }
 
     private GroovyFileMetadata toFileMetaData(XmLepConfigFile lep) {
-        return groovyFileParser.getFileMetaData(lep.getPath(), lep.readContent());
+        return groovyFileParser.getFileMetaData(engineId, lep.getPath(), lep.readContent());
     }
 
     @SneakyThrows

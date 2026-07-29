@@ -76,7 +76,8 @@ public class GroovyLepEngine extends LepEngine {
         return IOUtils.toString(content, UTF_8);
     }
 
-    public GroovyLepEngine(String tenant,
+    public GroovyLepEngine(String engineId,
+                           String tenant,
                            LepStorage leps,
                            LoggingWrapper loggingWrapper,
                            ClassLoader classLoader,
@@ -87,6 +88,7 @@ public class GroovyLepEngine extends LepEngine {
                            boolean useDirectoryCompiledSources,
                            String targetDirectoryPath,
                            int minimumRecompilationInterval) {
+        super(engineId);
         this.tenant = tenant;
         this.leps = leps;
         this.loggingWrapper = loggingWrapper;

@@ -16,7 +16,8 @@ public class CachedGroovyLepEngineCreationStrategy implements GroovyEngineCreati
         this.minimumRecompilationInterval = minimumRecompilationInterval;
     }
 
-    public GroovyLepEngine createEngine(String tenant,
+    public GroovyLepEngine createEngine(String engineId,
+                                        String tenant,
                                         LepStorage leps,
                                         LoggingWrapper loggingWrapper,
                                         ClassLoader classLoader,
@@ -26,8 +27,10 @@ public class CachedGroovyLepEngineCreationStrategy implements GroovyEngineCreati
                                         boolean isWarmupEnabled,
                                         boolean useDirectoryCompiledSources,
                                         String targetDirectoryPath) {
+        // the engine of a tenant is kept over refreshes, so it holds the id of the first one that built it
         return engineByTenant.computeIfAbsent(tenant, it ->
             new GroovyLepEngine(
+                engineId,
                 tenant,
                 leps,
                 loggingWrapper,

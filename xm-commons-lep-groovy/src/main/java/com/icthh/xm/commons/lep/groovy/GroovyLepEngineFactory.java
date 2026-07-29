@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import static java.lang.Boolean.TRUE;
 
@@ -68,10 +69,15 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
     public LepEngine createLepEngine(String tenant, List<XmLepConfigFile> lepFromConfig, String targetDirectoryPath) {
         LepStorage lepConfigStorage = lepStorageFactory.buildXmConfigLepStorage(tenant, lepFromConfig);
 
+        String engineId = UUID.randomUUID().toString();
         Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata = new HashMap<>();
-        lepConfigStorage.forEach(lep -> lepMetadata.put(lep.metadataKey(), groovyFileParser.getFileMetaData(lep.getPath(), lep.readContent())));
+        lepConfigStorage.forEach(lep -> lepMetadata.put(
+            lep.metadataKey(),
+            groovyFileParser.getFileMetaData(engineId, lep.getPath(), lep.readContent())
+        ));
 
         LepResourceConnector lepResourceConnector = new LepResourceConnector(
+            engineId,
             tenant,
             lepPathResolver,
             lepConfigStorage,
@@ -80,7 +86,8 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
         );
 
         boolean isWarmupEnabled = TRUE.equals(warmupScriptsForAllTenants) || tenantWithWarmup.contains(tenant);
-        return groovyEngineCreationStrategy.createEngine(
+        GroovyLepEngine engine = groovyEngineCreationStrategy.createEngine(
+            engineId,
             tenant,
             lepConfigStorage,
             loggingWrapper,
@@ -93,5 +100,9 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
             targetDirectoryPath
         );
 
+        // released by the local id and not by engine.getId(): a strategy that keeps one engine over
+        // refreshes returns an engine of an earlier id, and every generation still has to be released
+        engine.addDestroyCallback(destroyed -> groovyFileParser.releaseEngine(engineId));
+        return engine;
     }
 }
