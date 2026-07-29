@@ -27,7 +27,6 @@ public class CachedGroovyLepEngineCreationStrategy implements GroovyEngineCreati
                                         boolean isWarmupEnabled,
                                         boolean useDirectoryCompiledSources,
                                         String targetDirectoryPath) {
-        // the engine of a tenant is kept over refreshes, so it holds the id of the first one that built it
         return engineByTenant.computeIfAbsent(tenant, it ->
             new GroovyLepEngine(
                 engineId,
