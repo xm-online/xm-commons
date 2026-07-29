@@ -1,5 +1,5 @@
-import io.swagger.codegen.DefaultGenerator
-import io.swagger.codegen.config.CodegenConfigurator
+import io.swagger.codegen.v3.DefaultGenerator
+import io.swagger.codegen.v3.config.CodegenConfigurator
 
 buildscript {
 
@@ -7,8 +7,13 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
 
+    configurations.classpath {
+        exclude group: 'io.swagger', module: 'swagger-codegen'
+    }
+
     dependencies {
         classpath("io.swagger.codegen.v3:swagger-codegen:${versions.swaggerCodegen}")
+        classpath("io.swagger.codegen.v3:swagger-codegen-generators:${versions.swaggerCodegenGenerators}")
     }
 }
 
@@ -24,13 +29,9 @@ dependencyManagement {
 dependencies {
 
     api project(':xm-commons-config')
-
-    implementation("io.springfox:springfox-swagger2:${versions.springfoxSwagger}") {
-        exclude module: 'mapstruct'
-    }
-
     implementation("org.springframework.boot:spring-boot-starter-web")
 
+    api "io.swagger.core.v3:swagger-annotations:${versions.swaggerAnnotations}"
     api "org.hibernate.validator:hibernate-validator:${versions.hibernateValidation}"
 
     api "commons-io:commons-io:${versions.commonsIo}"
@@ -44,6 +45,7 @@ dependencies {
 
 
 def swaggerSourceFile = 'src/main/resources/swagger-spec/tenant/swagger-tenant-spec.yaml'
+def swaggerTemplateFolder = 'src/main/resources/openapi/mustache/JavaSpring'
 def swaggerTargetFolder = 'build/generated-sources'
 
 sourceSets {
@@ -55,21 +57,23 @@ sourceSets {
 task generateApi {
 
     inputs.file("$projectDir/$swaggerSourceFile")
+    inputs.dir("$projectDir/$swaggerTemplateFolder")
     outputs.dir("$projectDir/$swaggerTargetFolder")
 
     doLast {
         def config = new CodegenConfigurator()
-        config.setInputSpec("file:///$projectDir/$swaggerSourceFile")
+        config.setInputSpecURL(file(swaggerSourceFile).toURI().toString())
         config.setOutputDir("$projectDir")
         config.setLang('spring')
-        config.setTemplateDir("$projectDir/src/main/resources/openapi/mustache/JavaSpring")
+        config.setTemplateDir("$projectDir/$swaggerTemplateFolder")
         config.setAdditionalProperties([
             //'interfaceOnly': 'true',
             'delegatePattern': 'true',
             'apiPackage'     : 'com.icthh.xm.commons.gen.api',
             'modelPackage'   : 'com.icthh.xm.commons.gen.model',
             'sourceFolder'   : swaggerTargetFolder,
-            'jakarta'        : 'true'
+            'jakarta'        : 'true',
+            'useOas2'        : false
         ])
         new DefaultGenerator().opts(config.toClientOptInput()).generate()
     }
