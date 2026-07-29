@@ -47,6 +47,9 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     @Value("${application.lep.recreate-groovy-engine-on-refresh:true}")
     private boolean recreateGroovyEngineOnRefresh;
 
+    @Value("${application.lep.groovy-script-engine-recompilation-interval-ms:50}")
+    private int groovyScriptEngineRecompilationInterval;
+
     @Value("${application.lep.tenants-with-lep-warmup:#{T(java.util.Set).of('XM')}}")
     private Set<String> tenantsWithLepWarmup;
 
@@ -146,7 +149,7 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
         if (recreateGroovyEngineOnRefresh) {
             return new RecreateGroovyLepEngineOnRefresh();
         } else {
-            return new CachedGroovyLepEngineCreationStrategy();
+            return new CachedGroovyLepEngineCreationStrategy(groovyScriptEngineRecompilationInterval);
         }
     }
 

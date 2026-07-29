@@ -28,7 +28,10 @@ public class RecreateGroovyLepEngineOnRefresh implements GroovyEngineCreationStr
             lepPathResolver,
             isWarmupEnabled,
             useDirectoryCompiledSources,
-            targetDirectoryPath
+            targetDirectoryPath,
+            // this strategy recreates the whole engine (and its resource connector) on every lep change,
+            // so GroovyScriptEngine's own source-freshness polling can never observe a change on its own
+            Integer.MAX_VALUE
         );
     }
 }

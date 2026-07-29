@@ -11,6 +11,7 @@ import com.icthh.xm.commons.lep.impl.LoggingWrapper;
 import com.icthh.xm.commons.lep.spring.ApplicationNameProvider;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -122,6 +123,52 @@ public class GroovyPrecompiledWarmupIntTest {
             "script class expected to be loaded from compiled.jar");
         assertTrue(hasPrecompiledLog(COMMONS_PATH),
             "commons class expected to be loaded from compiled.jar");
+    }
+
+    @Test
+    void lepsAreCompiledWithoutInvokedynamic() throws Exception {
+        List<XmLepConfigFile> leps = List.of(
+            new XmLepConfigFile(SCRIPT_PATH, "def upper(x) { return x.toUpperCase() }\nreturn upper('abc')\n")
+        );
+
+        Path compiledDir = tempDir.resolve("compiled");
+        createFactory(compiledDir.toAbsolutePath().toString()).createLepEngine(TENANT, leps);
+
+        try (Stream<Path> files = Files.walk(compiledDir)) {
+            List<Path> classFiles = files.filter(it -> it.toString().endsWith(".class")).toList();
+            assertFalse(classFiles.isEmpty(), "expected the lep to be compiled to a class file");
+
+            for (Path classFile : classFiles) {
+                // $getCallSiteArray is emitted only on the classic callsite path, IndyInterface only on the
+                // indy one, so the pair tells the two apart without disassembling the bytecode
+                String bytecode = new String(Files.readAllBytes(classFile), StandardCharsets.ISO_8859_1);
+                assertTrue(bytecode.contains("$getCallSiteArray"),
+                    classFile.getFileName() + " expected to be compiled with classic callsites");
+                assertFalse(bytecode.contains("IndyInterface"),
+                    classFile.getFileName() + " expected to carry no invokedynamic bootstrap");
+            }
+        }
+    }
+
+    @Test
+    void dynamicModeWarmsUpCommonsClassesToo() {
+        List<XmLepConfigFile> leps = List.of(
+            // a class in a tenant commons folder that no warmed script imports, so nothing pulls it in
+            // transitively - it used to be compiled on the first request that reached it
+            new XmLepConfigFile(COMMONS_PATH,
+                "package WARMTEST.testApp.lep.commons\nclass WarmService { def hello() { return 'ok' } }\n"),
+            new XmLepConfigFile(SCRIPT_PATH, "return 'ok'\n")
+        );
+
+        createFactory(tempDir.resolve("compiled").toAbsolutePath().toString(), false)
+            .createLepEngine(TENANT, leps);
+
+        assertTrue(hasLog("STOP | Warmup lep WARMTEST/testApp/lep/commons/WarmService"),
+            "commons class expected to be compiled during warmup, not on the first request");
+        assertTrue(hasLog("STOP | Warmup lep WARMTEST/testApp/lep/service/Do$$around"),
+            "script expected to stay warmed up as before");
+        assertFalse(hasLog("Error create script"),
+            "warming up a commons class expected not to fail");
     }
 
     @Test
