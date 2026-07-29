@@ -1,0 +1,44 @@
+{{!
+Copy of the swagger-codegen-generators JavaSpring (handlebars) model template with the
+JsonNullable / NotUndefined helper imports dropped. Both validationMode values (strict and
+loose) pull them in, but this module has no required+nullable fields, so they were only
+forcing a jackson-databind-nullable dependency and io.swagger.configuration support classes
+into a published library. See pojo.mustache, which drops the matching @NotUndefined marker.
+
+Branches that the generator options in build.gradle can never reach are stripped, so this
+template only renders what it actually emits. It assumes jakarta=true, useBeanValidation=true
+and validationMode=strict (the codegen defaults), and that serializableModel and withXml stay
+unset. That drops the javax.* validation imports, java.io.Serializable and the Jackson/JAXB
+XML imports. Changing any of those options means restoring the matching branch from upstream.
+Original template is here:
+https://github.com/swagger-api/swagger-codegen-generators/blob/master/src/main/resources/handlebars/JavaSpring/model.mustache
+}}
+package {{package}};
+
+{{^x-is-composed-model}}
+import java.util.Objects;
+{{#imports}}import {{import}};
+{{/imports}}
+import org.springframework.validation.annotation.Validated;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
+{{/x-is-composed-model}}
+
+{{#models}}
+{{#model}}
+{{#isComposedModel}}
+{{>interface}}
+{{/isComposedModel}}
+{{^isComposedModel}}
+{{#isEnum}}
+{{>enumOuterClass}}
+{{/isEnum}}
+{{^isEnum}}
+{{>pojo}}
+{{/isEnum}}
+{{/isComposedModel}}
+{{/model}}
+{{/models}}

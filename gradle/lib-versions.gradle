@@ -23,8 +23,9 @@ ext.versions = [
     logstashLogbackEncoder     : '8.0',
     caffeine                   : '3.2.3',
 
-    swaggerCodegen             : '3.0.78',
-    springfoxSwagger           : '3.0.0',
+    swaggerCodegen             : '3.0.81',
+    swaggerCodegenGenerators   : '1.0.62',
+    swaggerAnnotations         : '2.2.48',
     reflections                : '0.10.2',
     hibernateValidation        : '8.0.2.Final',
     javaxEl                    : '3.0.0',
