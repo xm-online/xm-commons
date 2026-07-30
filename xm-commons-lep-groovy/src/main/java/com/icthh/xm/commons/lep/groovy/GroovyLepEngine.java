@@ -134,12 +134,6 @@ public class GroovyLepEngine extends LepEngine {
         gse.setConfig(config);
         GroovyClassLoader groovyClassLoader = gse.getGroovyClassLoader();
         groovyClassLoader.setShouldRecompile(true);
-        // GroovyScriptEngine wraps the default resource loader with connector-first lookup but keeps a
-        // fallback that scans the whole application classpath for a ".groovy" source of every class name
-        // the compiler or the metaclass machinery fails to resolve (e.g. groovy.runtime.metaclass.*MetaClass,
-        // *Customizer of java.beans). Every lep source is served by the connector, so the fallback can never
-        // find anything - it only costs a full classpath scan per unresolved name on every engine build and
-        // on the first call of every lep
         groovyClassLoader.setResourceLoader(className -> findLepSource(lepResourceConnector, className));
         return gse;
     }
@@ -147,7 +141,8 @@ public class GroovyLepEngine extends LepEngine {
     private static URL findLepSource(LepResourceConnector lepResourceConnector, String className) {
         try {
             return lepResourceConnector.getResourceConnection(className.replace('.', '/') + FILE_EXTENSION).getURL();
-        } catch (Throwable notFound) {
+        } catch (Exception notFound) {
+            log.trace("Resource connection not found by class name {}", className);
             return null;
         }
     }
