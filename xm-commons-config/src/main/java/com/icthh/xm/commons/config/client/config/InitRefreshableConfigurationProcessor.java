@@ -1,7 +1,5 @@
 package com.icthh.xm.commons.config.client.config;
 
-import static org.apache.commons.lang3.StringUtils.length;
-
 import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.api.ConfigurationChangedListener;
 import com.icthh.xm.commons.config.client.api.FetchConfigurationSettings;
@@ -11,59 +9,65 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.util.AntPathMatcher;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.lang3.StringUtils.length;
+
 @Slf4j
-public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostProcessor {
+public class InitRefreshableConfigurationProcessor {
 
     public static final String LOG_CONFIG_EMPTY = "<CONFIG_EMPTY>";
     private static final String CONFIG_PATH = "/config/tenants/{tenantName}/**";
     private static final String COMMONS = "commons";
     private final ObjectProvider<ConfigService> configServiceProvider;
 
-    private final Map<String, RefreshableConfiguration> refreshableConfigurations = new HashMap<>();
+    private final List<RefreshableConfiguration> refreshableConfigurations;
     private volatile Map<String, Configuration> configMap;
 
     private final Set<String> includedTenants;
     private final AntPathMatcher matcher = new AntPathMatcher();
     private final FetchConfigurationSettings fetchConfigurationSettings;
+    private final ObjectProvider<LepContextRunner> lepContextRunnerProvider;
 
-    public InitRefreshableConfigurationBeanPostProcessor(ObjectProvider<ConfigService> configServiceProvider,
-                                                         XmConfigProperties xmConfigProperties,
-                                                         FetchConfigurationSettings fetchConfigurationSettings) {
+    public InitRefreshableConfigurationProcessor(ObjectProvider<ConfigService> configServiceProvider,
+                                                 XmConfigProperties xmConfigProperties,
+                                                 FetchConfigurationSettings fetchConfigurationSettings,
+                                                 List<RefreshableConfiguration> refreshableConfigurations,
+                                                 ObjectProvider<LepContextRunner> lepContextRunnerProvider) {
         this.configServiceProvider = configServiceProvider;
         this.includedTenants = xmConfigProperties.getIncludeTenantUppercase();
         this.fetchConfigurationSettings = fetchConfigurationSettings;
+        this.refreshableConfigurations = refreshableConfigurations;
+        this.lepContextRunnerProvider = lepContextRunnerProvider;
+
         addLepCommons();
+        initAll();
     }
 
-    @Override
-    public Object postProcessBeforeInitialization(Object bean, String beanName) {
-        if (bean instanceof RefreshableConfiguration) {
-            refreshableConfigurations.put(beanName, (RefreshableConfiguration) bean);
-            log.info("refreshable configuration bean added: {} = {}", beanName, bean.getClass());
+    private void initAll() {
+        Map<String, Configuration> configMap = getConfigMap();
+        for (RefreshableConfiguration bean : refreshableConfigurations) {
+            LepContextRunner runner = lepContextRunnerProvider.getIfAvailable();
+            if (runner != null && runner.isReady()) {
+                log.info("Initializing bean {} with LEP context", bean.getClass().getSimpleName());
+                runner.runInContext(() -> initBean(bean, configMap));
+            } else {
+                log.info("Initializing bean {} without LEP context", bean.getClass().getSimpleName());
+                initBean(bean, configMap);
+            }
         }
-        return bean;
     }
 
-    @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName) {
-        if (refreshableConfigurations.containsKey(beanName)) {
-            initBean(refreshableConfigurations.get(beanName), getConfig());
-        }
-        return bean;
-    }
-
-    private Map<String, Configuration> getConfig() {
+    private Map<String, Configuration> getConfigMap() {
         if (configMap == null) {
             configMap = getConfigService().getConfigMapAntPattern(null, fetchConfigurationSettings.getMsConfigPatterns());
         }
@@ -90,7 +94,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
                                                 .filter(refreshableConfiguration::isListeningConfiguration)
                                                 .collect(Collectors.toList());
                 if (!listenPaths.isEmpty()) {
-                    InitRefreshableConfigurationBeanPostProcessor.this.refreshFinished(refreshableConfiguration, listenPaths);
+                    InitRefreshableConfigurationProcessor.this.refreshFinished(refreshableConfiguration, listenPaths);
                 }
             }
         });
