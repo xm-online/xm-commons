@@ -10,20 +10,20 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.web.access.AccessDeniedHandler;
 
-public final class UnauthorizedEntryPoint implements AuthenticationEntryPoint {
-    public void commence(HttpServletRequest request, HttpServletResponse response,
-                         AuthenticationException authException) throws IOException {
+public final class ForbiddenAccessDeniedHandler implements AccessDeniedHandler {
+    public void handle(HttpServletRequest request, HttpServletResponse response,
+                       AccessDeniedException accessDeniedException) throws IOException {
         try (var writer = response.getWriter()) {
             writer.print(JsonMapperUtils.getDefaultJsonMapper().writeValueAsString(new ErrorVM(
-                "unauthorized",
-                "Full authentication is required to access this resource",
+                "forbidden",
+                "Access is denied",
                 MdcUtils.getRid()
             )));
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         }
     }
 
