@@ -74,6 +74,7 @@ public class GroovyLepEngine extends LepEngine {
     private final Map<String, GroovyFileParser.GroovyFileMetadata> lepMetadata = new ConcurrentHashMap<>();
 
     static {
+        GroovyAntlrCacheThreshold.applyDefault();
         INIT_SCRIPT = loadFile(INIT_SCRIPT_NAME);
     }
 

@@ -33,6 +33,10 @@ public class GroovyFileParser {
      */
     public static final int DEFAULT_METADATA_CACHE_MAX_SIZE = 10_000_000;
 
+    static {
+        GroovyAntlrCacheThreshold.applyDefault();
+    }
+
     @Getter
     private final int metadataCacheMaxSize;
 
