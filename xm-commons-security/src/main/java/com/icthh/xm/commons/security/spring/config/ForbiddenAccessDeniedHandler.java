@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.security.spring.config;
 
+import com.icthh.xm.commons.exceptions.ErrorConstants;
 import com.icthh.xm.commons.i18n.error.domain.vm.ErrorVM;
 import com.icthh.xm.commons.security.utils.JsonMapperUtils;
 
@@ -13,13 +14,11 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 
 public final class ForbiddenAccessDeniedHandler implements AccessDeniedHandler {
 
-    private static final String ERROR_CODE = "forbidden";
-
     public void handle(HttpServletRequest request, HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException {
         try (var writer = response.getWriter()) {
             writer.print(JsonMapperUtils.getDefaultJsonMapper().writeValueAsString(new ErrorVM(
-                ERROR_CODE,
+                ErrorConstants.ERR_ACCESS_DENIED,
                 accessDeniedException.getMessage()
             )));
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);

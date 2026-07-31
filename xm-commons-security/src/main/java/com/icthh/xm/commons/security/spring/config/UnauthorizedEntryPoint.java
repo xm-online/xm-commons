@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.security.spring.config;
 
+import com.icthh.xm.commons.exceptions.ErrorConstants;
 import com.icthh.xm.commons.i18n.error.domain.vm.ErrorVM;
 import com.icthh.xm.commons.security.utils.JsonMapperUtils;
 
@@ -13,13 +14,11 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 
 public final class UnauthorizedEntryPoint implements AuthenticationEntryPoint {
 
-    private static final String ERROR_CODE = "unauthorized";
-
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
         try (var writer = response.getWriter()) {
             writer.print(JsonMapperUtils.getDefaultJsonMapper().writeValueAsString(new ErrorVM(
-                ERROR_CODE,
+                ErrorConstants.ERR_UNAUTHORIZED,
                 authException.getMessage()
             )));
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
