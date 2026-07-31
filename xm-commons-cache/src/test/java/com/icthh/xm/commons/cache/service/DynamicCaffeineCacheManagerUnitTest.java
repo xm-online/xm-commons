@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Ticker;
 import com.icthh.xm.commons.cache.TenantCacheManager;
 import com.icthh.xm.commons.cache.config.XmTenantLepCacheConfig;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.Test;
 
 import java.util.List;
@@ -16,14 +17,14 @@ public class DynamicCaffeineCacheManagerUnitTest {
 
     @Test(expected = IllegalStateException.class)
     public void getCacheFailsIfNoCfgProvided() {
-        dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker());
+        dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker(), new SimpleMeterRegistry());
         org.springframework.cache.Cache cache = dynamicCaffeineCacheManager.getCache(TenantCacheManager.buildKey("TEST", "tcache"));
         assertNotNull(cache);
     }
 
     @Test
     public void getNewCache() {
-        dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker());
+        dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker(), new SimpleMeterRegistry());
         XmTenantLepCacheConfig.XmCacheConfiguration c = CacheUtilityClass.buildCfg("tcache");
         InitCachesEvent e = new InitCachesEvent(this, "test", List.of(c));
         dynamicCaffeineCacheManager.applyTenantConfig(e);
@@ -33,7 +34,7 @@ public class DynamicCaffeineCacheManagerUnitTest {
 
     @Test
     public void getExistingCache() {
-        dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker());
+        dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker(), new SimpleMeterRegistry());
         XmTenantLepCacheConfig.XmCacheConfiguration c = CacheUtilityClass.buildCfg("tcache");
         InitCachesEvent e = new InitCachesEvent(this, "test", List.of(c));
         dynamicCaffeineCacheManager.applyTenantConfig(e);
@@ -45,13 +46,13 @@ public class DynamicCaffeineCacheManagerUnitTest {
 
     @Test(expected = NullPointerException.class)
     public void createNativeCaffeineCacheShouldFailIfNoConfigurationPresent() {
-        dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker());
+        dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker(), new SimpleMeterRegistry());
         dynamicCaffeineCacheManager.createNativeCaffeineCache("test");
     }
 
     @Test(expected = IllegalStateException.class)
     public void ignoresRedisStrategyEntries() {
-        dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker());
+        dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker(), new SimpleMeterRegistry());
         XmTenantLepCacheConfig.XmCacheConfiguration c = CacheUtilityClass.buildCfg("rcache");
         c.setStrategy("REDIS");
         InitCachesEvent e = new InitCachesEvent(this, "test", List.of(c));
@@ -62,7 +63,7 @@ public class DynamicCaffeineCacheManagerUnitTest {
 
     @Test
     public void createCacheObject() {
-        dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker());
+        dynamicCaffeineCacheManager = new DynamicCaffeineCacheManager(Ticker.systemTicker(), new SimpleMeterRegistry());
 
         XmTenantLepCacheConfig.XmCacheConfiguration c = CacheUtilityClass.buildCfg("tcache");
 
