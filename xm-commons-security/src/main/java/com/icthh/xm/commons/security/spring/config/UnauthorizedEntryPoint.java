@@ -12,12 +12,15 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 public final class UnauthorizedEntryPoint implements AuthenticationEntryPoint {
+
+    private static final String ERROR_CODE = "unauthorized";
+
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
         try (var writer = response.getWriter()) {
             writer.print(JsonMapperUtils.getDefaultJsonMapper().writeValueAsString(new ErrorVM(
-                "unauthorized",
-                "Full authentication is required to access this resource"
+                ERROR_CODE,
+                authException.getMessage()
             )));
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
