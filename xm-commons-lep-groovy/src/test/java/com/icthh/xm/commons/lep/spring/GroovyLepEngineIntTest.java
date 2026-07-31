@@ -15,20 +15,17 @@ import java.util.List;
 import java.util.Set;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = {LepCompilerConfiguration.class})
+@SpringJUnitConfig(LepCompilerConfiguration.class)
 @ActiveProfiles("export")
 @TestPropertySource(properties = {
     "spring.application.name=test"
@@ -56,13 +53,13 @@ public class GroovyLepEngineIntTest {
     private Path targetDir;
     private String appName;
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException {
         targetDir = Files.createTempDirectory("lep-compiled-test");
         appName = applicationNameProvider.getAppName();
     }
 
-    @After
+    @AfterEach
     @SneakyThrows
     public void tearDown() {
         FileUtils.deleteDirectory(targetDir.toFile());

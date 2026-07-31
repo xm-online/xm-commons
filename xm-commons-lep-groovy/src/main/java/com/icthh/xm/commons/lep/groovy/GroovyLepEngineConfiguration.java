@@ -69,6 +69,14 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     @Value("${application.lep.experimental-metadata-prescan:false}")
     private boolean experimentalMetadataPrescan;
 
+    /**
+     * Kill switch for {@link GroovyMapConstructorTypeAnnotations}. On by default: without it every lep
+     * generation that compiled a {@code @MapConstructor} class stays reachable through a static groovy
+     * node. Turn it off only to rule the reset out while diagnosing something else.
+     */
+    @Value("${application.lep.clear-map-constructor-type-annotations:true}")
+    private boolean clearMapConstructorTypeAnnotations;
+
     public GroovyLepEngineConfiguration(@Value("${spring.application.name}") String appName) {
         super(appName);
     }
@@ -94,7 +102,8 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
             // the classloading + metaclass cost to the first request after every refresh
             warmupScripts && (warmupScriptsForAllTenant || Boolean.TRUE.equals(precompiledMode)),
             precompiledMode,
-            pathToWorkingDirectory
+            pathToWorkingDirectory,
+            clearMapConstructorTypeAnnotations
         );
     }
 

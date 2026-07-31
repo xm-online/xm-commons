@@ -30,6 +30,7 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
     private final Boolean precompiledMode;
     private final String pathToWorkingDirectory;
     private final GroovyEngineCreationStrategy groovyEngineCreationStrategy;
+    private final boolean clearMapConstructorTypeAnnotations;
 
     private volatile ClassLoader classLoader;
 
@@ -43,7 +44,24 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
                                   Boolean warmupScriptsForAllTenants,
                                   Boolean precompiledMode,
                                   String pathToWorkingDirectory) {
+        this(appName, lepStorageFactory, groovyEngineCreationStrategy, loggingWrapper, lepPathResolver,
+            groovyFileParser, tenantWithWarmup, warmupScriptsForAllTenants, precompiledMode,
+            pathToWorkingDirectory, true);
+    }
+
+    public GroovyLepEngineFactory(String appName,
+                                  LepStorageFactory lepStorageFactory,
+                                  GroovyEngineCreationStrategy groovyEngineCreationStrategy,
+                                  LoggingWrapper loggingWrapper,
+                                  LepPathResolver lepPathResolver,
+                                  GroovyFileParser groovyFileParser,
+                                  Set<String> tenantWithWarmup,
+                                  Boolean warmupScriptsForAllTenants,
+                                  Boolean precompiledMode,
+                                  String pathToWorkingDirectory,
+                                  boolean clearMapConstructorTypeAnnotations) {
         super(appName);
+        this.clearMapConstructorTypeAnnotations = clearMapConstructorTypeAnnotations;
         this.lepPathResolver = lepPathResolver;
         this.lepStorageFactory = lepStorageFactory;
         this.groovyEngineCreationStrategy = groovyEngineCreationStrategy;
@@ -86,19 +104,29 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
         );
 
         boolean isWarmupEnabled = TRUE.equals(warmupScriptsForAllTenants) || tenantWithWarmup.contains(tenant);
-        GroovyLepEngine engine = groovyEngineCreationStrategy.createEngine(
-            engineId,
-            tenant,
-            lepConfigStorage,
-            loggingWrapper,
-            classLoader,
-            lepMetadata,
-            lepResourceConnector,
-            lepPathResolver,
-            isWarmupEnabled,
-            precompiledMode,
-            targetDirectoryPath
-        );
+        GroovyLepEngine engine;
+        try {
+            engine = groovyEngineCreationStrategy.createEngine(
+                engineId,
+                tenant,
+                lepConfigStorage,
+                loggingWrapper,
+                classLoader,
+                lepMetadata,
+                lepResourceConnector,
+                lepPathResolver,
+                isWarmupEnabled,
+                precompiledMode,
+                targetDirectoryPath
+            );
+        } finally {
+            // every generation compiled here leaves its @MapConstructor classes behind on a static
+            // groovy node, and each one pins the compilation it came from; this is the boundary where
+            // dropping them is safe
+            if (clearMapConstructorTypeAnnotations) {
+                GroovyMapConstructorTypeAnnotations.clear();
+            }
+        }
 
         // released by the local id and not by engine.getId(): a strategy that keeps one engine over
         // refreshes returns an engine of an earlier id, and every generation still has to be released
