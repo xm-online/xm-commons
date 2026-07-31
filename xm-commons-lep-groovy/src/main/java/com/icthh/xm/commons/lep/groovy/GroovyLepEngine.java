@@ -10,7 +10,11 @@ import com.icthh.xm.commons.lep.api.XmLepConfigFile;
 import com.icthh.xm.commons.lep.groovy.storage.LepStorage;
 import com.icthh.xm.commons.lep.impl.LoggingWrapper;
 import groovy.lang.Binding;
+import groovy.lang.Closure;
 import groovy.lang.GroovyClassLoader;
+import groovy.lang.MetaClass;
+import groovy.lang.MetaClassImpl;
+import groovy.lang.MetaMethod;
 import groovy.util.GroovyScriptEngine;
 import java.io.File;
 import java.io.InputStream;
@@ -28,7 +32,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.reflection.CachedMethod;
 import org.codehaus.groovy.runtime.InvokerHelper;
+import org.codehaus.groovy.runtime.callsite.CallSite;
+import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.springframework.util.function.SingletonSupplier;
 
 import static com.icthh.xm.commons.lep.groovy.storage.LepStorage.FILE_EXTENSION;
@@ -125,8 +132,19 @@ public class GroovyLepEngine extends LepEngine {
         config.setMinimumRecompilationInterval(minimumRecompilationInterval);
         config.getOptimizationOptions().put(CompilerConfiguration.INVOKEDYNAMIC, false);
         gse.setConfig(config);
-        gse.getGroovyClassLoader().setShouldRecompile(true);
+        GroovyClassLoader groovyClassLoader = gse.getGroovyClassLoader();
+        groovyClassLoader.setShouldRecompile(true);
+        groovyClassLoader.setResourceLoader(className -> findLepSource(lepResourceConnector, className));
         return gse;
+    }
+
+    private static URL findLepSource(LepResourceConnector lepResourceConnector, String className) {
+        try {
+            return lepResourceConnector.getResourceConnection(className.replace('.', '/') + FILE_EXTENSION).getURL();
+        } catch (Exception notFound) {
+            log.trace("Resource connection not found by class name {}", className);
+            return null;
+        }
     }
 
     private void runInitScript() {
@@ -183,7 +201,53 @@ public class GroovyLepEngine extends LepEngine {
             }
         });
 
+        warmupGroovyRuntimeState(groovyClassLoader);
+
         log.info("Stop warm-up LEP scripts, time = {} ms", stopWatch.getTime(MILLISECONDS));
+    }
+
+    private void warmupGroovyRuntimeState(GroovyClassLoader groovyClassLoader) {
+        StopWatch stopWatch = StopWatch.createStarted();
+        Class<?>[] classes = groovyClassLoader.getLoadedClasses();
+        for (Class<?> clazz : classes) {
+            try {
+                MetaClass metaClass = InvokerHelper.getMetaClass(clazz);
+                // closures are dispatched through their own path and dominate the class count of a big tenant
+                if (metaClass instanceof MetaClassImpl metaClassImpl && !Closure.class.isAssignableFrom(clazz)) {
+                    warmupCallSites(clazz, metaClassImpl);
+                }
+            } catch (Throwable e) {
+                log.warn("Error warmup groovy runtime state of {}: {}", clazz.getName(), e.toString());
+            }
+        }
+        log.info("Warmup groovy runtime state of {} classes, time = {} ms",
+            classes.length, stopWatch.getTime(MILLISECONDS));
+    }
+
+    private void warmupCallSites(Class<?> clazz, MetaClassImpl metaClass) {
+        for (MetaMethod method : metaClass.getMethods()) {
+            if (method instanceof CachedMethod cachedMethod && isDeclaredBy(cachedMethod, clazz)) {
+                warmupCallSite(clazz, metaClass, cachedMethod);
+            }
+        }
+    }
+
+    private void warmupCallSite(Class<?> clazz, MetaClassImpl metaClass, CachedMethod method) {
+        try {
+            CallSite callSite = new CallSiteArray(clazz, new String[]{method.getName()}).array[0];
+            Class<?>[] parameterTypes = method.getNativeParameterTypes();
+            if (method.isStatic()) {
+                method.createStaticMetaMethodSite(callSite, metaClass, parameterTypes);
+            } else {
+                method.createPogoMetaMethodSite(callSite, metaClass, parameterTypes);
+            }
+        } catch (Throwable e) {
+            log.debug("Error warmup callsite of {}.{}: {}", clazz.getName(), method.getName(), e.toString());
+        }
+    }
+
+    private static boolean isDeclaredBy(CachedMethod method, Class<?> clazz) {
+        return method.getDeclaringClass().getTheClass() == clazz;
     }
 
     @Override
