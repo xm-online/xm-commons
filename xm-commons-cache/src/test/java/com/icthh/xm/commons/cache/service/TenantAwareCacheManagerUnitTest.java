@@ -5,6 +5,7 @@ import com.icthh.xm.commons.cache.config.XmTenantLepCacheConfig;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.internal.DefaultTenantContextHolder;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.springframework.cache.Cache;
@@ -26,7 +27,7 @@ public class TenantAwareCacheManagerUnitTest {
 
     @Test
     public void getExistingCache() {
-        DynamicCaffeineCacheManager c = new DynamicCaffeineCacheManager(Ticker.systemTicker());
+        DynamicCaffeineCacheManager c = new DynamicCaffeineCacheManager(Ticker.systemTicker(), new SimpleMeterRegistry());
         XmTenantLepCacheConfig.XmCacheConfiguration tcache = CacheUtilityClass.buildCfg("tcache");
         InitCachesEvent e = new InitCachesEvent(this, TENANT, List.of(tcache));
         c.applyTenantConfig(e);
@@ -39,7 +40,7 @@ public class TenantAwareCacheManagerUnitTest {
 
     @Test
     public void getNullForTenantWithForbiddenFormat() {
-        DynamicCaffeineCacheManager c = new DynamicCaffeineCacheManager(Ticker.systemTicker());
+        DynamicCaffeineCacheManager c = new DynamicCaffeineCacheManager(Ticker.systemTicker(), new SimpleMeterRegistry());
         cth.getPrivilegedContext().destroyCurrentContext();
         TenantContextUtils.setTenant(cth, "TEN@NT");
         cacheManager = new TenantAwareCacheManager(c, cth);
@@ -49,7 +50,7 @@ public class TenantAwareCacheManagerUnitTest {
 
     @Test
     public void getCacheNames() {
-        DynamicCaffeineCacheManager c = new DynamicCaffeineCacheManager(Ticker.systemTicker());
+        DynamicCaffeineCacheManager c = new DynamicCaffeineCacheManager(Ticker.systemTicker(), new SimpleMeterRegistry());
         XmTenantLepCacheConfig.XmCacheConfiguration tcache = CacheUtilityClass.buildCfg("tcache");
         InitCachesEvent e = new InitCachesEvent(this, TENANT, List.of(tcache));
         c.applyTenantConfig(e);
@@ -68,7 +69,7 @@ public class TenantAwareCacheManagerUnitTest {
 
     @Test
     public void evictCaches() {
-        DynamicCaffeineCacheManager c = new DynamicCaffeineCacheManager(Ticker.systemTicker());
+        DynamicCaffeineCacheManager c = new DynamicCaffeineCacheManager(Ticker.systemTicker(), new SimpleMeterRegistry());
         XmTenantLepCacheConfig.XmCacheConfiguration tcache = CacheUtilityClass.buildCfg("tcache");
         InitCachesEvent e = new InitCachesEvent(this, TENANT, List.of(tcache));
         c.applyTenantConfig(e);
@@ -95,7 +96,7 @@ public class TenantAwareCacheManagerUnitTest {
 
         Supplier<Integer> getValue = ctr::incrementAndGet;
 
-        DynamicCaffeineCacheManager c = new DynamicCaffeineCacheManager(Ticker.systemTicker());
+        DynamicCaffeineCacheManager c = new DynamicCaffeineCacheManager(Ticker.systemTicker(), new SimpleMeterRegistry());
         XmTenantLepCacheConfig.XmCacheConfiguration tcache = CacheUtilityClass.buildCfg("tcache");
         InitCachesEvent e = new InitCachesEvent(this, TENANT, List.of(tcache));
         c.applyTenantConfig(e);

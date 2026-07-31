@@ -8,10 +8,10 @@ import com.icthh.xm.commons.cache.service.TenantAwareCacheManager;
 import com.icthh.xm.commons.cache.TenantCacheManager;
 import com.icthh.xm.commons.cache.service.XmCacheConfigurer;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -36,8 +36,8 @@ public class XmTenantLepCacheConfig {
 
     @Bean
     @ConditionalOnMissingBean(DynamicCaffeineCacheManager.class)
-    public DynamicCaffeineCacheManager dynamicCaffeineCacheManager(Ticker ticker) {
-        return new DynamicCaffeineCacheManager(ticker);
+    public DynamicCaffeineCacheManager dynamicCaffeineCacheManager(Ticker ticker, MeterRegistry  meterRegistry) {
+        return new DynamicCaffeineCacheManager(ticker, meterRegistry);
     }
 
     @Bean

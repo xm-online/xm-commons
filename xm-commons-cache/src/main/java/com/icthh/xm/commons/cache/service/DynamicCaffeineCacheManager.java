@@ -5,11 +5,13 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Ticker;
 import com.icthh.xm.commons.cache.TenantCacheManager;
 import com.icthh.xm.commons.cache.config.XmTenantLepCacheConfig;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
-import org.springframework.context.ApplicationListener;
 
 import java.util.List;
 import java.util.Objects;
@@ -22,7 +24,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.icthh.xm.commons.cache.config.XmTenantLepCacheConfig.CACHE_DEFAULTS;
-import static java.util.stream.Collectors.toList;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -39,6 +40,7 @@ public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     private final Ticker ticker;
+    private final MeterRegistry meterRegistry;
 
     @Override
     public Set<String> applyTenantConfig(InitCachesEvent event) {
@@ -110,7 +112,19 @@ public class DynamicCaffeineCacheManager extends CaffeineCacheManager implements
             }
         }
         Objects.requireNonNull(cache, "Cache [" + name + "] is locked");
+
+        enableCacheMetrics(name, cache);
+
         return cache;
+    }
+
+    private void enableCacheMetrics(String name, Cache<Object, Object> cache) {
+        if (cache.policy().isRecordingStats()) {
+            CaffeineCacheMetrics.monitor(meterRegistry, cache, name,
+                List.of(Tag.of("cache.manager", "dynamicCaffeine"), Tag.of("name", name)));
+        } else {
+            log.warn("Cache [{}] has recordStats=false, metrics are not registered", name);
+        }
     }
 
     private boolean isOwnedStrategy(XmTenantLepCacheConfig.XmCacheConfiguration cfg) {

@@ -6,6 +6,7 @@ import com.icthh.xm.commons.cache.service.InitCachesEvent;
 import com.icthh.xm.commons.cache.service.StrategyCacheManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
+import org.springframework.data.redis.cache.CacheStatisticsCollector;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.cache.RedisCacheWriter;
@@ -45,7 +46,8 @@ public class DynamicRedisCacheManager implements StrategyCacheManager {
     private volatile RedisCacheManager delegate;
 
     public DynamicRedisCacheManager(RedisConnectionFactory connectionFactory) {
-        this(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory),
+        this(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory)
+                .withStatisticsCollector(CacheStatisticsCollector.create()),
             RedisCacheConfiguration.defaultCacheConfig());
     }
 

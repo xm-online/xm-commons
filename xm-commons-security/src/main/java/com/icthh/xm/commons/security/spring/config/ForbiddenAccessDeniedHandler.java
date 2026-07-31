@@ -9,20 +9,20 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.web.access.AccessDeniedHandler;
 
-public final class UnauthorizedEntryPoint implements AuthenticationEntryPoint {
+public final class ForbiddenAccessDeniedHandler implements AccessDeniedHandler {
 
-    public void commence(HttpServletRequest request, HttpServletResponse response,
-                         AuthenticationException authException) throws IOException {
+    public void handle(HttpServletRequest request, HttpServletResponse response,
+                       AccessDeniedException accessDeniedException) throws IOException {
         try (var writer = response.getWriter()) {
             writer.print(JsonMapperUtils.getDefaultJsonMapper().writeValueAsString(new ErrorVM(
-                ErrorConstants.ERR_UNAUTHORIZED,
-                authException.getMessage()
+                ErrorConstants.ERR_ACCESS_DENIED,
+                accessDeniedException.getMessage()
             )));
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         }
     }
 }
