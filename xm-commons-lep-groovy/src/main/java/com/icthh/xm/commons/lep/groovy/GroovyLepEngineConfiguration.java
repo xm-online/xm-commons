@@ -74,7 +74,7 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
      * generation that compiled a {@code @MapConstructor} class stays reachable through a static groovy
      * node. Turn it off only to rule the reset out while diagnosing something else.
      */
-    @Value("${application.lep.clear-map-constructor-type-annotations:true}")
+    @Value("${application.lep.clear-map-constructor-type-annotations:false}")
     private boolean clearMapConstructorTypeAnnotations;
 
     public GroovyLepEngineConfiguration(@Value("${spring.application.name}") String appName) {
