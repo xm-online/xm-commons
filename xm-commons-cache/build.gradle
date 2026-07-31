@@ -24,10 +24,12 @@ dependencies {
     implementation "org.apache.commons:commons-lang3:${versions.commonsLang3}"
     implementation "commons-io:commons-io:${versions.commonsIo}"
     implementation "com.github.ben-manes.caffeine:caffeine:${versions.caffeine}"
+    implementation 'io.micrometer:micrometer-core'
 
     testImplementation 'junit:junit'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.hamcrest:hamcrest-library'
     testImplementation 'org.springframework:spring-test'
     testImplementation "com.github.stefanbirkner:system-rules:${versions.systemRules}"
+    testImplementation 'io.micrometer:micrometer-core'
 }

@@ -3,6 +3,7 @@ package com.icthh.xm.commons.cache.service;
 import com.github.benmanes.caffeine.cache.Ticker;
 import com.icthh.xm.commons.cache.TenantCacheManager;
 import com.icthh.xm.commons.cache.config.XmTenantLepCacheConfig;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.Test;
 import org.springframework.cache.Cache;
 
@@ -18,7 +19,7 @@ public class DynamicTenantCacheManagerUnitTest {
 
     @Test
     public void routesToCaffeineByDefault() {
-        DynamicCaffeineCacheManager caffeine = new DynamicCaffeineCacheManager(Ticker.systemTicker());
+        DynamicCaffeineCacheManager caffeine = new DynamicCaffeineCacheManager(Ticker.systemTicker(), new SimpleMeterRegistry());
         DynamicTenantCacheManager dispatcher = new DynamicTenantCacheManager(List.of(caffeine));
 
         XmTenantLepCacheConfig.XmCacheConfiguration cfg = CacheUtilityClass.buildCfg("c1");
@@ -34,7 +35,7 @@ public class DynamicTenantCacheManagerUnitTest {
 
     @Test
     public void routesToExplicitCaffeineStrategy() {
-        DynamicCaffeineCacheManager caffeine = new DynamicCaffeineCacheManager(Ticker.systemTicker());
+        DynamicCaffeineCacheManager caffeine = new DynamicCaffeineCacheManager(Ticker.systemTicker(), new SimpleMeterRegistry());
         DynamicTenantCacheManager dispatcher = new DynamicTenantCacheManager(List.of(caffeine));
 
         XmTenantLepCacheConfig.XmCacheConfiguration cfg = CacheUtilityClass.buildCfg("c1");
@@ -49,7 +50,7 @@ public class DynamicTenantCacheManagerUnitTest {
 
     @Test
     public void unknownCacheNameThrows() {
-        DynamicCaffeineCacheManager caffeine = new DynamicCaffeineCacheManager(Ticker.systemTicker());
+        DynamicCaffeineCacheManager caffeine = new DynamicCaffeineCacheManager(Ticker.systemTicker(), new SimpleMeterRegistry());
         DynamicTenantCacheManager dispatcher = new DynamicTenantCacheManager(List.of(caffeine));
         try {
             dispatcher.getCache(TenantCacheManager.buildKey(TENANT, "missing"));
@@ -61,7 +62,7 @@ public class DynamicTenantCacheManagerUnitTest {
 
     @Test
     public void unknownStrategyIsSkipped() {
-        DynamicCaffeineCacheManager caffeine = new DynamicCaffeineCacheManager(Ticker.systemTicker());
+        DynamicCaffeineCacheManager caffeine = new DynamicCaffeineCacheManager(Ticker.systemTicker(), new SimpleMeterRegistry());
         DynamicTenantCacheManager dispatcher = new DynamicTenantCacheManager(List.of(caffeine));
 
         XmTenantLepCacheConfig.XmCacheConfiguration cfg = CacheUtilityClass.buildCfg("c1");

@@ -8,6 +8,7 @@ import com.icthh.xm.commons.cache.service.StrategyCacheManager;
 import com.icthh.xm.commons.cache.service.TenantAwareCacheManager;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -29,8 +30,8 @@ public class XmTenantCacheConfig {
      */
     @Bean
     @ConditionalOnMissingBean(DynamicCaffeineCacheManager.class)
-    public DynamicCaffeineCacheManager dynamicCaffeineCacheManager(Ticker ticker) {
-        return new DynamicCaffeineCacheManager(ticker);
+    public DynamicCaffeineCacheManager dynamicCaffeineCacheManager(Ticker ticker, MeterRegistry meterRegistry) {
+        return new DynamicCaffeineCacheManager(ticker, meterRegistry);
     }
 
     @Bean
