@@ -9,6 +9,7 @@ dependencies {
     api "jakarta.servlet:jakarta.servlet-api"
 
     api project(":xm-commons-logging-web")
+    api project(":xm-commons-exceptions")
     api 'org.springframework.security:spring-security-config'
     api 'org.springframework.security:spring-security-web'
     api "com.github.ben-manes.caffeine:caffeine"

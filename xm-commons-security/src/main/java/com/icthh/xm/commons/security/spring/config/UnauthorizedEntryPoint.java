@@ -1,7 +1,7 @@
 package com.icthh.xm.commons.security.spring.config;
 
 import com.icthh.xm.commons.exceptions.ErrorConstants;
-import com.icthh.xm.commons.i18n.error.domain.vm.ErrorVM;
+import com.icthh.xm.commons.security.error.ErrorVM;
 import com.icthh.xm.commons.security.utils.JsonMapperUtils;
 
 import java.io.IOException;
