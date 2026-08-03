@@ -1,6 +1,7 @@
 ######################
 # Project Specific
 ######################
+**/docs/superpowers/
 /build/www/**
 **/src/test/javascript/coverage/
 **/src/test/javascript/PhantomJS*/
@@ -149,3 +150,4 @@ Desktop.ini
 ######################
 .eslintcache
 
+/docs/superpowers/
