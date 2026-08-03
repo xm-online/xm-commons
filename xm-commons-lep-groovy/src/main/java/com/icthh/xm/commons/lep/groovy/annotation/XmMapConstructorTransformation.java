@@ -86,7 +86,8 @@ public class XmMapConstructorTransformation extends AbstractASTTransformation {
         classNode.addConstructor(PUBLIC, params(mapParameter), ClassNode.EMPTY_ARRAY,
             new BlockStatement(body, null));
 
-        if (noArgConstructor && classNode.getDeclaredConstructor(Parameter.EMPTY_ARRAY) == null
+        if (noArgConstructor && !hasFinalFields(classNode)
+            && classNode.getDeclaredConstructor(Parameter.EMPTY_ARRAY) == null
             && classNode.getDeclaredConstructors().size() == 1) {
             classNode.addConstructor(PUBLIC, Parameter.EMPTY_ARRAY, ClassNode.EMPTY_ARRAY, block());
         }
@@ -111,6 +112,12 @@ public class XmMapConstructorTransformation extends AbstractASTTransformation {
                 assignS(propX(varX("this"), name), converted)));
         }
         return new BlockStatement(statements, null);
+    }
+
+    /** a default constructor would leave final fields unassigned, so it is not generated for such classes */
+    private static boolean hasFinalFields(ClassNode classNode) {
+        return classNode.getFields().stream()
+            .anyMatch(field -> field.isFinal() && !isSkippedField(field, List.of()));
     }
 
     /** inlines the closure body into the constructor and strips the member from the runtime annotation */

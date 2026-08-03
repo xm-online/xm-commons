@@ -451,6 +451,38 @@ public class XmMapConstructorTransformationUnitTest {
     }
 
     @Test
+    void finalFieldsAreAssignedFromMap() throws Exception {
+        Class<?> clazz = compile("""
+            import com.icthh.xm.commons.lep.groovy.annotation.XmMapConstructor
+            @XmMapConstructor
+            class FinalDto {
+                final String name
+                final Integer count
+                String mutable
+            }
+            """);
+        Object dto = newInstance(clazz, Map.of("name", "n", "count", 7, "mutable", "m"));
+        assertEquals("n", prop(dto, "name"));
+        assertEquals(7, prop(dto, "count"));
+        assertEquals("m", prop(dto, "mutable"));
+
+        Object nullDto = newInstance(clazz, null);
+        assertNull(prop(nullDto, "name"));
+    }
+
+    @Test
+    void classWithFinalFieldsGetsNoDefaultConstructor() throws Exception {
+        Class<?> clazz = compile("""
+            import com.icthh.xm.commons.lep.groovy.annotation.XmMapConstructor
+            @XmMapConstructor
+            class FinalNoDefaultDto {
+                final String name
+            }
+            """);
+        assertThrows(NoSuchMethodException.class, clazz::getConstructor);
+    }
+
+    @Test
     void staticAndDollarFieldsAreSkipped() throws Exception {
         Class<?> clazz = compile("""
             import com.icthh.xm.commons.lep.groovy.annotation.XmMapConstructor
