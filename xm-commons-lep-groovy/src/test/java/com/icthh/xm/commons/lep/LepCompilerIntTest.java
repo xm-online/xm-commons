@@ -1,11 +1,12 @@
 package com.icthh.xm.commons.lep;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.icthh.xm.commons.lep.groovy.LepCompiler;
 import com.icthh.xm.commons.lep.groovy.config.LepCompilerConfiguration;
 import com.icthh.xm.commons.lep.spring.ApplicationNameProvider;
+import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -13,40 +14,37 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 @Slf4j
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = {LepCompilerConfiguration.class})
+@SpringJUnitConfig(LepCompilerConfiguration.class)
 @ActiveProfiles("export")
 public class LepCompilerIntTest {
 
     @Autowired
     private ApplicationNameProvider applicationNameProvider;
 
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
+    @TempDir
+    public Path tempFolder;
 
     private Path outputDir;
     private String appName;
 
     private LepCompiler lepCompiler;
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException {
-        outputDir = tempFolder.newFolder("output").toPath();
+        outputDir = Files.createDirectories(tempFolder.resolve("output"));
         appName = applicationNameProvider.getAppName();
         lepCompiler = new LepCompiler();
     }
@@ -66,7 +64,7 @@ public class LepCompilerIntTest {
         Map<String, byte[]> zipContents = readZipBytes(expectedZip);
 
         assertTrue(zipContents.keySet().stream().anyMatch(k -> k.contains("/sources/") && k.endsWith("Save.groovy")));
-        assertTrue(zipContents.keySet().stream().anyMatch(k -> k.contains("/compiled/") && k.endsWith(".class")));
+        assertTrue(hasCompiledClasses(zipContents, "TEST"));
     }
 
     @Test
@@ -83,8 +81,8 @@ public class LepCompilerIntTest {
 
         assertTrue(zipContents.keySet().stream().anyMatch(k -> k.startsWith("TENANT_A/sources/") && k.endsWith("ScriptA.groovy")));
         assertTrue(zipContents.keySet().stream().anyMatch(k -> k.startsWith("TENANT_B/sources/") && k.endsWith("ScriptB.groovy")));
-        assertTrue(zipContents.keySet().stream().anyMatch(k -> k.startsWith("TENANT_A/compiled/") && k.endsWith(".class")));
-        assertTrue(zipContents.keySet().stream().anyMatch(k -> k.startsWith("TENANT_B/compiled/") && k.endsWith(".class")));
+        assertTrue(hasCompiledClasses(zipContents, "TENANT_A"));
+        assertTrue(hasCompiledClasses(zipContents, "TENANT_B"));
     }
 
     @Test
@@ -130,14 +128,14 @@ public class LepCompilerIntTest {
 
         Map<String, byte[]> zipContents = readZipBytes(outputDir.resolve(appName + "-compiled-lep.zip"));
 
-        long classCount = zipContents.keySet().stream()
-            .filter(k -> k.startsWith("TEST/compiled/") && k.endsWith(".class"))
+        long classCount = compiledClasses(zipContents, "TEST").stream()
+            .filter(k -> k.endsWith(".class"))
             .count();
         assertTrue(classCount >= 2);
     }
 
     private Path createTestZip(Map<String, String> entries) throws IOException {
-        Path zipPath = tempFolder.newFile("input-" + System.nanoTime() + ".zip").toPath();
+        Path zipPath = tempFolder.resolve("input-" + System.nanoTime() + ".zip");
         try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipPath.toFile()))) {
             for (Map.Entry<String, String> entry : entries.entrySet()) {
                 zos.putNextEntry(new ZipEntry(entry.getKey()));
@@ -148,9 +146,25 @@ public class LepCompilerIntTest {
         return zipPath;
     }
 
+    /** compiled classes are packed per tenant into a nested compiled.jar, see LepCompilerJarLayoutIntTest */
+    private static boolean hasCompiledClasses(Map<String, byte[]> zipContents, String tenant) throws IOException {
+        return compiledClasses(zipContents, tenant).stream().anyMatch(k -> k.endsWith(".class"));
+    }
+
+    private static Set<String> compiledClasses(Map<String, byte[]> zipContents, String tenant) throws IOException {
+        byte[] jar = zipContents.get(tenant + "/compiled.jar");
+        return jar == null ? Set.of() : readZipBytes(new ZipInputStream(new ByteArrayInputStream(jar))).keySet();
+    }
+
     private static Map<String, byte[]> readZipBytes(Path zipPath) throws IOException {
-        Map<String, byte[]> contents = new HashMap<>();
         try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(zipPath))) {
+            return readZipBytes(zis);
+        }
+    }
+
+    private static Map<String, byte[]> readZipBytes(ZipInputStream zis) throws IOException {
+        Map<String, byte[]> contents = new HashMap<>();
+        try (zis) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 if (!entry.isDirectory()) {

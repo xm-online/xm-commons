@@ -2,11 +2,11 @@ package com.icthh.xm.commons.lep.spring;
 
 import com.icthh.xm.commons.lep.groovy.GroovyFileParser;
 import groovyjarjarantlr4.v4.runtime.RecognitionException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.icthh.xm.commons.lep.spring.DynamicLepClassResolveIntTest.loadFile;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GroovyFileParseUnitTest {
 
