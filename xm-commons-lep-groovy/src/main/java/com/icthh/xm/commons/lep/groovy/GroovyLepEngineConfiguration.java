@@ -88,10 +88,11 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
                                                          GroovyEngineCreationStrategy groovyEngineCreationStrategy,
                                                          LoggingWrapper loggingWrapper,
                                                          LepPathResolver lepPathResolver,
-                                                         GroovyFileParser groovyFileParser) {
+                                                         GroovyFileParser groovyFileParser,
+                                                         ObjectProvider<LepContextActualClassDetector> lepContextClassDetector) {
         String appName = applicationNameProvider.getAppName();
 
-        return new GroovyLepEngineFactory(
+        GroovyLepEngineFactory factory = new GroovyLepEngineFactory(
             appName,
             lepStorageFactory,
             groovyEngineCreationStrategy,
@@ -106,6 +107,13 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
             pathToWorkingDirectory,
             clearMapConstructorTypeAnnotations
         );
+        if (warmupScripts) {
+            factory.enableSharedRuntimeWarmup(() -> {
+                LepContextActualClassDetector detector = lepContextClassDetector.getIfAvailable();
+                return detector != null ? detector.detectActualClass() : null;
+            });
+        }
+        return factory;
     }
 
     @Bean
@@ -118,21 +126,6 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     @Bean
     public GroovyMapLepWrapperFactory groovyMapLepWrapperFactory() {
         return new GroovyMapLepWrapperFactory();
-    }
-
-    /**
-     * Warms the process-wide groovy runtime state (receiver metaclasses of the actual LepContext class
-     * graph) in the background during startup, so the first lep execution does not pay for it - see
-     * {@link GroovySharedRuntimeWarmup}. Follows the same master switch as the script warmup.
-     */
-    @Bean
-    @ConditionalOnProperty(name = "application.lep.warmup-scripts", havingValue = "true", matchIfMissing = true)
-    public GroovySharedRuntimeWarmup.Starter groovySharedRuntimeWarmupStarter(
-            ObjectProvider<LepContextActualClassDetector> lepContextClassDetector) {
-        return new GroovySharedRuntimeWarmup.Starter(() -> {
-            LepContextActualClassDetector detector = lepContextClassDetector.getIfAvailable();
-            return detector != null ? detector.detectActualClass() : null;
-        });
     }
 
     @Bean

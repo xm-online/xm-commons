@@ -18,6 +18,8 @@ public class GroovySharedRuntimeWarmupUnitTest {
     @BeforeEach
     @AfterEach
     public void resetWarmupState() {
+        // drain a possibly still-running warmup thread before resetting the shared state
+        GroovySharedRuntimeWarmup.awaitCompletion();
         GroovySharedRuntimeWarmup.resetForTests();
     }
 
@@ -63,6 +65,18 @@ public class GroovySharedRuntimeWarmupUnitTest {
         assertFalse(receivers.contains(TestStaticOnly.class), "static field type must not be collected");
     }
 
+    /**
+     * The engine init script expando-patches AbstractMap.metaClass; a map metaclass initialized by the
+     * warmup before that patch would never see it. No map type may therefore be warmed.
+     */
+    @Test
+    public void receiverGraphNeverContainsMapTypes() {
+        Set<Class<?>> receivers = GroovySharedRuntimeWarmup.collectReceiverClasses(() -> TestLepContext.class);
+
+        assertFalse(receivers.stream().anyMatch(Map.class::isAssignableFrom),
+            "map types must not be warmed: engine init script patches AbstractMap.metaClass after warmup");
+    }
+
     @Test
     public void awaitCompletionReturnsImmediatelyWhenWarmupNeverStarted() {
         long start = System.currentTimeMillis();
@@ -91,13 +105,23 @@ public class GroovySharedRuntimeWarmupUnitTest {
         });
     }
 
-    /** the Starter bean is the spring entry point: receiving the bean classloader starts the warmup */
+    /**
+     * The factory is the spring entry point: enabling the warmup plus receiving the bean classloader must
+     * start it, in either order - and never before both happened. The trigger must stay on the factory
+     * (created before any engine) so the engine warmup can await the shared warmup - see
+     * {@link GroovyLepEngineFactory#enableSharedRuntimeWarmup}.
+     */
     @Test
-    public void starterRunsWarmupWhenBeanClassLoaderIsSet() {
+    public void factoryStartsWarmupOnceEnabledAndClassLoaderKnown() {
         RecordingClassLoader classLoader = new RecordingClassLoader();
+        GroovyLepEngineFactory factory = new GroovyLepEngineFactory(
+            "testApp", null, null, null, null, null, Set.of(), false, false, null);
 
-        new GroovySharedRuntimeWarmup.Starter(() -> TestLepContext.class).setBeanClassLoader(classLoader);
+        factory.setBeanClassLoader(classLoader);
+        // not enabled yet: services with warmup-scripts=false must stay untouched
+        assertFalse(classLoader.requestedNames.contains(GroovySharedRuntimeWarmup.MISS_PROBE_CLASS_NAME));
 
+        factory.enableSharedRuntimeWarmup(() -> TestLepContext.class);
         awaitProbeLookup(classLoader);
     }
 

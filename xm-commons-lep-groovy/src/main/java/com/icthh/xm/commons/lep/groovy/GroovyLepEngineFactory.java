@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.lep.groovy;
 
 import com.icthh.xm.commons.lep.LepPathResolver;
+import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepEngine;
 import com.icthh.xm.commons.lep.api.LepEngineFactory;
 import com.icthh.xm.commons.lep.api.XmLepConfigFile;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import static java.lang.Boolean.TRUE;
 
@@ -33,6 +35,8 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
     private final boolean clearMapConstructorTypeAnnotations;
 
     private volatile ClassLoader classLoader;
+    private volatile Supplier<Class<? extends BaseLepContext>> sharedRuntimeWarmupLepContextClass;
+    private volatile boolean sharedRuntimeWarmupEnabled;
 
     public GroovyLepEngineFactory(String appName,
                                   LepStorageFactory lepStorageFactory,
@@ -73,9 +77,30 @@ public class GroovyLepEngineFactory extends LepEngineFactory implements BeanClas
         this.pathToWorkingDirectory = pathToWorkingDirectory;
     }
 
+    /**
+     * Turns on the once-per-JVM {@link GroovySharedRuntimeWarmup}. The trigger deliberately lives on this
+     * factory and not on a standalone bean: the factory is a dependency of the whole lep subsystem, so
+     * spring creates it - and the warmup starts - before any engine can be built, which is what lets the
+     * engine warmup await the shared warmup before the "lep engines inited" latch opens. A standalone bean
+     * has no dependents and is created at an arbitrary point of a minutes-long startup, losing that
+     * ordering guarantee.
+     */
+    public void enableSharedRuntimeWarmup(Supplier<Class<? extends BaseLepContext>> lepContextClass) {
+        this.sharedRuntimeWarmupLepContextClass = lepContextClass;
+        this.sharedRuntimeWarmupEnabled = true;
+        startSharedRuntimeWarmup();
+    }
+
     @Override
     public void setBeanClassLoader(ClassLoader classLoader) {
         this.classLoader = classLoader;
+        startSharedRuntimeWarmup();
+    }
+
+    private void startSharedRuntimeWarmup() {
+        if (sharedRuntimeWarmupEnabled && classLoader != null) {
+            GroovySharedRuntimeWarmup.warmupOnceAsync(classLoader, sharedRuntimeWarmupLepContextClass);
+        }
     }
 
     @Override

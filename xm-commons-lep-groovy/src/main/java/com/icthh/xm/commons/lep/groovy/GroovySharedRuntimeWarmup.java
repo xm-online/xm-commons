@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.codehaus.groovy.runtime.GStringImpl;
 import org.codehaus.groovy.runtime.InvokerHelper;
-import org.springframework.beans.factory.BeanClassLoaderAware;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -14,8 +13,6 @@ import java.math.BigDecimal;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,10 +37,14 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  * miss of a request thread is resolved by Tomcat streaming nested jars (see
  * {@code TomcatBloomArchiveIndexConfiguration} in xm-commons-ms-web for the container side of the fix).
  *
- * <p>The warmup runs on a background daemon thread started by the {@link Starter} bean as soon as the bean
- * classloader is known, i.e. concurrently with the rest of spring startup. Lep traffic cannot observe a
- * partially warmed runtime: the {@code GroovyLepEngine} script warmup calls {@link #awaitCompletion()}
- * before the "lep engines inited" latch opens.
+ * <p>The warmup runs on a background daemon thread started from
+ * {@code GroovyLepEngineFactory#setBeanClassLoader}: the factory is a dependency of the whole lep
+ * subsystem, so it is guaranteed to exist - and the warmup to be running - before any engine is created.
+ * (Do NOT move the trigger to a standalone bean: nothing depends on such a bean, spring creates it at an
+ * arbitrary point of a minutes-long startup, and the engine init - driven independently by config events -
+ * then passes {@link #awaitCompletion()} before the warmup even started. Found the hard way.) Lep traffic
+ * cannot observe a partially warmed runtime: the {@code GroovyLepEngine} script warmup calls
+ * {@link #awaitCompletion()} before the "lep engines inited" latch opens.
  */
 @Slf4j
 public final class GroovySharedRuntimeWarmup {
@@ -58,10 +59,16 @@ public final class GroovySharedRuntimeWarmup {
     private static final int MAX_FIELD_GRAPH_DEPTH = 3;
     private static final int MAX_RECEIVER_CLASSES = 1000;
 
+    /**
+     * Deliberately contains NO java.util.Map types: the lep engine init script (InitLepEngine.groovy)
+     * expando-patches {@code AbstractMap.metaClass}, and groovy propagates such a patch to a subclass only
+     * if the subclass metaclass initializes AFTER the patch. Pre-initializing map metaclasses here would
+     * freeze them before the init script runs and silently disable {@code map.properties} in leps.
+     */
     private static final List<Class<?>> CORE_RECEIVER_CLASSES = List.of(
         GString.class, GStringImpl.class, String.class, Boolean.class, Integer.class, Long.class,
-        Double.class, BigDecimal.class, ArrayList.class, LinkedHashMap.class, HashMap.class,
-        LinkedHashSet.class, List.class, Map.class, Set.class, Object.class
+        Double.class, BigDecimal.class, ArrayList.class, LinkedHashSet.class, List.class, Set.class,
+        Object.class
     );
 
     /**
@@ -77,25 +84,6 @@ public final class GroovySharedRuntimeWarmup {
     }
 
     /**
-     * Declared as a bean by {@code GroovyLepEngineConfiguration} when lep warmup is enabled. Spring hands
-     * every bean the application classloader early in the startup, which is the trigger to run the warmup
-     * in the background - no other lifecycle is required, so the bean has no methods of its own.
-     */
-    public static class Starter implements BeanClassLoaderAware {
-
-        private final Supplier<Class<? extends BaseLepContext>> lepContextClass;
-
-        public Starter(Supplier<Class<? extends BaseLepContext>> lepContextClass) {
-            this.lepContextClass = lepContextClass;
-        }
-
-        @Override
-        public void setBeanClassLoader(ClassLoader classLoader) {
-            warmupOnceAsync(classLoader, lepContextClass);
-        }
-    }
-
-    /**
      * Starts the warmup on a daemon thread. Only the first call of the JVM has an effect: the state warmed
      * here (metaclasses of application classes) is process wide and survives lep engine recreation.
      *
@@ -108,7 +96,9 @@ public final class GroovySharedRuntimeWarmup {
         if (classLoader == null || !STARTED.compareAndSet(false, true)) {
             return false;
         }
-        Thread thread = new Thread(() -> warmup(classLoader, lepContextClass), "lep-shared-runtime-warmup");
+        // captured so the thread releases the latch of the warmup it belongs to
+        CountDownLatch completion = done;
+        Thread thread = new Thread(() -> warmup(classLoader, lepContextClass, completion), "lep-shared-runtime-warmup");
         thread.setDaemon(true);
         thread.start();
         return true;
@@ -136,6 +126,12 @@ public final class GroovySharedRuntimeWarmup {
     }
 
     static void warmup(ClassLoader classLoader, Supplier<Class<? extends BaseLepContext>> lepContextClass) {
+        warmup(classLoader, lepContextClass, done);
+    }
+
+    private static void warmup(ClassLoader classLoader,
+                               Supplier<Class<? extends BaseLepContext>> lepContextClass,
+                               CountDownLatch completion) {
         try {
             StopWatch stopWatch = StopWatch.createStarted();
             sweepClassLoaderMiss(classLoader);
@@ -144,7 +140,7 @@ public final class GroovySharedRuntimeWarmup {
             log.info("Lep shared runtime warmup done: classloader miss sweep {} ms, {} receiver metaclasses, total {} ms",
                 sweepTime, warmed.size(), stopWatch.getTime(MILLISECONDS));
         } finally {
-            done.countDown();
+            completion.countDown();
         }
     }
 
@@ -201,7 +197,9 @@ public final class GroovySharedRuntimeWarmup {
         while (!queue.isEmpty() && visited.size() < MAX_RECEIVER_CLASSES) {
             ClassAtDepth current = queue.poll();
             Class<?> clazz = unwrap(current.clazz());
-            if (clazz == null || clazz.isPrimitive() || !visited.add(clazz)) {
+            // maps are excluded for the same reason as in CORE_RECEIVER_CLASSES: the engine init
+            // script expando-patches AbstractMap, which must happen before their metaclasses initialize
+            if (clazz == null || clazz.isPrimitive() || Map.class.isAssignableFrom(clazz) || !visited.add(clazz)) {
                 continue;
             }
             if (current.depth() >= MAX_FIELD_GRAPH_DEPTH || clazz.getName().startsWith("java.")) {
