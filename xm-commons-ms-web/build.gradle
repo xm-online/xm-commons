@@ -17,4 +17,11 @@ dependencies {
     implementation "org.springframework.cloud:spring-cloud-commons"
     api "jakarta.servlet:jakarta.servlet-api"
     api "com.ecwid.consul:consul-api"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
 }
