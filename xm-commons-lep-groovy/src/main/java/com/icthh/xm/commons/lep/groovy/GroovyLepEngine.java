@@ -204,6 +204,10 @@ public class GroovyLepEngine extends LepEngine {
 
         warmupGroovyRuntimeState(groovyClassLoader);
 
+        // the engine is not warm until the JVM-wide runtime state is: this runs before the
+        // "lep engines inited" latch opens, so lep traffic never races the shared warmup
+        GroovySharedRuntimeWarmup.awaitCompletion();
+
         log.info("Stop warm-up LEP scripts, time = {} ms", stopWatch.getTime(MILLISECONDS));
     }
 

@@ -17,6 +17,7 @@ import com.icthh.xm.commons.lep.spring.ApplicationNameProvider;
 import com.icthh.xm.commons.lep.spring.LepContextActualClassDetector;
 import com.icthh.xm.commons.lep.spring.LepRefreshService;
 import com.icthh.xm.commons.lep.spring.LepSpringConfiguration;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -117,6 +118,21 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
     @Bean
     public GroovyMapLepWrapperFactory groovyMapLepWrapperFactory() {
         return new GroovyMapLepWrapperFactory();
+    }
+
+    /**
+     * Warms the process-wide groovy runtime state (receiver metaclasses of the actual LepContext class
+     * graph) in the background during startup, so the first lep execution does not pay for it - see
+     * {@link GroovySharedRuntimeWarmup}. Follows the same master switch as the script warmup.
+     */
+    @Bean
+    @ConditionalOnProperty(name = "application.lep.warmup-scripts", havingValue = "true", matchIfMissing = true)
+    public GroovySharedRuntimeWarmup.Starter groovySharedRuntimeWarmupStarter(
+            ObjectProvider<LepContextActualClassDetector> lepContextClassDetector) {
+        return new GroovySharedRuntimeWarmup.Starter(() -> {
+            LepContextActualClassDetector detector = lepContextClassDetector.getIfAvailable();
+            return detector != null ? detector.detectActualClass() : null;
+        });
     }
 
     @Bean
