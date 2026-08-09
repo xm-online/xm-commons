@@ -177,10 +177,11 @@ public class GroovyPrecompiledWarmupIntTest {
             new XmLepConfigFile(SCRIPT_PATH, "return 'ok'\n")
         );
 
+        GroovyLepEngine.resetInitScriptForTests();
         createFactory(tempDir.resolve("compiled").toAbsolutePath().toString(), false)
             .createLepEngine(TENANT, leps);
 
-        assertTrue(hasLog("STOP groovy lep engine init script for tenant " + TENANT),
+        assertTrue(hasLog("STOP groovy lep engine init script"),
             "init script expected to be executed");
         assertFalse(hasLog("Error run groovy lep engine init script"),
             "init script expected to run without an error");
@@ -202,9 +203,10 @@ public class GroovyPrecompiledWarmupIntTest {
         logAppender.list.clear();
 
         // phase B: no class tree on disk - the engine still has to run the init script
+        GroovyLepEngine.resetInitScriptForTests();
         createFactory(compiledDir.toAbsolutePath().toString()).createLepEngine(TENANT, leps);
 
-        assertTrue(hasLog("STOP groovy lep engine init script for tenant " + TENANT),
+        assertTrue(hasLog("STOP groovy lep engine init script"),
             "init script expected to be executed");
         assertFalse(hasLog("Error run groovy lep engine init script"),
             "init script expected to run without an error");
@@ -220,23 +222,25 @@ public class GroovyPrecompiledWarmupIntTest {
     }
 
     @Test
-    void engineCreationRunsTheInitScriptWithoutRecompilingIt() {
+    void engineCreationRunsTheInitScriptOncePerJvmWithoutRecompilingIt() {
         List<XmLepConfigFile> leps = List.of(
             new XmLepConfigFile(SCRIPT_PATH, "return 'ok'\n")
         );
 
         // the class may already be compiled by another test of this JVM - make the state explicit
         GroovyLepEngine.initScriptClass();
+        GroovyLepEngine.resetInitScriptForTests();
         logAppender.list.clear();
 
-        // dynamic mode with warmup, then precompiled mode: neither may compile the init script again
+        // dynamic mode with warmup, then precompiled mode: everything the script does is JVM global
+        // (metaclass patches, runtime warmup), so only the FIRST engine executes it
         createFactory(tempDir.resolve("dynamic").toAbsolutePath().toString(), false).createLepEngine(TENANT, leps);
         createFactory(tempDir.resolve("compiled").toAbsolutePath().toString()).createLepEngine(TENANT, leps);
 
         assertFalse(hasLog("Compile groovy lep engine init script"),
             "the init script must not be compiled again for a new engine");
-        assertEquals(2, countLog("STOP groovy lep engine init script for tenant " + TENANT),
-            "every engine must still run the init script");
+        assertEquals(1, countLog("STOP groovy lep engine init script"),
+            "the init script must run exactly once per JVM");
     }
 
     private boolean hasLog(String fragment) {

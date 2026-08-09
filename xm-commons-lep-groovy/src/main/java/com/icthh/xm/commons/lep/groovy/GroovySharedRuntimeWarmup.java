@@ -2,6 +2,7 @@ package com.icthh.xm.commons.lep.groovy;
 
 import com.icthh.xm.commons.lep.api.BaseLepContext;
 import groovy.lang.GString;
+import groovy.lang.MetaClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.codehaus.groovy.runtime.GStringImpl;
@@ -13,10 +14,13 @@ import java.math.BigDecimal;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -60,15 +64,14 @@ public final class GroovySharedRuntimeWarmup {
     private static final int MAX_RECEIVER_CLASSES = 1000;
 
     /**
-     * Deliberately contains NO java.util.Map types: the lep engine init script (InitLepEngine.groovy)
-     * expando-patches {@code AbstractMap.metaClass}, and groovy propagates such a patch to a subclass only
-     * if the subclass metaclass initializes AFTER the patch. Pre-initializing map metaclasses here would
-     * freeze them before the init script runs and silently disable {@code map.properties} in leps.
+     * Map types are safe here only because the init script (which expando-patches
+     * {@code AbstractMap.metaClass}) is guaranteed to run first - see {@link #warmup}: groovy propagates
+     * an expando patch to a subclass only when the subclass metaclass initializes after the patch.
      */
     private static final List<Class<?>> CORE_RECEIVER_CLASSES = List.of(
         GString.class, GStringImpl.class, String.class, Boolean.class, Integer.class, Long.class,
-        Double.class, BigDecimal.class, ArrayList.class, LinkedHashSet.class, List.class, Set.class,
-        Object.class
+        Double.class, BigDecimal.class, ArrayList.class, LinkedHashMap.class, HashMap.class,
+        LinkedHashSet.class, List.class, Map.class, Set.class, Object.class
     );
 
     /**
@@ -79,6 +82,13 @@ public final class GroovySharedRuntimeWarmup {
 
     private static final AtomicBoolean STARTED = new AtomicBoolean(false);
     private static volatile CountDownLatch done = new CountDownLatch(1);
+
+    /**
+     * Groovy stores metaclasses behind soft references: a GC during a few idle minutes was measured to
+     * evict the warmed state and hand its re-initialization (~1s) back to the first request after the
+     * idle. Holding the warmed metaclasses strongly keeps them for the JVM lifetime.
+     */
+    private static final List<MetaClass> WARMED_META_CLASSES = new CopyOnWriteArrayList<>();
 
     private GroovySharedRuntimeWarmup() {
     }
@@ -134,6 +144,9 @@ public final class GroovySharedRuntimeWarmup {
                                CountDownLatch completion) {
         try {
             StopWatch stopWatch = StopWatch.createStarted();
+            // the init script patches metaclasses (AbstractMap and friends) and MUST run before any
+            // metaclass warmed below initializes, otherwise the patches stay invisible to subclasses
+            GroovyLepEngine.applyInitScriptOnce("shared runtime warmup");
             sweepClassLoaderMiss(classLoader);
             long sweepTime = stopWatch.getTime(MILLISECONDS);
             Set<Class<?>> warmed = warmupReceiverMetaClasses(lepContextClass);
@@ -159,13 +172,46 @@ public final class GroovySharedRuntimeWarmup {
         Set<Class<?>> receivers = collectReceiverClasses(lepContextClass);
         for (Class<?> receiver : receivers) {
             try {
-                InvokerHelper.getMetaClass(receiver);
+                WARMED_META_CLASSES.add(InvokerHelper.getMetaClass(receiver));
             } catch (Throwable e) {
                 log.debug("Error warmup metaclass of {}: {}", receiver.getName(), e.toString());
             }
         }
         warmupGStringRuntime();
+        touchLepContextProperties(resolveLepContextClass(lepContextClass));
         return receivers;
+    }
+
+    /**
+     * Runs the real groovy property dispatch over an empty LepContext instance: {@code lepContext.<field>}
+     * is the first expression of virtually every lep, and the dispatch state it creates (meta properties,
+     * field reflectors) appears only when a property is actually read, not when the metaclass is created.
+     */
+    private static void touchLepContextProperties(Class<?> lepContextClass) {
+        if (lepContextClass == null) {
+            return;
+        }
+        try {
+            Object lepContext = lepContextClass.getDeclaredConstructor().newInstance();
+            MetaClass metaClass = InvokerHelper.getMetaClass(lepContext);
+            for (Class<?> type = lepContextClass; type != null && type != Object.class; type = type.getSuperclass()) {
+                for (Field field : type.getDeclaredFields()) {
+                    if (Modifier.isPublic(field.getModifiers()) && !Modifier.isStatic(field.getModifiers())) {
+                        touchProperty(metaClass, lepContext, field.getName());
+                    }
+                }
+            }
+        } catch (Throwable e) {
+            log.debug("Error warmup lep context properties of {}: {}", lepContextClass.getName(), e.toString());
+        }
+    }
+
+    private static void touchProperty(MetaClass metaClass, Object lepContext, String name) {
+        try {
+            metaClass.getProperty(lepContext, name);
+        } catch (Throwable e) {
+            log.trace("Error touching lep context property {}: {}", name, e.toString());
+        }
     }
 
     static Set<Class<?>> collectReceiverClasses(Supplier<Class<? extends BaseLepContext>> lepContextClass) {
@@ -197,9 +243,7 @@ public final class GroovySharedRuntimeWarmup {
         while (!queue.isEmpty() && visited.size() < MAX_RECEIVER_CLASSES) {
             ClassAtDepth current = queue.poll();
             Class<?> clazz = unwrap(current.clazz());
-            // maps are excluded for the same reason as in CORE_RECEIVER_CLASSES: the engine init
-            // script expando-patches AbstractMap, which must happen before their metaclasses initialize
-            if (clazz == null || clazz.isPrimitive() || Map.class.isAssignableFrom(clazz) || !visited.add(clazz)) {
+            if (clazz == null || clazz.isPrimitive() || !visited.add(clazz)) {
                 continue;
             }
             if (current.depth() >= MAX_FIELD_GRAPH_DEPTH || clazz.getName().startsWith("java.")) {
@@ -235,6 +279,7 @@ public final class GroovySharedRuntimeWarmup {
     static void resetForTests() {
         STARTED.set(false);
         done = new CountDownLatch(1);
+        WARMED_META_CLASSES.clear();
     }
 
     private record ClassAtDepth(Class<?> clazz, int depth) {

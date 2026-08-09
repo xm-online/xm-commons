@@ -4,6 +4,7 @@ import com.icthh.xm.commons.config.client.service.TenantAliasService;
 import com.icthh.xm.commons.lep.FileSystemUtils;
 import com.icthh.xm.commons.lep.LepPathResolver;
 import com.icthh.xm.commons.lep.TenantScriptStorage;
+import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepManagementService;
 import com.icthh.xm.commons.lep.groovy.annotation.LepServiceTransformation;
 import com.icthh.xm.commons.lep.groovy.storage.ClassPathLepStorageFactory;
@@ -107,13 +108,21 @@ public class GroovyLepEngineConfiguration extends LepSpringConfiguration {
             pathToWorkingDirectory,
             clearMapConstructorTypeAnnotations
         );
+
+        Class<? extends BaseLepContext> lepContextClass = detectLepContextClass(lepContextClassDetector);
+        if (lepContextClass != null) {
+            LepServiceTransformation.init(lepContextClass);
+        }
         if (warmupScripts) {
-            factory.enableSharedRuntimeWarmup(() -> {
-                LepContextActualClassDetector detector = lepContextClassDetector.getIfAvailable();
-                return detector != null ? detector.detectActualClass() : null;
-            });
+            factory.enableSharedRuntimeWarmup(() -> lepContextClass);
         }
         return factory;
+    }
+
+    private Class<? extends BaseLepContext> detectLepContextClass(
+            ObjectProvider<LepContextActualClassDetector> lepContextClassDetector) {
+        LepContextActualClassDetector detector = lepContextClassDetector.getIfAvailable();
+        return detector != null ? detector.detectActualClass() : null;
     }
 
     @Bean

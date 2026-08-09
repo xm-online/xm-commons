@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +63,7 @@ public class GroovyLepEngine extends LepEngine {
         new GroovyClassLoader(GroovyLepEngine.class.getClassLoader());
     private static final SingletonSupplier<Class<?>> INIT_SCRIPT_CLASS =
         SingletonSupplier.of(GroovyLepEngine::compileInitScript);
+    private static final AtomicBoolean INIT_SCRIPT_APPLIED = new AtomicBoolean(false);
 
     private final String tenant;
     private final LepStorage leps;
@@ -105,7 +107,7 @@ public class GroovyLepEngine extends LepEngine {
         this.lepMetadata.putAll(lepMetadata);
         this.lepPathResolver = lepPathResolver;
         this.tenantCommonsFolders = lepPathResolver.getLepCommonsPaths(tenant);
-        runInitScript();
+        applyInitScriptOnce("engine of tenant " + tenant);
         if (isWarmupEnabled) {
             warmupScripts();
         } else {
@@ -148,19 +150,33 @@ public class GroovyLepEngine extends LepEngine {
         }
     }
 
-    private void runInitScript() {
-        log.info("START run groovy lep engine init script for tenant {}", tenant);
+    /**
+     * Runs {@code InitLepEngine.groovy} once per JVM. Everything the script does is JVM global: it patches
+     * metaclasses in the global registry (which survive engine recreation) and executes representative
+     * groovy idioms so the callsite and metaclass machinery - created only by actually running code - is
+     * linked before the first lep executes. Running it once and as early as possible also guarantees the
+     * {@code AbstractMap} expando patch is applied before any map metaclass initializes; a patch applied
+     * after that initialization is silently invisible to map subclasses.
+     *
+     * <p>The script must therefore stay tenant agnostic: the {@code tenant} binding only names the trigger
+     * for logging.
+     */
+    static void applyInitScriptOnce(String trigger) {
+        if (!INIT_SCRIPT_APPLIED.compareAndSet(false, true)) {
+            log.debug("Groovy lep engine init script already applied, skipped for {}", trigger);
+            return;
+        }
+        log.info("START run groovy lep engine init script, triggered by {}", trigger);
         StopWatch stopWatch = StopWatch.createStarted();
         try {
             Binding binding = new Binding(new HashMap<>(Map.of(
                 "log", log,
-                "tenant", tenant
+                "tenant", trigger
             )));
             InvokerHelper.createScript(initScriptClass(), binding).run();
-            log.info("STOP groovy lep engine init script for tenant {}, time: {} ms",
-                tenant, stopWatch.getTime(MILLISECONDS));
+            log.info("STOP groovy lep engine init script, time: {} ms", stopWatch.getTime(MILLISECONDS));
         } catch (Throwable e) {
-            log.error("Error run groovy lep engine init script for tenant {}", tenant, e);
+            log.error("Error run groovy lep engine init script, triggered by {}", trigger, e);
         }
     }
 
@@ -170,6 +186,10 @@ public class GroovyLepEngine extends LepEngine {
      */
     static Class<?> initScriptClass() {
         return INIT_SCRIPT_CLASS.obtain();
+    }
+
+    static void resetInitScriptForTests() {
+        INIT_SCRIPT_APPLIED.set(false);
     }
 
     private static Class<?> compileInitScript() {

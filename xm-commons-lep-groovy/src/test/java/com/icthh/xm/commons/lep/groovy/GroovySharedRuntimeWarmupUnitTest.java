@@ -5,10 +5,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -66,15 +68,45 @@ public class GroovySharedRuntimeWarmupUnitTest {
     }
 
     /**
-     * The engine init script expando-patches AbstractMap.metaClass; a map metaclass initialized by the
-     * warmup before that patch would never see it. No map type may therefore be warmed.
+     * Map metaclasses may be warmed only AFTER the init script expando-patched AbstractMap - groovy does
+     * not propagate the patch into already initialized subclass metaclasses. The warmup must therefore
+     * apply the init script as its first step.
      */
     @Test
-    public void receiverGraphNeverContainsMapTypes() {
+    public void warmupAppliesInitScriptBeforeReceiverMetaClasses() throws Exception {
+        AtomicBoolean applied = initScriptAppliedFlag();
+        applied.set(false);
+
+        GroovySharedRuntimeWarmup.warmup(new RecordingClassLoader(), () -> TestLepContext.class);
+
+        assertTrue(applied.get(), "warmup must apply the engine init script before warming metaclasses");
+    }
+
+    @Test
+    public void receiverGraphContainsMapTypes() {
         Set<Class<?>> receivers = GroovySharedRuntimeWarmup.collectReceiverClasses(() -> TestLepContext.class);
 
-        assertFalse(receivers.stream().anyMatch(Map.class::isAssignableFrom),
-            "map types must not be warmed: engine init script patches AbstractMap.metaClass after warmup");
+        assertTrue(receivers.contains(Map.class), "map receivers are part of the warmup");
+    }
+
+    /**
+     * Groovy keeps metaclasses behind soft references, so an idle-time GC evicts them and the first
+     * request after the idle re-initializes everything - the warmup must pin what it warmed.
+     */
+    @Test
+    public void warmedMetaClassesAreHeldStrongly() throws Exception {
+        GroovySharedRuntimeWarmup.warmup(new RecordingClassLoader(), () -> TestLepContext.class);
+
+        Field held = GroovySharedRuntimeWarmup.class.getDeclaredField("WARMED_META_CLASSES");
+        held.setAccessible(true);
+        List<?> warmed = (List<?>) held.get(null);
+        assertTrue(warmed.size() >= 10, "warmed metaclasses must be strongly held, got " + warmed.size());
+    }
+
+    private AtomicBoolean initScriptAppliedFlag() throws Exception {
+        Field field = GroovyLepEngine.class.getDeclaredField("INIT_SCRIPT_APPLIED");
+        field.setAccessible(true);
+        return (AtomicBoolean) field.get(null);
     }
 
     @Test
