@@ -63,6 +63,10 @@ public class DatabaseTxIdResolver {
             case "H2":
                 //TODO how to get txId from H2?
                 return "SELECT 'not_implemented'";
+            case "MYSQL":
+                return "SELECT tx.trx_id " +
+                    "FROM information_schema.innodb_trx tx " +
+                    "WHERE tx.trx_mysql_thread_id = connection_id()";
             default:
                 throw new IllegalStateException(
                     "Cant define sql command to get transaction id, database: " + jpaVendor + " not supported."
