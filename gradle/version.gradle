@@ -1,6 +1,6 @@
 import java.util.regex.Pattern
 
-version = "5.0.39"
+version = "5.1.0"
 
 logger.lifecycle("Project  version: $version")
 
@@ -17,20 +17,20 @@ public class SemVersion {
     private static final String NUMERIC_ID = "(?:0|[1-9]\\d*)"
     private static final String MAIN_VERSION = "(" + NUMERIC_ID + ")\\.(" + NUMERIC_ID + ")\\.(" + NUMERIC_ID + ")"
 
-    private static final Pattern MAIN_VERSION_REG = Pattern.compile(MAIN_VERSION);
+    private static final Pattern MAIN_VERSION_REG = Pattern.compile(MAIN_VERSION)
 
     private final String value
 
     public SemVersion(String value) {
-        this.value = value;
+        this.value = value
     }
 
     public static SemVersion valueOf(String value) {
-        return new SemVersion(value);
+        return new SemVersion(value)
     }
 
     public boolean isRelease() {
-        return !"0.0.0".equals(value) && MAIN_VERSION_REG.matcher(value).matches();
+        return !"0.0.0".equals(value) && MAIN_VERSION_REG.matcher(value).matches()
     }
 
 }

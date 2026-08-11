@@ -13,13 +13,13 @@ ext.versions = [
     commonsText                : '1.15.0',
     guava                      : '33.5.0-jre',
 
-    springBoot                 : '4.0.4',
-    springCloud                : '2025.1.1',
+    springBoot                 : '4.1.0',
+    springCloud                : '2025.1.2',
 
     jsr305                     : '3.0.2',
 
-    jhipster                   : '8.1.0',
-    lombok                     : '1.18.44',
+    jhipster                   : '9.1.0',
+    lombok                     : '1.18.46',
     logstashLogbackEncoder     : '8.0',
     caffeine                   : '3.2.3',
 
@@ -33,15 +33,13 @@ ext.versions = [
 
     systemRules                : '1.19.0',
 
-    hibernate                  : '7.3.1.Final',
+    hibernate                  : '7.4.1.Final',
 
     jjwt                       : '0.13.0',
 
     mapstruct                  : '1.6.3',
 
     groovyAll                  : '5.0.4',
-
-    dropwizard                 : '4.2.31',
 
     lucene                     : '10.4.0',
 
