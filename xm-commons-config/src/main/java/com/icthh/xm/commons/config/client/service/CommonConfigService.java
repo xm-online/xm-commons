@@ -15,8 +15,9 @@ public class CommonConfigService extends AbstractConfigService {
     private final CommonConfigRepository commonConfigRepository;
 
     public CommonConfigService(FetchConfigurationSettings fetchConfigurationSettings,
-                               CommonConfigRepository commonConfigRepository) {
-        super(fetchConfigurationSettings);
+                               CommonConfigRepository commonConfigRepository,
+                               ConfigurationOrderService configurationOrderService) {
+        super(fetchConfigurationSettings, configurationOrderService);
         this.commonConfigRepository = commonConfigRepository;
     }
 
