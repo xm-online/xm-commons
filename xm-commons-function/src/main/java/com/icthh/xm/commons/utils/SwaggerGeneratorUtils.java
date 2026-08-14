@@ -55,14 +55,14 @@ public class SwaggerGeneratorUtils {
             return true;
         }
 
-        if (field.getValue().has("type") && field.getValue().get("type").asString().equals("object")) {
+        if (field.getValue().has("type") && field.getValue().get("type").asString("").equals("object")) {
             log.warn("Object in query parameters is not supported");
             return true;
         }
 
-        if (field.getValue().has("type") && field.getValue().get("type").asString().equals("array")) {
+        if (field.getValue().has("type") && field.getValue().get("type").asString("").equals("array")) {
             JsonNode items = field.getValue().get("items");
-            if (items.has("type") && items.get("type").asString().equals("object")) {
+            if (items.has("type") && items.get("type").asString("").equals("object")) {
                 log.warn("Array of objects in query parameters is not supported");
                 return true;
             }
