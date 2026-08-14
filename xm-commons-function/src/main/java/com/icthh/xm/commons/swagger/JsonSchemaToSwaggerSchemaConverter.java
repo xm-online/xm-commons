@@ -155,7 +155,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
     }
 
     private void fixArrayDeclarations(ObjectNode object) {
-        if (object.has("type") && object.get("type").asString().equals("array")
+        if (object.has("type") && object.get("type").asString("").equals("array")
             && object.has("items") && object.get("items").isArray() && object.get("items").size() == 1) {
             object.set("items", object.get("items").get(0));
         }
@@ -216,7 +216,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
         }
 
         boolean schemaHasRefAndPropsOnOneLevel = schema.has("$ref") && schema.has("properties")
-            && schema.has("type") && schema.get("type").asString().equals("object");
+            && schema.has("type") && schema.get("type").asString("").equals("object");
 
         if (!schemaHasRefAndPropsOnOneLevel) {
             return;
@@ -244,7 +244,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
     }
 
     private boolean insideProperties(JsonNode parent, String parentFieldName) {
-        return parentFieldName.equals("properties") && parent.has("type") && parent.get("type").asString().equals("object");
+        return parentFieldName.equals("properties") && parent.has("type") && parent.get("type").asString("").equals("object");
     }
 
     private void processDefinitions(String typeName, ObjectNode json,
@@ -259,7 +259,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
 
         traverseSchema(instance.nullNode(), typeName, json, (parent, fieldName, object) -> {
             if (object.has("$ref")) {
-                String ref = object.get("$ref").asString();
+                String ref = object.get("$ref").asString("");
                 Optional<String> definitionField = definitionPrefixes.stream().map(it -> "#/" + it + "/").filter(ref::startsWith).findFirst();
                 if (definitionField.isEmpty()) {
                     return;
@@ -331,7 +331,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
             return;
         }
         if (type.has("$ref")) {
-            String ref = type.get("$ref").asString();
+            String ref = type.get("$ref").asString("");
             if (definitionPrefixes.stream().map(it -> "#/" + it + "/").noneMatch(ref::startsWith)) {
                 throw new BusinessException("error.invalid.json.type.ref", "Invalid ref: " + ref,
                     Map.of("json", typeBlock.toString(), "fieldName", fieldName));
@@ -340,15 +340,15 @@ public class JsonSchemaToSwaggerSchemaConverter {
         }
         if (type.isArray()) {
             type.forEach(it -> {
-                if (!validTypes.contains(it.asString())) {
-                    throw new BusinessException("error.invalid.json.type", "Invalid type: " + it.asString(),
+                if (!validTypes.contains(it.asString(""))) {
+                    throw new BusinessException("error.invalid.json.type", "Invalid type: " + it.asString(""),
                         Map.of("json", typeBlock.toString(), "fieldName", fieldName));
                 }
             });
             return;
         }
-        if (!validTypes.contains(type.asString())) {
-            throw new BusinessException("error.invalid.json.type", "Invalid type: " + type.asString(),
+        if (!validTypes.contains(type.asString(""))) {
+            throw new BusinessException("error.invalid.json.type", "Invalid type: " + type.asString(""),
                 Map.of("json", typeBlock.toString(), "fieldName", fieldName));
         }
     }
@@ -361,13 +361,13 @@ public class JsonSchemaToSwaggerSchemaConverter {
 
         validateTypes(parent, fieldName, json);
 
-        if (type.isNull() || type.asString().equals("null")) {
+        if (type.isNull() || type.asString("").equals("null")) {
             json.remove("type");
             json.put("nullable", true);
             return json;
         }
 
-        if (type.asString().equals("array") && !json.has("items")) {
+        if (type.asString("").equals("array") && !json.has("items")) {
             json.putObject("items");
         }
 
@@ -376,7 +376,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
             Iterator<JsonNode> elements = typeArrayNode.elements().iterator();
             while (elements.hasNext()) {
                 var it = elements.next();
-                if (it.isNull() || it.asString().equals("null")) {
+                if (it.isNull() || it.asString("").equals("null")) {
                     elements.remove();
                     json.put("nullable", true);
                 }
@@ -425,7 +425,7 @@ public class JsonSchemaToSwaggerSchemaConverter {
 
     private void rewriteExclusiveMinMax(ObjectNode json) {
         if (json.has("type") && (
-            json.get("type").asString().equals("number") || json.get("type").asString().equals("integer")
+            json.get("type").asString("").equals("number") || json.get("type").asString("").equals("integer")
         )) {
             if (json.has("exclusiveMinimum") && json.get("exclusiveMinimum").isNumber()) {
                 json.set("minimum", json.get("exclusiveMinimum"));
@@ -465,9 +465,9 @@ public class JsonSchemaToSwaggerSchemaConverter {
         }
 
         if (jsonNode.has("$ref")) {
-            inlineRef(jsonNode.get("$ref").asString(), (ObjectNode) jsonNode, definitions);
+            inlineRef(jsonNode.get("$ref").asString(""), (ObjectNode) jsonNode, definitions);
         } else if (jsonNode.has("properties") && jsonNode.get("properties").has("$ref")) {
-            inlineRef(jsonNode.get("properties").get("$ref").asString(), (ObjectNode) jsonNode.get("properties"), definitions);
+            inlineRef(jsonNode.get("properties").get("$ref").asString(""), (ObjectNode) jsonNode.get("properties"), definitions);
         }
     }
 

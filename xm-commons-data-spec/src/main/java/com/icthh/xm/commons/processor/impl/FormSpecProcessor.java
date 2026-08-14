@@ -152,7 +152,7 @@ public class FormSpecProcessor extends SpecProcessor<FormSpec> {
         String refPath = firstNonNull(refNode, ymlMapper.createObjectNode()).asString("");
         String formSpec = specifications.getOrDefault(refPath, "{}");
         var fromSpecNode = this.convertSpecificationToObjectNodes(formSpec, refPath);
-        processFromSpecNode(fromSpecNode, keyNode.isValueNode() ? keyNode.asString() : "");
+        processFromSpecNode(fromSpecNode, keyNode.isValueNode() ? keyNode.asString("") : "");
         injectJsonNode(parentNode, objectNode, fromSpecNode, refPath);
 
         objectMap.values().forEach(childNode -> replaceReferences(childNode, specifications, objectNode));
@@ -193,7 +193,7 @@ public class FormSpecProcessor extends SpecProcessor<FormSpec> {
             Map<String, JsonNode> objectMap = copyToMap(objectNode.properties().iterator());
             JsonNode keyNode = objectMap.get(KEY);
             if (keyNode != null) {
-                objectNode.put(KEY, prefix + '.' + keyNode.asText());
+                objectNode.put(KEY, prefix + '.' + keyNode.asString(""));
             } else if (objectMap.containsKey(REF)) {
                 objectNode.put(KEY, prefix);
             }
