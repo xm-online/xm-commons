@@ -13,11 +13,13 @@ public class JsonMapperUtils {
 
 
     public static ObjectMapper getDefaultJsonMapper() {
-        return JsonMapper.builder().build();
+        return buildJsonMapper(builder -> {});
     }
 
     public static ObjectMapper buildJsonMapper(Consumer<JsonMapper.Builder> customizer) {
-        JsonMapper.Builder builder = JsonMapper.builder();
+        JsonMapper.Builder builder = JsonMapper.builder()
+            // Jackson 2 parity: do not fail on content after the first JSON value (Jackson 3 enables this check by default)
+            .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
         customizer.accept(builder);
         return builder.build();
     }

@@ -198,6 +198,33 @@ public class JsonSchemaToSwaggerSchemaConverterUnitTest {
         assertInvalidType(jsonSchema);
     }
 
+    @Test
+    public void ignoreTrailingContentAfterJsonSchema() {
+        // A tenant misindents the next YAML key into the inputSpec block scalar, so the spec string
+        // carries trailing YAML after the JSON object. Jackson 2 readTree ignored trailing tokens,
+        // so such specs worked for years; Jackson 3 enables FAIL_ON_TRAILING_TOKENS by default.
+        // language=json
+        String jsonSchema = """
+            {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string"
+                }
+              }
+            }
+            """;
+        String jsonSchemaWithTrailingYaml = jsonSchema + """
+            outputSpec: |
+              {
+                "type": "object"
+              }
+            """;
+
+        String expected = converter.transformToSwaggerJson(TYPE_NAME, jsonSchema, Map.of(), Map.of());
+        assertConverted(jsonSchemaWithTrailingYaml, expected);
+    }
+
     private void assertConverted(String jsonSchema, String expected) {
         String actual = converter.transformToSwaggerJson(TYPE_NAME, jsonSchema, Map.of(), Map.of());
         assertEquals(objectMapper.readTree(expected), objectMapper.readTree(actual));
