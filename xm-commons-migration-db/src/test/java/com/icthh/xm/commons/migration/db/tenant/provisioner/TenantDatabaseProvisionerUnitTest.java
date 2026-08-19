@@ -33,6 +33,7 @@ public class TenantDatabaseProvisionerUnitTest {
     private static final String TENANT_KEY = "testKey";
     private static final String TENANT_STATE = "testState";
     private static final String DB_SCHEMA_SUFFIX_VALUE = "_suffix";
+    private static final String JPA_VENDOR = "POSTGRESQL";
 
     private TenantDatabaseProvisioner tenantDatabaseProvisioner;
 
@@ -66,7 +67,7 @@ public class TenantDatabaseProvisionerUnitTest {
         when(connection.createStatement()).thenReturn(statement);
 
         tenantDatabaseProvisioner = Mockito.spy(new TenantDatabaseProvisioner(dataSource, properties,
-            schemaDropResolver, liquibaseRunner, null));
+            schemaDropResolver, liquibaseRunner, null, JPA_VENDOR));
     }
 
     @Test
@@ -89,7 +90,7 @@ public class TenantDatabaseProvisionerUnitTest {
     @SneakyThrows
     public void testCreateTenantWithSuffix() {
         tenantDatabaseProvisioner = Mockito.spy(new TenantDatabaseProvisioner(dataSource, properties,
-            schemaDropResolver, liquibaseRunner, DB_SCHEMA_SUFFIX_VALUE));
+            schemaDropResolver, liquibaseRunner, DB_SCHEMA_SUFFIX_VALUE, JPA_VENDOR));
 
         doNothing().when(tenantDatabaseProvisioner).migrateSchema(any());
         Tenant tenant = new Tenant().tenantKey(TENANT_KEY);
@@ -140,7 +141,7 @@ public class TenantDatabaseProvisionerUnitTest {
     @SneakyThrows
     public void testDeleteTenantWithSuffix() {
         tenantDatabaseProvisioner = Mockito.spy(new TenantDatabaseProvisioner(dataSource, properties,
-            schemaDropResolver, liquibaseRunner, DB_SCHEMA_SUFFIX_VALUE));
+            schemaDropResolver, liquibaseRunner, DB_SCHEMA_SUFFIX_VALUE, JPA_VENDOR));
 
         when(schemaDropResolver.getSchemaDropCommand()).thenReturn("DROP SCHEMA IF EXISTS %s CASCADE");
         tenantDatabaseProvisioner.deleteTenant(TENANT_KEY);
