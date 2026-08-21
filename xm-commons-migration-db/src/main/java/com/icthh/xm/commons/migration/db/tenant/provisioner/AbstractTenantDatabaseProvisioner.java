@@ -63,7 +63,7 @@ public abstract class AbstractTenantDatabaseProvisioner implements TenantProvisi
     protected abstract void migrateSchema(String schema) throws Exception;
 
     private void createSchema(final String schema) throws SQLException {
-        if (SCHEMA_CREATION_EXCLUDE_SET.contains(jpaVendor)) {
+        if (jpaVendor != null && SCHEMA_CREATION_EXCLUDE_SET.contains(jpaVendor.toUpperCase())) {
             log.info("Schema creation for {} jpa provider is not supported, skipping for schema: {}", jpaVendor, schema);
             return;
         }
