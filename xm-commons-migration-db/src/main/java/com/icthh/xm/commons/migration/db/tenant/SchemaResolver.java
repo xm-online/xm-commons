@@ -38,7 +38,8 @@ public class SchemaResolver {
             log.info("Schema creation for {} jpa provider is disabled", jpaVendor);
             return;
         }
-        if (SCHEMA_CREATION_EXCLUDE_SET.contains(jpaVendor)) {
+        if (StringUtils.isNotBlank(jpaVendor)
+            && SCHEMA_CREATION_EXCLUDE_SET.contains(jpaVendor.trim().toUpperCase())) {
             log.info("Schema creation for {} jpa provider is not supported", jpaVendor);
             return;
         }
