@@ -35,6 +35,7 @@ public class FlywayRunner {
                 .baselineOnMigrate(flywayProperties.isBaselineOnMigrate())
                 .outOfOrder(flywayProperties.isOutOfOrder())
                 .validateOnMigrate(flywayProperties.isValidateOnMigrate())
+                .placeholders(flywayProperties.getPlaceholders())
                 .load();
             flyway.migrate();
         } finally {

@@ -45,6 +45,7 @@ public abstract class FlywayDatabaseConfiguration extends AbstractDatabaseConfig
             .baselineOnMigrate(flywayProperties.isBaselineOnMigrate())
             .outOfOrder(flywayProperties.isOutOfOrder())
             .validateOnMigrate(flywayProperties.isValidateOnMigrate())
+            .placeholders(flywayProperties.getPlaceholders())
             .load();
         flyway.migrate();
         return flyway;
@@ -63,6 +64,7 @@ public abstract class FlywayDatabaseConfiguration extends AbstractDatabaseConfig
         multiTenantFlyway.setBaselineOnMigrate(flywayProperties.isBaselineOnMigrate());
         multiTenantFlyway.setOutOfOrder(flywayProperties.isOutOfOrder());
         multiTenantFlyway.setValidateOnMigrate(flywayProperties.isValidateOnMigrate());
+        multiTenantFlyway.setPlaceholders(flywayProperties.getPlaceholders());
 
         if (env.acceptsProfiles(Profiles.of(SPRING_PROFILE_NO_FLYWAY))) {
             multiTenantFlyway.setShouldRun(false);

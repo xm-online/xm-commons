@@ -23,6 +23,12 @@ public class TenantDatabaseProvisioner extends AbstractTenantDatabaseProvisioner
 
     public TenantDatabaseProvisioner(DataSource dataSource, LiquibaseProperties properties,
                                      DropSchemaResolver schemaDropResolver, LiquibaseRunner liquibaseRunner,
+                                     @Value("${application.db-schema-suffix:}") String dbSchemaSuffix) {
+        this(dataSource, properties, schemaDropResolver, liquibaseRunner, dbSchemaSuffix, null);
+    }
+
+    public TenantDatabaseProvisioner(DataSource dataSource, LiquibaseProperties properties,
+                                     DropSchemaResolver schemaDropResolver, LiquibaseRunner liquibaseRunner,
                                      @Value("${application.db-schema-suffix:}") String dbSchemaSuffix,
                                      @Value("${spring.jpa.database:}") String jpaVendor) {
         super(dataSource, schemaDropResolver, dbSchemaSuffix, jpaVendor);
