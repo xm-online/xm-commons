@@ -21,7 +21,14 @@ public class FetchConfigurationSettings {
                 "/config/tenants/{tenantName}/commons/**",
                 "/config/tenants/{tenantName}/*",
                 "/config/tenants/{tenantName}/" + applicationName + "/**",
-                "/config/tenants/{tenantName}/config/**");
+                "/config/tenants/{tenantName}/config/**",
+                "\\config\\tenants\\commons\\**",
+                "\\config\\tenants\\*",
+                "\\config\\tenants\\{tenantName}\\commons\\**",
+                "\\config\\tenants\\{tenantName}\\*",
+                "\\config\\tenants\\{tenantName}\\" + applicationName + "\\**",
+                "\\config\\tenants\\{tenantName}\\config\\**"
+        );
         this.isFetchAll = isFetchAll;
     }
 
