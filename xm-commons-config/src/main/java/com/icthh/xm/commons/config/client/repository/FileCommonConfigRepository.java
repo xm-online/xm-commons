@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
+
 import lombok.SneakyThrows;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
@@ -21,13 +21,18 @@ import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
 import static org.apache.commons.lang3.StringUtils.replaceChars;
 
-@RequiredArgsConstructor
+
 public class FileCommonConfigRepository implements CommonConfigRepository {
 
     private static final IOFileFilter TRUE_FILTER = TrueFileFilter.INSTANCE;
 
     private final XmConfigProperties xmConfigProperties;
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
+
+    public FileCommonConfigRepository(XmConfigProperties xmConfigProperties) {
+        this.xmConfigProperties = xmConfigProperties;
+        this.antPathMatcher.setPathSeparator(File.pathSeparator);
+    }
 
     @Override
     public Map<String, Configuration> getConfig(String commit) {
