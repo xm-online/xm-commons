@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.config.client.api;
 
 
+import java.io.File;
 import java.util.List;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,19 +16,14 @@ public class FetchConfigurationSettings {
 
     public FetchConfigurationSettings(@Value("${spring.application.name}") String applicationName,
                                       @Value("${application.config-fetch-all.enabled:false}") Boolean isFetchAll) {
+        String sep = File.separator;
         this.msConfigPatterns = List.of(
-                "/config/tenants/commons/**",
-                "/config/tenants/*",
-                "/config/tenants/{tenantName}/commons/**",
-                "/config/tenants/{tenantName}/*",
-                "/config/tenants/{tenantName}/" + applicationName + "/**",
-                "/config/tenants/{tenantName}/config/**",
-                "\\config\\tenants\\commons\\**",
-                "\\config\\tenants\\*",
-                "\\config\\tenants\\{tenantName}\\commons\\**",
-                "\\config\\tenants\\{tenantName}\\*",
-                "\\config\\tenants\\{tenantName}\\" + applicationName + "\\**",
-                "\\config\\tenants\\{tenantName}\\config\\**"
+            sep + "config" + sep + "tenants" + sep + "commons" + sep + "**",
+            sep + "config" + sep + "tenants" + sep + "*",
+            sep + "config" + sep + "tenants" + sep + "{tenantName}" + sep + "commons" + sep + "**",
+            sep + "config" + sep + "tenants" + sep + "{tenantName}" + sep + "*",
+            sep + "config" + sep + "tenants" + sep + "{tenantName}" + sep + applicationName + sep + "**",
+            sep + "config" + sep + "tenants" + sep + "{tenantName}" + sep + "config" + sep + "**"
         );
         this.isFetchAll = isFetchAll;
     }
