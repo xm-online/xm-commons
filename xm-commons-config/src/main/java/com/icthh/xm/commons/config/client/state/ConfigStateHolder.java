@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 
 import java.security.MessageDigest;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -16,6 +17,7 @@ public class ConfigStateHolder {
     private static final byte SEPARATOR = 0;
     private static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
 
+    private final Map<String, String> configHashes = new ConcurrentHashMap<>();
     private final AtomicReference<String> receivedCommit = new AtomicReference<>();
     private final AtomicReference<String> processedCommit = new AtomicReference<>();
     private final AtomicReference<String> processedConfigsHash = new AtomicReference<>();
@@ -28,8 +30,9 @@ public class ConfigStateHolder {
         processedCommit.set(commit);
     }
 
-    public void onConfigurationsProcessed(Map<String, Configuration> configurations) {
-        processedConfigsHash.set(hashConfigurations(configurations));
+    public synchronized void onConfigurationsProcessed(Map<String, Configuration> configurations) {
+        configurations.forEach(this::updateConfigHash);
+        processedConfigsHash.set(hashOfHashes());
     }
 
     public String getReceivedCommit() {
@@ -44,36 +47,41 @@ public class ConfigStateHolder {
         return processedConfigsHash.get();
     }
 
-    @SneakyThrows
-    private static String hashConfigurations(Map<String, Configuration> configurations) {
-        MessageDigest digest = MessageDigest.getInstance(SHA_256);
-        configurations.entrySet()
+    private void updateConfigHash(String path, Configuration configuration) {
+        String content = configuration == null ? null : configuration.getContent();
+        if (content == null) {
+            configHashes.remove(path);
+        } else {
+            MessageDigest digest = newDigest();
+            update(digest, content);
+            configHashes.put(path, toHex(digest.digest()));
+        }
+    }
+
+    private String hashOfHashes() {
+        MessageDigest digest = newDigest();
+        configHashes.entrySet()
             .stream()
             .sorted(Map.Entry.comparingByKey())
             .forEach(entry -> {
                 update(digest, entry.getKey());
                 digest.update(SEPARATOR);
-                update(digest, getContent(entry.getValue()));
+                update(digest, entry.getValue());
                 digest.update(SEPARATOR);
             });
         return toHex(digest.digest());
     }
 
-    private static String getContent(Configuration configuration) {
-        return configuration == null ? null : configuration.getContent();
+    @SneakyThrows
+    private static MessageDigest newDigest() {
+        return MessageDigest.getInstance(SHA_256);
     }
 
     private static void update(MessageDigest digest, String value) {
-        if (value == null) {
-            return;
-        }
         int length = value.length();
         int from = 0;
         while (from < length) {
             int to = Math.min(from + CHUNK_SIZE, length);
-            if (to < length && Character.isHighSurrogate(value.charAt(to - 1))) {
-                to++;
-            }
             digest.update(value.substring(from, to).getBytes(UTF_8));
             from = to;
         }
