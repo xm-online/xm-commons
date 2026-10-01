@@ -82,22 +82,32 @@ public class LepPathResolver {
     }
 
     public String getLepPath(LepKey lepKey, String tenant) {
-        return buildLepPath(lepKey, tenant, identity());
+        return buildLepPath(lepKey, tenant, identity(), identity());
     }
 
     public String getLegacyLepPath(LepKey lepKey, String tenant) {
-        return buildLepPath(lepKey, tenant, LepPathResolver::translateToLepConvention);
+        return buildLepPath(lepKey, tenant, identity(), LepPathResolver::translateToLepConvention);
+    }
+
+    /**
+     * Legacy path with the first character of the lep name in upper case, as xm-commons 2 built script names
+     * ({@code earnBalance} resolved to {@code EarnBalance$$...groovy}).
+     */
+    public String getLegacyCapitalizedLepPath(LepKey lepKey, String tenant) {
+        return buildLepPath(lepKey, tenant, StringUtils::capitalize, LepPathResolver::translateToLepConvention);
     }
 
     private static String translateToLepConvention(String xmEntitySpecKey) {
         return xmEntitySpecKey.replaceAll("-", "_").replaceAll("\\.", "\\$");
     }
 
-    private String buildLepPath(LepKey lepKey, String tenant, Function<String, String> segmentMapper) {
-        String lepPath = lepKey.getBaseKey();
+    private String buildLepPath(LepKey lepKey, String tenant, Function<String, String> baseKeyMapper,
+                                Function<String, String> segmentMapper) {
+        String baseKey = baseKeyMapper.apply(lepKey.getBaseKey());
+        String lepPath = baseKey;
         List<String> segments = lepKey.getSegments();
         if (StringUtils.isNotBlank(lepKey.getGroup())) {
-            lepPath = lepKey.getGroup().replace(".", "/") + "/" + lepKey.getBaseKey();
+            lepPath = lepKey.getGroup().replace(".", "/") + "/" + baseKey;
         }
         if (isNotEmpty(segments)) {
             segments = segments.stream().map(segmentMapper).collect(toList());
