@@ -1,13 +1,16 @@
 package com.icthh.xm.commons.config.client.api;
 
+import com.icthh.xm.commons.config.client.service.ConfigurationOrderService;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.util.AntPathMatcher;
 
 @Slf4j
@@ -16,10 +19,13 @@ public abstract class AbstractConfigService implements ConfigService {
     private final List<ConfigurationChangedListener> configurationListeners = new ArrayList<>();
     private final AntPathMatcher antPathMatcher;
     private final FetchConfigurationSettings fetchConfigurationSettings;
+    private final ConfigurationOrderService configurationOrderService;
 
-    protected AbstractConfigService(FetchConfigurationSettings fetchConfigurationSettings) {
+    protected AbstractConfigService(FetchConfigurationSettings fetchConfigurationSettings,
+                                    ConfigurationOrderService configurationOrderService) {
         this.antPathMatcher = new AntPathMatcher();
         this.fetchConfigurationSettings = fetchConfigurationSettings;
+        this.configurationOrderService = configurationOrderService;
     }
 
     @Override
@@ -28,7 +34,9 @@ public abstract class AbstractConfigService implements ConfigService {
     }
 
     /**
-     * Update configuration from config service
+     * Update configuration from config service.
+     * Paths are dispatched in the order defined by the tenant's order.yml (if any):
+     * order.yml itself first, then files by first matching pattern, then the rest.
      *
      * @param commit commit hash, will be empty if configuration deleted
      * @param paths collection of paths updated
@@ -38,8 +46,12 @@ public abstract class AbstractConfigService implements ConfigService {
         final Collection<String> filteredPaths = getFilteredPaths(paths);
         if (!filteredPaths.isEmpty()) {
             Map<String, Configuration> configurationsMap = getConfigurationMap(commit, filteredPaths);
-            paths.forEach(path -> notifyUpdated(getNonNullConfiguration(configurationsMap, path)));
-            configurationListeners.forEach(it -> it.refreshFinished(filteredPaths));
+            configurationOrderService.processOrderConfigs(filteredPaths, configurationsMap);
+            List<String> sortedPaths = configurationOrderService.sortPaths(paths);
+            Set<String> filteredSet = new HashSet<>(filteredPaths);
+            List<String> sortedFilteredPaths = sortedPaths.stream().filter(filteredSet::contains).toList();
+            sortedPaths.forEach(path -> notifyUpdated(getNonNullConfiguration(configurationsMap, path)));
+            configurationListeners.forEach(it -> it.refreshFinished(sortedFilteredPaths));
         }
     }
 
