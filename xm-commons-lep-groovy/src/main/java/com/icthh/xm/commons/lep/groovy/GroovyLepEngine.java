@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
@@ -318,23 +319,29 @@ public class GroovyLepEngine extends LepEngine {
     private List<String> getMainKeys(LepKey lepKey) {
         String lepPath = lepPathResolver.getLepPath(lepKey, tenant);
         String legacyLepPath = lepPathResolver.getLegacyLepPath(lepKey, tenant);
-        return List.of(
+        String capitalizedLegacyLepPath = lepPathResolver.getLegacyCapitalizedLepPath(lepKey, tenant);
+        return Stream.of(
             legacyLepPath + "$$tenant",
             legacyLepPath + "$$around",
             lepPath + "$$tenant",
             lepPath + "$$around",
+            capitalizedLegacyLepPath + "$$tenant",
+            capitalizedLegacyLepPath + "$$around",
             legacyLepPath,
-            lepPath
-        );
+            lepPath,
+            capitalizedLegacyLepPath
+        ).distinct().toList();
     }
 
     private List<String> getBeforeKeys(LepKey lepKey) {
         String lepPath = lepPathResolver.getLepPath(lepKey, tenant);
         String legacyLepPath = lepPathResolver.getLegacyLepPath(lepKey, tenant);
-        return List.of(
+        String capitalizedLegacyLepPath = lepPathResolver.getLegacyCapitalizedLepPath(lepKey, tenant);
+        return Stream.of(
             legacyLepPath + "$$before",
-            lepPath + "$$before"
-        );
+            lepPath + "$$before",
+            capitalizedLegacyLepPath + "$$before"
+        ).distinct().toList();
     }
 
     private Optional<String> getExistingKey(List<String> keys) {

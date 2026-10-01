@@ -37,6 +37,26 @@ public class DynamicTestLepService {
         return "Hello I am service method!";
     }
 
+    @LogicExtensionPoint("lowerCaseLepMethod")
+    public String lowerCaseLepMethod() {
+        return "Hello I am service method!";
+    }
+
+    @LogicExtensionPoint("lowerCaseOriginalLepMethod")
+    public String lowerCaseOriginalLepMethod() {
+        return "Hello I am service method!";
+    }
+
+    @LogicExtensionPoint("lowerCaseNoScriptLepMethod")
+    public String lowerCaseNoScriptLepMethod() {
+        return "Hello I am service method!";
+    }
+
+    @LogicExtensionPoint(value = "lowerCaseLepMethodWithSegment", resolverExpression = "#input.data.value")
+    public String lowerCaseLepMethodWithSegment(TestInput input) {
+        return "Hello I am service method!";
+    }
+
     @LogicExtensionPoint("TestLepMethodWithInputObject")
     public Object testLepMethodObject(Map<String, Object> input) {
         return null;

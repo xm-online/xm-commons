@@ -80,6 +80,41 @@ public class LepIntTest {
 
     @Test
     @SneakyThrows
+    public void testLepWithCapitalizedLegacyScriptName() {
+        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/LowerCaseLepMethod$$around.groovy",
+            "return 'capitalized'");
+        assertEquals("capitalized", testLepService.lowerCaseLepMethod());
+    }
+
+    @Test
+    @SneakyThrows
+    public void testLepWithOriginalScriptName() {
+        resourceLoader.onRefresh("/config/tenants/TEST/testApp/lep/service/lowerCaseOriginalLepMethod$$around.groovy",
+            "return 'original'");
+        assertEquals("original", testLepService.lowerCaseOriginalLepMethod());
+    }
+
+    @Test
+    @SneakyThrows
+    public void testLepWithCapitalizedLegacyScriptNameAndSegment() {
+        resourceLoader.onRefresh(
+            "/config/tenants/TEST/testApp/lep/service/LowerCaseLepMethodWithSegment$$SOME_VALUE$$around.groovy",
+            "return 'capitalized with segment'");
+        TestInput input = new TestInput();
+        TestInputData data = new TestInputData();
+        input.setData(data);
+        data.setValue("SOME-VALUE");
+        assertEquals("capitalized with segment", testLepService.lowerCaseLepMethodWithSegment(input));
+    }
+
+    @Test
+    @SneakyThrows
+    public void testServiceMethodWhenNoLepScript() {
+        assertEquals("Hello I am service method!", testLepService.lowerCaseNoScriptLepMethod());
+    }
+
+    @Test
+    @SneakyThrows
     public void testInitLepEngineScriptApplied() {
         // language=groovy
         String code = """
