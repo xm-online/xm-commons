@@ -2,6 +2,7 @@ package com.icthh.xm.commons.topic.config;
 
 import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.delete;
 import static com.icthh.xm.commons.topic.util.MessageRetryDetailsUtils.getUpdatedOrGenerateRetryDetails;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.StreamSupport.stream;
 
@@ -20,6 +21,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
 import org.springframework.kafka.listener.AcknowledgingMessageListener;
 import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.support.KafkaHeaders;
 
 @Slf4j
 public class MessageListener implements AcknowledgingMessageListener<String, String> {
@@ -51,6 +53,7 @@ public class MessageListener implements AcknowledgingMessageListener<String, Str
         log.info("start processing message, size = {}, body = [{}]", rawBody.length(), formatBody(rawBody));
         try {
             Map<String, byte[]> headers = stream(record.headers().spliterator(), false).collect(toMap(Header::key, Header::value));
+            addRecordMetadata(headers, record);
             messageHandler.onMessage(rawBody, tenantKey, topicConfig, headers);
             acknowledgment.acknowledge();
             delete(record);
@@ -62,6 +65,21 @@ public class MessageListener implements AcknowledgingMessageListener<String, Str
         } finally {
             MdcUtils.clear();
         }
+    }
+
+    /**
+     * Record metadata is not part of the Kafka headers, so expose it to the handler the same way
+     * spring-kafka does for {@code Message<?>} listeners. Values are decimal strings in UTF-8.
+     * A real Kafka header with the same name takes precedence.
+     */
+    private static void addRecordMetadata(Map<String, byte[]> headers, ConsumerRecord<String, String> record) {
+        headers.putIfAbsent(KafkaHeaders.RECEIVED_TIMESTAMP, toBytes(record.timestamp()));
+        headers.putIfAbsent(KafkaHeaders.RECEIVED_PARTITION, toBytes(record.partition()));
+        headers.putIfAbsent(KafkaHeaders.OFFSET, toBytes(record.offset()));
+    }
+
+    private static byte[] toBytes(long value) {
+        return String.valueOf(value).getBytes(UTF_8);
     }
 
     private void putRid(BigInteger retryCount, String rid) {
