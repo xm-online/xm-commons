@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({ KafkaMetricsConfiguration.class })
+@Import({ KafkaMetricsConfiguration.class, ConfigStateMetricsConfiguration.class })
 public class MetricsConfiguration {
 
     @Bean
