@@ -207,7 +207,7 @@ public class PermittedRepository {
             : readPage(countSql, query, pageable);
     }
 
-    protected String createPermissionCondition(String privilegeKey) {
+    protected String createPermissionCondition(String privilegeKey, Map<String, Object> params) {
         return permissionCheckService.createCondition(
             SecurityContextHolder.getContext().getAuthentication(),
             privilegeKey,

@@ -8,6 +8,7 @@ import com.icthh.xm.commons.permission.domain.Permission;
 import com.icthh.xm.commons.permission.domain.ReactionStrategy;
 import com.icthh.xm.commons.permission.service.AuthenticationSecurityExpressionMethods;
 import com.icthh.xm.commons.permission.service.PermissionEvaluationContextBuilder;
+import com.icthh.xm.commons.permission.service.PermissionLepConditionService;
 import com.icthh.xm.commons.permission.service.PermissionService;
 import com.icthh.xm.commons.permission.service.RoleService;
 import com.icthh.xm.commons.permission.service.translator.SpelTranslator;
@@ -65,6 +66,7 @@ public class MultiRoleStrategy implements RoleStrategy {
     private final ResourceFactory resourceFactory;
     private final RoleService roleService;
     private final PermissionEvaluationContextBuilder permissionEvaluationContextBuilder;
+    private final PermissionLepConditionService permissionLepConditionService;
 
     /**
      * Check permission for role and privilege key only.
@@ -158,8 +160,13 @@ public class MultiRoleStrategy implements RoleStrategy {
 
         Collection<String> permissionsRoles = getPermissions(roleKeys, privilegeKey).stream()
             .filter(permission -> nonNull(permission.getResourceCondition()))
-            .map(permission -> translator
-                .translate(permission.getResourceCondition().getExpressionString(), subjects.get(permission.getRoleKey())))
+            .map(permission -> {
+                Subject subject = subjects.get(permission.getRoleKey());
+                String condition = permissionLepConditionService.applyFilter(
+                    permission.getResourceCondition().getExpressionString(), privilegeKey, permission.getRoleKey(),
+                    Map.of("subject", subject));
+                return translator.translate(condition, subject);
+            })
             .map(condition -> format("(%s)", condition))
             .collect(toList());
 
@@ -214,7 +221,7 @@ public class MultiRoleStrategy implements RoleStrategy {
 
         boolean validCondition = true;
 
-        if (!isConditionValid(permissions, context, Permission::getEnvCondition)) {
+        if (!isConditionValid(permissions, context, Permission::getEnvCondition, privilegeKey, resources)) {
             log(logPermission,
                 Level.ERROR,
                 "access denied: privilege={}, role={}, userKey={} due to env condition: {} with context [{}]",
@@ -231,7 +238,8 @@ public class MultiRoleStrategy implements RoleStrategy {
             validCondition = false;
         }
 
-        if (checkCondition && !isConditionValid(permissions, context, Permission::getResourceCondition)) {
+        if (checkCondition
+            && !isConditionValid(permissions, context, Permission::getResourceCondition, privilegeKey, resources)) {
             log(logPermission,
                 Level.ERROR,
                 "access denied: privilege={}, role={}, userKey={} due to resource condition: {} with context [{}] ",
@@ -306,7 +314,8 @@ public class MultiRoleStrategy implements RoleStrategy {
     }
 
     private boolean isConditionValid(Collection<Permission> permissions, EvaluationContext context,
-                                     Function<Permission, Expression> func) {
+                                     Function<Permission, Expression> func, Object privilegeKey,
+                                     Map<String, Object> resources) {
         return permissions.stream()
             .anyMatch(permission ->
                 {
@@ -314,6 +323,8 @@ public class MultiRoleStrategy implements RoleStrategy {
                     if (isNull(expression) || isEmpty(expression.getExpressionString())) {
                         return true;
                     }
+                    permissionLepConditionService.bindCheck(context, privilegeKey, permission.getRoleKey(),
+                        resources, expression);
                     try {
                         return expression.getValue(context, Boolean.class);
                     } catch (Exception e) {

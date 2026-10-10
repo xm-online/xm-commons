@@ -2,10 +2,14 @@ package com.icthh.xm.commons.permission.service.rolestrategy;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.permission.domain.Permission;
+import com.icthh.xm.commons.permission.service.PermissionLepConditionService;
+import com.icthh.xm.commons.permission.service.PermissionLepService;
 import com.icthh.xm.commons.permission.service.PermissionService;
 import com.icthh.xm.commons.permission.service.XmPermissionEvaluationContextBuilder;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
@@ -19,9 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -49,13 +53,21 @@ public class MultiRoleStrategyUnitTest {
     @Mock
     PermissionService permissionService;
 
+    @Mock
+    PermissionLepService permissionLepService;
+
     @Spy
     XmPermissionEvaluationContextBuilder permissionEvaluationContextBuilder;
 
-    @InjectMocks
     MultiRoleStrategy multiRoleStrategy;
 
     final String privilege = "DO_ALL_PRIVILEGE";
+
+    @Before
+    public void before() {
+        multiRoleStrategy = new MultiRoleStrategy(xmAuthenticationContextHolder, tenantContextHolder, permissionService,
+            null, null, permissionEvaluationContextBuilder, new PermissionLepConditionService(permissionLepService));
+    }
 
     TenantContext CONTEXT = new TenantContext() {
         @Override
@@ -101,6 +113,33 @@ public class MultiRoleStrategyUnitTest {
         }});
         boolean result = multiRoleStrategy.checkPermission(authentication, Map.of("firstName", "Homer"), privilege, true, false);
         assertTrue(result);
+        verifyNoInteractions(permissionLepService);
+    }
+
+    @Test
+    public void resourceConditionWithLepCheckMustBePassed() {
+
+        prepareMock("#firstName=='Homer' && #lepCheck", spelExpression -> new Permission() {{
+            setPrivilegeKey("privKey");
+            setRoleKey(ROLE_ADMIN);
+            setResourceCondition(spelExpression);
+        }});
+        when(permissionLepService.check(eq(privilege), eq(ROLE_ADMIN), any())).thenReturn(true);
+        boolean result = multiRoleStrategy.checkPermission(authentication, Map.of("firstName", "Homer"), privilege, true, false);
+        assertTrue(result);
+    }
+
+    @Test
+    public void resourceConditionWithLepCheckMustBeDenied() {
+
+        prepareMock("#lepCheck", spelExpression -> new Permission() {{
+            setPrivilegeKey("privKey");
+            setRoleKey(ROLE_ADMIN);
+            setResourceCondition(spelExpression);
+        }});
+        when(permissionLepService.check(eq(privilege), eq(ROLE_ADMIN), any())).thenReturn(false);
+        boolean result = multiRoleStrategy.checkPermission(authentication, Map.of("firstName", "Homer"), privilege, true, false);
+        assertFalse(result);
     }
 
     @Test
