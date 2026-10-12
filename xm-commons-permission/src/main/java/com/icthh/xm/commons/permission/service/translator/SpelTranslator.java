@@ -42,7 +42,7 @@ public interface SpelTranslator {
      */
     default String replaceWithQuotes(String query, String search, String replace, String quote) {
         if (StringUtils.isNotBlank(replace)) {
-            String replacement = quote + replace + quote;
+            String replacement = quote + replace.replace(quote, quote + quote) + quote;
             query = replaceAll(query, "'" + search + "'", replacement);
             query = replaceAll(query, "\"" + search + "\"", replacement);
             query = replaceAll(query, search, replacement);

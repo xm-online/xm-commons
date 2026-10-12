@@ -72,8 +72,8 @@ public class SecurityConfiguration {
         return http
             .authorizeHttpRequests(auth ->
                 auth.requestMatchers("/api/profile-info").permitAll()
-                    .requestMatchers("/api/**").authenticated()
                     .requestMatchers("/api/admin/**").hasAuthority(SUPER_ADMIN)
+                    .requestMatchers("/api/**").authenticated()
                     .requestMatchers("/management/health").permitAll()
                     .requestMatchers("/management/info").permitAll()
                     .requestMatchers("/management/prometheus").permitAll()

@@ -84,4 +84,14 @@ class FunctionExportResourceIntTest {
             .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"data.csv\""))
             .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "text/csv"));
     }
+
+    @Test
+    void callExportFunction_shouldEscapeQuotesInFileName() throws Exception {
+        mockMvc.perform(get("/api/export/functions/test")
+                .param("fileName", "a\"; filename*=x")
+                .param("fileFormat", "exe"))
+            .andExpect(status().isOk())
+            .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"a\\\"; filename*=x.exe\""))
+            .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "application/octet-stream"));
+    }
 }

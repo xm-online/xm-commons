@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Repository;
@@ -194,8 +195,8 @@ public class PermittedRepository {
     }
 
     protected <T> TypedQuery<T> createSelectQuery(String selectSql, Pageable pageable, Class<T> entityClass) {
-        Sort sort = pageable == null ? null : pageable.getSort();
-        return em.createQuery(applyOrder(selectSql, sort), entityClass);
+        Sort sort = pageable == null ? Sort.unsorted() : pageable.getSort();
+        return em.createQuery(QueryUtils.applySorting(selectSql, sort), entityClass);
     }
 
     protected TypedQuery<Long> createCountQuery(String countSql) {
@@ -213,24 +214,6 @@ public class PermittedRepository {
             privilegeKey,
             spelToJpqlTranslator
         );
-    }
-
-    private static String applyOrder(String sql, Sort sort) {
-        StringBuilder builder = new StringBuilder(sql);
-
-        if (sort != null && !sort.equals(Sort.unsorted())) {
-            builder.append(ORDER_BY_SQL);
-            String sep = "";
-            for (Sort.Order order : sort) {
-                builder.append(sep)
-                    .append(order.getProperty())
-                    .append(" ")
-                    .append(order.getDirection());
-                sep = ", ";
-            }
-        }
-
-        return builder.toString();
     }
 
     private <T> Page<T> readPage(TypedQuery<Long> countQuery, TypedQuery<T> query, Pageable pageable) {

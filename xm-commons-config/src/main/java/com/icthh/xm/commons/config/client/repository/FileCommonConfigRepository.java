@@ -2,6 +2,7 @@ package com.icthh.xm.commons.config.client.repository;
 
 import com.icthh.xm.commons.config.client.config.XmConfigProperties;
 import com.icthh.xm.commons.config.domain.Configuration;
+import com.icthh.xm.commons.exceptions.BusinessException;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -91,8 +92,12 @@ public class FileCommonConfigRepository implements CommonConfigRepository {
     @Override
     @SneakyThrows
     public void updateConfigFullPath(Configuration configuration, String oldConfigHash) {
-        File file = new File(xmConfigProperties.getDirectoryBasePath(), configuration.getPath());
-        writeStringToFile(file, configuration.getContent(), UTF_8);
+        Path baseDir = Path.of(xmConfigProperties.getDirectoryBasePath()).toAbsolutePath().normalize();
+        Path file = baseDir.resolve(configuration.getPath().replaceFirst("^/+", "")).normalize();
+        if (!file.startsWith(baseDir)) {
+            throw new BusinessException("Updating files beyond config directory is forbidden");
+        }
+        writeStringToFile(file.toFile(), configuration.getContent(), UTF_8);
     }
 
 }
