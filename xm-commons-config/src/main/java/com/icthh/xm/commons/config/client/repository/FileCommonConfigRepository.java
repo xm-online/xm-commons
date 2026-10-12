@@ -21,6 +21,7 @@ import static org.apache.commons.io.FileUtils.listFiles;
 import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
 import static org.apache.commons.lang3.StringUtils.replaceChars;
+import static org.apache.commons.lang3.StringUtils.stripStart;
 
 @RequiredArgsConstructor
 public class FileCommonConfigRepository implements CommonConfigRepository {
@@ -93,7 +94,7 @@ public class FileCommonConfigRepository implements CommonConfigRepository {
     @SneakyThrows
     public void updateConfigFullPath(Configuration configuration, String oldConfigHash) {
         Path baseDir = Path.of(xmConfigProperties.getDirectoryBasePath()).toAbsolutePath().normalize();
-        Path file = baseDir.resolve(configuration.getPath().replaceFirst("^/+", "")).normalize();
+        Path file = baseDir.resolve(stripStart(configuration.getPath(), "/")).normalize();
         if (!file.startsWith(baseDir)) {
             throw new BusinessException("Updating files beyond config directory is forbidden");
         }
