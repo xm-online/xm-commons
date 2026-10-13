@@ -19,7 +19,7 @@ public class SecurityAspect {
 //    @Before("restPointcut() && !excluded()")
 //    public Object beforeRest(JoinPoint joinPoint) {
 //
-//        throw new AccessDeniedException("Pre- or PostAuthorize not specified");
+//        throw new AccessDeniedException("Pre- or PostAuthorize not specified"); or write log by application.yml + annotation processor
 //
 //    }
 }

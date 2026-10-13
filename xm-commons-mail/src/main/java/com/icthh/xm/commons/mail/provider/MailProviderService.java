@@ -10,6 +10,7 @@ import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -160,6 +161,7 @@ public class MailProviderService implements RefreshableConfiguration {
         private String host;
         private Integer port;
         private String username;
+        @ToString.Exclude
         private String password;
         private String protocol = "smtp";
         private Charset defaultEncoding = DEFAULT_CHARSET;
