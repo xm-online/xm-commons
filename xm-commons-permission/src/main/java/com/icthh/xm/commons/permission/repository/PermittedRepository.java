@@ -15,11 +15,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.jpa.QueryHints;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Repository;
@@ -27,7 +27,10 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Repository
@@ -40,6 +43,10 @@ public class PermittedRepository {
     public static final String AND_SQL = " and ";
     public static final String ORDER_BY_SQL = " order by ";
     private static final String GRAPH_DELIMETER = ".";
+    private static final String ROOT_ALIAS = "returnObject";
+    // anything except letters, digits, '.' and '_' can turn a sort property into a JPQL expression
+    private static final Pattern UNSAFE_SORT_PROPERTY = Pattern.compile("[^\\p{L}\\p{N}._]",
+        Pattern.UNICODE_CHARACTER_CLASS);
 
     private final SpelToJpqlTranslator spelToJpqlTranslator = new SpelToJpqlTranslator();
 
@@ -148,14 +155,14 @@ public class PermittedRepository {
         String selectSql = format(SELECT_ALL_SQL, entityClass.getSimpleName());
         String countSql = format(COUNT_ALL_SQL, entityClass.getSimpleName());
 
-        selectSql += WHERE_SQL + whereCondition;
-        countSql += WHERE_SQL + whereCondition;
+        selectSql += WHERE_SQL + inBrackets(whereCondition);
+        countSql += WHERE_SQL + inBrackets(whereCondition);
 
         String orChainedPermittedCondition = createPermissionCondition(privilegeKey);
 
         if (isNotEmpty(orChainedPermittedCondition)) {
-            selectSql += AND_SQL + orChainedPermittedCondition;
-            countSql += AND_SQL + orChainedPermittedCondition;
+            selectSql += AND_SQL + inBrackets(orChainedPermittedCondition);
+            countSql += AND_SQL + inBrackets(orChainedPermittedCondition);
         }
 
         TypedQuery<T> selectQuery = createSelectQuery(selectSql, pageable, entityClass);
@@ -179,11 +186,11 @@ public class PermittedRepository {
                                        Class<T> entityClass,
                                        String privilegeKey) {
         String countSql = format(COUNT_ALL_SQL, entityClass.getSimpleName());
-        countSql += WHERE_SQL + whereCondition;
+        countSql += WHERE_SQL + inBrackets(whereCondition);
         String orChainedPermittedCondition = createPermissionCondition(privilegeKey);
 
         if (isNotEmpty(orChainedPermittedCondition)) {
-            countSql += AND_SQL + orChainedPermittedCondition;
+            countSql += AND_SQL + inBrackets(orChainedPermittedCondition);
         }
 
         TypedQuery<Long> countQuery = createCountQuery(countSql);
@@ -196,7 +203,7 @@ public class PermittedRepository {
 
     protected <T> TypedQuery<T> createSelectQuery(String selectSql, Pageable pageable, Class<T> entityClass) {
         Sort sort = pageable == null ? Sort.unsorted() : pageable.getSort();
-        return em.createQuery(QueryUtils.applySorting(selectSql, sort), entityClass);
+        return em.createQuery(applySorting(selectSql, sort), entityClass);
     }
 
     protected TypedQuery<Long> createCountQuery(String countSql) {
@@ -214,6 +221,48 @@ public class PermittedRepository {
             privilegeKey,
             spelToJpqlTranslator
         );
+    }
+
+    // both conditions may contain a top-level OR (e.g. permissions of several roles are OR-chained),
+    // without brackets "a or b and (perm)" is "a or (b and perm)" and rows matching "a" skip the permission check
+    private static String inBrackets(String condition) {
+        return "(" + condition + ")";
+    }
+
+    private static String applySorting(String sql, Sort sort) {
+        if (sort.isUnsorted()) {
+            return sql;
+        }
+        return sql + ORDER_BY_SQL + sort.stream()
+            .map(PermittedRepository::toOrderClause)
+            .collect(Collectors.joining(", "));
+    }
+
+    /*
+     * JPQL can not bind a property name as a query parameter, so the order clause is built by concatenation.
+     * It is safe because the only client-controlled part is the property, and it is rejected unless it consists
+     * of letters, digits, '.' and '_' only: no whitespace, quotes, brackets, commas, operators or comments
+     * can get through, so it can only be a property path and it is always qualified with the root alias.
+     * Everything else is a constant or comes from an enum (direction and null handling).
+     */
+    private static String toOrderClause(Sort.Order order) {
+        String property = order.getProperty();
+        if (UNSAFE_SORT_PROPERTY.matcher(property).find()) {
+            throw new InvalidDataAccessApiUsageException(
+                "Sort expression '" + order + "' must only contain property references");
+        }
+
+        String reference = ROOT_ALIAS + GRAPH_DELIMETER + property;
+        if (order.isIgnoreCase()) {
+            reference = "lower(" + reference + ")";
+        }
+
+        String direction = order.getDirection().name().toLowerCase(Locale.US);
+        return reference + " " + switch (order.getNullHandling()) {
+            case NATIVE -> direction;
+            case NULLS_FIRST -> direction + " nulls first";
+            case NULLS_LAST -> direction + " nulls last";
+        };
     }
 
     private <T> Page<T> readPage(TypedQuery<Long> countQuery, TypedQuery<T> query, Pageable pageable) {
