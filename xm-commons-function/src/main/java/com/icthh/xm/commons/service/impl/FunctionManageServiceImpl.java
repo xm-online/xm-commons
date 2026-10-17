@@ -128,6 +128,9 @@ public class FunctionManageServiceImpl implements FunctionManageService<Function
 
     protected String buildFilePath(String fileKey, String tenantKey) {
         String folder = specService.getSpecFolder(tenantKey);
+        if (fileKey != null && fileKey.contains("..")) {
+            throw new BusinessException("error.function.spec.file.key.invalid", "Invalid fileKey");
+        }
         return fileKey == null ? folder + ".yml" : folder + "/" + fileKey + ".yml";
     }
 
