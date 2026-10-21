@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.config.client.api;
 
+import com.icthh.xm.commons.config.client.state.ConfigStateHolder;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,9 +18,13 @@ public abstract class AbstractConfigService implements ConfigService {
     private final AntPathMatcher antPathMatcher;
     private final FetchConfigurationSettings fetchConfigurationSettings;
 
-    protected AbstractConfigService(FetchConfigurationSettings fetchConfigurationSettings) {
+    private final ConfigStateHolder configStateHolder;
+
+    protected AbstractConfigService(FetchConfigurationSettings fetchConfigurationSettings,
+                                    ConfigStateHolder configStateHolder) {
         this.antPathMatcher = new AntPathMatcher();
         this.fetchConfigurationSettings = fetchConfigurationSettings;
+        this.configStateHolder = configStateHolder;
     }
 
     @Override
@@ -35,12 +40,15 @@ public abstract class AbstractConfigService implements ConfigService {
      */
     @Override
     public void updateConfigurations(String commit, Collection<String> paths) {
+        configStateHolder.onCommitReceived(commit);
         final Collection<String> filteredPaths = getFilteredPaths(paths);
         if (!filteredPaths.isEmpty()) {
             Map<String, Configuration> configurationsMap = getConfigurationMap(commit, filteredPaths);
             paths.forEach(path -> notifyUpdated(getNonNullConfiguration(configurationsMap, path)));
             configurationListeners.forEach(it -> it.refreshFinished(filteredPaths));
+            configStateHolder.onConfigurationsProcessed(configurationsMap);
         }
+        configStateHolder.onCommitProcessed(commit);
     }
 
     public void notifyUpdated(Configuration configuration) {
