@@ -6,7 +6,7 @@ import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.commons.tenant.XmRelatedComponent;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.AsyncHandlerInterceptor;
 
 import java.util.Objects;
 
@@ -14,7 +14,7 @@ import java.util.Objects;
  * The {@link TenantVerifyInterceptor} class.
  */
 @XmRelatedComponent
-public class TenantVerifyInterceptor implements HandlerInterceptor {
+public class TenantVerifyInterceptor implements AsyncHandlerInterceptor {
 
     private static final String JSON_ERROR_TENANT_SUSPENDED = "{\"error\": \"Tenant is suspended\"}";
 
@@ -33,8 +33,8 @@ public class TenantVerifyInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
         throws Exception {
-        if (tenantListRepository.getSuspendedTenants().contains(
-                        TenantContextUtils.getRequiredTenantKeyValue(tenantContextHolder))) {
+        String tenantKey = TenantContextUtils.getRequiredTenantKeyValue(tenantContextHolder);
+        if (tenantListRepository.getSuspendedTenants().stream().anyMatch(tenantKey::equalsIgnoreCase)) {
             InterceptorUtil.sendResponse(response, JSON_ERROR_TENANT_SUSPENDED);
             return false;
         }
