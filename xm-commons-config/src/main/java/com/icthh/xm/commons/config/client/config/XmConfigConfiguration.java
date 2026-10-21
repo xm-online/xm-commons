@@ -11,6 +11,7 @@ import com.icthh.xm.commons.config.client.repository.XmMsConfigCommonConfigRepos
 import com.icthh.xm.commons.config.client.repository.file.FileUpdateWatcher;
 import com.icthh.xm.commons.config.client.repository.kafka.ConfigTopicConsumer;
 import com.icthh.xm.commons.config.client.service.CommonConfigService;
+import com.icthh.xm.commons.config.client.service.ConfigurationOrderService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -59,16 +60,24 @@ public class XmConfigConfiguration {
     }
 
     @Bean
+    public ConfigurationOrderService configurationOrderService() {
+        return new ConfigurationOrderService();
+    }
+
+    @Bean
     public ConfigService configService(
         CommonConfigRepository commonConfigRepository,
-        FetchConfigurationSettings fetchConfigurationSettings) {
-        return new CommonConfigService(fetchConfigurationSettings, commonConfigRepository);
+        FetchConfigurationSettings fetchConfigurationSettings,
+        ConfigurationOrderService configurationOrderService) {
+        return new CommonConfigService(fetchConfigurationSettings, commonConfigRepository, configurationOrderService);
     }
 
     @Bean
     public InitRefreshableConfigurationBeanPostProcessor refreshableConfigurationPostProcessor(
-            ObjectProvider<ConfigService> configServiceProvider, XmConfigProperties xmConfigProperties, FetchConfigurationSettings fetchConfigurationSettings) {
-        return new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, xmConfigProperties, fetchConfigurationSettings);
+            ObjectProvider<ConfigService> configServiceProvider, XmConfigProperties xmConfigProperties,
+            FetchConfigurationSettings fetchConfigurationSettings, ConfigurationOrderService configurationOrderService) {
+        return new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, xmConfigProperties,
+            fetchConfigurationSettings, configurationOrderService);
     }
 
     @Bean
