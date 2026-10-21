@@ -22,4 +22,11 @@ public class SpelTranslatorUnitTest {
         assertEquals(expected, spelTranslator.translate("subject.userKey == \"#subject.userKey\"", subject));
     }
 
+    @Test
+    public void testSubjectValueQuotesAreEscaped() {
+        Subject subject = new Subject("x'or'1'='1", "user key", "");
+        assertEquals("returnObject.createdBy  =  'x''or''1''=''1'",
+            new SpelToJpqlTranslator().translate("#returnObject.createdBy == #subject.login", subject));
+    }
+
 }

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -50,7 +51,8 @@ public class FunctionExportResource {
                                                    @RequestParam(required = false) Map<String, Object> functionInput,
                                                    HttpServletResponse response) {
 
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "." + fileFormat + "\"");
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+            ContentDisposition.attachment().filename(fileName + "." + fileFormat).build().toString());
         response.setContentType(HeaderUtil.getContentType(fileFormat));
 
         functionExportService.execute(functionKey, fileFormat, functionInput, response);
@@ -60,8 +62,6 @@ public class FunctionExportResource {
 
     @IgnoreLogginAspect
     @GetMapping("/**")
-    @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.EXPORT.CALL')")
-    @PrivilegeDescription("Privilege to execute an export function by key")
     public ResponseEntity<Void> getCallExportFunction(HttpServletRequest request,
                                                    @RequestParam String fileName,
                                                    @RequestParam String fileFormat,

@@ -59,18 +59,25 @@ public class FunctionUploadResource {
      */
     @Deprecated(forRemoval = true)
     @PostMapping(value = "/**", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.UPLOAD.CALL')")
     @SneakyThrows
-    @PrivilegeDescription("Privilege to call upload function")
     public ResponseEntity<Object> callUploadFunction(HttpServletRequest request,
                                                      @RequestParam(value = "file", required = false) List<MultipartFile> files,
                                                      HttpServletRequest httpServletRequest) {
         if (!request.getRequestURI().endsWith(UPLOAD)) {
             return ResponseEntity.badRequest().body("Invalid upload url");
         }
-        Map<String, Object> functionInput = of(HTTP_SERVLET_REQUEST_KEY, httpServletRequest, FILES_KEY, files);
         String functionKey = getFunctionKey(request);
         functionKey = functionKey.substring(0, functionKey.length() - UPLOAD.length());
+        return self.callMultipartUploadFunction(functionKey, files, httpServletRequest);
+    }
+
+    @Deprecated(forRemoval = true)
+    @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.UPLOAD.CALL')")
+    @PrivilegeDescription("Privilege to call upload function")
+    public ResponseEntity<Object> callMultipartUploadFunction(String functionKey,
+                                                              List<MultipartFile> files,
+                                                              HttpServletRequest httpServletRequest) {
+        Map<String, Object> functionInput = of(HTTP_SERVLET_REQUEST_KEY, httpServletRequest, FILES_KEY, files);
         FunctionResult result = functionService.execute(functionKey, functionInput, POST.name());
         return ResponseEntity.ok().body(result.functionResult());
     }
@@ -97,8 +104,6 @@ public class FunctionUploadResource {
 
     @SneakyThrows
     @PostMapping("/upload/functions/**")
-    @PreAuthorize("hasPermission({'functionKey': #functionKey}, 'FUNCTION.UPLOAD.CALL')")
-    @PrivilegeDescription("Privilege to execute an upload function by key")
     public ResponseEntity<Object> getCallUploadFunction(HttpServletRequest request,
                                                         @RequestParam("file") MultipartFile file) {
         String functionKey = getFunctionKey(request);

@@ -16,14 +16,17 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyString;
@@ -57,8 +60,8 @@ public class PermittedRepositoryUnitTest {
 
     @Test
     public void findByConditionWithoutEmbed() {
-        when(em.createQuery("select distinct returnObject from TestEntity returnObject where a = :b and (f = g) order by d ASC", TestEntity.class)).thenReturn(selectQuery);
-        when(em.createQuery("select distinct count(returnObject) from TestEntity returnObject where a = :b and (f = g)", Long.class)).thenReturn(countQuery);
+        when(em.createQuery("select distinct returnObject from TestEntity returnObject where (a = :b) and ((f = g)) order by returnObject.d asc", TestEntity.class)).thenReturn(selectQuery);
+        when(em.createQuery("select distinct count(returnObject) from TestEntity returnObject where (a = :b) and ((f = g))", Long.class)).thenReturn(countQuery);
         when(
             permissionCheckService.createCondition(
                 eq(SecurityContextHolder.getContext().getAuthentication()),
@@ -89,8 +92,8 @@ public class PermittedRepositoryUnitTest {
     @Test
     public void findByConditionWithEmbed() {
         when(em.createEntityGraph(TestEntity.class)).thenReturn(entityGraph);
-        when(em.createQuery("select distinct returnObject from TestEntity returnObject where a = :b and (f = g) order by d ASC", TestEntity.class)).thenReturn(selectQuery);
-        when(em.createQuery("select distinct count(returnObject) from TestEntity returnObject where a = :b and (f = g)", Long.class)).thenReturn(countQuery);
+        when(em.createQuery("select distinct returnObject from TestEntity returnObject where (a = :b) and ((f = g)) order by returnObject.d asc", TestEntity.class)).thenReturn(selectQuery);
+        when(em.createQuery("select distinct count(returnObject) from TestEntity returnObject where (a = :b) and ((f = g))", Long.class)).thenReturn(countQuery);
         when(entityGraph.addSubgraph("d")).thenReturn(subgraph);
         when(
             permissionCheckService.createCondition(
@@ -123,6 +126,21 @@ public class PermittedRepositoryUnitTest {
     }
 
     @Test
+    public void findByConditionKeepsPermissionForEveryOrBranch() {
+        when(em.createQuery(anyString(), eq(TestEntity.class))).thenReturn(selectQuery);
+        when(em.createQuery(anyString(), eq(Long.class))).thenReturn(countQuery);
+        doReturn("(a = b) OR (v = g)").when(permissionCheckService).createCondition(any(), any(), any());
+
+        repository.findByCondition("x = :x or y = :y", Map.of("x", 1, "y", 2), TestEntity.class, "TEST");
+        repository.countByCondition("x = :x or y = :y", Map.of("x", 1, "y", 2), TestEntity.class, "TEST");
+
+        verify(em).createQuery("select distinct returnObject from TestEntity returnObject"
+            + " where (x = :x or y = :y) and ((a = b) OR (v = g))", TestEntity.class);
+        verify(em, times(2)).createQuery("select distinct count(returnObject) from TestEntity returnObject"
+            + " where (x = :x or y = :y) and ((a = b) OR (v = g))", Long.class);
+    }
+
+    @Test
     public void shouldFindAllWithMultiConditions() {
         when(em.createQuery(anyString(), any())).thenReturn(selectQuery);
         when(em.createQuery(anyString(), any())).thenReturn(countQuery);
@@ -133,6 +151,47 @@ public class PermittedRepositoryUnitTest {
 
         verify(em, times(1)).createQuery("select distinct count(returnObject) from PermittedRepositoryUnitTest returnObject where (a = b) OR (v = g)", Long.class);
         verify(em, times(1)).createQuery("select distinct returnObject from PermittedRepositoryUnitTest returnObject where (a = b) OR (v = g)", PermittedRepositoryUnitTest.class);
+    }
+
+    @Test
+    public void findAllSortedByMultipleProperties() {
+        when(em.createQuery(anyString(), eq(Long.class))).thenReturn(countQuery);
+        when(em.createQuery(anyString(), eq(TestEntity.class))).thenReturn(selectQuery);
+        when(permissionCheckService.createCondition(any(), any(), any())).thenReturn("(f = g)");
+
+        repository.findAll(PageRequest.of(0, 10, Sort.by(Sort.Order.asc("name"), Sort.Order.desc("id"))),
+            TestEntity.class, "TEST");
+
+        verify(em).createQuery("select distinct returnObject from TestEntity returnObject where (f = g)"
+            + " order by returnObject.name asc, returnObject.id desc", TestEntity.class);
+    }
+
+    @Test
+    public void findAllRejectsExpressionInSort() {
+        when(em.createQuery(anyString(), eq(Long.class))).thenReturn(countQuery);
+        when(permissionCheckService.createCondition(any(), any(), any())).thenReturn("(f = g)");
+
+        assertThatThrownBy(() -> repository.findAll(
+            PageRequest.of(0, 10, Sort.by("(CASE WHEN (select count(u) from TestEntity u) > 0 THEN id END)")),
+            TestEntity.class, "TEST"))
+            .isInstanceOf(InvalidDataAccessApiUsageException.class);
+
+        verify(em, times(0)).createQuery(anyString(), eq(TestEntity.class));
+    }
+
+    @Test
+    public void findAllSortedIgnoringCaseWithNullHandling() {
+        when(em.createQuery(anyString(), eq(Long.class))).thenReturn(countQuery);
+        when(em.createQuery(anyString(), eq(TestEntity.class))).thenReturn(selectQuery);
+        when(permissionCheckService.createCondition(any(), any(), any())).thenReturn("(f = g)");
+
+        repository.findAll(PageRequest.of(0, 10, Sort.by(
+                Sort.Order.asc("name").ignoreCase().nullsLast(),
+                Sort.Order.desc("id").nullsFirst())),
+            TestEntity.class, "TEST");
+
+        verify(em).createQuery("select distinct returnObject from TestEntity returnObject where (f = g)"
+            + " order by lower(returnObject.name) asc nulls last, returnObject.id desc nulls first", TestEntity.class);
     }
 
     @Value
