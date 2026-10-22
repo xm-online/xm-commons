@@ -1,0 +1,26 @@
+# Restores the behaviour before xm-defaults.yml and xm-defaults-prod.yml: SPRING_PROFILES_ACTIVE=prod,migration
+management:
+    server:
+        # empty = the same port as server.port
+        port: ""
+
+spring:
+    cloud:
+        consul:
+            discovery:
+                heartbeat:
+                    enabled: false
+                    reregister-service-on-failure: false
+                # empty = Consul does not deregister a critical service
+                health-check-critical-timeout: ""
+                query-passing: false
+        service-registry:
+            auto-registration:
+                register-management: true
+
+application:
+    prometheus:
+        public: true
+    management:
+        access:
+            role: SUPER-ADMIN

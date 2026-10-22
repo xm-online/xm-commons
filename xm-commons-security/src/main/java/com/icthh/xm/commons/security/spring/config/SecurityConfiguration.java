@@ -6,6 +6,7 @@ import com.icthh.xm.commons.security.jwt.TokenProvider;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.authorization.AuthorityAuthorizationManager;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.Customizer;
@@ -24,6 +25,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.icthh.xm.commons.security.RoleConstant.SUPER_ADMIN;
+import static com.icthh.xm.commons.security.RoleConstant.SYSTEM_ADMIN;
+import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasAuthority;
 
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true)
@@ -36,6 +39,12 @@ public class SecurityConfiguration {
     private final XmPermissionCheckService permissionCheckService;
 
     private final Set<String> accessPrivileges = new HashSet<>();
+
+    @Value("${application.prometheus.public:false}")
+    private boolean prometheusPublic;
+
+    @Value("${application.management.access.role:" + SYSTEM_ADMIN + "}")
+    private String managementRole = SYSTEM_ADMIN;
 
     public SecurityConfiguration(
         TokenProvider tokenProvider,
@@ -87,12 +96,13 @@ public class SecurityConfiguration {
                     .requestMatchers("/api/admin/**").hasAuthority(SUPER_ADMIN)
                     .requestMatchers("/api/**").authenticated()
                     .requestMatchers("/management/health").permitAll()
-                    .requestMatchers("/management/info").permitAll()
-                    .requestMatchers("/management/prometheus").permitAll()
-                    .requestMatchers("/management/prometheus/**").permitAll()
-                    .requestMatchers("/management/**").hasAuthority(SUPER_ADMIN)
-                    .requestMatchers("/v3/api-docs/**", "/swagger-resources/configuration/ui")
-                        .access(access("API_DOCS.GET"))
+                    .requestMatchers("/management/health/liveness").permitAll()
+                    .requestMatchers("/management/health/readiness").permitAll()
+                    .requestMatchers("/management/prometheus").access(prometheusAccess())
+                    .requestMatchers("/management/prometheus/**").access(prometheusAccess())
+                    .requestMatchers("/management/**").access(hasAuthority(managementRole))
+                    .requestMatchers("/v3/api-docs/**").access(access("API_DOCS.GET"))
+                    .requestMatchers("/swagger-resources/configuration/ui").access(access("API_DOCS.GET"))
             );
         // @formatter:on
     }
@@ -103,6 +113,10 @@ public class SecurityConfiguration {
     protected AuthorizationManager<RequestAuthorizationContext> access(String privilege) {
         accessPrivileges.add(privilege);
         return (authentication, context) -> new AuthorizationDecision(permissionCheckService.hasPermission(privilege));
+    }
+
+    private AuthorizationManager<RequestAuthorizationContext> prometheusAccess() {
+        return prometheusPublic ? (_, _) -> new AuthorizationDecision(true) : hasAuthority(managementRole);
     }
 
     public Set<String> getAccessPrivileges() {

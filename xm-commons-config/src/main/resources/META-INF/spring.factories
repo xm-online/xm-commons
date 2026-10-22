@@ -1,0 +1,2 @@
+org.springframework.boot.EnvironmentPostProcessor=\
+com.icthh.xm.commons.config.defaults.XmDefaultsEnvironmentPostProcessor
