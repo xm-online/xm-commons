@@ -1,10 +1,13 @@
 package com.icthh.xm.commons.security.spring.config;
 
+import com.icthh.xm.commons.security.XmPermissionCheckService;
 import com.icthh.xm.commons.security.jwt.JWTConfigurer;
 import com.icthh.xm.commons.security.jwt.TokenProvider;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,9 +17,12 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 
-import static com.icthh.xm.commons.security.RoleConstant.ADMIN;
+import java.util.HashSet;
+import java.util.Set;
+
 import static com.icthh.xm.commons.security.RoleConstant.SUPER_ADMIN;
 
 @EnableWebSecurity
@@ -27,13 +33,19 @@ public class SecurityConfiguration {
 
     private final TokenProvider tokenProvider;
 
+    private final XmPermissionCheckService permissionCheckService;
+
+    private final Set<String> accessPrivileges = new HashSet<>();
+
     public SecurityConfiguration(
         TokenProvider tokenProvider,
         @Value("${jhipster.security.content-security-policy}")
-        String contentSecurityPolicy
+        String contentSecurityPolicy,
+        XmPermissionCheckService permissionCheckService
     ) {
         this.tokenProvider = tokenProvider;
         this.contentSecurityPolicy = contentSecurityPolicy;
+        this.permissionCheckService = permissionCheckService;
     }
 
     @Bean
@@ -79,10 +91,22 @@ public class SecurityConfiguration {
                     .requestMatchers("/management/prometheus").permitAll()
                     .requestMatchers("/management/prometheus/**").permitAll()
                     .requestMatchers("/management/**").hasAuthority(SUPER_ADMIN)
-                    .requestMatchers("/v3/api-docs/**").hasAnyAuthority(SUPER_ADMIN, ADMIN)
-                    .requestMatchers("/swagger-resources/configuration/ui").permitAll()
+                    .requestMatchers("/v3/api-docs/**", "/swagger-resources/configuration/ui")
+                        .access(access("API_DOCS.GET"))
             );
         // @formatter:on
+    }
+
+    /**
+     * Allows the request when the current user has the privilege. The privilege is published to privileges.yml.
+     */
+    protected AuthorizationManager<RequestAuthorizationContext> access(String privilege) {
+        accessPrivileges.add(privilege);
+        return (authentication, context) -> new AuthorizationDecision(permissionCheckService.hasPermission(privilege));
+    }
+
+    public Set<String> getAccessPrivileges() {
+        return Set.copyOf(accessPrivileges);
     }
 
     private JWTConfigurer securityConfigurerAdapter() {
