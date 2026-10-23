@@ -3,12 +3,14 @@ package com.icthh.xm.commons.permission.inspector.scanner;
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
 import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.commons.permission.domain.Privilege;
+import com.icthh.xm.commons.security.spring.config.SecurityConfiguration;
 import java.lang.annotation.Annotation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.reflections.Reflections;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
@@ -27,6 +29,7 @@ import static java.util.Objects.nonNull;
 public class PrivilegeScanner {
 
     private final Reflections reflections;
+    private final ObjectProvider<SecurityConfiguration> securityConfiguration;
 
     @Value("${spring.application.name}")
     private String appName;
@@ -77,6 +80,10 @@ public class PrivilegeScanner {
                 privileges.add(privilege);
             }
         }
+
+        securityConfiguration.ifAvailable(config -> config.getAccessPrivileges().stream()
+            .map(this::parse)
+            .forEach(privileges::add));
 
         log.info("Found {} privileges in {} ms", privileges.size(), stopWatch.getTime());
         return privileges;

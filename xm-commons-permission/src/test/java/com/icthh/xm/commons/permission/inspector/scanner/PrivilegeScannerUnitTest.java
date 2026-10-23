@@ -1,16 +1,20 @@
 package com.icthh.xm.commons.permission.inspector.scanner;
 
 import com.icthh.xm.commons.permission.domain.Privilege;
+import com.icthh.xm.commons.security.spring.config.SecurityConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.reflections.Reflections;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.support.StaticListableBeanFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static java.util.Objects.isNull;
@@ -32,7 +36,7 @@ public class PrivilegeScannerUnitTest {
     @Before
     public void initPrivilegeScanner() {
         this.reflections = mock(Reflections.class);
-        this.privilegeScanner = new PrivilegeScanner(reflections);
+        this.privilegeScanner = new PrivilegeScanner(reflections, securityConfigurationProvider(Map.of()));
         ReflectionTestUtils.setField(privilegeScanner, "appName", "TEST-APP-NAME");
     }
 
@@ -53,6 +57,27 @@ public class PrivilegeScannerUnitTest {
 
         assertPrivilegesWithoutDescriptions(privilegeSet);
 
+    }
+
+    @Test
+    public void testScanPrivilegesOfSecurityConfigurationAccess() {
+        SecurityConfiguration securityConfiguration = mock(SecurityConfiguration.class);
+        when(securityConfiguration.getAccessPrivileges()).thenReturn(Set.of("API_DOCS.GET"));
+        when(reflections.getMethodsAnnotatedWith((Class<? extends Annotation>) any())).thenReturn(Set.of());
+        PrivilegeScanner scanner = new PrivilegeScanner(reflections,
+            securityConfigurationProvider(Map.of("securityConfiguration", securityConfiguration)));
+        ReflectionTestUtils.setField(scanner, "appName", "TEST-APP-NAME");
+
+        Set<Privilege> privilegeSet = scanner.scan();
+
+        assertEquals(1, privilegeSet.size());
+        Privilege privilege = privilegeSet.iterator().next();
+        assertEquals("API_DOCS.GET", privilege.getKey());
+        assertEquals("TEST-APP-NAME", privilege.getMsName());
+    }
+
+    private static ObjectProvider<SecurityConfiguration> securityConfigurationProvider(Map<String, Object> beans) {
+        return new StaticListableBeanFactory(beans).getBeanProvider(SecurityConfiguration.class);
     }
 
     private void assertPrivilegesWithDescriptions(Set<Privilege> privilegeSet) {
