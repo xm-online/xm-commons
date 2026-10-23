@@ -20,13 +20,15 @@ import java.util.List;
  */
 public class XmDefaultsEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered {
 
+    public static final String MIGRATION_PROFILE = "migration";
+
     static final String LOCATION = "xm-defaults/";
     static final String DEFAULTS_FILE = "xm-defaults.yml";
 
     /**
      * Highest priority first.
      */
-    static final List<String> PROFILES = List.of("migration", "prod");
+    static final List<String> PROFILES = List.of(MIGRATION_PROFILE, "prod");
 
     private final YamlPropertySourceLoader loader = new YamlPropertySourceLoader();
 

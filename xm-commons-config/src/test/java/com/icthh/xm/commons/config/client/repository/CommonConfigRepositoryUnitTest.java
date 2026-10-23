@@ -32,6 +32,7 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -43,6 +44,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.security.KeyPairGenerator;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,6 +59,8 @@ public class CommonConfigRepositoryUnitTest {
 
     @InjectMocks
     private XmMsConfigCommonConfigRepository configRepository;
+    @Spy
+    private ConfigPrivateApi privateApi = new ConfigPrivateApi(true, APP_NAME_TEST, null);
     @Mock
     private RestTemplate restTemplate;
     @Mock
@@ -75,7 +80,8 @@ public class CommonConfigRepositoryUnitTest {
 
     @Test
     public void getConfig_callsGetExchangeConfigMap() {
-        configRepository = spy(new XmMsConfigCommonConfigRepository(restTemplate, xmConfigProperties, kafkaTemplate, tenantContextHolder));
+        configRepository = spy(new XmMsConfigCommonConfigRepository(restTemplate, xmConfigProperties, kafkaTemplate, tenantContextHolder,
+            new ConfigPrivateApi(true, APP_NAME_TEST, null)));
         String commit = "commit";
         when(xmConfigProperties.getXmConfigUrl()).thenReturn("http://test");
 
@@ -106,7 +112,8 @@ public class CommonConfigRepositoryUnitTest {
         String version = "commit";
         Collection<String> paths = List.of("path1", "path2");
 
-        configRepository = spy(new XmMsConfigCommonConfigRepository(restTemplate, xmConfigProperties, kafkaTemplate, tenantContextHolder));
+        configRepository = spy(new XmMsConfigCommonConfigRepository(restTemplate, xmConfigProperties, kafkaTemplate, tenantContextHolder,
+            new ConfigPrivateApi(true, APP_NAME_TEST, null)));
         when(xmConfigProperties.getXmConfigUrl()).thenReturn("http://test");
 
         String expectedUrl = xmConfigProperties.getXmConfigUrl() + "/api/private/config_map";
@@ -139,7 +146,8 @@ public class CommonConfigRepositoryUnitTest {
         String version = "commit";
         Collection<String> patterns = List.of("path1/*", "path2/*");
 
-        configRepository = spy(new XmMsConfigCommonConfigRepository(restTemplate, xmConfigProperties, kafkaTemplate, tenantContextHolder));
+        configRepository = spy(new XmMsConfigCommonConfigRepository(restTemplate, xmConfigProperties, kafkaTemplate, tenantContextHolder,
+            new ConfigPrivateApi(true, APP_NAME_TEST, null)));
         when(xmConfigProperties.getXmConfigUrl()).thenReturn("http://test");
 
         String expectedUrl = xmConfigProperties.getXmConfigUrl() + "/api/private/config_map/pattern";
@@ -173,6 +181,23 @@ public class CommonConfigRepositoryUnitTest {
             .singletonMap("path", new Configuration("path", "content"));
         when(xmConfigProperties.getXmConfigUrl()).thenReturn("configUrl");
         when(restTemplate.exchange(eq("configUrl/api/private/config_map?version=commit"), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+            .thenReturn(ResponseEntity.ok(config));
+
+        assertThat(configRepository.getConfig("commit")).isEqualTo(config);
+    }
+
+    @Test
+    public void getConfig_withoutMigrationSendsTokenToNewApi() throws Exception {
+        String privateKey = Base64.getEncoder().encodeToString(
+            KeyPairGenerator.getInstance("Ed25519").generateKeyPair().getPrivate().getEncoded());
+        configRepository = new XmMsConfigCommonConfigRepository(restTemplate, xmConfigProperties, kafkaTemplate,
+            tenantContextHolder, new ConfigPrivateApi(false, APP_NAME_TEST, privateKey));
+        Map<String, Configuration> config = Collections
+            .singletonMap("path", new Configuration("path", "content"));
+        when(xmConfigProperties.getXmConfigUrl()).thenReturn("configUrl");
+        when(restTemplate.exchange(eq("configUrl/api/private/v2/config_map?version=commit"), eq(HttpMethod.GET),
+            argThat((HttpEntity<?> entity) -> entity.getHeaders().containsHeader(ConfigPrivateApi.TOKEN_HEADER)),
+            any(ParameterizedTypeReference.class)))
             .thenReturn(ResponseEntity.ok(config));
 
         assertThat(configRepository.getConfig("commit")).isEqualTo(config);
