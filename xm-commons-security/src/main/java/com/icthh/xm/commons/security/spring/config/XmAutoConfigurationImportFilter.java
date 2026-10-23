@@ -8,12 +8,11 @@ import org.springframework.core.env.Environment;
 
 /**
  * Skips Spring Boot auto-configurations that are not used by XM microservices.
- * Can be disabled with {@code xm-commons.auto-configuration-filter.disabled=true}: the property is outside of
- * the {@code application} prefix, which microservices bind with {@code ignoreUnknownFields = false}.
+ * Can be disabled with {@code application.xm-auto-configuration-filter.disabled=true}.
  */
 public class XmAutoConfigurationImportFilter implements AutoConfigurationImportFilter, EnvironmentAware {
 
-    public static final String DISABLED_PROPERTY = "xm-commons.auto-configuration-filter.disabled";
+    public static final String DISABLED_PROPERTY = "application.xm-auto-configuration-filter.disabled";
 
     private static final Set<String> EXCLUDED_AUTO_CONFIGURATIONS = Set.of(
         "org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration"
