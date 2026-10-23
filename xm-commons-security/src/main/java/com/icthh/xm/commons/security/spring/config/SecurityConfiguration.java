@@ -43,6 +43,9 @@ public class SecurityConfiguration {
     @Value("${application.prometheus.public:false}")
     private boolean prometheusPublic;
 
+    @Value("${application.management.info.public:false}")
+    private boolean infoPublic;
+
     @Value("${application.management.access.role:" + SYSTEM_ADMIN + "}")
     private String managementRole = SYSTEM_ADMIN;
 
@@ -100,6 +103,7 @@ public class SecurityConfiguration {
                     .requestMatchers("/management/health/readiness").permitAll()
                     .requestMatchers("/management/prometheus").access(prometheusAccess())
                     .requestMatchers("/management/prometheus/**").access(prometheusAccess())
+                    .requestMatchers("/management/info").access(infoAccess())
                     .requestMatchers("/management/**").access(hasAuthority(managementRole))
                     .requestMatchers("/v3/api-docs/**").access(access("API_DOCS.GET"))
                     .requestMatchers("/swagger-resources/configuration/ui").access(access("API_DOCS.GET"))
@@ -117,6 +121,10 @@ public class SecurityConfiguration {
 
     private AuthorizationManager<RequestAuthorizationContext> prometheusAccess() {
         return prometheusPublic ? (_, _) -> new AuthorizationDecision(true) : hasAuthority(managementRole);
+    }
+
+    private AuthorizationManager<RequestAuthorizationContext> infoAccess() {
+        return infoPublic ? (_, _) -> new AuthorizationDecision(true) : hasAuthority(managementRole);
     }
 
     public Set<String> getAccessPrivileges() {

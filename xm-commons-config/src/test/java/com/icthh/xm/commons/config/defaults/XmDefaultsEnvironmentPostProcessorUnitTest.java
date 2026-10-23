@@ -23,6 +23,7 @@ public class XmDefaultsEnvironmentPostProcessorUnitTest {
     private static final String SHOW_ACTUATOR = "springdoc.show-actuator";
     private static final String PROMETHEUS_PUBLIC = "application.prometheus.public";
     private static final String MANAGEMENT_ROLE = "application.management.access.role";
+    private static final String INFO_PUBLIC = "application.management.info.public";
 
     @Test
     public void testDefaultsWithoutProfile() {
@@ -39,6 +40,7 @@ public class XmDefaultsEnvironmentPostProcessorUnitTest {
         assertThat(environment.getProperty(MANAGEMENT_PORT)).isNull();
         assertThat(environment.getProperty(PROMETHEUS_PUBLIC)).isNull();
         assertThat(environment.getProperty(MANAGEMENT_ROLE)).isNull();
+        assertThat(environment.getProperty(INFO_PUBLIC)).isNull();
     }
 
     @Test
@@ -62,6 +64,7 @@ public class XmDefaultsEnvironmentPostProcessorUnitTest {
         assertThat(environment.getProperty(REGISTER_MANAGEMENT)).isEqualTo("true");
         assertThat(environment.getProperty(PROMETHEUS_PUBLIC)).isEqualTo("true");
         assertThat(environment.getProperty(MANAGEMENT_ROLE)).isEqualTo("SUPER-ADMIN");
+        assertThat(environment.getProperty(INFO_PUBLIC)).isEqualTo("true");
     }
 
     @Test

@@ -26,7 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {
     "jhipster.security.content-security-policy=default-src 'self'",
     "application.prometheus.public=true",
-    "application.management.access.role=SUPER-ADMIN"
+    "application.management.access.role=SUPER-ADMIN",
+    "application.management.info.public=true"
 })
 public class SecurityConfigurationManagementMigrationIntTest {
 
@@ -44,6 +45,11 @@ public class SecurityConfigurationManagementMigrationIntTest {
     public void testPrometheusIsPublic() throws Exception {
         mockMvc.perform(get("/management/prometheus")).andExpect(status().isNotFound());
         mockMvc.perform(get("/management/prometheus/scrape")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testInfoIsPublic() throws Exception {
+        mockMvc.perform(get("/management/info")).andExpect(status().isNotFound());
     }
 
     @Test

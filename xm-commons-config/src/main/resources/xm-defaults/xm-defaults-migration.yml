@@ -24,3 +24,5 @@ application:
     management:
         access:
             role: SUPER-ADMIN
+        info:
+            public: true
