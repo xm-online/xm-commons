@@ -49,7 +49,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.kafka.autoconfigure.KafkaAutoConfiguration;
-import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -62,7 +61,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(properties = "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
+@SpringBootTest(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
+                             "spring.kafka.properties.max.poll.interval.ms=1000"},
                 classes = {KafkaAutoConfiguration.class})
 @EmbeddedKafka(topics = "kafka-queue", partitions = 1, controlledShutdown = true,
     brokerProperties = {
@@ -88,9 +88,6 @@ public class MessageListenerIntTest {
 
     @Autowired
     private EmbeddedKafkaBroker kafkaEmbedded;
-
-    @Autowired
-    private KafkaProperties kafkaProperties;
 
     @Autowired
     private TraceWrapper traceWrapper;
@@ -131,7 +128,6 @@ public class MessageListenerIntTest {
               new StringSerializer());
 
         Producer<String, String> producer = kafkaProducerFactory.createProducer();
-        kafkaProperties.getProperties().put("max.poll.interval.ms", "1000");
 
         topicConfigurationService.onRefresh(UPDATE_KEY, readConfig(CONFIG));
         log.info("TRYFIXTEST Thread.sleep(50);");

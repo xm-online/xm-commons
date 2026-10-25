@@ -9,7 +9,6 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.context.ApplicationListener;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -18,6 +17,7 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.MessageListener;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -33,7 +33,7 @@ public class ApplicationStartup implements ApplicationListener<ApplicationReadyE
     private Integer kafkaMetadataMaxAge;
 
     private final SystemQueueConsumer systemQueueConsumer;
-    private final KafkaProperties kafkaProperties;
+    private final ConsumerFactory<String, String> consumerFactory;
     private final PrivilegeInspector privilegeInspector;
 
     @Override
@@ -47,7 +47,7 @@ public class ApplicationStartup implements ApplicationListener<ApplicationReadyE
         ContainerProperties containerProps = new ContainerProperties(name);
         containerProps.setObservationEnabled(true);
 
-        Map<String, Object> props = kafkaProperties.buildConsumerProperties();
+        Map<String, Object> props = new HashMap<>(consumerFactory.getConfigurationProperties());
         props.put(ConsumerConfig.METADATA_MAX_AGE_CONFIG, kafkaMetadataMaxAge);
         ConsumerFactory<String, String> factory = new DefaultKafkaConsumerFactory<>(props);
 

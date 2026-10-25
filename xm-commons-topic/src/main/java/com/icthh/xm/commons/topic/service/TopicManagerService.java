@@ -8,7 +8,7 @@ import com.icthh.xm.commons.topic.message.MessageHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
-import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
+import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @Service
 public class TopicManagerService {
 
-    private final KafkaProperties kafkaProperties;
+    private final ConsumerFactory<String, String> consumerFactory;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final TraceWrapper traceWrapper;
     private final Map<String, Map<String, ConsumerHolder>> topicConsumerHolders = new ConcurrentHashMap<>();
@@ -109,7 +109,7 @@ public class TopicManagerService {
     }
 
     protected AbstractMessageListenerContainer buildListenerContainer(String tenantKey, TopicConfig topicConfig, MessageHandler messageHandler) {
-        return new MessageListenerContainerBuilder(kafkaProperties, kafkaTemplate)
+        return new MessageListenerContainerBuilder(consumerFactory, kafkaTemplate)
             .build(tenantKey, topicConfig, messageHandler, traceWrapper);
     }
 

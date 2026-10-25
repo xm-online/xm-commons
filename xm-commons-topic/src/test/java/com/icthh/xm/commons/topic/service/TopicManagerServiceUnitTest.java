@@ -13,7 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
+import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 
@@ -42,7 +42,7 @@ public class TopicManagerServiceUnitTest {
     private TopicManagerService topicManager;
 
     @Mock
-    private KafkaProperties kafkaProperties;
+    private ConsumerFactory<String, String> consumerFactory;
 
     @Mock
     private KafkaTemplate<String, String> kafkaTemplate;
@@ -59,7 +59,7 @@ public class TopicManagerServiceUnitTest {
 
     @Before
     public void setUp() {
-        topicManager = spy(new TopicManagerService(kafkaProperties, kafkaTemplate, traceWrapper));
+        topicManager = spy(new TopicManagerService(consumerFactory, kafkaTemplate, traceWrapper));
         doReturn(container).when(topicManager).buildListenerContainer(any(), any(), any());
     }
 
