@@ -6,6 +6,7 @@ import com.icthh.xm.commons.permission.inspector.PrivilegeInspector;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -49,7 +50,8 @@ public class ApplicationStartup implements ApplicationListener<ApplicationReadyE
 
         Map<String, Object> props = new HashMap<>(consumerFactory.getConfigurationProperties());
         props.put(ConsumerConfig.METADATA_MAX_AGE_CONFIG, kafkaMetadataMaxAge);
-        ConsumerFactory<String, String> factory = new DefaultKafkaConsumerFactory<>(props);
+        ConsumerFactory<String, String> factory = new DefaultKafkaConsumerFactory<>(props,
+            new StringDeserializer(), new StringDeserializer());
 
         ConcurrentMessageListenerContainer<String, String> container =
             new ConcurrentMessageListenerContainer<>(factory, containerProps);

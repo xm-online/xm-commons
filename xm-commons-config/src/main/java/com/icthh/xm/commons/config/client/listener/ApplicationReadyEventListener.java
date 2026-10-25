@@ -5,6 +5,7 @@ import com.icthh.xm.commons.config.client.repository.kafka.ConfigTopicConsumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.kafka.core.ConsumerFactory;
@@ -38,7 +39,8 @@ public class ApplicationReadyEventListener implements ApplicationListener<Applic
 
         Map<String, Object> props = new HashMap<>(consumerFactory.getConfigurationProperties());
         props.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
-        ConsumerFactory<String, String> factory = new DefaultKafkaConsumerFactory<>(props);
+        ConsumerFactory<String, String> factory = new DefaultKafkaConsumerFactory<>(props,
+            new StringDeserializer(), new StringDeserializer());
 
         ConcurrentMessageListenerContainer<String, String> container =
             new ConcurrentMessageListenerContainer<>(factory, containerProps);
