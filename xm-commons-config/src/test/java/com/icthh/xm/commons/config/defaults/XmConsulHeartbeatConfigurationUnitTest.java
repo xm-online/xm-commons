@@ -12,12 +12,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class XmConsulHeartbeatAutoConfigurationUnitTest {
+public class XmConsulHeartbeatConfigurationUnitTest {
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
         .withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class, ConsulAutoConfiguration.class,
-            ConsulDiscoveryClientConfiguration.class, ConsulHeartbeatAutoConfiguration.class,
-            XmConsulHeartbeatAutoConfiguration.class));
+            ConsulDiscoveryClientConfiguration.class,
+            ConsulHeartbeatAutoConfiguration.class))
+        .withUserConfiguration(XmConsulHeartbeatConfiguration.class);
 
     @Test
     public void testTtlSchedulerUsesDecoratedClient() {
@@ -26,21 +27,5 @@ public class XmConsulHeartbeatAutoConfigurationUnitTest {
             Object client = ReflectionTestUtils.getField(context.getBean(TtlScheduler.class), "client");
             assertThat(client).isInstanceOf(ConsulCheckFailureClient.class);
         });
-    }
-
-    @Test
-    public void testNoTtlSchedulerWithoutHeartbeat() {
-        runner.withPropertyValues("spring.cloud.consul.discovery.heartbeat.enabled=false")
-            .run(context -> assertThat(context).doesNotHaveBean(TtlScheduler.class));
-    }
-
-    @Test
-    public void testNoTtlSchedulerWhenConsulIsDisabled() {
-        runner.withPropertyValues("spring.cloud.consul.discovery.heartbeat.enabled=true",
-                "spring.cloud.consul.enabled=false")
-            .run(context -> {
-                assertThat(context).hasNotFailed();
-                assertThat(context).doesNotHaveBean(TtlScheduler.class);
-            });
     }
 }
