@@ -20,3 +20,9 @@ spring:
 springdoc:
     show-actuator: false
     use-management-port: false
+
+management:
+    endpoint:
+        health:
+            show-details: when_authorized
+            roles: ${application.management.access.role:SYSTEM-ADMIN}

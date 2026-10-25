@@ -24,6 +24,8 @@ public class XmDefaultsEnvironmentPostProcessorUnitTest {
     private static final String PROMETHEUS_PUBLIC = "application.prometheus.public";
     private static final String MANAGEMENT_ROLE = "application.management.access.role";
     private static final String INFO_PUBLIC = "application.management.info.public";
+    private static final String HEALTH_SHOW_DETAILS = "management.endpoint.health.show-details";
+    private static final String HEALTH_ROLES = "management.endpoint.health.roles";
 
     @Test
     public void testDefaultsWithoutProfile() {
@@ -41,6 +43,8 @@ public class XmDefaultsEnvironmentPostProcessorUnitTest {
         assertThat(environment.getProperty(PROMETHEUS_PUBLIC)).isNull();
         assertThat(environment.getProperty(MANAGEMENT_ROLE)).isNull();
         assertThat(environment.getProperty(INFO_PUBLIC)).isNull();
+        assertThat(environment.getProperty(HEALTH_SHOW_DETAILS)).isEqualTo("when_authorized");
+        assertThat(environment.getProperty(HEALTH_ROLES)).isEqualTo("SYSTEM-ADMIN");
     }
 
     @Test
@@ -65,6 +69,8 @@ public class XmDefaultsEnvironmentPostProcessorUnitTest {
         assertThat(environment.getProperty(PROMETHEUS_PUBLIC)).isEqualTo("true");
         assertThat(environment.getProperty(MANAGEMENT_ROLE)).isEqualTo("SUPER-ADMIN");
         assertThat(environment.getProperty(INFO_PUBLIC)).isEqualTo("true");
+        assertThat(environment.getProperty(HEALTH_SHOW_DETAILS)).isEqualTo("when_authorized");
+        assertThat(environment.getProperty(HEALTH_ROLES)).isEqualTo("SUPER-ADMIN");
     }
 
     @Test
