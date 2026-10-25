@@ -1,12 +1,12 @@
 package com.icthh.xm.commons.security.spring.config;
 
 import com.icthh.xm.commons.security.XmPermissionCheckService;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@AutoConfiguration
-public class XmPermissionCheckServiceAutoConfiguration {
+@Configuration
+public class XmPermissionCheckServiceConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
