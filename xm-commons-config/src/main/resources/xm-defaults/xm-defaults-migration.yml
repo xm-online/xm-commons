@@ -5,6 +5,8 @@ management:
         port: ""
 
 spring:
+    jmx:
+        enabled: true
     cloud:
         consul:
             discovery:

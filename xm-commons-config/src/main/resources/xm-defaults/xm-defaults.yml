@@ -1,6 +1,8 @@
 # Defaults of xm-commons, see XmDefaultsEnvironmentPostProcessor.
 # The lowest priority: any value of the service (application*.yml, env) overrides them.
 spring:
+    jmx:
+        enabled: false
     cloud:
         consul:
             discovery:
