@@ -24,6 +24,7 @@ public class XmDefaultsEnvironmentPostProcessorUnitTest {
     private static final String PROMETHEUS_PUBLIC = "application.prometheus.public";
     private static final String MANAGEMENT_ROLE = "application.management.access.role";
     private static final String INFO_PUBLIC = "application.management.info.public";
+    private static final String API_DOCS_PRIVILEGE_CHECK = "application.api-docs.privilege-check";
     private static final String HEALTH_SHOW_DETAILS = "management.endpoint.health.show-details";
     private static final String HEALTH_ROLES = "management.endpoint.health.roles";
     private static final String JMX = "spring.jmx.enabled";
@@ -45,6 +46,7 @@ public class XmDefaultsEnvironmentPostProcessorUnitTest {
         assertThat(environment.getProperty(PROMETHEUS_PUBLIC)).isNull();
         assertThat(environment.getProperty(MANAGEMENT_ROLE)).isNull();
         assertThat(environment.getProperty(INFO_PUBLIC)).isNull();
+        assertThat(environment.getProperty(API_DOCS_PRIVILEGE_CHECK)).isNull();
         assertThat(environment.getProperty(HEALTH_SHOW_DETAILS)).isEqualTo("when_authorized");
         assertThat(environment.getProperty(HEALTH_ROLES)).isEqualTo("SYSTEM-ADMIN");
         assertThat(environment.getProperty(JMX)).isEqualTo("false");
@@ -72,6 +74,7 @@ public class XmDefaultsEnvironmentPostProcessorUnitTest {
         assertThat(environment.getProperty(PROMETHEUS_PUBLIC)).isEqualTo("true");
         assertThat(environment.getProperty(MANAGEMENT_ROLE)).isEqualTo("SUPER-ADMIN");
         assertThat(environment.getProperty(INFO_PUBLIC)).isEqualTo("true");
+        assertThat(environment.getProperty(API_DOCS_PRIVILEGE_CHECK)).isEqualTo("false");
         assertThat(environment.getProperty(HEALTH_SHOW_DETAILS)).isEqualTo("when_authorized");
         assertThat(environment.getProperty(HEALTH_ROLES)).isEqualTo("SUPER-ADMIN");
         assertThat(environment.getProperty(JMX)).isEqualTo("true");

@@ -21,6 +21,8 @@ spring:
                 register-management: true
 
 application:
+    api-docs:
+        privilege-check: false
     prometheus:
         public: true
     management:
