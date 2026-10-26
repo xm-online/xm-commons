@@ -37,6 +37,7 @@ dependencies {
     compileOnly 'org.springframework.cloud:spring-cloud-consul-discovery'
     implementation('org.springframework.boot:spring-boot-starter-web')
     api 'org.springframework.kafka:spring-kafka'
+    implementation "org.bitbucket.b_c:jose4j:${versions.jose4j}"
     api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     api 'com.fasterxml.jackson.datatype:jackson-datatype-json-org'
 
