@@ -64,6 +64,16 @@ public class ConfigPrivateApiUnitTest {
             .hasMessageContaining("application.config-private-key");
     }
 
+    @Test
+    public void testInvalidPrivateKeyFailsOnCreationWithPropertyName() {
+        assertThatThrownBy(() -> new ConfigPrivateApi(false, SERVICE, "not-a-key"))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("application.config-private-key");
+        assertThatThrownBy(() -> new ConfigPrivateApi(false, SERVICE, "bm90LWEta2V5"))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("application.config-private-key");
+    }
+
     private static KeyPair generateKeyPair() {
         try {
             return KeyPairGenerator.getInstance("Ed25519").generateKeyPair();

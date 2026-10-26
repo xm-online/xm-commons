@@ -7,6 +7,7 @@ import org.springframework.http.HttpHeaders;
 
 import java.security.KeyFactory;
 import java.security.PrivateKey;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Clock;
 import java.time.Duration;
@@ -82,7 +83,12 @@ public class ConfigPrivateApi {
         if (StringUtils.isBlank(privateKey)) {
             throw new ConfigPrivateKeyNotSetException();
         }
-        byte[] encoded = Base64.getDecoder().decode(privateKey.trim());
-        return KeyFactory.getInstance("Ed25519").generatePrivate(new PKCS8EncodedKeySpec(encoded));
+        try {
+            byte[] encoded = Base64.getDecoder().decode(privateKey.trim());
+            return KeyFactory.getInstance("Ed25519").generatePrivate(new PKCS8EncodedKeySpec(encoded));
+        } catch (IllegalArgumentException | InvalidKeySpecException e) {
+            throw new IllegalStateException("application.config-private-key is not a base64 PKCS#8 DER "
+                + "Ed25519 private key: " + e.getMessage(), e);
+        }
     }
 }
