@@ -9,22 +9,14 @@ import com.icthh.xm.commons.tenant.TenantKey;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.Optional;
 
-import static com.icthh.xm.commons.security.RoleConstant.SUPER_ADMIN;
 import static com.icthh.xm.commons.tenant.TenantContextUtils.buildTenant;
 
-/**
- * The {@link PermissionXmPermissionCheckService} class.
- *
- * <p>Checks privileges by {@link PermissionCheckService}. The security filter chain runs before
- * the tenant context is set, so without the tenant context the tenant from the token is used.
- */
 @Service
 @RequiredArgsConstructor
 public class PermissionXmPermissionCheckService implements XmPermissionCheckService {
@@ -39,18 +31,9 @@ public class PermissionXmPermissionCheckService implements XmPermissionCheckServ
         if (authentication == null) {
             return false;
         }
-        if (isSuperAdmin(authentication)) {
-            return true;
-        }
         return getTenant()
             .map(tenant -> hasPermissionInTenant(tenant, authentication, privilege, context))
             .orElse(false);
-    }
-
-    private boolean isSuperAdmin(Authentication authentication) {
-        return authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .anyMatch(SUPER_ADMIN::equals);
     }
 
     private Optional<String> getTenant() {

@@ -62,14 +62,6 @@ public class PermissionXmPermissionCheckServiceUnitTest {
     }
 
     @Test
-    public void allowsSuperAdminWithoutPrivilegeCheck() {
-        authenticate("SUPER-ADMIN");
-
-        assertThat(service.hasPermission(PRIVILEGE)).isTrue();
-        verifyNoInteractions(permissionCheckService);
-    }
-
-    @Test
     public void checksPrivilegeInCurrentTenantWithContextAsResource() {
         Authentication authentication = authenticate("ROLE_USER");
         TenantContextUtils.setTenant(tenantContextHolder, "CURRENT");
