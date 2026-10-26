@@ -4,16 +4,13 @@ import com.icthh.xm.commons.config.client.repository.ConfigPrivateKeyNotSetExcep
 import org.springframework.boot.diagnostics.AbstractFailureAnalyzer;
 import org.springframework.boot.diagnostics.FailureAnalysis;
 
-/**
- * Explains on startup how to run the microservice without application.config-private-key and how to set it.
- */
 public class ConfigPrivateKeyNotSetFailureAnalyzer extends AbstractFailureAnalyzer<ConfigPrivateKeyNotSetException> {
 
-    static final String DESCRIPTION = """
+    private static final String DESCRIPTION = """
         application.config-private-key is not set: the microservice signs every request to /api/private/v2 \
         of xm-ms-config with this private key.""";
 
-    static final String ACTION = """
+    private static final String ACTION = """
         1) Local development without keys: run with the profile migration \
         (xm-ms-config with the profile migration too), by one of:
         - gradlew: `./gradlew bootRun --args='--spring.profiles.active=dev,migration'`;

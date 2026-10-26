@@ -52,7 +52,6 @@ dependencies {
     testImplementation 'org.mockito:mockito-core'
     testImplementation "org.springframework:spring-test"
     testImplementation 'org.springframework.cloud:spring-cloud-consul-discovery'
-    testImplementation 'org.springframework.boot:spring-boot-test'
 }
 
 compileJava.dependsOn(processResources)

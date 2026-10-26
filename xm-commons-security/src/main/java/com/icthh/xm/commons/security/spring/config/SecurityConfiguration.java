@@ -6,7 +6,6 @@ import com.icthh.xm.commons.security.jwt.TokenProvider;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.authorization.AuthorityAuthorizationManager;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.Customizer;
@@ -29,10 +28,13 @@ import static com.icthh.xm.commons.security.RoleConstant.SUPER_ADMIN;
 import static com.icthh.xm.commons.security.RoleConstant.SYSTEM_ADMIN;
 import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasAnyAuthority;
 import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasAuthority;
+import static org.springframework.security.authorization.SingleResultAuthorizationManager.permitAll;
 
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfiguration {
+
+    private static final String API_DOCS_PRIVILEGE = "API_DOCS.GET";
 
     private final String contentSecurityPolicy;
 
@@ -106,9 +108,9 @@ public class SecurityConfiguration {
                     .requestMatchers("/management/health").permitAll()
                     .requestMatchers("/management/health/liveness").permitAll()
                     .requestMatchers("/management/health/readiness").permitAll()
-                    .requestMatchers("/management/prometheus").access(prometheusAccess())
-                    .requestMatchers("/management/prometheus/**").access(prometheusAccess())
-                    .requestMatchers("/management/info").access(infoAccess())
+                    .requestMatchers("/management/prometheus").access(publicOrManagementAccess(prometheusPublic))
+                    .requestMatchers("/management/prometheus/**").access(publicOrManagementAccess(prometheusPublic))
+                    .requestMatchers("/management/info").access(publicOrManagementAccess(infoPublic))
                     .requestMatchers("/management/**").access(hasAuthority(managementRole))
                     .requestMatchers("/v3/api-docs/**").access(apiDocsAccess())
                     .requestMatchers("/swagger-resources/configuration/ui").access(swaggerUiConfigAccess())
@@ -116,28 +118,21 @@ public class SecurityConfiguration {
         // @formatter:on
     }
 
-    /**
-     * Allows the request when the current user has the privilege. The privilege is published to privileges.yml.
-     */
     protected AuthorizationManager<RequestAuthorizationContext> access(String privilege) {
         accessPrivileges.add(privilege);
         return (authentication, context) -> new AuthorizationDecision(permissionCheckService.hasPermission(privilege));
     }
 
-    private AuthorizationManager<RequestAuthorizationContext> prometheusAccess() {
-        return prometheusPublic ? (_, _) -> new AuthorizationDecision(true) : hasAuthority(managementRole);
-    }
-
-    private AuthorizationManager<RequestAuthorizationContext> infoAccess() {
-        return infoPublic ? (_, _) -> new AuthorizationDecision(true) : hasAuthority(managementRole);
+    private AuthorizationManager<RequestAuthorizationContext> publicOrManagementAccess(boolean isPublic) {
+        return isPublic ? permitAll() : hasAuthority(managementRole);
     }
 
     private AuthorizationManager<RequestAuthorizationContext> apiDocsAccess() {
-        return apiDocsPrivilegeCheck ? access("API_DOCS.GET") : hasAnyAuthority(SUPER_ADMIN, ADMIN);
+        return apiDocsPrivilegeCheck ? access(API_DOCS_PRIVILEGE) : hasAnyAuthority(SUPER_ADMIN, ADMIN);
     }
 
     private AuthorizationManager<RequestAuthorizationContext> swaggerUiConfigAccess() {
-        return apiDocsPrivilegeCheck ? access("API_DOCS.GET") : (_, _) -> new AuthorizationDecision(true);
+        return apiDocsPrivilegeCheck ? access(API_DOCS_PRIVILEGE) : permitAll();
     }
 
     public Set<String> getAccessPrivileges() {

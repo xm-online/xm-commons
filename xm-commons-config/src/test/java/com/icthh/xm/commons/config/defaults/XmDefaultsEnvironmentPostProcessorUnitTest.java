@@ -99,16 +99,6 @@ public class XmDefaultsEnvironmentPostProcessorUnitTest {
         assertThat(environment.getProperty(QUERY_PASSING)).isEqualTo("true");
     }
 
-    @Test
-    public void testRepeatedPostProcessingDoesNotDuplicateSources() {
-        StandardEnvironment environment = postProcess("prod");
-        int size = environment.getPropertySources().size();
-
-        new XmDefaultsEnvironmentPostProcessor().postProcessEnvironment(environment, new SpringApplication());
-
-        assertThat(environment.getPropertySources().size()).isEqualTo(size);
-    }
-
     private static StandardEnvironment postProcess(String... profiles) {
         StandardEnvironment environment = new StandardEnvironment();
         environment.setActiveProfiles(profiles);

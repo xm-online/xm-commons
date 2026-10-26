@@ -17,9 +17,6 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * The values of xm-defaults-migration.yml restore the rules before SYSTEM-ADMIN.
- */
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = SecurityConfigurationManagementIntTest.TestConfiguration.class)

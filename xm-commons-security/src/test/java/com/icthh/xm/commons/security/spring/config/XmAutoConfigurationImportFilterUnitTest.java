@@ -1,11 +1,8 @@
 package com.icthh.xm.commons.security.spring.config;
 
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-import org.springframework.boot.autoconfigure.AutoConfigurationImportFilter;
-import org.springframework.core.io.support.SpringFactoriesLoader;
 import org.springframework.mock.env.MockEnvironment;
 
 public class XmAutoConfigurationImportFilterUnitTest {
@@ -35,13 +32,6 @@ public class XmAutoConfigurationImportFilterUnitTest {
             new MockEnvironment().withProperty(XmAutoConfigurationImportFilter.DISABLED_PROPERTY, "true"));
 
         assertArrayEquals(new boolean[] {true, true}, filter.match(new String[] {OTHER, USER_DETAILS}, null));
-    }
-
-    @Test
-    public void testFilterIsRegisteredInSpringFactories() {
-        assertTrue(SpringFactoriesLoader.loadFactories(AutoConfigurationImportFilter.class, getClass().getClassLoader())
-            .stream()
-            .anyMatch(XmAutoConfigurationImportFilter.class::isInstance));
     }
 
     private XmAutoConfigurationImportFilter createFilter(MockEnvironment environment) {

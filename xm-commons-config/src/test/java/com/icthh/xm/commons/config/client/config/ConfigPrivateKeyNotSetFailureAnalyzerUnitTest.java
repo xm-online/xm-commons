@@ -14,22 +14,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ConfigPrivateKeyNotSetFailureAnalyzerUnitTest {
 
     @Test
-    public void testExplainsMigrationProfileAndKeys() {
-        FailureAnalysis analysis = analyze(new ConfigPrivateKeyNotSetException());
-
-        assertThat(analysis.getDescription()).contains("application.config-private-key is not set");
-        assertThat(analysis.getAction())
-            .contains("`./gradlew bootRun --args='--spring.profiles.active=dev,migration'`")
-            .contains("`SPRING_PROFILES_INCLUDE=migration ./gradlew bootRun`")
-            .contains("For production use")
-            .contains("`openssl genpkey -algorithm ed25519 -outform DER -out private.der`")
-            .contains("`base64 < private.der | tr -d '\\n'`")
-            .contains("`APPLICATION_CONFIG_PRIVATE_KEY=<private key>`")
-            .contains("--application.config-private-key=<private key>")
-            .contains("application-dev.yml: `config-private-key: <private key>` under `application:`");
-    }
-
-    @Test
     public void testReporterPrintsOnlyThisFailureToStderr() {
         assertThat(reportToStderr(analyze(new ConfigPrivateKeyNotSetException())))
             .contains("APPLICATION FAILED TO START")

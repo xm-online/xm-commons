@@ -12,23 +12,14 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.util.List;
 
-/**
- * Adds xm-commons defaults with the lowest priority, so any value of the service (application*.yml, env) wins.
- * <p>
- * xm-defaults-{profile}.yml overrides xm-defaults.yml like application-{profile}.yml does.
- * The profile 'migration' restores the behaviour before these defaults and always wins over 'prod'.
- */
 public class XmDefaultsEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered {
 
     public static final String MIGRATION_PROFILE = "migration";
 
-    static final String LOCATION = "xm-defaults/";
-    static final String DEFAULTS_FILE = "xm-defaults.yml";
+    private static final String LOCATION = "xm-defaults/";
+    private static final String DEFAULTS_FILE = "xm-defaults.yml";
 
-    /**
-     * Highest priority first.
-     */
-    static final List<String> PROFILES = List.of(MIGRATION_PROFILE, "prod");
+    private static final List<String> PROFILES = List.of(MIGRATION_PROFILE, "prod");
 
     private final YamlPropertySourceLoader loader = new YamlPropertySourceLoader();
 
@@ -41,9 +32,6 @@ public class XmDefaultsEnvironmentPostProcessor implements EnvironmentPostProces
         addLast(propertySources, DEFAULTS_FILE);
     }
 
-    /**
-     * Runs after ConfigDataEnvironmentPostProcessor, when the active profiles are known.
-     */
     @Override
     public int getOrder() {
         return Ordered.LOWEST_PRECEDENCE;

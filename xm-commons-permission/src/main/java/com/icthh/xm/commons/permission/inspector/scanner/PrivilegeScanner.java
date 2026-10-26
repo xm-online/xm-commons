@@ -81,9 +81,10 @@ public class PrivilegeScanner {
             }
         }
 
-        securityConfiguration.ifAvailable(config -> config.getAccessPrivileges().stream()
+        securityConfiguration.orderedStream()
+            .flatMap(config -> config.getAccessPrivileges().stream())
             .map(this::parse)
-            .forEach(privileges::add));
+            .forEach(privileges::add);
 
         log.info("Found {} privileges in {} ms", privileges.size(), stopWatch.getTime());
         return privileges;

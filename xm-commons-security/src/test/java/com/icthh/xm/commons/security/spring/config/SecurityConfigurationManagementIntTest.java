@@ -29,9 +29,6 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Allowed requests end with 404: the test context has no endpoints, only the security rules.
- */
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = SecurityConfigurationManagementIntTest.TestConfiguration.class)

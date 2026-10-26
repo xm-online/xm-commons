@@ -15,20 +15,13 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 
-/**
- * The private API of xm-ms-config: with the profile migration the old /api/private without authorization,
- * otherwise /api/private/v2 with a token signed by application.config-private-key.
- * <p>
- * The token is a short JWT signed by the service itself (Ed25519): any node of xm-ms-config verifies it with the
- * public key, the nodes do not share a state.
- */
 public class ConfigPrivateApi {
 
     public static final String TOKEN_HEADER = "X-Config-Token";
     public static final String AUDIENCE = "config";
 
-    static final Duration TOKEN_TTL = Duration.ofMinutes(5);
-    static final Duration TOKEN_REFRESH_BEFORE = Duration.ofMinutes(1);
+    private static final Duration TOKEN_TTL = Duration.ofMinutes(5);
+    private static final Duration TOKEN_REFRESH_BEFORE = Duration.ofMinutes(1);
 
     private static final String URL = "/api/private";
     private static final String URL_WITH_TOKEN = "/api/private/v2";
