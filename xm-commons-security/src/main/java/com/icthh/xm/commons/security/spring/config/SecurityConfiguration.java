@@ -24,8 +24,10 @@ import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWrite
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.icthh.xm.commons.security.RoleConstant.ADMIN;
 import static com.icthh.xm.commons.security.RoleConstant.SUPER_ADMIN;
 import static com.icthh.xm.commons.security.RoleConstant.SYSTEM_ADMIN;
+import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasAnyAuthority;
 import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasAuthority;
 
 @EnableWebSecurity
@@ -45,6 +47,9 @@ public class SecurityConfiguration {
 
     @Value("${application.management.info.public:false}")
     private boolean infoPublic;
+
+    @Value("${application.api-docs.privilege-check:true}")
+    private boolean apiDocsPrivilegeCheck = true;
 
     @Value("${application.management.access.role:" + SYSTEM_ADMIN + "}")
     private String managementRole = SYSTEM_ADMIN;
@@ -105,8 +110,8 @@ public class SecurityConfiguration {
                     .requestMatchers("/management/prometheus/**").access(prometheusAccess())
                     .requestMatchers("/management/info").access(infoAccess())
                     .requestMatchers("/management/**").access(hasAuthority(managementRole))
-                    .requestMatchers("/v3/api-docs/**").access(access("API_DOCS.GET"))
-                    .requestMatchers("/swagger-resources/configuration/ui").access(access("API_DOCS.GET"))
+                    .requestMatchers("/v3/api-docs/**").access(apiDocsAccess())
+                    .requestMatchers("/swagger-resources/configuration/ui").access(swaggerUiConfigAccess())
             );
         // @formatter:on
     }
@@ -125,6 +130,14 @@ public class SecurityConfiguration {
 
     private AuthorizationManager<RequestAuthorizationContext> infoAccess() {
         return infoPublic ? (_, _) -> new AuthorizationDecision(true) : hasAuthority(managementRole);
+    }
+
+    private AuthorizationManager<RequestAuthorizationContext> apiDocsAccess() {
+        return apiDocsPrivilegeCheck ? access("API_DOCS.GET") : hasAnyAuthority(SUPER_ADMIN, ADMIN);
+    }
+
+    private AuthorizationManager<RequestAuthorizationContext> swaggerUiConfigAccess() {
+        return apiDocsPrivilegeCheck ? access("API_DOCS.GET") : (_, _) -> new AuthorizationDecision(true);
     }
 
     public Set<String> getAccessPrivileges() {

@@ -76,6 +76,13 @@ public class SecurityConfigurationManagementIntTest {
         mockMvc.perform(get("/management/env").with(role("SYSTEM-ADMIN"))).andExpect(status().isNotFound());
     }
 
+    @Test
+    public void testApiDocsRequirePrivilege() throws Exception {
+        mockMvc.perform(get("/v3/api-docs")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/v3/api-docs").with(role("SUPER-ADMIN"))).andExpect(status().isForbidden());
+        mockMvc.perform(get("/swagger-resources/configuration/ui")).andExpect(status().isUnauthorized());
+    }
+
     static RequestPostProcessor role(String role) {
         return authentication(new UsernamePasswordAuthenticationToken("user", null,
             List.of(new SimpleGrantedAuthority(role))));

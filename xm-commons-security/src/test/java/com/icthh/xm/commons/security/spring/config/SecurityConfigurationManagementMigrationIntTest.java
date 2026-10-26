@@ -27,7 +27,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     "jhipster.security.content-security-policy=default-src 'self'",
     "application.prometheus.public=true",
     "application.management.access.role=SUPER-ADMIN",
-    "application.management.info.public=true"
+    "application.management.info.public=true",
+    "application.api-docs.privilege-check=false"
 })
 public class SecurityConfigurationManagementMigrationIntTest {
 
@@ -50,6 +51,15 @@ public class SecurityConfigurationManagementMigrationIntTest {
     @Test
     public void testInfoIsPublic() throws Exception {
         mockMvc.perform(get("/management/info")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testApiDocsRequireAdmin() throws Exception {
+        mockMvc.perform(get("/v3/api-docs")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/v3/api-docs").with(role("ROLE_USER"))).andExpect(status().isForbidden());
+        mockMvc.perform(get("/v3/api-docs").with(role("ADMIN"))).andExpect(status().isNotFound());
+        mockMvc.perform(get("/v3/api-docs").with(role("SUPER-ADMIN"))).andExpect(status().isNotFound());
+        mockMvc.perform(get("/swagger-resources/configuration/ui")).andExpect(status().isNotFound());
     }
 
     @Test
