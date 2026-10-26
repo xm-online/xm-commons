@@ -24,9 +24,11 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import java.util.List;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
@@ -37,6 +39,9 @@ public class SecurityConfigurationManagementIntTest {
 
     @Autowired
     private WebApplicationContext context;
+
+    @Autowired
+    private XmPermissionCheckService permissionCheckService;
 
     private MockMvc mockMvc;
 
@@ -78,6 +83,19 @@ public class SecurityConfigurationManagementIntTest {
         mockMvc.perform(get("/v3/api-docs")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/v3/api-docs").with(role("SUPER-ADMIN"))).andExpect(status().isForbidden());
         mockMvc.perform(get("/swagger-resources/configuration/ui")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testLogsRequirePrivilege() throws Exception {
+        mockMvc.perform(get("/management/logs").with(role("SYSTEM-ADMIN"))).andExpect(status().isForbidden());
+        mockMvc.perform(put("/management/logs").with(role("SYSTEM-ADMIN"))).andExpect(status().isForbidden());
+
+        when(permissionCheckService.hasPermission("LOGS.GET")).thenReturn(true);
+        mockMvc.perform(get("/management/logs").with(role("ROLE_USER"))).andExpect(status().isNotFound());
+        mockMvc.perform(put("/management/logs").with(role("ROLE_USER"))).andExpect(status().isForbidden());
+
+        when(permissionCheckService.hasPermission("LOGS.UPDATE")).thenReturn(true);
+        mockMvc.perform(put("/management/logs").with(role("ROLE_USER"))).andExpect(status().isNotFound());
     }
 
     static RequestPostProcessor role(String role) {

@@ -1,5 +1,6 @@
 package com.icthh.xm.commons.security.spring.config;
 
+import com.icthh.xm.commons.security.XmPermissionCheckService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,8 +14,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import static com.icthh.xm.commons.security.spring.config.SecurityConfigurationManagementIntTest.role;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
@@ -25,12 +29,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     "application.prometheus.public=true",
     "application.management.access.role=SUPER-ADMIN",
     "application.management.info.public=true",
-    "application.api-docs.privilege-check=false"
+    "application.api-docs.privilege-check=false",
+    "application.management.logs.system-admin-only=true"
 })
 public class SecurityConfigurationManagementMigrationIntTest {
 
     @Autowired
     private WebApplicationContext context;
+
+    @Autowired
+    private XmPermissionCheckService permissionCheckService;
 
     private MockMvc mockMvc;
 
@@ -64,5 +72,15 @@ public class SecurityConfigurationManagementMigrationIntTest {
         mockMvc.perform(get("/management/env")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/management/env").with(role("SYSTEM-ADMIN"))).andExpect(status().isForbidden());
         mockMvc.perform(get("/management/env").with(role("SUPER-ADMIN"))).andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testLogsRequireManagementRoleWhenSystemAdminOnly() throws Exception {
+        when(permissionCheckService.hasPermission(anyString())).thenReturn(true);
+
+        mockMvc.perform(get("/management/logs").with(role("SYSTEM-ADMIN"))).andExpect(status().isForbidden());
+        mockMvc.perform(put("/management/logs").with(role("SYSTEM-ADMIN"))).andExpect(status().isForbidden());
+        mockMvc.perform(get("/management/logs").with(role("SUPER-ADMIN"))).andExpect(status().isNotFound());
+        mockMvc.perform(put("/management/logs").with(role("SUPER-ADMIN"))).andExpect(status().isNotFound());
     }
 }

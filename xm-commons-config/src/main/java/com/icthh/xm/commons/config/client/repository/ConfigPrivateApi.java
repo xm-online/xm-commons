@@ -20,7 +20,7 @@ public class ConfigPrivateApi {
     public static final String TOKEN_HEADER = "X-Config-Token";
     public static final String AUDIENCE = "config";
 
-    private static final Duration TOKEN_TTL = Duration.ofMinutes(5);
+    public static final Duration TOKEN_TTL = Duration.ofMinutes(5);
     private static final Duration TOKEN_REFRESH_BEFORE = Duration.ofMinutes(1);
 
     private static final String URL = "/api/private";

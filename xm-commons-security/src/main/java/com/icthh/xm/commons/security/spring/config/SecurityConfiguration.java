@@ -6,6 +6,7 @@ import com.icthh.xm.commons.security.jwt.TokenProvider;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.Customizer;
@@ -35,6 +36,8 @@ import static org.springframework.security.authorization.SingleResultAuthorizati
 public class SecurityConfiguration {
 
     private static final String API_DOCS_PRIVILEGE = "API_DOCS.GET";
+    private static final String LOGS_GET_PRIVILEGE = "LOGS.GET";
+    private static final String LOGS_UPDATE_PRIVILEGE = "LOGS.UPDATE";
 
     private final String contentSecurityPolicy;
 
@@ -52,6 +55,9 @@ public class SecurityConfiguration {
 
     @Value("${application.api-docs.privilege-check:true}")
     private boolean apiDocsPrivilegeCheck = true;
+
+    @Value("${application.management.logs.system-admin-only:false}")
+    private boolean logsSystemAdminOnly;
 
     @Value("${application.management.access.role:" + SYSTEM_ADMIN + "}")
     private String managementRole = SYSTEM_ADMIN;
@@ -111,6 +117,8 @@ public class SecurityConfiguration {
                     .requestMatchers("/management/prometheus").access(publicOrManagementAccess(prometheusPublic))
                     .requestMatchers("/management/prometheus/**").access(publicOrManagementAccess(prometheusPublic))
                     .requestMatchers("/management/info").access(publicOrManagementAccess(infoPublic))
+                    .requestMatchers(HttpMethod.GET, "/management/logs").access(logsAccess(LOGS_GET_PRIVILEGE))
+                    .requestMatchers(HttpMethod.PUT, "/management/logs").access(logsAccess(LOGS_UPDATE_PRIVILEGE))
                     .requestMatchers("/management/**").access(hasAuthority(managementRole))
                     .requestMatchers("/v3/api-docs/**").access(apiDocsAccess())
                     .requestMatchers("/swagger-resources/configuration/ui").access(swaggerUiConfigAccess())
@@ -125,6 +133,10 @@ public class SecurityConfiguration {
 
     private AuthorizationManager<RequestAuthorizationContext> publicOrManagementAccess(boolean isPublic) {
         return isPublic ? permitAll() : hasAuthority(managementRole);
+    }
+
+    private AuthorizationManager<RequestAuthorizationContext> logsAccess(String privilege) {
+        return logsSystemAdminOnly ? hasAuthority(managementRole) : access(privilege);
     }
 
     private AuthorizationManager<RequestAuthorizationContext> apiDocsAccess() {
