@@ -73,7 +73,7 @@ public class XmDefaultsEnvironmentPostProcessorUnitTest {
         assertThat(environment.getProperty(INFO_PUBLIC)).isEqualTo("true");
         assertThat(environment.getProperty(API_DOCS_PRIVILEGE_CHECK)).isEqualTo("false");
         assertThat(environment.getProperty(HEALTH_SHOW_DETAILS)).isEqualTo("when_authorized");
-        assertThat(environment.getProperty(HEALTH_ROLES)).isEqualTo("SUPER-ADMIN");
+        assertThat(environment.getProperty(HEALTH_ROLES)).isEmpty();
         assertThat(environment.getProperty(JMX)).isEqualTo("true");
     }
 

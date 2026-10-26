@@ -1,6 +1,9 @@
 management:
     server:
         port: ""
+    endpoint:
+        health:
+            roles: ""
 
 spring:
     jmx:
