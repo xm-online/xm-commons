@@ -4,11 +4,9 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.consul.ConditionalOnConsulEnabled;
 import org.springframework.cloud.consul.ConsulClient;
-import org.springframework.cloud.consul.discovery.ConditionalOnConsulDiscoveryEnabled;
 import org.springframework.cloud.consul.discovery.ConsulDiscoveryProperties;
 import org.springframework.cloud.consul.discovery.HeartbeatProperties;
 import org.springframework.cloud.consul.discovery.ReregistrationPredicate;
@@ -29,8 +27,6 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnClass(name = "org.springframework.cloud.consul.discovery.TtlScheduler")
 @ConditionalOnConsulEnabled
 @ConditionalOnDiscoveryEnabled
-@ConditionalOnBlockingDiscoveryEnabled
-@ConditionalOnConsulDiscoveryEnabled
 @ConditionalOnProperty("spring.cloud.consul.discovery.heartbeat.enabled")
 public class XmConsulHeartbeatConfiguration {
 
