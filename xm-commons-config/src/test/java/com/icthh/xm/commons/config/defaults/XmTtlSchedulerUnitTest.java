@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -89,9 +90,9 @@ public class XmTtlSchedulerUnitTest {
         when(client.agentCheckPass(eq(CHECK_ID), isNull(), eq(ACL_TOKEN)))
             .thenThrow(new OperationException(404, "Not Found", "Unknown check"));
 
-        scheduler(true).heartbeat(INSTANCE_ID);
+        heartbeatOfAddedInstance(true);
 
-        verify(client).agentServiceRegister(service, ACL_TOKEN);
+        verify(client, atLeastOnce()).agentServiceRegister(service, ACL_TOKEN);
     }
 
     @Test
@@ -100,9 +101,9 @@ public class XmTtlSchedulerUnitTest {
         when(client.agentCheckFail(eq(CHECK_ID), isNull(), eq(ACL_TOKEN)))
             .thenThrow(new OperationException(500, "Internal Server Error", "does not have associated TTL"));
 
-        scheduler(true).heartbeat(INSTANCE_ID);
+        heartbeatOfAddedInstance(true);
 
-        verify(client).agentServiceRegister(service, ACL_TOKEN);
+        verify(client, atLeastOnce()).agentServiceRegister(service, ACL_TOKEN);
     }
 
     @Test
@@ -111,7 +112,7 @@ public class XmTtlSchedulerUnitTest {
         when(client.agentCheckPass(eq(CHECK_ID), isNull(), eq(ACL_TOKEN)))
             .thenThrow(new OperationException(404, "Not Found", "Unknown check"));
 
-        scheduler(false).heartbeat(INSTANCE_ID);
+        heartbeatOfAddedInstance(false);
 
         verify(client, never()).agentServiceRegister(any(NewService.class), anyString());
     }
@@ -121,6 +122,17 @@ public class XmTtlSchedulerUnitTest {
         when(healthEndpoint.health()).thenReturn(Health.up().build());
         when(client.agentCheckPass(eq(CHECK_ID), isNull(), eq(ACL_TOKEN)))
             .thenThrow(new OperationException(403, "Forbidden", "ACL not found"));
+
+        heartbeatOfAddedInstance(true);
+
+        verify(client, never()).agentServiceRegister(any(NewService.class), anyString());
+    }
+
+    @Test
+    public void testInstanceWithoutHeartbeatIsNotRegisteredAgain() {
+        when(healthEndpoint.health()).thenReturn(Health.up().build());
+        when(client.agentCheckPass(eq(CHECK_ID), isNull(), eq(ACL_TOKEN)))
+            .thenThrow(new OperationException(404, "Not Found", "Unknown check"));
 
         scheduler(true).heartbeat(INSTANCE_ID);
 
@@ -139,6 +151,16 @@ public class XmTtlSchedulerUnitTest {
     @Test
     public void testHeartbeatIntervalIsTwoThirdsOfTtl() {
         assertThat(scheduler(true).heartbeatInterval()).isEqualTo(Duration.ofSeconds(20));
+    }
+
+    private void heartbeatOfAddedInstance(boolean reregister) {
+        XmTtlScheduler scheduler = scheduler(reregister);
+        scheduler.add(INSTANCE_ID);
+        try {
+            scheduler.heartbeat(INSTANCE_ID);
+        } finally {
+            scheduler.remove(INSTANCE_ID);
+        }
     }
 
     private XmTtlScheduler scheduler(boolean reregister) {

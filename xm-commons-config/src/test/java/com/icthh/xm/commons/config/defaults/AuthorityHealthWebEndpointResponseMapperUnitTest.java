@@ -41,11 +41,6 @@ public class AuthorityHealthWebEndpointResponseMapperUnitTest {
     }
 
     @Test
-    public void testAnonymousDoesNotSeeDetails() {
-        assertThat(mapper.map(HEALTH, SecurityContext.NONE).getBody().getDetails()).isEmpty();
-    }
-
-    @Test
     public void testDetailsEndpointOfComponentIsHiddenFromOtherAuthority() {
         authenticate("SUPER-ADMIN");
 

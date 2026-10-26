@@ -26,14 +26,14 @@ public class ConfigPrivateApi {
     public static final String TOKEN_HEADER = "X-Config-Token";
     public static final String AUDIENCE = "config";
 
-    static final Duration TOKEN_TTL = Duration.ofMinutes(5);
-    static final Duration TOKEN_REFRESH_BEFORE = Duration.ofMinutes(1);
+    private static final Duration TOKEN_TTL = Duration.ofMinutes(5);
+    private static final Duration TOKEN_REFRESH_BEFORE = Duration.ofMinutes(1);
     static final Provider ED25519_PROVIDER = new BouncyCastleProvider();
     static final String ED25519 = "Ed25519";
 
     private static final String URL = "/api/private";
     private static final String URL_WITH_TOKEN = "/api/private/v2";
-    private static final String HEADER = "{\"alg\":\"EdDSA\"}";
+    private static final String JWT_HEADER = "{\"alg\":\"EdDSA\"}";
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final boolean migration;
@@ -82,7 +82,8 @@ public class ConfigPrivateApi {
         claims.put("aud", List.of(AUDIENCE));
         claims.put("iat", issuedAt.getEpochSecond());
         claims.put("exp", expiration.getEpochSecond());
-        String content = encode(HEADER.getBytes(StandardCharsets.UTF_8)) + "." + encode(mapper.writeValueAsBytes(claims));
+        String content = encode(JWT_HEADER.getBytes(StandardCharsets.UTF_8)) + "."
+            + encode(mapper.writeValueAsBytes(claims));
 
         Signature signature = Signature.getInstance(ED25519, ED25519_PROVIDER);
         signature.initSign(privateKey);

@@ -16,10 +16,10 @@ public class XmDefaultsEnvironmentPostProcessor implements EnvironmentPostProces
 
     public static final String MIGRATION_PROFILE = "migration";
 
-    static final String LOCATION = "xm-defaults/";
-    static final String DEFAULTS_FILE = "xm-defaults.yml";
+    private static final String LOCATION = "xm-defaults/";
+    private static final String DEFAULTS_FILE = "xm-defaults.yml";
 
-    static final List<String> PROFILES = List.of(MIGRATION_PROFILE, "prod");
+    private static final List<String> PROFILES = List.of(MIGRATION_PROFILE, "prod");
 
     private final YamlPropertySourceLoader loader = new YamlPropertySourceLoader();
 

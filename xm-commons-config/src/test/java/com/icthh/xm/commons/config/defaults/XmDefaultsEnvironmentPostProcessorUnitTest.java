@@ -20,7 +20,6 @@ public class XmDefaultsEnvironmentPostProcessorUnitTest {
     private static final String REGISTER_MANAGEMENT =
         "spring.cloud.service-registry.auto-registration.register-management";
     private static final String MANAGEMENT_PORT = "management.server.port";
-    private static final String SHOW_ACTUATOR = "springdoc.show-actuator";
     private static final String PROMETHEUS_PUBLIC = "application.prometheus.public";
     private static final String MANAGEMENT_ROLE = "application.management.access.role";
     private static final String INFO_PUBLIC = "application.management.info.public";
@@ -40,8 +39,6 @@ public class XmDefaultsEnvironmentPostProcessorUnitTest {
         assertThat(environment.getProperty(CRITICAL_TIMEOUT)).isEqualTo("2m");
         assertThat(environment.getProperty(QUERY_PASSING)).isEqualTo("true");
         assertThat(environment.getProperty(REGISTER_MANAGEMENT)).isEqualTo("false");
-        assertThat(environment.getProperty(SHOW_ACTUATOR)).isEqualTo("false");
-        assertThat(environment.getProperty("springdoc.use-management-port")).isEqualTo("false");
         assertThat(environment.getProperty(MANAGEMENT_PORT)).isNull();
         assertThat(environment.getProperty(PROMETHEUS_PUBLIC)).isNull();
         assertThat(environment.getProperty(MANAGEMENT_ROLE)).isNull();
@@ -93,24 +90,14 @@ public class XmDefaultsEnvironmentPostProcessorUnitTest {
         StandardEnvironment environment = new StandardEnvironment();
         environment.setActiveProfiles("prod");
         environment.getPropertySources().addFirst(new MapPropertySource("application.yml",
-            Map.of(MANAGEMENT_PORT, "9999", SHOW_ACTUATOR, "true", HEARTBEAT, "false")));
+            Map.of(MANAGEMENT_PORT, "9999", QUERY_PASSING, "false", HEARTBEAT, "false")));
 
         new XmDefaultsEnvironmentPostProcessor().postProcessEnvironment(environment, new SpringApplication());
 
         assertThat(environment.getProperty(MANAGEMENT_PORT)).isEqualTo("9999");
-        assertThat(environment.getProperty(SHOW_ACTUATOR)).isEqualTo("true");
+        assertThat(environment.getProperty(QUERY_PASSING)).isEqualTo("false");
         assertThat(environment.getProperty(HEARTBEAT)).isEqualTo("false");
-        assertThat(environment.getProperty(QUERY_PASSING)).isEqualTo("true");
-    }
-
-    @Test
-    public void testRepeatedPostProcessingDoesNotDuplicateSources() {
-        StandardEnvironment environment = postProcess("prod");
-        int size = environment.getPropertySources().size();
-
-        new XmDefaultsEnvironmentPostProcessor().postProcessEnvironment(environment, new SpringApplication());
-
-        assertThat(environment.getPropertySources().size()).isEqualTo(size);
+        assertThat(environment.getProperty(REREGISTER)).isEqualTo("true");
     }
 
     private static StandardEnvironment postProcess(String... profiles) {

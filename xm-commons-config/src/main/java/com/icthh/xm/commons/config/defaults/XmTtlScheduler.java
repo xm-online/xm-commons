@@ -104,6 +104,9 @@ public class XmTtlScheduler extends TtlScheduler {
     }
 
     private void reregister(String instanceId) {
+        if (!heartbeats.containsKey(instanceId)) {
+            return;
+        }
         ConsulAutoRegistration consulRegistration = registration.getIfAvailable();
         if (consulRegistration == null || !instanceId.equals(consulRegistration.getInstanceId())) {
             log.warn("Consul does not know the service {}, it is not registered again", instanceId);

@@ -1,13 +1,9 @@
-# Defaults of xm-commons, see XmDefaultsEnvironmentPostProcessor.
-# The lowest priority: any value of the service (application*.yml, env) overrides them.
 spring:
     jmx:
         enabled: false
     cloud:
         consul:
             discovery:
-                # the service sends its /management/health status to Consul itself and registers again
-                # when Consul does not know it (Consul restart, removed after health-check-critical-timeout)
                 heartbeat:
                     enabled: true
                     reregister-service-on-failure: true
@@ -17,12 +13,7 @@ spring:
                 query-passing: true
         service-registry:
             auto-registration:
-                # do not register <service>-management in Consul, the gate would route to the management port
                 register-management: false
-
-springdoc:
-    show-actuator: false
-    use-management-port: false
 
 management:
     endpoint:

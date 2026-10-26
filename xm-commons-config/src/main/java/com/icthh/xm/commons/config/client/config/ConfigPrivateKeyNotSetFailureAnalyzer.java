@@ -6,10 +6,10 @@ import org.springframework.boot.diagnostics.FailureAnalysis;
 
 public class ConfigPrivateKeyNotSetFailureAnalyzer extends AbstractFailureAnalyzer<ConfigPrivateKeyNotSetException> {
 
-    static final String DESCRIPTION = "application.config-private-key is not set: the microservice signs every "
+    private static final String DESCRIPTION = "application.config-private-key is not set: the microservice signs every "
         + "request to /api/private/v2 of xm-ms-config with this private key.";
 
-    static final String ACTION = String.join("\n",
+    private static final String ACTION = String.join("\n",
         "1) Local development without keys: run with the profile migration "
             + "(xm-ms-config with the profile migration too), by one of:",
         "- gradlew: `./gradlew bootRun --args='--spring.profiles.active=dev,migration'`;",
