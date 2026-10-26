@@ -22,6 +22,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -31,6 +32,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.client.RestTemplate;
 
 import java.lang.reflect.Field;
+import java.security.KeyPairGenerator;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +46,8 @@ public class CommonConfigRepositoryUnitTest {
 
     @InjectMocks
     private CommonConfigRepository configRepository;
+    @Spy
+    private ConfigPrivateApi privateApi = new ConfigPrivateApi(true, APP_NAME_TEST, null);
     @Mock
     private RestTemplate restTemplate;
     @Mock
@@ -73,6 +78,24 @@ public class CommonConfigRepositoryUnitTest {
             .singletonMap("path", new Configuration("path", "content"));
         when(xmConfigProperties.getXmConfigUrl()).thenReturn("configUrl");
         when(restTemplate.exchange(eq("configUrl/api/private/config_map?version=commit"), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+            .thenReturn(ResponseEntity.ok(config));
+
+        assertThat(configRepository.getConfig("commit")).isEqualTo(config);
+    }
+
+    @Test
+    public void getConfig_withoutMigrationSendsTokenToNewApi() throws Exception {
+        String privateKey = Base64.getEncoder().encodeToString(KeyPairGenerator
+            .getInstance(ConfigPrivateApi.ED25519, ConfigPrivateApi.ED25519_PROVIDER).generateKeyPair()
+            .getPrivate().getEncoded());
+        configRepository = new CommonConfigRepository(restTemplate, xmConfigProperties, kafkaTemplate,
+            tenantContextHolder, new ConfigPrivateApi(false, APP_NAME_TEST, privateKey));
+        Map<String, Configuration> config = Collections
+            .singletonMap("path", new Configuration("path", "content"));
+        when(xmConfigProperties.getXmConfigUrl()).thenReturn("configUrl");
+        when(restTemplate.exchange(eq("configUrl/api/private/v2/config_map?version=commit"), eq(HttpMethod.GET),
+            argThat((HttpEntity<?> entity) -> entity.getHeaders().containsKey(ConfigPrivateApi.TOKEN_HEADER)),
+            any(ParameterizedTypeReference.class)))
             .thenReturn(ResponseEntity.ok(config));
 
         assertThat(configRepository.getConfig("commit")).isEqualTo(config);
