@@ -34,7 +34,7 @@ dependencies {
     compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
     compile "org.springframework.security.oauth:spring-security-oauth2:${versions.springSecurityOAuth2}"
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
-    compile "org.bouncycastle:bcprov-jdk18on:${versions.bouncycastle}"
+    compile "org.bouncycastle:bcprov-jdk15on:${versions.bouncycastle}"
 
     compileOnly 'org.springframework.boot:spring-boot-actuator-autoconfigure'
     compileOnly 'org.springframework.cloud:spring-cloud-consul-discovery'
