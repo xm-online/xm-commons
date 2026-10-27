@@ -44,7 +44,7 @@ public class AuthorityHealthWebEndpointResponseMapper extends HealthWebEndpointR
 
         @Override
         public boolean isUserInRole(String role) {
-            return delegate.isUserInRole(role) || hasAuthority(role);
+            return hasAuthority(role);
         }
 
         private static boolean hasAuthority(String role) {

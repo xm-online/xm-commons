@@ -54,6 +54,30 @@ public class AuthorityHealthWebEndpointResponseMapperUnitTest {
         assertThat(mapper.mapDetails(() -> HEALTH, servletContext()).getStatus()).isEqualTo(200);
     }
 
+    @Test
+    public void testRolePrefixedAuthorityDoesNotSeeDetails() {
+        authenticate("ROLE_SYSTEM-ADMIN");
+
+        assertThat(mapper.map(HEALTH, servletContextWithRolePrefix()).getBody().getDetails()).isEmpty();
+        assertThat(mapper.mapDetails(() -> HEALTH, servletContextWithRolePrefix()).getStatus()).isEqualTo(404);
+    }
+
+    private static SecurityContext servletContextWithRolePrefix() {
+        return new SecurityContext() {
+
+            @Override
+            public Principal getPrincipal() {
+                return SecurityContextHolder.getContext().getAuthentication();
+            }
+
+            @Override
+            public boolean isUserInRole(String role) {
+                return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                    .anyMatch(authority -> authority.getAuthority().equals("ROLE_" + role));
+            }
+        };
+    }
+
     private static void authenticate(String authority) {
         SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken("user", null, authority));
     }
