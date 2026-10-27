@@ -38,7 +38,7 @@ public class XmCommonsApplicationProperties {
 
         @Data
         public static class Access {
-            private String role;
+            private String role = "SYSTEM-ADMIN";
         }
 
         public static class Info {
