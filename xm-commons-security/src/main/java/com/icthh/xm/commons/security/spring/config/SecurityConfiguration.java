@@ -29,6 +29,7 @@ import static com.icthh.xm.commons.security.RoleConstant.SUPER_ADMIN;
 import static com.icthh.xm.commons.security.RoleConstant.SYSTEM_ADMIN;
 import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasAnyAuthority;
 import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasAuthority;
+import static org.springframework.security.authorization.AuthorizationManagers.anyOf;
 import static org.springframework.security.authorization.SingleResultAuthorizationManager.permitAll;
 
 @EnableWebSecurity
@@ -136,7 +137,7 @@ public class SecurityConfiguration {
     }
 
     private AuthorizationManager<RequestAuthorizationContext> logsAccess(String privilege) {
-        return logsSystemAdminOnly ? hasAuthority(managementRole) : access(privilege);
+        return logsSystemAdminOnly ? hasAuthority(managementRole) : anyOf(hasAuthority(managementRole), access(privilege));
     }
 
     private AuthorizationManager<RequestAuthorizationContext> apiDocsAccess() {

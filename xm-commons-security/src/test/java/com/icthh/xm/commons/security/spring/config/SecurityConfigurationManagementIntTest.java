@@ -87,8 +87,9 @@ public class SecurityConfigurationManagementIntTest {
 
     @Test
     public void testLogsRequirePrivilege() throws Exception {
-        mockMvc.perform(get("/management/logs").with(role("SYSTEM-ADMIN"))).andExpect(status().isForbidden());
-        mockMvc.perform(put("/management/logs").with(role("SYSTEM-ADMIN"))).andExpect(status().isForbidden());
+        mockMvc.perform(get("/management/logs").with(role("SYSTEM-ADMIN"))).andExpect(status().isNotFound());
+        mockMvc.perform(put("/management/logs").with(role("SYSTEM-ADMIN"))).andExpect(status().isNotFound());
+        mockMvc.perform(get("/management/logs").with(role("SUPER-ADMIN"))).andExpect(status().isForbidden());
 
         when(permissionCheckService.hasPermission("LOGS.GET")).thenReturn(true);
         mockMvc.perform(get("/management/logs").with(role("ROLE_USER"))).andExpect(status().isNotFound());
