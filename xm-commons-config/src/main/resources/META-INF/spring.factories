@@ -1,0 +1,6 @@
+org.springframework.boot.env.EnvironmentPostProcessor=\
+com.icthh.xm.commons.config.defaults.XmDefaultsEnvironmentPostProcessor
+org.springframework.boot.diagnostics.FailureAnalyzer=\
+com.icthh.xm.commons.config.client.config.ConfigPrivateKeyNotSetFailureAnalyzer
+org.springframework.boot.diagnostics.FailureAnalysisReporter=\
+com.icthh.xm.commons.config.client.config.ConfigPrivateKeyNotSetFailureReporter

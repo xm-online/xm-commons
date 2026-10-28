@@ -4,7 +4,6 @@ import com.icthh.xm.commons.topic.config.AutoCreateTopicConfiguration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.CreateTopicsResult;
 import org.apache.kafka.clients.admin.ListTopicsOptions;
 import org.apache.kafka.clients.admin.ListTopicsResult;
@@ -14,9 +13,7 @@ import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -31,9 +28,7 @@ public class AutoCreateTopicService {
 
     @PostConstruct
     public void createTopics() {
-        Map<String, Object> configs = new HashMap<>();
-        configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
-        try (AdminClient client = AdminClient.create(configs)) {
+        try (AdminClient client = AdminClient.create(kafkaProperties.buildAdminProperties())) {
             ListTopicsOptions options = new ListTopicsOptions();
             options.listInternal(true);
             ListTopicsResult topics = client.listTopics(options);

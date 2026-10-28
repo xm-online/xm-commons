@@ -1,0 +1,22 @@
+spring:
+    jmx:
+        enabled: false
+    cloud:
+        consul:
+            discovery:
+                heartbeat:
+                    enabled: true
+                    reregister-service-on-failure: true
+                    ttl-value: 30
+                    ttl-unit: s
+                health-check-critical-timeout: 2m
+                query-passing: true
+        service-registry:
+            auto-registration:
+                register-management: false
+
+management:
+    endpoint:
+        health:
+            show-details: when_authorized
+            roles: ${application.management.access.role:SYSTEM-ADMIN}

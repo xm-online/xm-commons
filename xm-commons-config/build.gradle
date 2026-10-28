@@ -34,10 +34,19 @@ dependencies {
     compile "org.apache.commons:commons-lang3:${versions.commonsLang3}"
     compile "org.springframework.security.oauth:spring-security-oauth2:${versions.springSecurityOAuth2}"
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+    compile "org.bouncycastle:bcprov-jdk15on:${versions.bouncycastle}"
+    compile "org.bouncycastle:bcpkix-jdk15on:${versions.bouncycastle}"
+
+    compileOnly 'org.springframework.boot:spring-boot-actuator-autoconfigure'
+    compileOnly 'org.springframework.cloud:spring-cloud-consul-discovery'
+    compileOnly 'com.ecwid.consul:consul-api'
 
     testCompile 'junit:junit'
     testCompile 'org.assertj:assertj-core'
     testCompile 'org.mockito:mockito-core'
+    testCompile 'org.springframework.boot:spring-boot-actuator-autoconfigure'
+    testCompile 'org.springframework.cloud:spring-cloud-consul-discovery'
+    testCompile 'com.ecwid.consul:consul-api'
 }
 
 compileJava.dependsOn(processResources)

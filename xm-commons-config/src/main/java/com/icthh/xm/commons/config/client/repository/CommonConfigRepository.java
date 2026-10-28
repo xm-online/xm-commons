@@ -44,7 +44,6 @@ public class CommonConfigRepository {
     @Value("${spring.application.name}")
     private String applicationName;
 
-    private static final String URL = "/api/private";
     private static final String VERSION = "version";
 
     private static final String TENANT_NAME = "tenantName";
@@ -55,6 +54,7 @@ public class CommonConfigRepository {
     private final XmConfigProperties xmConfigProperties;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final TenantContextHolder tenantContextHolder;
+    private final ConfigPrivateApi privateApi;
 
     private final ObjectMapper mapper = new ObjectMapper()
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
@@ -62,18 +62,19 @@ public class CommonConfigRepository {
 
     public Map<String, Configuration> getConfig(String commit) {
         ParameterizedTypeReference<Map<String, Configuration>> typeRef = new ParameterizedTypeReference<Map<String, Configuration>>() {};
-        HttpEntity<String> entity = new HttpEntity<>(createSimpleHeaders());
+        HttpEntity<String> entity = new HttpEntity<>(privateApi.authorize(createSimpleHeaders()));
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + "/config_map").queryParam(VERSION, commit);
         return restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, typeRef).getBody();
     }
 
     private String getServiceConfigUrl() {
-        return xmConfigProperties.getXmConfigUrl() + URL;
+        return xmConfigProperties.getXmConfigUrl() + privateApi.getUrl();
     }
 
     public Map<String,Configuration> getConfig(String version, Collection<String> paths) {
         ParameterizedTypeReference<Map<String, Configuration>> typeRef = new ParameterizedTypeReference<Map<String, Configuration>>() {};
-        HttpEntity<GetConfigRequest> entity = new HttpEntity<>(new GetConfigRequest(version, paths), createApplicationJsonHeaders());
+        HttpEntity<GetConfigRequest> entity = new HttpEntity<>(new GetConfigRequest(version, paths),
+            privateApi.authorize(createApplicationJsonHeaders()));
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + "/config_map");
         return restTemplate.exchange(builder.toUriString(), HttpMethod.POST, entity, typeRef).getBody();
     }

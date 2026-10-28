@@ -29,6 +29,7 @@ ext.versions = [
     swaggerCodegen             : '2.4.9',
     springfoxSwagger           : '2.9.2',
     reflections                : '0.9.11',
+    bouncycastle               : '1.70',
 
     systemRules                : '1.16.0',
 
