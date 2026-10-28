@@ -57,6 +57,11 @@ public class SecurityConfigurationManagementMigrationIntTest {
         mockMvc.perform(get("/v3/api-docs").with(role("ADMIN"))).andExpect(status().isNotFound());
         mockMvc.perform(get("/v3/api-docs").with(role("SUPER-ADMIN"))).andExpect(status().isNotFound());
         mockMvc.perform(get("/swagger-resources/configuration/ui")).andExpect(status().isNotFound());
+        mockMvc.perform(get("/v3/api-docs.yaml")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/v3/api-docs.yaml").with(role("ROLE_USER"))).andExpect(status().isForbidden());
+        mockMvc.perform(get("/v3/api-docs.yaml").with(role("ADMIN"))).andExpect(status().isNotFound());
+        mockMvc.perform(get("/swagger-ui/index.html")).andExpect(status().isNotFound());
+        mockMvc.perform(get("/swagger-ui.html")).andExpect(status().isNotFound());
     }
 
     @Test

@@ -83,6 +83,15 @@ public class SecurityConfigurationManagementIntTest {
         mockMvc.perform(get("/v3/api-docs")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/v3/api-docs").with(role("SUPER-ADMIN"))).andExpect(status().isForbidden());
         mockMvc.perform(get("/swagger-resources/configuration/ui")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/v3/api-docs.yaml")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/v3/api-docs.yaml").with(role("SUPER-ADMIN"))).andExpect(status().isForbidden());
+        mockMvc.perform(get("/swagger-ui/index.html")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/swagger-ui/index.html").with(role("SUPER-ADMIN"))).andExpect(status().isForbidden());
+        mockMvc.perform(get("/swagger-ui.html")).andExpect(status().isUnauthorized());
+
+        when(permissionCheckService.hasPermission("API_DOCS.GET")).thenReturn(true);
+        mockMvc.perform(get("/v3/api-docs.yaml").with(role("ROLE_USER"))).andExpect(status().isNotFound());
+        mockMvc.perform(get("/swagger-ui/index.html").with(role("ROLE_USER"))).andExpect(status().isNotFound());
     }
 
     @Test

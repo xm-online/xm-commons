@@ -122,6 +122,9 @@ public class SecurityConfiguration {
                     .requestMatchers(HttpMethod.PUT, "/management/logs").access(logsAccess(LOGS_UPDATE_PRIVILEGE))
                     .requestMatchers("/management/**").access(hasAuthority(managementRole))
                     .requestMatchers("/v3/api-docs/**").access(apiDocsAccess())
+                    .requestMatchers("/v3/api-docs.yaml").access(apiDocsAccess())
+                    .requestMatchers("/swagger-ui/**").access(swaggerUiConfigAccess())
+                    .requestMatchers("/swagger-ui.html").access(swaggerUiConfigAccess())
                     .requestMatchers("/swagger-resources/configuration/ui").access(swaggerUiConfigAccess())
             );
         // @formatter:on
