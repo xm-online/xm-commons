@@ -5,10 +5,15 @@ import com.icthh.xm.commons.topic.config.MessageListenerContainerBuilder;
 import com.icthh.xm.commons.topic.domain.ConsumerHolder;
 import com.icthh.xm.commons.topic.domain.TopicConfig;
 import com.icthh.xm.commons.topic.message.MessageHandler;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.time.StopWatch;
+import org.apache.kafka.clients.admin.NewTopic;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.stereotype.Service;
@@ -22,14 +27,38 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Slf4j
-@RequiredArgsConstructor
 @Service
 public class TopicManagerService {
 
     private final ConsumerFactory<String, String> consumerFactory;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final TraceWrapper traceWrapper;
+    private final KafkaAdmin kafkaAdmin;
     private final Map<String, Map<String, ConsumerHolder>> topicConsumerHolders = new ConcurrentHashMap<>();
+
+    public TopicManagerService(ConsumerFactory<String, String> consumerFactory,
+                               KafkaTemplate<String, String> kafkaTemplate,
+                               TraceWrapper traceWrapper) {
+        this(consumerFactory, kafkaTemplate, traceWrapper, (KafkaAdmin) null);
+    }
+
+    @Autowired
+    public TopicManagerService(ConsumerFactory<String, String> consumerFactory,
+                               KafkaTemplate<String, String> kafkaTemplate,
+                               TraceWrapper traceWrapper,
+                               ObjectProvider<KafkaAdmin> kafkaAdmin) {
+        this(consumerFactory, kafkaTemplate, traceWrapper, kafkaAdmin.getIfAvailable());
+    }
+
+    private TopicManagerService(ConsumerFactory<String, String> consumerFactory,
+                                KafkaTemplate<String, String> kafkaTemplate,
+                                TraceWrapper traceWrapper,
+                                KafkaAdmin kafkaAdmin) {
+        this.consumerFactory = consumerFactory;
+        this.kafkaTemplate = kafkaTemplate;
+        this.traceWrapper = traceWrapper;
+        this.kafkaAdmin = kafkaAdmin;
+    }
 
     public void processTopicConfig(String tenantKey,
                                    TopicConfig topicConfig,
@@ -85,6 +114,7 @@ public class TopicManagerService {
                                  MessageHandler messageHandler) {
         withLog(tenantKey, "startNewConsumer", () -> {
             AbstractMessageListenerContainer container = buildListenerContainer(tenantKey, topicConfig, messageHandler);
+            createOrModifyTopic(tenantKey, topicConfig);
             container.start();
             Map<String, ConsumerHolder> existingConsumers = getConsumerHoldersByTenant(tenantKey);
             existingConsumers.put(topicConfig.getKey(), new ConsumerHolder(topicConfig, container));
@@ -98,6 +128,7 @@ public class TopicManagerService {
         withLog(tenantKey, "restartConsumer", () -> {
             existingConfig.getContainer().stop();
             AbstractMessageListenerContainer container = buildListenerContainer(tenantKey, topicConfig, messageHandler);
+            createOrModifyTopic(tenantKey, topicConfig);
             container.start();
             Map<String, ConsumerHolder> existingConsumers = getConsumerHoldersByTenant(tenantKey);
             existingConsumers.put(topicConfig.getKey(), new ConsumerHolder(topicConfig, container));
@@ -111,6 +142,31 @@ public class TopicManagerService {
     protected AbstractMessageListenerContainer buildListenerContainer(String tenantKey, TopicConfig topicConfig, MessageHandler messageHandler) {
         return new MessageListenerContainerBuilder(consumerFactory, kafkaTemplate)
             .build(tenantKey, topicConfig, messageHandler, traceWrapper);
+    }
+
+    private void createOrModifyTopic(String tenantKey, TopicConfig topicConfig) {
+        if (!Boolean.TRUE.equals(topicConfig.getAutoCreateTopic())) {
+            return;
+        }
+        String topicName = topicConfig.getTopicName();
+        if (kafkaAdmin == null) {
+            log.error("[{}] Topic [{}] was not created: no KafkaAdmin bean", tenantKey, topicName);
+            return;
+        }
+        try {
+            kafkaAdmin.createOrModifyTopics(buildNewTopic(topicName, topicConfig.getPartitions()));
+        } catch (Exception e) {
+            log.error("[{}] Topic [{}] was not created or extended to {} partitions: {}",
+                tenantKey, topicName, topicConfig.getPartitions(), ExceptionUtils.getRootCauseMessage(e), e);
+        }
+    }
+
+    private NewTopic buildNewTopic(String topicName, Integer partitions) {
+        TopicBuilder topicBuilder = TopicBuilder.name(topicName);
+        if (partitions != null) {
+            topicBuilder.partitions(partitions);
+        }
+        return topicBuilder.build();
     }
 
     private Map<String, ConsumerHolder> getConsumerHoldersByTenant(String tenantKey) {
