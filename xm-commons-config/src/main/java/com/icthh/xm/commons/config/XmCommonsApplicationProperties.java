@@ -16,6 +16,7 @@ public class XmCommonsApplicationProperties {
     @Data
     public static class ApiDocs {
         private boolean privilegeCheck;
+        private String serverUrl;
     }
 
     public static class Prometheus {
