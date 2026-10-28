@@ -3,6 +3,7 @@ package com.icthh.xm.commons.config.client.service;
 import com.icthh.xm.commons.config.client.api.AbstractConfigService;
 import com.icthh.xm.commons.config.client.api.FetchConfigurationSettings;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
+import com.icthh.xm.commons.config.client.state.ConfigStateHolder;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,8 +16,9 @@ public class CommonConfigService extends AbstractConfigService {
     private final CommonConfigRepository commonConfigRepository;
 
     public CommonConfigService(FetchConfigurationSettings fetchConfigurationSettings,
-                               CommonConfigRepository commonConfigRepository) {
-        super(fetchConfigurationSettings);
+                               CommonConfigRepository commonConfigRepository,
+                               ConfigStateHolder configStateHolder) {
+        super(fetchConfigurationSettings, configStateHolder);
         this.commonConfigRepository = commonConfigRepository;
     }
 
