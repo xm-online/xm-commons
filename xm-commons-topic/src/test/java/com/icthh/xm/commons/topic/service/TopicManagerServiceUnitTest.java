@@ -8,12 +8,18 @@ import com.icthh.xm.commons.topic.domain.TopicConsumersSpec;
 import com.icthh.xm.commons.topic.message.MessageHandler;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.kafka.KafkaException;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 
@@ -21,15 +27,20 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TopicManagerServiceUnitTest {
@@ -42,7 +53,7 @@ public class TopicManagerServiceUnitTest {
     private TopicManagerService topicManager;
 
     @Mock
-    private KafkaProperties kafkaProperties;
+    private ConsumerFactory<String, String> consumerFactory;
 
     @Mock
     private KafkaTemplate<String, String> kafkaTemplate;
@@ -56,10 +67,16 @@ public class TopicManagerServiceUnitTest {
     @Mock
     private TraceWrapper traceWrapper;
 
+    @Mock
+    private KafkaAdmin kafkaAdmin;
+
+    @Mock
+    private ObjectProvider<KafkaAdmin> kafkaAdminProvider;
 
     @Before
     public void setUp() {
-        topicManager = spy(new TopicManagerService(kafkaProperties, kafkaTemplate, traceWrapper));
+        when(kafkaAdminProvider.getIfAvailable()).thenReturn(kafkaAdmin);
+        topicManager = spy(new TopicManagerService(consumerFactory, kafkaTemplate, traceWrapper, kafkaAdminProvider));
         doReturn(container).when(topicManager).buildListenerContainer(any(), any(), any());
     }
 
@@ -144,6 +161,91 @@ public class TopicManagerServiceUnitTest {
         topicManager.processTopicConfig(TENANT_KEY, topicConfig, messageHandler);
 
         verifyNoMoreInteractions(container);
+    }
+
+    @Test
+    public void testTopicCreatedWithPartitionsBeforeConsumerStarts() {
+        topicManager.processTopicConfig(TENANT_KEY, autoCreateTopicConfig(16), messageHandler);
+
+        InOrder inOrder = inOrder(kafkaAdmin, container);
+        ArgumentCaptor<NewTopic> captor = ArgumentCaptor.forClass(NewTopic.class);
+        inOrder.verify(kafkaAdmin).createOrModifyTopics(captor.capture());
+        inOrder.verify(container).start();
+        assertThat(captor.getValue().name()).isEqualTo("auto-topic");
+        assertThat(captor.getValue().numPartitions()).isEqualTo(16);
+        assertThat(captor.getValue().replicationFactor()).isEqualTo((short) -1);
+    }
+
+    @Test
+    public void testTopicCreatedWithBrokerDefaultPartitions() {
+        topicManager.processTopicConfig(TENANT_KEY, autoCreateTopicConfig(null), messageHandler);
+
+        ArgumentCaptor<NewTopic> captor = ArgumentCaptor.forClass(NewTopic.class);
+        verify(kafkaAdmin).createOrModifyTopics(captor.capture());
+        assertThat(captor.getValue().numPartitions()).isEqualTo(-1);
+        assertThat(captor.getValue().replicationFactor()).isEqualTo((short) -1);
+    }
+
+    @Test
+    public void testTopicNotCreatedWithoutAutoCreateTopic() {
+        TopicConfig topicConfig = autoCreateTopicConfig(16);
+        topicConfig.setAutoCreateTopic(null);
+        topicManager.processTopicConfig(TENANT_KEY, topicConfig, messageHandler);
+
+        TopicConfig disabledConfig = autoCreateTopicConfig(16);
+        disabledConfig.setKey("disabled");
+        disabledConfig.setAutoCreateTopic(false);
+        topicManager.processTopicConfig(TENANT_KEY, disabledConfig, messageHandler);
+
+        verifyNoInteractions(kafkaAdmin);
+        verify(container, times(2)).start();
+    }
+
+    @Test
+    public void testConsumerStartsWhenTopicCreationFails() {
+        doThrow(new KafkaException("Timed out waiting to get existing topics"))
+            .when(kafkaAdmin).createOrModifyTopics(any(NewTopic.class));
+
+        topicManager.processTopicConfig(TENANT_KEY, autoCreateTopicConfig(16), messageHandler);
+
+        verify(container).start();
+        assertTrue(topicManager.getConsumerHoldersByTenantImmutable(TENANT_KEY).containsKey("auto-key"));
+    }
+
+    @Test
+    public void testConsumerStartsWithoutKafkaAdmin() {
+        when(kafkaAdminProvider.getIfAvailable()).thenReturn(null);
+        topicManager = spy(new TopicManagerService(consumerFactory, kafkaTemplate, traceWrapper, kafkaAdminProvider));
+        doReturn(container).when(topicManager).buildListenerContainer(any(), any(), any());
+
+        topicManager.processTopicConfig(TENANT_KEY, autoCreateTopicConfig(16), messageHandler);
+
+        verify(container).start();
+        assertTrue(topicManager.getConsumerHoldersByTenantImmutable(TENANT_KEY).containsKey("auto-key"));
+    }
+
+    @Test
+    public void testTopicExtendedWhenConsumerUpdated() {
+        topicManager.processTopicConfig(TENANT_KEY, autoCreateTopicConfig(4), messageHandler);
+        topicManager.processTopicConfig(TENANT_KEY, autoCreateTopicConfig(16), messageHandler);
+
+        ArgumentCaptor<NewTopic> captor = ArgumentCaptor.forClass(NewTopic.class);
+        verify(kafkaAdmin, times(2)).createOrModifyTopics(captor.capture());
+        assertThat(captor.getAllValues()).extracting(NewTopic::numPartitions).containsExactly(4, 16);
+        verify(container).stop();
+        verify(container, times(2)).start();
+    }
+
+    private TopicConfig autoCreateTopicConfig(Integer partitions) {
+        TopicConfig topicConfig = new TopicConfig();
+        topicConfig.setKey("auto-key");
+        topicConfig.setTypeKey("auto-type");
+        topicConfig.setTopicName("auto-topic");
+        topicConfig.setRetriesCount(1);
+        topicConfig.setBackOffPeriod(100L);
+        topicConfig.setAutoCreateTopic(true);
+        topicConfig.setPartitions(partitions);
+        return topicConfig;
     }
 
     @SneakyThrows

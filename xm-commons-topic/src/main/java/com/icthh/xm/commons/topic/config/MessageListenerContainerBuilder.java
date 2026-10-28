@@ -24,6 +24,7 @@ import com.icthh.xm.commons.topic.message.MessageHandler;
 import com.icthh.xm.commons.topic.util.MessageRetryUtils;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,7 @@ import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
+import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
@@ -52,7 +53,7 @@ import org.springframework.util.backoff.FixedBackOff;
 @RequiredArgsConstructor
 public class MessageListenerContainerBuilder {
 
-    private final KafkaProperties kafkaProperties;
+    private final ConsumerFactory<String, String> consumerFactory;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     public AbstractMessageListenerContainer build(String tenantKey,
@@ -138,7 +139,7 @@ public class MessageListenerContainerBuilder {
     }
 
     private Map<String, Object> buildConsumerConfig(TopicConfig topicConfig) {
-        Map<String, Object> props = kafkaProperties.buildConsumerProperties();
+        Map<String, Object> props = new HashMap<>(consumerFactory.getConfigurationProperties());
 
         String groupIdFromConf = topicConfig.getGroupId();
         String groupId = StringUtils.isEmpty(groupIdFromConf) ? UUID.randomUUID().toString() : groupIdFromConf;
