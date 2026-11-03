@@ -10,6 +10,7 @@ import com.icthh.xm.commons.lep.commons.CommonsService;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryImpl;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactoryWithLepFactoryMethod;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
+import com.icthh.xm.commons.security.XmPermissionCheckService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.lep.api.LepMethod;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class LepContextServiceImpl implements LepContextService {
     private final List<LepAdditionalContext<?>> additionalContexts;
     private final List<LepContextCustomizer> customizers;
     private final CommonsService commonsService;
+    private final XmPermissionCheckService permissionCheckService;
 
     @Override
     public final BaseLepContext createLepContext(LepEngine lepEngine, TargetProceedingLep lepMethod) {
@@ -39,6 +41,7 @@ public class LepContextServiceImpl implements LepContextService {
         baseLepContext.tenantContext = tenantContextHolder.getContext();
         baseLepContext.authContext = xmAuthContextHolder.getContext();
         baseLepContext.authContextHolder = xmAuthContextHolder;
+        baseLepContext.permission = permissionCheckService;
         baseLepContext.commons = new CommonsExecutor(commonsService);
         additionalContexts.forEach(context -> {
                 Object value = context.additionalContextValue(baseLepContext, lepEngine, lepMethod)

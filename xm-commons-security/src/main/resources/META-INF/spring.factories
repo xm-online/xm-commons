@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.AutoConfigurationImportFilter=\
+com.icthh.xm.commons.security.spring.config.XmAutoConfigurationImportFilter

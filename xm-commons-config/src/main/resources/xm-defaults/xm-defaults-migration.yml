@@ -1,0 +1,30 @@
+management:
+    server:
+        port: ""
+    endpoint:
+        health:
+            roles: ""
+
+spring:
+    cloud:
+        consul:
+            discovery:
+                heartbeat:
+                    enabled: false
+                    reregister-service-on-failure: false
+                health-check-critical-timeout: ""
+                query-passing: false
+        service-registry:
+            auto-registration:
+                register-management: true
+
+application:
+    api-docs:
+        privilege-check: false
+    prometheus:
+        public: true
+    management:
+        access:
+            role: SUPER-ADMIN
+        info:
+            public: true

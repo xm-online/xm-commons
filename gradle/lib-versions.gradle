@@ -36,6 +36,7 @@ ext.versions = [
     hibernate                  : '7.3.1.Final',
 
     jjwt                       : '0.13.0',
+    jose4j                     : '0.9.6',
 
     mapstruct                  : '1.6.3',
 

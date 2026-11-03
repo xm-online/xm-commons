@@ -80,18 +80,15 @@ public class KafkaTemplateService {
                                                               String key,
                                                               String data,
                                                               Map<String, Object> headers) {
-        MessageBuilder<String> builder = MessageBuilder
-            .withPayload(data)
-            .setHeader(KafkaHeaders.TOPIC, topic)
-            .setHeader(KafkaHeaders.KEY, key);
-
-        if (partition != null) {
-            builder.setHeader(KafkaHeaders.PARTITION, partition);
-        }
+        MessageBuilder<String> builder = MessageBuilder.withPayload(data);
 
         if (headers != null) {
             builder.copyHeaders(headers);
         }
+
+        builder.setHeader(KafkaHeaders.TOPIC, topic)
+            .setHeader(KafkaHeaders.KEY, key)
+            .setHeader(KafkaHeaders.PARTITION, partition);
 
         traceWrapper.injectSpan(builder);
 

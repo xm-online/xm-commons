@@ -34,12 +34,17 @@ dependencies {
     implementation "org.springframework.retry:spring-retry"
     implementation "org.springframework.boot:spring-boot-starter-kafka"
     implementation 'org.springframework.cloud:spring-cloud-commons'
+    compileOnly 'org.springframework.cloud:spring-cloud-consul-discovery'
     implementation('org.springframework.boot:spring-boot-starter-web')
     api 'org.springframework.kafka:spring-kafka'
+    runtimeOnly "org.bitbucket.b_c:jose4j:${versions.jose4j}"
     api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     api 'com.fasterxml.jackson.datatype:jackson-datatype-json-org'
 
     api "org.apache.commons:commons-lang3:${versions.commonsLang3}"
+    implementation "io.jsonwebtoken:jjwt-api:${versions.jjwt}"
+    runtimeOnly "io.jsonwebtoken:jjwt-impl:${versions.jjwt}"
+    runtimeOnly "io.jsonwebtoken:jjwt-jackson:${versions.jjwt}"
     api "commons-io:commons-io:${versions.commonsIo}"
     api "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
@@ -47,6 +52,7 @@ dependencies {
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.mockito:mockito-core'
     testImplementation "org.springframework:spring-test"
+    testImplementation 'org.springframework.cloud:spring-cloud-consul-discovery'
 }
 
 compileJava.dependsOn(processResources)

@@ -11,10 +11,10 @@ import com.icthh.xm.commons.topic.service.TopicManagerService;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
+import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import java.util.List;
@@ -31,7 +31,7 @@ public class TestBeanConfiguration {
 
     private final ApplicationEventPublisher applicationEventPublisher;
     private final KafkaTemplate<String, String> kafkaTemplate;
-    private final KafkaProperties kafkaProperties;
+    private final ConsumerFactory<String, String> consumerFactory;
 
     @Bean
     public TopicDynamicConsumerConfiguration topicDynamicConsumerConfiguration() {
@@ -54,7 +54,7 @@ public class TestBeanConfiguration {
 
     @Bean
     public TopicManagerService topicManagerService() {
-        return new TopicManagerService(kafkaProperties, kafkaTemplate, traceWrapper());
+        return new TopicManagerService(consumerFactory, kafkaTemplate, traceWrapper());
     }
 
     @Bean

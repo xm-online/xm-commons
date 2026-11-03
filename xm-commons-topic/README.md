@@ -22,6 +22,8 @@ topics:
   metadataMaxAge: "300000"  # in milliseconds
   consumeMessagePerSecondLimit: 100 # messages per second
   concurrency: 1
+  autoCreateTopic: true
+  partitions: 16
 ```
 
 ### Description
@@ -42,4 +44,6 @@ topics:
 | **metadataMaxAge** | `String` | Time (in milliseconds) after which topic metadata is refreshed.                                         |
 | **consumeMessagePerSecondLimit** | `Integer` | Limits the number of messages consumed per second to control load.                                      |
 | **concurrency** | `Integer` | Number of concurrent Kafka listener threads (parallel message consumption).                             |
+| **autoCreateTopic** | `Boolean` | Before the consumer starts, create the topic if it is missing, or add partitions if it has fewer than `partitions`. Errors are logged and the consumer starts anyway. |
+| **partitions** | `Integer` | Number of partitions for `autoCreateTopic`. If not set, the broker default is used. The replication factor is always the broker default. |
 

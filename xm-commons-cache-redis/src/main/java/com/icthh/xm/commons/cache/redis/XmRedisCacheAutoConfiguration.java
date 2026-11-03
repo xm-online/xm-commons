@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 
 /**
@@ -32,11 +34,18 @@ public class XmRedisCacheAutoConfiguration {
     @ConditionalOnMissingBean(RedisConnectionFactory.class)
     public RedisConnectionFactory xmRedisConnectionFactory(XmRedisCacheProperties props) {
         RedisStandaloneConfiguration cfg = new RedisStandaloneConfiguration(props.getHost(), props.getPort());
+        if (props.getUsername() != null && !props.getUsername().isEmpty()) {
+            cfg.setUsername(props.getUsername());
+        }
         if (props.getPassword() != null && !props.getPassword().isEmpty()) {
             cfg.setPassword(props.getPassword());
         }
         cfg.setDatabase(props.getDatabase());
-        LettuceConnectionFactory factory = new LettuceConnectionFactory(cfg);
+        LettuceClientConfigurationBuilder clientConfiguration = LettuceClientConfiguration.builder();
+        if (Boolean.TRUE.equals(props.getSsl())) {
+            clientConfiguration.useSsl();
+        }
+        LettuceConnectionFactory factory = new LettuceConnectionFactory(cfg, clientConfiguration.build());
         factory.afterPropertiesSet();
         return factory;
     }
@@ -52,7 +61,9 @@ public class XmRedisCacheAutoConfiguration {
         private boolean enabled;
         private String host = "localhost";
         private int port = 6379;
+        private String username;
         private String password;
         private int database = 0;
+        private Boolean ssl;
     }
 }

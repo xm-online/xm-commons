@@ -21,4 +21,6 @@ public class TopicConfig implements Serializable {
     private String metadataMaxAge;
     private Integer consumeMessagePerSecondLimit;
     private Integer concurrency;
+    private Boolean autoCreateTopic;
+    private Integer partitions;
 }

@@ -49,7 +49,6 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
     @Value("${spring.application.name}")
     private String applicationName;
 
-    private static final String URL = "/api/private";
     private static final String VERSION = "version";
     private static final String VERSION_MS_CONFIG = "3.0.16";
 
@@ -61,30 +60,33 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
     private final XmConfigProperties xmConfigProperties;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final TenantContextHolder tenantContextHolder;
+    private final ConfigPrivateApi privateApi;
 
     private final ObjectMapper mapper = JsonMapperUtils.getJsonMapperWithIgnore();
 
     @Override
     public Map<String, Configuration> getConfig(String commit) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + "/config_map").queryParam(VERSION, commit);
-        return getExchangeConfigMap(null, HttpMethod.GET, builder, createSimpleHeaders());
+        return getExchangeConfigMap(null, HttpMethod.GET, builder, privateApi.authorize(createSimpleHeaders()));
     }
 
     private String getServiceConfigUrl() {
-        return xmConfigProperties.getXmConfigUrl() + URL;
+        return xmConfigProperties.getXmConfigUrl() + privateApi.getUrl();
     }
 
     @Override
     public Map<String,Configuration> getConfig(String version, Collection<String> paths) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + "/config_map");
-        return getExchangeConfigMap(new GetConfigRequest(version, paths),  HttpMethod.POST, builder, createApplicationJsonHeaders());
+        return getExchangeConfigMap(new GetConfigRequest(version, paths),  HttpMethod.POST, builder,
+            privateApi.authorize(createApplicationJsonHeaders()));
     }
 
     @Override
     public Map<String,Configuration> getConfigByPatternPaths(String version, Collection<String> patterns) {
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getServiceConfigUrl() + "/config_map/pattern");
-            return getExchangeConfigMap(new ConfigPatternRequest(patterns, version),  HttpMethod.POST, builder, createApplicationJsonHeaders());
+            return getExchangeConfigMap(new ConfigPatternRequest(patterns, version),  HttpMethod.POST, builder,
+                privateApi.authorize(createApplicationJsonHeaders()));
         } catch (HttpClientErrorException errorException) {
             if (errorException.getStatusCode() == HttpStatus.NOT_FOUND) {
                 log.warn("Not found resource, update ms-config version from {}", VERSION_MS_CONFIG);

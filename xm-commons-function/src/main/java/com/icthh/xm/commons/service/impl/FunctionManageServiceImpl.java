@@ -20,6 +20,7 @@ import com.icthh.xm.commons.service.FunctionManageService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.utils.YamlPatchUtils.YamlPatchPattern;
 import io.micrometer.common.util.StringUtils;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -128,6 +129,9 @@ public class FunctionManageServiceImpl implements FunctionManageService<Function
 
     protected String buildFilePath(String fileKey, String tenantKey) {
         String folder = specService.getSpecFolder(tenantKey);
+        if (fileKey != null && !Path.of(folder).resolve(fileKey).normalize().startsWith(folder)) {
+            throw new BusinessException("error.function.spec.file.key.invalid", "Invalid fileKey");
+        }
         return fileKey == null ? folder + ".yml" : folder + "/" + fileKey + ".yml";
     }
 

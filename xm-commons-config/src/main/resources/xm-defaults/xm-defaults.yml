@@ -1,0 +1,23 @@
+spring:
+    cloud:
+        consul:
+            discovery:
+                heartbeat:
+                    enabled: true
+                    reregister-service-on-failure: true
+                    ttl: 30s
+                health-check-critical-timeout: 2m
+                query-passing: true
+        service-registry:
+            auto-registration:
+                register-management: false
+
+springdoc:
+    show-actuator: false
+    use-management-port: false
+
+management:
+    endpoint:
+        health:
+            show-details: when_authorized
+            roles: ${application.management.access.role:SYSTEM-ADMIN}

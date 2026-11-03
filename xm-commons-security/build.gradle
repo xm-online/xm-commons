@@ -21,4 +21,6 @@ dependencies {
     testImplementation "junit:junit"
     testImplementation "org.mockito:mockito-core"
     testImplementation 'org.springframework:spring-test'
+    testImplementation 'org.springframework:spring-webmvc'
+    testImplementation 'org.springframework.security:spring-security-test'
 }
