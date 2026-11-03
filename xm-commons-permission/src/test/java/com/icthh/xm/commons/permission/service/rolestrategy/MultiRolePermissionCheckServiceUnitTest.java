@@ -26,6 +26,7 @@ import com.icthh.xm.commons.permission.service.PermissionLepConditionService;
 import com.icthh.xm.commons.permission.service.PermissionLepService;
 import com.icthh.xm.commons.permission.service.PermissionService;
 import com.icthh.xm.commons.permission.service.RoleService;
+import com.icthh.xm.commons.permission.service.XmPermissionEvaluationContextBuilder;
 import com.icthh.xm.commons.permission.service.translator.SpelToJpqlTranslator;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContext;
@@ -80,7 +81,7 @@ public class MultiRolePermissionCheckServiceUnitTest {
             resourceFactory,
             roleService,
             permissionEvaluationContextBuilder,
-            new PermissionLepConditionService(permissionLepService)
+            new PermissionLepConditionService(permissionLepService, new XmPermissionEvaluationContextBuilder())
         ));
     }
 
@@ -147,17 +148,19 @@ public class MultiRolePermissionCheckServiceUnitTest {
         Expression expression = mock(Expression.class);
         Subject subject = new Subject("", "user key", "ROLE_B2B_EXPERT");
 
-        doReturn("#returnObject.typeKey == 'COMPANY' && #lepFilter")
+        doReturn("#returnObject.typeKey == 'COMPANY' && #lep.filter('company', {userKey: #subject.userKey})")
             .when(expression).getExpressionString();
         doReturn(expression).when(permission).getResourceCondition();
         doReturn("ROLE_B2B_EXPERT").when(permission).getRoleKey();
         doReturn(singletonList(permission)).when(multiRolePermissionCheckService).getPermissions(any(), any());
         doReturn(singletonMap("ROLE_B2B_EXPERT", subject)).when(multiRolePermissionCheckService).getSubjects(any());
-        when(permissionLepService.filter(eq("XMENTITY.GET_LIST"), eq("ROLE_B2B_EXPERT"), any()))
+        when(permissionLepService.filter("company", "XMENTITY.GET_LIST", "ROLE_B2B_EXPERT",
+            Map.of("userKey", "user key"), Map.of("query", "name:k*", "subject", subject)))
             .thenReturn("returnObject.key = 'k1'");
 
         String condition = multiRolePermissionCheckService.createCondition(
-            new TestingAuthenticationToken(new Object(), new Object()), "XMENTITY.GET_LIST", spelToJpqlTranslator
+            new TestingAuthenticationToken(new Object(), new Object()), "XMENTITY.GET_LIST", spelToJpqlTranslator,
+            Map.of("query", "name:k*")
         );
 
         assertEquals("(returnObject.typeKey  =  'COMPANY'  and  (returnObject.key = 'k1'))", condition);

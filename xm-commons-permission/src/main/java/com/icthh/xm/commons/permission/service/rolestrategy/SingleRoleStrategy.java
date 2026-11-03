@@ -120,9 +120,11 @@ public class SingleRoleStrategy implements RoleStrategy {
      * @param authentication the authentication
      * @param privilegeKey the privilege key
      * @param translator the spel translator
+     * @param contextParams the caller context passed to the permission filter LEP
      * @return condition if permitted, or null
      */
-    public String createCondition(Authentication authentication, Object privilegeKey, SpelTranslator translator) {
+    public String createCondition(Authentication authentication, Object privilegeKey, SpelTranslator translator,
+                                  Map<String, Object> contextParams) {
         if (!hasPermission(authentication, privilegeKey)) {
             throw new AccessDeniedException("Access is denied");
         }
@@ -136,8 +138,8 @@ public class SingleRoleStrategy implements RoleStrategy {
         if (!RoleConstant.SUPER_ADMIN.equals(roleKey)
             && permission != null && permission.getResourceCondition() != null) {
             String condition = permissionLepConditionService.applyFilter(
-                permission.getResourceCondition().getExpressionString(), privilegeKey, roleKey,
-                Map.of("subject", subject));
+                permission.getResourceCondition().getExpressionString(), privilegeKey, roleKey, subject,
+                contextParams);
             return format("(%s)", translator.translate(condition, subject));
         }
         return EMPTY;
@@ -174,8 +176,7 @@ public class SingleRoleStrategy implements RoleStrategy {
                 privilegeKey, roleKey, getUserKey());
             return false;
         }
-        permissionLepConditionService.bindCheck(context, privilegeKey, roleKey, resources,
-            permission.getEnvCondition(), permission.getResourceCondition());
+        permissionLepConditionService.bind(context, privilegeKey, roleKey, resources);
         boolean validCondition = true;
         if (!isConditionValid(permission.getEnvCondition(), context)) {
             log(logPermission, Level.ERROR,

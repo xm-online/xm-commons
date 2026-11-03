@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -83,7 +84,21 @@ public class PermissionCheckService {
      * @return condition if permitted, or null
      */
     public String createCondition(Authentication authentication, Object privilegeKey, SpelTranslator translator) {
-        return withStrategy(authentication).createCondition(authentication, privilegeKey, translator);
+        return createCondition(authentication, privilegeKey, translator, Map.of());
+    }
+
+    /**
+     * Create condition with replaced subject variables and {@code #lep.filter(...)} calls.
+     *
+     * @param authentication the authentication
+     * @param privilegeKey the privilege key
+     * @param translator the spel translator
+     * @param contextParams the caller context (e.g. query, entityClass) passed to the permission filter LEP
+     * @return condition if permitted, or null
+     */
+    public String createCondition(Authentication authentication, Object privilegeKey, SpelTranslator translator,
+                                  Map<String, Object> contextParams) {
+        return withStrategy(authentication).createCondition(authentication, privilegeKey, translator, contextParams);
     }
 
     private RoleStrategy withStrategy(Authentication authentication) {

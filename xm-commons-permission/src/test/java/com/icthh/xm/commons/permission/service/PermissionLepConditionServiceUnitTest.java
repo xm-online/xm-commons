@@ -2,13 +2,12 @@ package com.icthh.xm.commons.permission.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.icthh.xm.commons.permission.access.subject.Subject;
 import java.util.Map;
 import org.junit.Test;
 import org.springframework.expression.EvaluationContext;
@@ -17,57 +16,105 @@ import org.springframework.security.access.AccessDeniedException;
 
 public class PermissionLepConditionServiceUnitTest {
 
+    private static final String PRIVILEGE = "PRIVILEGE";
+    private static final String ROLE = "ROLE_USER";
+
+    private final Subject subject = new Subject("login", "user-key", ROLE);
     private final PermissionLepService permissionLepService = mock(PermissionLepService.class);
     private final PermissionLepConditionService permissionLepConditionService =
-        new PermissionLepConditionService(permissionLepService);
+        new PermissionLepConditionService(permissionLepService, new XmPermissionEvaluationContextBuilder());
     private final SpelExpressionParser parser = new SpelExpressionParser();
 
     @Test
     public void shouldNotChangeConditionWithoutLepFilter() {
         String condition = "#returnObject.typeKey == 'COMPANY'";
 
-        assertEquals(condition, applyFilter(condition));
+        assertEquals(condition, applyFilter(condition, Map.of()));
         verifyNoInteractions(permissionLepService);
     }
 
     @Test
-    public void shouldReplaceLepFilter() {
-        when(permissionLepService.filter("PRIVILEGE", "ROLE_USER", Map.of())).thenReturn("a = 1");
+    public void shouldNotChangeLepFilterInsideStringLiteral() {
+        String condition = "#returnObject.name == '#lep.filter(''company'')'";
+
+        assertEquals(condition, applyFilter(condition, Map.of()));
+        verifyNoInteractions(permissionLepService);
+    }
+
+    @Test
+    public void shouldReplaceLepFilterWithoutParams() {
+        when(permissionLepService.filter("company", PRIVILEGE, ROLE, Map.of(), Map.of("subject", subject)))
+            .thenReturn("a = 1");
 
         assertEquals("#returnObject.typeKey == 'COMPANY' && (a = 1)",
-            applyFilter("#returnObject.typeKey == 'COMPANY' && #lepFilter"));
+            applyFilter("#returnObject.typeKey == 'COMPANY' && #lep.filter('company')", Map.of()));
+    }
+
+    @Test
+    public void shouldEvaluateLepFilterParamsAndPassContextParams() {
+        Map<String, Object> contextParams = Map.of("query", "name:a*", "entityClass", String.class);
+        when(permissionLepService.filter("company", PRIVILEGE, ROLE,
+            Map.of("typeKey", "COMPANY", "userKey", "user-key", "label", "it's (a) test"),
+            Map.of("query", "name:a*", "entityClass", String.class, "subject", subject)))
+            .thenReturn("a = 1");
+
+        assertEquals("#returnObject.id > 0 && (a = 1) || #returnObject.id < 0",
+            applyFilter("#returnObject.id > 0 && #lep.filter( 'company' , "
+                + "{typeKey: 'COMPANY', userKey: #subject.userKey, label: 'it''s (a) test'} ) || #returnObject.id < 0",
+                contextParams));
+    }
+
+    @Test
+    public void shouldReplaceEveryLepFilter() {
+        when(permissionLepService.filter("first", PRIVILEGE, ROLE, Map.of(), Map.of("subject", subject)))
+            .thenReturn("a = 1");
+        when(permissionLepService.filter("second", PRIVILEGE, ROLE, Map.of("n", 2), Map.of("subject", subject)))
+            .thenReturn("b = 2");
+
+        assertEquals("(a = 1) || ((b = 2) && #returnObject.id > 0)",
+            applyFilter("#lep.filter('first') || (#lep.filter('second', {n: 2}) && #returnObject.id > 0)",
+                Map.of()));
     }
 
     @Test(expected = AccessDeniedException.class)
     public void shouldDenyWhenLepFilterReturnsNull() {
-        applyFilter("#lepFilter");
+        applyFilter("#lep.filter('company')", Map.of());
     }
 
     @Test
-    public void shouldNotBindLepCheckWithoutVariable() {
-        EvaluationContext context = bindCheck("#returnObject.typeKey == 'COMPANY'");
+    public void shouldCallLepCheckOnlyWhenEvaluated() {
+        Map<String, Object> resources = Map.of("returnObject", Map.of("typeKey", "PERSON"));
+        EvaluationContext context = bind(resources);
 
-        assertNull(context.lookupVariable("lepCheck"));
+        assertFalse(evaluate("#returnObject['typeKey'] == 'COMPANY' && #lep.check('company')", context));
         verifyNoInteractions(permissionLepService);
     }
 
     @Test
-    public void shouldBindLepCheckResult() {
-        when(permissionLepService.check(anyString(), anyString(), any())).thenReturn(false);
+    public void shouldEvaluateLepCheckWithParams() {
+        Map<String, Object> resources = Map.of("returnObject", Map.of("typeKey", "COMPANY"));
+        when(permissionLepService.check("company", PRIVILEGE, ROLE, Map.of("typeKey", "COMPANY"), resources))
+            .thenReturn(true);
 
-        EvaluationContext context = bindCheck("#lepCheck");
-
-        assertFalse(parser.parseExpression("#lepCheck").getValue(context, Boolean.class));
+        assertTrue(evaluate("#lep.check('company', {typeKey: #returnObject['typeKey']})", bind(resources)));
     }
 
-    private String applyFilter(String condition) {
-        return permissionLepConditionService.applyFilter(condition, "PRIVILEGE", "ROLE_USER", Map.of());
+    @Test
+    public void shouldDenyWhenLepCheckReturnsFalse() {
+        assertFalse(evaluate("#lep.check('company')", bind(Map.of())));
     }
 
-    private EvaluationContext bindCheck(String condition) {
-        EvaluationContext context = new XmPermissionEvaluationContextBuilder().build(Map.of());
-        permissionLepConditionService.bindCheck(context, "PRIVILEGE", "ROLE_USER", Map.of(),
-            parser.parseExpression(condition));
+    private String applyFilter(String condition, Map<String, Object> contextParams) {
+        return permissionLepConditionService.applyFilter(condition, PRIVILEGE, ROLE, subject, contextParams);
+    }
+
+    private EvaluationContext bind(Map<String, Object> resources) {
+        EvaluationContext context = new XmPermissionEvaluationContextBuilder().build(resources);
+        permissionLepConditionService.bind(context, PRIVILEGE, ROLE, resources);
         return context;
+    }
+
+    private boolean evaluate(String condition, EvaluationContext context) {
+        return parser.parseExpression(condition).getValue(context, Boolean.class);
     }
 }

@@ -141,10 +141,12 @@ public class MultiRoleStrategy implements RoleStrategy {
      * @param authentication the authentication
      * @param privilegeKey the privilege key
      * @param translator the spel translator
+     * @param contextParams the caller context passed to the permission filter LEP
      * @return condition if permitted, or null
      */
     public String createCondition(
-        Authentication authentication, Object privilegeKey, SpelTranslator translator
+        Authentication authentication, Object privilegeKey, SpelTranslator translator,
+        Map<String, Object> contextParams
     ) {
         if (!hasPermission(authentication, privilegeKey)) {
             throw new AccessDeniedException("Access is denied");
@@ -164,7 +166,7 @@ public class MultiRoleStrategy implements RoleStrategy {
                 Subject subject = subjects.get(permission.getRoleKey());
                 String condition = permissionLepConditionService.applyFilter(
                     permission.getResourceCondition().getExpressionString(), privilegeKey, permission.getRoleKey(),
-                    Map.of("subject", subject));
+                    subject, contextParams);
                 return translator.translate(condition, subject);
             })
             .map(condition -> format("(%s)", condition))
@@ -323,8 +325,7 @@ public class MultiRoleStrategy implements RoleStrategy {
                     if (isNull(expression) || isEmpty(expression.getExpressionString())) {
                         return true;
                     }
-                    permissionLepConditionService.bindCheck(context, privilegeKey, permission.getRoleKey(),
-                        resources, expression);
+                    permissionLepConditionService.bind(context, privilegeKey, permission.getRoleKey(), resources);
                     try {
                         return expression.getValue(context, Boolean.class);
                     } catch (Exception e) {

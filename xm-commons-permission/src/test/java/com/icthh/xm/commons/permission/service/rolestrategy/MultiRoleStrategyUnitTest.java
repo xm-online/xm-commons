@@ -3,6 +3,7 @@ package com.icthh.xm.commons.permission.service.rolestrategy;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -66,7 +67,7 @@ public class MultiRoleStrategyUnitTest {
     @Before
     public void before() {
         multiRoleStrategy = new MultiRoleStrategy(xmAuthenticationContextHolder, tenantContextHolder, permissionService,
-            null, null, permissionEvaluationContextBuilder, new PermissionLepConditionService(permissionLepService));
+            null, null, permissionEvaluationContextBuilder, new PermissionLepConditionService(permissionLepService, permissionEvaluationContextBuilder));
     }
 
     TenantContext CONTEXT = new TenantContext() {
@@ -119,25 +120,40 @@ public class MultiRoleStrategyUnitTest {
     @Test
     public void resourceConditionWithLepCheckMustBePassed() {
 
-        prepareMock("#firstName=='Homer' && #lepCheck", spelExpression -> new Permission() {{
+        prepareMock("#firstName=='Homer' && #lep.check('family', {name: #firstName})", spelExpression -> new Permission() {{
             setPrivilegeKey("privKey");
             setRoleKey(ROLE_ADMIN);
             setResourceCondition(spelExpression);
         }});
-        when(permissionLepService.check(eq(privilege), eq(ROLE_ADMIN), any())).thenReturn(true);
+        when(permissionLepService.check(eq("family"), eq(privilege), eq(ROLE_ADMIN), eq(Map.of("name", "Homer")),
+            argThat(contextParams -> "Homer".equals(contextParams.get("firstName"))))).thenReturn(true);
         boolean result = multiRoleStrategy.checkPermission(authentication, Map.of("firstName", "Homer"), privilege, true, false);
         assertTrue(result);
     }
 
     @Test
-    public void resourceConditionWithLepCheckMustBeDenied() {
+    public void resourceConditionWithLepCheckIsNotCalledWhenShortCircuited() {
 
-        prepareMock("#lepCheck", spelExpression -> new Permission() {{
+        prepareMock("#firstName=='Bart' && #lep.check('family')", spelExpression -> new Permission() {{
             setPrivilegeKey("privKey");
             setRoleKey(ROLE_ADMIN);
             setResourceCondition(spelExpression);
         }});
-        when(permissionLepService.check(eq(privilege), eq(ROLE_ADMIN), any())).thenReturn(false);
+        boolean result = multiRoleStrategy.checkPermission(authentication, Map.of("firstName", "Homer"), privilege, true, false);
+        assertFalse(result);
+        verifyNoInteractions(permissionLepService);
+    }
+
+    @Test
+    public void resourceConditionWithLepCheckMustBeDenied() {
+
+        prepareMock("#lep.check('family')", spelExpression -> new Permission() {{
+            setPrivilegeKey("privKey");
+            setRoleKey(ROLE_ADMIN);
+            setResourceCondition(spelExpression);
+        }});
+        when(permissionLepService.check(eq("family"), eq(privilege), eq(ROLE_ADMIN), eq(Map.of()), any()))
+            .thenReturn(false);
         boolean result = multiRoleStrategy.checkPermission(authentication, Map.of("firstName", "Homer"), privilege, true, false);
         assertFalse(result);
     }
