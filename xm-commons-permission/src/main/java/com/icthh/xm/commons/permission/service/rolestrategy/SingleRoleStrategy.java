@@ -11,6 +11,7 @@ import com.icthh.xm.commons.permission.domain.EnvironmentVariable;
 import com.icthh.xm.commons.permission.domain.Permission;
 import com.icthh.xm.commons.permission.domain.ReactionStrategy;
 import com.icthh.xm.commons.permission.service.PermissionEvaluationContextBuilder;
+import com.icthh.xm.commons.permission.service.PermissionLepConditionService;
 import com.icthh.xm.commons.permission.service.PermissionService;
 import com.icthh.xm.commons.permission.service.RoleService;
 import com.icthh.xm.commons.permission.service.translator.SpelTranslator;
@@ -52,6 +53,7 @@ public class SingleRoleStrategy implements RoleStrategy {
     private final ResourceFactory resourceFactory;
     private final RoleService roleService;
     private final PermissionEvaluationContextBuilder permissionEvaluationContextBuilder;
+    private final PermissionLepConditionService permissionLepConditionService;
 
     /**
      * Check permission for role and privilege key only.
@@ -122,7 +124,8 @@ public class SingleRoleStrategy implements RoleStrategy {
      * @param translator the spel translator
      * @return condition if permitted, or null
      */
-    public String createCondition(Authentication authentication, Object privilegeKey, SpelTranslator translator) {
+    public String createCondition(Authentication authentication, Object privilegeKey, SpelTranslator translator,
+                                  Map<String, Object> contextParams) {
         if (!hasPermission(authentication, privilegeKey)) {
             throw new AccessDeniedException("Access is denied");
         }
@@ -135,7 +138,10 @@ public class SingleRoleStrategy implements RoleStrategy {
 
         if (!RoleConstant.SUPER_ADMIN.equals(roleKey)
             && permission != null && permission.getResourceCondition() != null) {
-            return format("(%s)", translator.translate(permission.getResourceCondition().getExpressionString(), subject));
+            String condition = permissionLepConditionService.applyFilter(
+                permission.getResourceCondition().getExpressionString(), privilegeKey, roleKey, subject,
+                contextParams);
+            return format("(%s)", translator.translate(condition, subject));
         }
         return EMPTY;
     }
@@ -171,6 +177,7 @@ public class SingleRoleStrategy implements RoleStrategy {
                 privilegeKey, roleKey, getUserKey());
             return false;
         }
+        permissionLepConditionService.bind(context, privilegeKey, roleKey, resources);
         boolean validCondition = true;
         if (!isConditionValid(permission.getEnvCondition(), context)) {
             log(logPermission, Level.ERROR,

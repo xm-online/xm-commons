@@ -20,6 +20,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.Subgraph;
 import javax.persistence.TypedQuery;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.google.common.collect.ImmutableSet.of;
 import static java.util.Arrays.asList;
@@ -52,6 +54,13 @@ public class PermittedRepositoryUnitTest {
         repository.setEm(em);
     }
 
+    private static Map<String, Object> contextParams(String query) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("entityClass", TestEntity.class);
+        params.put("query", query);
+        return params;
+    }
+
     @Test
     public void findByConditionWithoutEmbed() {
         when(em.createQuery("select distinct returnObject from TestEntity returnObject where a = :b and (f = g) order by d ASC", TestEntity.class)).thenReturn(selectQuery);
@@ -60,7 +69,8 @@ public class PermittedRepositoryUnitTest {
             permissionCheckService.createCondition(
                 eq(SecurityContextHolder.getContext().getAuthentication()),
                 eq("TEST"),
-                any(SpelToJpqlTranslator.class)
+                any(SpelToJpqlTranslator.class),
+                eq(contextParams("a = :b"))
             )
         ).thenReturn("(f = g)");
         when(selectQuery.getResultList()).thenReturn(asList(new TestEntity(1), new TestEntity(2)));
@@ -93,7 +103,8 @@ public class PermittedRepositoryUnitTest {
             permissionCheckService.createCondition(
                 eq(SecurityContextHolder.getContext().getAuthentication()),
                 eq("TEST"),
-                any(SpelToJpqlTranslator.class)
+                any(SpelToJpqlTranslator.class),
+                eq(contextParams("a = :b"))
             )
         ).thenReturn("(f = g)");
         when(selectQuery.getResultList()).thenReturn(asList(new TestEntity(1), new TestEntity(2)));
@@ -124,7 +135,7 @@ public class PermittedRepositoryUnitTest {
         when(em.createQuery(anyString(), any())).thenReturn(selectQuery);
         when(em.createQuery(anyString(), any())).thenReturn(countQuery);
 
-        doReturn("(a = b) OR (v = g)").when(permissionCheckService).createCondition(any(), any(), any());
+        doReturn("(a = b) OR (v = g)").when(permissionCheckService).createCondition(any(), any(), any(), any());
 
         repository.findAll(null, PermittedRepositoryUnitTest.class, "key");
 

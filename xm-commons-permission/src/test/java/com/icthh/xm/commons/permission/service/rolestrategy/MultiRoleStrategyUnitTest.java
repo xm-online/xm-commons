@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.permission.domain.Permission;
 import com.icthh.xm.commons.permission.service.PermissionService;
+import com.icthh.xm.commons.permission.service.PermissionLepConditionService;
 import com.icthh.xm.commons.permission.service.XmPermissionEvaluationContextBuilder;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
@@ -51,6 +52,9 @@ public class MultiRoleStrategyUnitTest {
 
     @Spy
     XmPermissionEvaluationContextBuilder permissionEvaluationContextBuilder;
+
+    @Mock
+    PermissionLepConditionService permissionLepConditionService;
 
     @InjectMocks
     MultiRoleStrategy multiRoleStrategy;

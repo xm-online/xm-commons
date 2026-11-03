@@ -13,6 +13,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
@@ -20,8 +21,11 @@ import com.icthh.xm.commons.permission.access.ResourceFactory;
 import com.icthh.xm.commons.permission.access.subject.Subject;
 import com.icthh.xm.commons.permission.domain.Permission;
 import com.icthh.xm.commons.permission.service.PermissionEvaluationContextBuilder;
+import com.icthh.xm.commons.permission.service.PermissionLepConditionService;
+import com.icthh.xm.commons.permission.service.PermissionLepService;
 import com.icthh.xm.commons.permission.service.PermissionService;
 import com.icthh.xm.commons.permission.service.RoleService;
+import com.icthh.xm.commons.permission.service.XmPermissionEvaluationContextBuilder;
 import com.icthh.xm.commons.permission.service.translator.SpelToJpqlTranslator;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContext;
@@ -60,6 +64,8 @@ public class MultiRolePermissionCheckServiceUnitTest {
     TenantContext tenantContext;
     @Mock
     PermissionEvaluationContextBuilder permissionEvaluationContextBuilder;
+    @Mock
+    PermissionLepService permissionLepService;
 
     private final SpelToJpqlTranslator spelToJpqlTranslator = new SpelToJpqlTranslator();
 
@@ -73,7 +79,8 @@ public class MultiRolePermissionCheckServiceUnitTest {
             permissionService,
             resourceFactory,
             roleService,
-            permissionEvaluationContextBuilder
+            permissionEvaluationContextBuilder,
+            new PermissionLepConditionService(permissionLepService, new XmPermissionEvaluationContextBuilder())
         ));
     }
 
@@ -128,6 +135,34 @@ public class MultiRolePermissionCheckServiceUnitTest {
 
         assertFalse(condition.isEmpty());
         assertEquals("(subject.userKey  =  'user key')", condition);
+        verifyZeroInteractions(permissionLepService);
+    }
+
+    @Test
+    public void shouldCreateConditionWithLepFilter() {
+        doReturn(true).when(multiRolePermissionCheckService).hasPermission(any(), any());
+        doReturn(singletonList("ROLE_B2B_EXPERT")).when(multiRolePermissionCheckService).getRoleKeys(any());
+
+        Permission permission = mock(Permission.class);
+        Expression expression = mock(Expression.class);
+        Subject subject = new Subject("", "user key", "ROLE_B2B_EXPERT");
+
+        doReturn("#returnObject.typeKey == 'COMPANY' && #lep.filter('company', {userKey: #subject.userKey})")
+            .when(expression).getExpressionString();
+        doReturn(expression).when(permission).getResourceCondition();
+        doReturn("ROLE_B2B_EXPERT").when(permission).getRoleKey();
+        doReturn(singletonList(permission)).when(multiRolePermissionCheckService).getPermissions(any(), any());
+        doReturn(singletonMap("ROLE_B2B_EXPERT", subject)).when(multiRolePermissionCheckService).getSubjects(any());
+        when(permissionLepService.filter("company", "XMENTITY.GET_LIST", "ROLE_B2B_EXPERT",
+            Map.of("userKey", "user key"), Map.of("query", "name:k*", "subject", subject)))
+            .thenReturn("returnObject.key = 'k1'");
+
+        String condition = multiRolePermissionCheckService.createCondition(
+            new TestingAuthenticationToken(new Object(), new Object()), "XMENTITY.GET_LIST", spelToJpqlTranslator,
+            Map.of("query", "name:k*")
+        );
+
+        assertEquals("(returnObject.typeKey  =  'COMPANY'  and  (returnObject.key = 'k1'))", condition);
     }
 
     @Test

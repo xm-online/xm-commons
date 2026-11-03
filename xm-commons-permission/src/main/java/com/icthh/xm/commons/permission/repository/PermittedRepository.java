@@ -22,6 +22,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityGraph;
@@ -41,6 +42,8 @@ public class PermittedRepository {
     public static final String AND_SQL = " and ";
     public static final String ORDER_BY_SQL = " order by ";
     private static final String GRAPH_DELIMETER = ".";
+    private static final String ENTITY_CLASS = "entityClass";
+    private static final String QUERY = "query";
 
     private final SpelToJpqlTranslator spelToJpqlTranslator = new SpelToJpqlTranslator();
 
@@ -74,7 +77,7 @@ public class PermittedRepository {
         String selectSql = format(SELECT_ALL_SQL, entityClass.getSimpleName());
         String countSql = format(COUNT_ALL_SQL, entityClass.getSimpleName());
 
-        String orChainedPermittedCondition = createPermissionCondition(privilegeKey);
+        String orChainedPermittedCondition = createPermissionCondition(privilegeKey, contextParams(entityClass, null));
 
         if (isNotEmpty(orChainedPermittedCondition)) {
             selectSql += WHERE_SQL + orChainedPermittedCondition;
@@ -143,7 +146,8 @@ public class PermittedRepository {
         selectSql += WHERE_SQL + whereCondition;
         countSql += WHERE_SQL + whereCondition;
 
-        String orChainedPermittedCondition = createPermissionCondition(privilegeKey);
+        String orChainedPermittedCondition = createPermissionCondition(privilegeKey,
+            contextParams(entityClass, whereCondition));
 
         if (isNotEmpty(orChainedPermittedCondition)) {
             selectSql += AND_SQL + orChainedPermittedCondition;
@@ -180,12 +184,20 @@ public class PermittedRepository {
             : readPage(countSql, query, pageable);
     }
 
-    protected String createPermissionCondition(String privilegeKey) {
+    protected String createPermissionCondition(String privilegeKey, Map<String, Object> contextParams) {
         return permissionCheckService.createCondition(
             SecurityContextHolder.getContext().getAuthentication(),
             privilegeKey,
-            spelToJpqlTranslator
+            spelToJpqlTranslator,
+            contextParams
         );
+    }
+
+    private static Map<String, Object> contextParams(Class<?> entityClass, String query) {
+        Map<String, Object> contextParams = new HashMap<>();
+        contextParams.put(ENTITY_CLASS, entityClass);
+        contextParams.put(QUERY, query);
+        return contextParams;
     }
 
     private static String applyOrder(String sql, Sort sort) {
