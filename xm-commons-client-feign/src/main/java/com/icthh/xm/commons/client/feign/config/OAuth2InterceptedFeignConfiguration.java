@@ -4,10 +4,8 @@ import com.icthh.xm.commons.tenant.TenantContextHolder;
 import feign.RequestInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProvider;
@@ -23,7 +21,6 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 @Configuration
 @RequiredArgsConstructor
 @EnableFeignClients
-@Import(FeignClientsConfiguration.class)
 public class OAuth2InterceptedFeignConfiguration {
 
     private static final String AUTHORIZATION_HEADER_NAME = "Authorization";
