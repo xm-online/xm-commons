@@ -43,6 +43,7 @@ public abstract class AbstractConfigService implements ConfigService {
         }
     }
 
+    @Override
     public void notifyUpdated(Configuration configuration) {
         log.debug("Notify configuration changed [{}]", configuration != null ? configuration.getPath() : null);
 
