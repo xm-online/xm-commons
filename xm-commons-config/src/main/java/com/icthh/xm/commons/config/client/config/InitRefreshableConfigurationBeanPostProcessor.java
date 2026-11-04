@@ -6,6 +6,7 @@ import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.api.ConfigurationChangedListener;
 import com.icthh.xm.commons.config.client.api.FetchConfigurationSettings;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.config.client.service.ConfigurationOrderService;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -36,13 +37,16 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
     private final Set<String> includedTenants;
     private final AntPathMatcher matcher = new AntPathMatcher();
     private final FetchConfigurationSettings fetchConfigurationSettings;
+    private final ConfigurationOrderService configurationOrderService;
 
     public InitRefreshableConfigurationBeanPostProcessor(ObjectProvider<ConfigService> configServiceProvider,
                                                          XmConfigProperties xmConfigProperties,
-                                                         FetchConfigurationSettings fetchConfigurationSettings) {
+                                                         FetchConfigurationSettings fetchConfigurationSettings,
+                                                         ConfigurationOrderService configurationOrderService) {
         this.configServiceProvider = configServiceProvider;
         this.includedTenants = xmConfigProperties.getIncludeTenantUppercase();
         this.fetchConfigurationSettings = fetchConfigurationSettings;
+        this.configurationOrderService = configurationOrderService;
         addLepCommons();
     }
 
@@ -66,6 +70,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
     private Map<String, Configuration> getConfig() {
         if (configMap == null) {
             configMap = getConfigService().getConfigMapAntPattern(null, fetchConfigurationSettings.getMsConfigPatterns());
+            configurationOrderService.processOrderConfigs(configMap);
         }
         return configMap;
     }
@@ -100,23 +105,20 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
 
     public List<String> initConfigPaths(final RefreshableConfiguration refreshableConfiguration,
                                         final Map<String, Configuration> configMap) {
-        return configMap
-            .entrySet()
+        return configurationOrderService.sortPaths(configMap.keySet())
             .stream()
-            .filter(e -> isTenantIncluded(e.getKey()))
-            .filter(e -> refreshableConfiguration.isListeningConfiguration(e.getKey()))
-            .peek(e -> printLog(getBeanName(refreshableConfiguration), e))
-            .peek(e -> refreshableConfiguration.onInit(e.getKey(), e.getValue().getContent()))
-            .map(Map.Entry::getKey)
+            .filter(this::isTenantIncluded)
+            .filter(refreshableConfiguration::isListeningConfiguration)
+            .peek(key -> printLog(getBeanName(refreshableConfiguration), key, configMap.get(key)))
+            .peek(key -> refreshableConfiguration.onInit(key, configMap.get(key).getContent()))
             .collect(Collectors.toList());
     }
 
-    private static void printLog(final String beanName,
-                                 final Map.Entry<String, Configuration> e) {
+    private static void printLog(final String beanName, final String key, final Configuration configuration) {
         log.info("Process config init event: [key = {}, size = {}, newHash = {}] in bean: [{}]",
-                 e.getKey(),
-                 length(e.getValue().getContent()),
-                 getValueHash(e.getValue().getContent()),
+                 key,
+                 length(configuration.getContent()),
+                 getValueHash(configuration.getContent()),
                  beanName);
     }
 
