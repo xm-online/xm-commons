@@ -5,6 +5,8 @@ import static com.icthh.xm.commons.config.defaults.XmDefaultsEnvironmentPostProc
 
 import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.api.FetchConfigurationSettings;
+import com.icthh.xm.commons.config.client.applied.AppliedConfigConfiguration;
+import com.icthh.xm.commons.config.client.applied.AppliedConfigService;
 import com.icthh.xm.commons.config.client.listener.ApplicationReadyEventListener;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.repository.ConfigPrivateApi;
@@ -28,7 +30,8 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration
 @Import({
-    XmRestTemplateConfiguration.class
+    XmRestTemplateConfiguration.class,
+    AppliedConfigConfiguration.class
 })
 @ConditionalOnProperty("xm-config.enabled")
 public class XmConfigConfiguration {
@@ -87,13 +90,17 @@ public class XmConfigConfiguration {
 
     @Bean
     public InitRefreshableConfigurationBeanPostProcessor refreshableConfigurationPostProcessor(
-            ObjectProvider<ConfigService> configServiceProvider, XmConfigProperties xmConfigProperties, FetchConfigurationSettings fetchConfigurationSettings) {
-        return new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, xmConfigProperties, fetchConfigurationSettings);
+            ObjectProvider<ConfigService> configServiceProvider, XmConfigProperties xmConfigProperties,
+            FetchConfigurationSettings fetchConfigurationSettings,
+            ObjectProvider<AppliedConfigService> appliedConfigServiceProvider) {
+        return new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, xmConfigProperties,
+            fetchConfigurationSettings, appliedConfigServiceProvider);
     }
 
     @Bean
-    public ConfigTopicConsumer configTopicConsumer(ConfigService configService) {
-        return new ConfigTopicConsumer(configService);
+    public ConfigTopicConsumer configTopicConsumer(ConfigService configService,
+                                                   ObjectProvider<AppliedConfigService> appliedConfigService) {
+        return new ConfigTopicConsumer(configService, appliedConfigService.getIfAvailable());
     }
 
     @Bean

@@ -70,6 +70,25 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
         return getExchangeConfigMap(null, HttpMethod.GET, builder, privateApi.authorize(createSimpleHeaders()));
     }
 
+    /**
+     * Asks the private API for the current ms-config version. Empty when ms-config does not have the endpoint yet
+     * (404, or 401 from its generic /api/** rule). Other failures throw.
+     */
+    @Override
+    public Optional<String> getVersion() {
+        HttpEntity<Void> entity = new HttpEntity<>(privateApi.authorize(createSimpleHeaders()));
+        try {
+            return Optional.ofNullable(restTemplate.exchange(getServiceConfigUrl() + "/version", HttpMethod.GET,
+                entity, String.class).getBody());
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND || e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                log.info("ms-config has no private version API, commit is unknown until the first config event");
+                return Optional.empty();
+            }
+            throw e;
+        }
+    }
+
     private String getServiceConfigUrl() {
         return xmConfigProperties.getXmConfigUrl() + privateApi.getUrl();
     }
