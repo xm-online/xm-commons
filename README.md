@@ -49,8 +49,9 @@ configuration it applied. It is on by default; disable it with `application.appl
 
 `AppliedConfigResource` is a `@RestController` registered by the services' component scan of `com.icthh.xm`, so it
 works in any service whatever its `SecurityFilterChain`; there is no URL rule for it in `SecurityConfiguration`. The
-privilege `APPLIED_CONFIG.GET` is found by the permission scanner from `@PreAuthorize` and is listed with its
-`@PrivilegeDescription`; grant it to roles in `permissions.yml`. A service that does not scan `com.icthh.xm` does not
+privilege `APPLIED_CONFIG.GET` is found by the permission scanner from `@PreAuthorize` (without a
+`@PrivilegeDescription`: that annotation lives in xm-commons-permission, which depends on this module); grant it to
+roles in `permissions.yml`. A service that does not scan `com.icthh.xm` does not
 get the endpoint. START/STOP of the call are logged by `RestLoggingAspect`, without the result.
 
 ### Commit

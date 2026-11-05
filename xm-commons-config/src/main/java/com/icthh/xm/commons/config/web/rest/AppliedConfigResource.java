@@ -6,7 +6,6 @@ import com.icthh.xm.commons.config.client.applied.AppliedConfigService.Aggregate
 import com.icthh.xm.commons.config.client.applied.AppliedConfigService.PathHash;
 import com.icthh.xm.commons.config.client.applied.AppliedConfigVersion;
 import com.icthh.xm.commons.logging.LoggingAspectConfig;
-import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.security.internal.SpringSecurityXmAuthenticationContextHolder;
@@ -51,7 +50,6 @@ public class AppliedConfigResource {
 
     @GetMapping("/applied-config")
     @PreAuthorize("hasPermission({'tenant': #tenant}, 'APPLIED_CONFIG.GET')")
-    @PrivilegeDescription("Privilege to get the applied config version and config hashes of the service")
     @LoggingAspectConfig(resultDetails = false)
     public AppliedConfigResponse get(@RequestParam(required = false) String tenant,
                                      @RequestParam(defaultValue = "false") boolean details) {
