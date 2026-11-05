@@ -143,7 +143,7 @@ public class AppliedConfigResourceIntTest {
         body.get("configurationsHashSum").forEach(n ->
             list.add(new AppliedConfigService.PathHash(n.get("path").asString(), n.get("hashSum").asString())));
         assertThat(list).extracting(AppliedConfigService.PathHash::path).containsExactly(XM_PATH, COMMONS_PATH);
-        assertThat(AppliedConfigService.aggregateOf(AppliedConfigService.filterByKey(list, "XM")).aggregate())
+        assertThat(AppliedConfigService.aggregateOf(java.util.List.of(list.get(0))).aggregate())
             .isEqualTo(body.get("hashes").get("XM").get("aggregate").asString());
         assertThat(service.getPathHashes()).hasSize(3);
     }

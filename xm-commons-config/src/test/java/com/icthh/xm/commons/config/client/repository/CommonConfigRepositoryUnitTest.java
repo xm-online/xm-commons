@@ -313,10 +313,19 @@ public class CommonConfigRepositoryUnitTest {
     }
 
     @Test
-    public void getVersion_migrationModeMakesNoHttpCall() {
+    public void getVersion_migrationModeCallsOldApiWithoutTokenAndStaysQuietOnNotFound() {
+        when(xmConfigProperties.getXmConfigUrl()).thenReturn("http://test");
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
+            .thenThrow(HttpClientErrorException.create(HttpStatus.NOT_FOUND, "nf", new HttpHeaders(), new byte[0], null));
+        ListAppender<ILoggingEvent> logs = attachLogs();
+
         assertThat(configRepository.getVersion()).isEmpty();
 
-        verifyNoInteractions(restTemplate);
+        ArgumentCaptor<HttpEntity> entity = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplate).exchange(eq("http://test/api/private/version"), eq(HttpMethod.GET), entity.capture(),
+            eq(String.class));
+        assertThat(entity.getValue().getHeaders().containsHeader(ConfigPrivateApi.TOKEN_HEADER)).isFalse();
+        assertThat(logs.list).extracting(ILoggingEvent::getLevel).containsOnly(Level.INFO);
     }
 
     private XmMsConfigCommonConfigRepository repositoryWithToken() throws Exception {

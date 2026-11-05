@@ -71,15 +71,11 @@ public class XmMsConfigCommonConfigRepository implements CommonConfigRepository 
     }
 
     /**
-     * Asks the private API for the current ms-config version. Empty in migration mode (no token) and when
-     * ms-config does not have the endpoint yet (404, or 401 from its generic /api/** rule). Other failures throw.
+     * Asks the private API for the current ms-config version. Empty when ms-config does not have the endpoint yet
+     * (404, or 401 from its generic /api/** rule). Other failures throw.
      */
     @Override
     public Optional<String> getVersion() {
-        if (privateApi.isMigration()) {
-            log.info("Config version is not requested in migration mode, commit is unknown until the first config event");
-            return Optional.empty();
-        }
         HttpEntity<Void> entity = new HttpEntity<>(privateApi.authorize(createSimpleHeaders()));
         try {
             return Optional.ofNullable(restTemplate.exchange(getServiceConfigUrl() + "/version", HttpMethod.GET,

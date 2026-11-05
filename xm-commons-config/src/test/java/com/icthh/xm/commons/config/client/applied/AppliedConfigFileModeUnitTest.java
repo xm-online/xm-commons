@@ -37,7 +37,7 @@ public class AppliedConfigFileModeUnitTest {
         FileCommonConfigRepository repository = new FileCommonConfigRepository(properties);
         FetchConfigurationSettings settings = new FetchConfigurationSettings("entity", false);
         configService = new CommonConfigService(settings, repository);
-        applied = new AppliedConfigService(repository, settings, false);
+        applied = new AppliedConfigService(repository, settings, false, "SYSTEM-ADMIN");
         configService.addConfigurationChangedListener(applied);
     }
 

@@ -203,7 +203,7 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
         when(commonConfigRepository.getVersion()).thenReturn(Optional.empty());
         when(commonConfigRepository.getConfigByPatternPaths(any(), any())).thenReturn(Map.of("/config/tenants/XM/a.yml",
             new Configuration("/config/tenants/XM/a.yml", "a")));
-        AppliedConfigService applied = new AppliedConfigService(commonConfigRepository, fetchConfigurationSettings, true);
+        AppliedConfigService applied = new AppliedConfigService(commonConfigRepository, fetchConfigurationSettings, true, "SYSTEM-ADMIN");
         processor = processorWith(applied);
 
         processor.postProcessBeforeInitialization(refreshableConfiguration, "bean");

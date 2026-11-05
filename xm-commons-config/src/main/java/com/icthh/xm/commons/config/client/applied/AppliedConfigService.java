@@ -4,13 +4,18 @@ import com.icthh.xm.commons.config.client.api.ConfigurationChangedListener;
 import com.icthh.xm.commons.config.client.api.FetchConfigurationSettings;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.domain.Configuration;
+import com.icthh.xm.commons.security.XmAuthenticationContext;
+import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
+import com.icthh.xm.commons.security.internal.SpringSecurityXmAuthenticationContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -20,7 +25,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Applied configuration state of this service: the ms-config version and a hash per applied config path.
- * Read methods apply no access rules; the REST endpoint does.
+ * Read methods apply no access rules, except {@link #getAppliedConfig}, which scopes the data to the caller.
  *
  * <p>Hashes only are stored, updated per changed path. Aggregates are computed per call from the stored hashes,
  * never from contents.
@@ -37,6 +42,8 @@ public class AppliedConfigService implements ConfigurationChangedListener {
     private final CommonConfigRepository repository;
     private final FetchConfigurationSettings fetchSettings;
     private final boolean versioned;
+    private final String managementRole;
+    private final XmAuthenticationContextHolder authContextHolder = new SpringSecurityXmAuthenticationContextHolder();
 
     private final ConcurrentSkipListMap<String, String> hashes = new ConcurrentSkipListMap<>(UTF8_ORDER);
     private volatile AppliedConfigVersion version =
@@ -44,12 +51,14 @@ public class AppliedConfigService implements ConfigurationChangedListener {
 
     /**
      * @param versioned false when the repository has no versions (FILE mode): event versions are ignored
+     * @param managementRole authority that sees every tenant, {@code application.management.access.role}
      */
     public AppliedConfigService(CommonConfigRepository repository, FetchConfigurationSettings fetchSettings,
-                                boolean versioned) {
+                                boolean versioned, String managementRole) {
         this.repository = repository;
         this.fetchSettings = fetchSettings;
         this.versioned = versioned;
+        this.managementRole = managementRole;
     }
 
     public record PathHash(String path, String hashSum) {
@@ -120,14 +129,53 @@ public class AppliedConfigService implements ConfigurationChangedListener {
     }
 
     /** One aggregate per tenant key present in the list. */
-    public static Map<String, Aggregate> aggregatesByTenantKey(List<PathHash> pathHashes) {
+    private static Map<String, Aggregate> aggregatesByTenantKey(List<PathHash> pathHashes) {
         return pathHashes.stream().collect(Collectors.groupingBy(it -> tenantKeyOf(it.path()), TreeMap::new,
             Collectors.collectingAndThen(Collectors.toList(), AppliedConfigService::aggregateOf)));
     }
 
     /** Hashes of one tenant key, matched ignoring case. */
-    public static List<PathHash> filterByKey(List<PathHash> pathHashes, String tenantKey) {
+    private static List<PathHash> filterByKey(List<PathHash> pathHashes, String tenantKey) {
         return pathHashes.stream().filter(it -> tenantKeyOf(it.path()).equalsIgnoreCase(tenantKey)).toList();
+    }
+
+    /**
+     * The applied config for the current caller. The management role gets every tenant key, the total and the
+     * full version; any other caller gets its own tenant plus {@code commons}, and asking for another tenant is
+     * refused with {@link AccessDeniedException}.
+     */
+    public AppliedConfigResponse getAppliedConfig(String tenant, boolean details) {
+        XmAuthenticationContext context = authContextHolder.getContext();
+        boolean management = context.getAuthorities().stream()
+            .anyMatch(it -> managementRole.equals(it.getAuthority()));
+        String ownTenant = context.getTenantName().map(this::upper).orElse(null);
+        String requested = tenant == null ? ownTenant : upper(tenant);
+        if (!management && (ownTenant == null || !ownTenant.equals(requested))) {
+            throw new AccessDeniedException("Applied config of another tenant is not available");
+        }
+        List<PathHash> all = getPathHashes();
+        boolean allKeys = management && tenant == null;
+        List<PathHash> inScope = allKeys ? all : all.stream().filter(it -> inTenantScope(it, requested)).toList();
+        Map<String, Aggregate> hashes = allKeys ? aggregatesByTenantKey(all) : tenantAggregates(all, requested);
+        AppliedConfigVersion commit = management ? version : version.forTenant(requested);
+        Aggregate total = management ? aggregateOf(all) : null;
+        return new AppliedConfigResponse(commit, getFetchScope(), hashes, total, details ? inScope : null);
+    }
+
+    private Map<String, Aggregate> tenantAggregates(List<PathHash> all, String tenant) {
+        Map<String, Aggregate> result = new TreeMap<>();
+        result.put(tenant, aggregateOf(filterByKey(all, tenant)));
+        result.put(COMMONS, aggregateOf(filterByKey(all, COMMONS)));
+        return result;
+    }
+
+    private boolean inTenantScope(PathHash pathHash, String tenant) {
+        String key = tenantKeyOf(pathHash.path());
+        return key.equalsIgnoreCase(tenant) || COMMONS.equals(key);
+    }
+
+    private String upper(String value) {
+        return value.toUpperCase(Locale.ROOT);
     }
 
     /** Asks ms-config for its current version before the initial config load. Never throws. */

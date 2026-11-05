@@ -51,7 +51,7 @@ public class ConfigTopicConsumerUnitTest {
         final CommonConfigRepository repository = mock(CommonConfigRepository.class);
         final CommonConfigService service =
             new CommonConfigService(new FetchConfigurationSettings("entity", false), repository);
-        final AppliedConfigService applied = new AppliedConfigService(repository, new FetchConfigurationSettings("entity", false), true);
+        final AppliedConfigService applied = new AppliedConfigService(repository, new FetchConfigurationSettings("entity", false), true, "SYSTEM-ADMIN");
         final ConfigTopicConsumer consumer = new ConfigTopicConsumer(service, applied);
 
         Fixture() {

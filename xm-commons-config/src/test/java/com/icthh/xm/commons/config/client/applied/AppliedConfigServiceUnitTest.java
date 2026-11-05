@@ -37,7 +37,7 @@ public class AppliedConfigServiceUnitTest {
     private AppliedConfigService service = newService(true);
 
     private AppliedConfigService newService(boolean versioned) {
-        return new AppliedConfigService(repository, settings, versioned);
+        return new AppliedConfigService(repository, settings, versioned, "SYSTEM-ADMIN");
     }
 
     @Before

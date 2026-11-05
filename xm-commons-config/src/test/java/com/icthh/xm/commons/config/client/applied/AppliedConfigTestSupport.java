@@ -31,7 +31,7 @@ final class AppliedConfigTestSupport {
     /** A service holding configs of two tenants and commons, and a version with two external tenants. */
     static AppliedConfigService seededService() {
         AppliedConfigService service = new AppliedConfigService(mock(CommonConfigRepository.class),
-            new FetchConfigurationSettings("entity", false), true);
+            new FetchConfigurationSettings("entity", false), true, "SYSTEM-ADMIN");
         service.onInitialLoad(Map.of(
             XM_PATH, new Configuration(XM_PATH, "a"),
             OTHER_PATH, new Configuration(OTHER_PATH, "b"),

@@ -45,10 +45,6 @@ public class ConfigPrivateApi {
         this.clock = clock;
     }
 
-    public boolean isMigration() {
-        return migration;
-    }
-
     public String getUrl() {
         return migration ? URL : URL_WITH_TOKEN;
     }
