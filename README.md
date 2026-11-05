@@ -34,27 +34,24 @@ configuration it applied. It is on by default; disable it with `application.appl
 
 - `total` is returned to the management role only. `configurationsHashSum` only with `details=true`, in the shape of
   xm-ms-config `ConfigurationsHashSumDto`, limited to the same scope as `hashes`.
-- A tenant caller needs the privilege `APPLIED_CONFIG.GET` and sees its own tenant and `commons` only. From
-  `externalTenantVersions` it sees only its own entry, and `raw` is omitted when it would carry other tenants.
-  `?tenant=<other>` gives 403.
-- The management role (`application.management.access.role`, default `SYSTEM-ADMIN`) needs no privilege and sees
-  every tenant key, `total`, the full `externalTenantVersions` and `raw`. `?tenant=X` narrows `hashes` to `X` and
-  `commons`.
+- Access is the privilege `APPLIED_CONFIG.GET` (`@PreAuthorize` on `AppliedConfigResource`, checked by
+  `hasPermission`; SUPER-ADMIN passes it by itself). Data scope is a separate rule in the service: a caller without
+  the management role sees its own tenant and `commons` only. From `externalTenantVersions` it sees only its own
+  entry, and `raw` is omitted when it would carry other tenants. `?tenant=<other>` gives 403.
+- The management role (`application.management.access.role`, default `SYSTEM-ADMIN`) sees every tenant key,
+  `total`, the full `externalTenantVersions` and `raw`. `?tenant=X` narrows `hashes` to `X` and `commons`. It still
+  needs the privilege to reach the endpoint.
 - Why REST under `/api`, not an actuator endpoint: `/management/**` is management-role only, and in prod it is on a
   separate port, so tenant-scoped callers could not reach it.
 - The same data is available in code and LEPs through the `AppliedConfigService` bean (no access rules).
 
 ### Security
 
-Access is checked twice: by a URL rule in the commons `SecurityConfiguration`, and by the handler itself (management
-role, or `APPLIED_CONFIG.GET` through `XmPermissionCheckService`). The second check is needed because several
-services (`xm-ms-entity`, `xm-gate`, `xm-ms-ee-function`) build their own `SecurityFilterChain`, where the endpoint
-would otherwise fall under `/api/**` authenticated.
-
-`APPLIED_CONFIG.GET` is registered for role management through `SecurityConfiguration.getAccessPrivileges()`, so it
-is only registered in services whose security configuration extends the commons one (the scanner reads only
-`SecurityConfiguration` beans). In a service with its own chain it is not registered, so only the management role
-gets in: this fail-closed result is intended. Not verified: whether a manual `permissions.yml` entry grants it there.
+`AppliedConfigResource` is a `@RestController` registered by the services' component scan of `com.icthh.xm`, so it
+works in any service whatever its `SecurityFilterChain`; there is no URL rule for it in `SecurityConfiguration`. The
+privilege `APPLIED_CONFIG.GET` is found by the permission scanner from `@PreAuthorize` and is listed with its
+`@PrivilegeDescription`; grant it to roles in `permissions.yml`. A service that does not scan `com.icthh.xm` does not
+get the endpoint. START/STOP of the call are logged by `RestLoggingAspect`, without the result.
 
 ### Commit
 

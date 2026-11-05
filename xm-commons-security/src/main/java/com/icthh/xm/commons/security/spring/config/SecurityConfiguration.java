@@ -36,9 +36,6 @@ import static org.springframework.security.authorization.SingleResultAuthorizati
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfiguration {
 
-    public static final String APPLIED_CONFIG_PATH = "/api/applied-config";
-    public static final String APPLIED_CONFIG_PRIVILEGE = "APPLIED_CONFIG.GET";
-
     private static final String API_DOCS_PRIVILEGE = "API_DOCS.GET";
     private static final String LOGS_GET_PRIVILEGE = "LOGS.GET";
     private static final String LOGS_UPDATE_PRIVILEGE = "LOGS.UPDATE";
@@ -114,8 +111,6 @@ public class SecurityConfiguration {
             .authorizeHttpRequests(auth ->
                 auth.requestMatchers("/api/profile-info").permitAll()
                     .requestMatchers("/api/admin/**").hasAuthority(SUPER_ADMIN)
-                    .requestMatchers(HttpMethod.GET, APPLIED_CONFIG_PATH)
-                        .access(anyOf(hasAuthority(managementRole), access(APPLIED_CONFIG_PRIVILEGE)))
                     .requestMatchers("/api/**").authenticated()
                     .requestMatchers("/management/health").permitAll()
                     .requestMatchers("/management/health/liveness").permitAll()

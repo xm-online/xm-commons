@@ -1,8 +1,6 @@
 package com.icthh.xm.commons.config.client.applied;
 
-import com.icthh.xm.commons.security.XmPermissionCheckService;
-import com.icthh.xm.commons.security.jwt.TokenProvider;
-import com.icthh.xm.commons.security.spring.config.SecurityConfiguration;
+import com.icthh.xm.commons.config.web.rest.AppliedConfigResource;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,6 +8,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -20,28 +28,37 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import tools.jackson.databind.JsonNode;
 
+import java.util.Map;
+
 import static com.icthh.xm.commons.config.client.applied.AppliedConfigTestSupport.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/** The endpoint behind the commons {@link SecurityConfiguration} (URL rule plus handler check). */
+/**
+ * The endpoint behind a plain filter chain ({@code /api/**} authenticated, no rule of its own, like in
+ * xm-ms-entity): access is the {@code APPLIED_CONFIG.GET} permission, data scope is the service's rule.
+ */
 @RunWith(SpringRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = AppliedConfigResourceIntTest.TestConfiguration.class)
-@TestPropertySource(properties = "jhipster.security.content-security-policy=default-src 'self'")
+@TestPropertySource(properties = "xm-config.enabled=true")
 public class AppliedConfigResourceIntTest {
 
-    private static final String URL = SecurityConfiguration.APPLIED_CONFIG_PATH;
+    private static final String URL = "/api/applied-config";
+    private static final String PRIVILEGE = "APPLIED_CONFIG.GET";
 
     @Autowired
     private WebApplicationContext context;
     @Autowired
-    private XmPermissionCheckService permissionCheckService;
+    private PermissionEvaluator permissionEvaluator;
     @Autowired
     private AppliedConfigService service;
 
@@ -49,8 +66,8 @@ public class AppliedConfigResourceIntTest {
 
     @Before
     public void setup() {
-        reset(permissionCheckService);
-        when(permissionCheckService.hasPermission(SecurityConfiguration.APPLIED_CONFIG_PRIVILEGE)).thenReturn(true);
+        reset(permissionEvaluator);
+        when(permissionEvaluator.hasPermission(any(), any(), eq(PRIVILEGE))).thenReturn(true);
         mockMvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
     }
 
@@ -87,16 +104,21 @@ public class AppliedConfigResourceIntTest {
     }
 
     @Test
+    public void tenantParameterIsPassedToThePermissionCheck() throws Exception {
+        mockMvc.perform(get(URL).param("tenant", "XM").with(user("XM", "ROLE_USER"))).andExpect(status().isOk());
+
+        verify(permissionEvaluator).hasPermission(any(), eq(Map.of("tenant", "XM")), eq(PRIVILEGE));
+    }
+
+    @Test
     public void tenantTokenWithoutPrivilegeIsForbidden() throws Exception {
-        when(permissionCheckService.hasPermission(SecurityConfiguration.APPLIED_CONFIG_PRIVILEGE)).thenReturn(false);
+        when(permissionEvaluator.hasPermission(any(), any(), eq(PRIVILEGE))).thenReturn(false);
 
         mockMvc.perform(get(URL).with(user("XM", "ROLE_USER"))).andExpect(status().isForbidden());
     }
 
     @Test
-    public void managementRoleSeesEverythingWithoutPrivilege() throws Exception {
-        when(permissionCheckService.hasPermission(SecurityConfiguration.APPLIED_CONFIG_PRIVILEGE)).thenReturn(false);
-
+    public void managementRoleSeesEverything() throws Exception {
         JsonNode body = body(get(URL).with(user("XM", "SYSTEM-ADMIN")));
 
         assertThat(keys(body.get("hashes"))).containsExactly("OTHER", "XM", "commons");
@@ -128,17 +150,29 @@ public class AppliedConfigResourceIntTest {
 
     @Configuration
     @EnableWebMvc
-    @Import({SecurityConfiguration.class, AppliedConfigConfiguration.AppliedConfigWebConfiguration.class})
+    @EnableWebSecurity
+    @EnableMethodSecurity
+    @Import(AppliedConfigResource.class)
     static class TestConfiguration {
 
         @Bean
-        TokenProvider tokenProvider() {
-            return mock(TokenProvider.class);
+        SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+            return http.csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/**").authenticated())
+                .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                .build();
         }
 
         @Bean
-        XmPermissionCheckService permissionCheckService() {
-            return mock(XmPermissionCheckService.class);
+        PermissionEvaluator permissionEvaluator() {
+            return mock(PermissionEvaluator.class);
+        }
+
+        @Bean
+        static MethodSecurityExpressionHandler methodSecurityExpressionHandler(PermissionEvaluator evaluator) {
+            DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
+            handler.setPermissionEvaluator(evaluator);
+            return handler;
         }
 
         @Bean

@@ -108,16 +108,6 @@ public class SecurityConfigurationManagementIntTest {
         mockMvc.perform(put("/management/logs").with(role("ROLE_USER"))).andExpect(status().isNotFound());
     }
 
-    @Test
-    public void testAppliedConfigRequiresManagementRoleOrPrivilege() throws Exception {
-        mockMvc.perform(get("/api/applied-config")).andExpect(status().isUnauthorized());
-        mockMvc.perform(get("/api/applied-config").with(role("ROLE_USER"))).andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/applied-config").with(role("SYSTEM-ADMIN"))).andExpect(status().isNotFound());
-
-        when(permissionCheckService.hasPermission("APPLIED_CONFIG.GET")).thenReturn(true);
-        mockMvc.perform(get("/api/applied-config").with(role("ROLE_USER"))).andExpect(status().isNotFound());
-    }
-
     static RequestPostProcessor role(String role) {
         return authentication(new UsernamePasswordAuthenticationToken("user", null,
             List.of(new SimpleGrantedAuthority(role))));
