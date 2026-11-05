@@ -4,6 +4,7 @@ import static com.icthh.xm.commons.config.domain.enums.ConfigEventType.UPDATE_CO
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -23,11 +24,20 @@ import com.icthh.xm.commons.config.domain.ConfigQueueEvent;
 import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import java.util.Collection;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
@@ -256,6 +266,71 @@ public class CommonConfigRepositoryUnitTest {
 
         verifyNoInteractions(tenantContextHolder);
         verifyNoInteractions(kafkaTemplate);
+    }
+
+    @Test
+    public void getVersion_callsPrivateV2VersionWithConfigToken() throws Exception {
+        XmMsConfigCommonConfigRepository repository = repositoryWithToken();
+        when(xmConfigProperties.getXmConfigUrl()).thenReturn("http://test");
+        when(restTemplate.exchange(eq("http://test/api/private/v2/version"), eq(HttpMethod.GET), any(HttpEntity.class),
+            eq(String.class))).thenReturn(ResponseEntity.ok("{\"mainVersion\":\"m1\"}"));
+
+        assertThat(repository.getVersion()).contains("{\"mainVersion\":\"m1\"}");
+
+        ArgumentCaptor<HttpEntity> entity = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplate).exchange(eq("http://test/api/private/v2/version"), eq(HttpMethod.GET), entity.capture(),
+            eq(String.class));
+        assertThat(entity.getValue().getHeaders().getFirst(ConfigPrivateApi.TOKEN_HEADER)).isNotBlank();
+    }
+
+    @Test
+    public void getVersion_notFoundAndUnauthorizedGiveEmptyWithInfoAndNoWarn() throws Exception {
+        XmMsConfigCommonConfigRepository repository = repositoryWithToken();
+        when(xmConfigProperties.getXmConfigUrl()).thenReturn("http://test");
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
+            .thenThrow(HttpClientErrorException.create(HttpStatus.NOT_FOUND, "nf", new HttpHeaders(), new byte[0], null))
+            .thenThrow(HttpClientErrorException.create(HttpStatus.UNAUTHORIZED, "ua", new HttpHeaders(), new byte[0], null));
+        ListAppender<ILoggingEvent> logs = attachLogs();
+
+        assertThat(repository.getVersion()).isEmpty();
+        assertThat(repository.getVersion()).isEmpty();
+
+        assertThat(logs.list).extracting(ILoggingEvent::getLevel).containsOnly(Level.INFO);
+        assertThat(logs.list).extracting(ILoggingEvent::getFormattedMessage).containsOnly(
+            "ms-config has no private version API, commit is unknown until the first config event");
+    }
+
+    @Test
+    public void getVersion_otherFailuresPropagate() throws Exception {
+        XmMsConfigCommonConfigRepository repository = repositoryWithToken();
+        when(xmConfigProperties.getXmConfigUrl()).thenReturn("http://test");
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
+            .thenThrow(HttpServerErrorException.create(HttpStatus.INTERNAL_SERVER_ERROR, "e", new HttpHeaders(), new byte[0], null))
+            .thenThrow(new ResourceAccessException("timeout"));
+
+        assertThrows(HttpServerErrorException.class, repository::getVersion);
+        assertThrows(ResourceAccessException.class, repository::getVersion);
+    }
+
+    @Test
+    public void getVersion_migrationModeMakesNoHttpCall() {
+        assertThat(configRepository.getVersion()).isEmpty();
+
+        verifyNoInteractions(restTemplate);
+    }
+
+    private XmMsConfigCommonConfigRepository repositoryWithToken() throws Exception {
+        String key = Base64.getEncoder().encodeToString(
+            KeyPairGenerator.getInstance("Ed25519").generateKeyPair().getPrivate().getEncoded());
+        return new XmMsConfigCommonConfigRepository(restTemplate, xmConfigProperties, kafkaTemplate,
+            tenantContextHolder, new ConfigPrivateApi(false, APP_NAME_TEST, key));
+    }
+
+    private ListAppender<ILoggingEvent> attachLogs() {
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        ((Logger) LoggerFactory.getLogger(XmMsConfigCommonConfigRepository.class)).addAppender(appender);
+        return appender;
     }
 
     private ArgumentMatcher<String> isMessageWith(String path, String content, String hash, String tenantKey) {

@@ -4,6 +4,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,14 +13,17 @@ import static org.mockito.Mockito.when;
 import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.api.FetchConfigurationSettings;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.config.client.applied.AppliedConfigService;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.service.CommonConfigService;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.SneakyThrows;
 import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -29,6 +34,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -171,5 +177,48 @@ public class InitRefreshableConfigurationBeanPostProcessorUnitTest {
         Collections.sort(mutableActual);
         Assert.assertEquals(mutableExpected, mutableActual);
         return true;
+    }
+
+    @Test
+    public void appliedConfigServiceGetsVersionBeforeConfigLoadAndSeedsHashes() {
+        ConfigService service = mock(ConfigService.class);
+        when(configServiceProvider.getIfAvailable()).thenReturn(service);
+        when(service.getConfigMapAntPattern(any(), any())).thenReturn(Map.of("/config/tenants/XM/a.yml",
+            new Configuration("/config/tenants/XM/a.yml", "a")));
+        AppliedConfigService applied = mock(AppliedConfigService.class);
+        processor = processorWith(applied);
+
+        processor.postProcessBeforeInitialization(refreshableConfiguration, "bean");
+        processor.postProcessAfterInitialization(refreshableConfiguration, "bean");
+
+        InOrder order = inOrder(applied, service);
+        order.verify(applied).loadStartupVersion();
+        order.verify(service).getConfigMapAntPattern(any(), any());
+        order.verify(applied).onInitialLoad(any());
+    }
+
+    @Test
+    public void startupWithEmptyVersionKeepsUnknownAndInitCompletes() {
+        when(configServiceProvider.getIfAvailable()).thenReturn(configService);
+        when(commonConfigRepository.getVersion()).thenReturn(Optional.empty());
+        when(commonConfigRepository.getConfigByPatternPaths(any(), any())).thenReturn(Map.of("/config/tenants/XM/a.yml",
+            new Configuration("/config/tenants/XM/a.yml", "a")));
+        AppliedConfigService applied = new AppliedConfigService(commonConfigRepository, fetchConfigurationSettings, true);
+        processor = processorWith(applied);
+
+        processor.postProcessBeforeInitialization(refreshableConfiguration, "bean");
+        processor.postProcessAfterInitialization(refreshableConfiguration, "bean");
+
+        assertEquals("unknown", applied.getVersion().mainVersion());
+        assertEquals(1, applied.getPathHashes().size());
+        verify(refreshableConfiguration).refreshableConfigurationInited();
+    }
+
+    @SuppressWarnings("unchecked")
+    private InitRefreshableConfigurationBeanPostProcessor processorWith(AppliedConfigService applied) {
+        ObjectProvider<AppliedConfigService> provider = mock(ObjectProvider.class);
+        when(provider.getIfAvailable()).thenReturn(applied);
+        return new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, configProperties,
+            fetchConfigurationSettings, provider);
     }
 }

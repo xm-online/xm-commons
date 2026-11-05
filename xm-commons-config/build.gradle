@@ -52,6 +52,8 @@ dependencies {
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.mockito:mockito-core'
     testImplementation "org.springframework:spring-test"
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework:spring-webmvc'
     testImplementation 'org.springframework.cloud:spring-cloud-consul-discovery'
 }
 
