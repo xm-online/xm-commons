@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.permission.domain.Permission;
 import com.icthh.xm.commons.permission.service.PermissionService;
+import com.icthh.xm.commons.permission.service.PermissionLepConditionService;
 import com.icthh.xm.commons.permission.service.XmPermissionEvaluationContextBuilder;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
@@ -34,6 +35,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 public class MultiRoleStrategyUnitTest {
 
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
+    public static final String ROLE_USER = "ROLE_USER";
     @Mock
     Authentication authentication;
 
@@ -51,6 +53,9 @@ public class MultiRoleStrategyUnitTest {
 
     @Spy
     XmPermissionEvaluationContextBuilder permissionEvaluationContextBuilder;
+
+    @Mock
+    PermissionLepConditionService permissionLepConditionService;
 
     @InjectMocks
     MultiRoleStrategy multiRoleStrategy;
@@ -112,6 +117,38 @@ public class MultiRoleStrategyUnitTest {
         }});
         boolean result = multiRoleStrategy.checkPermission(authentication, Map.of("firstName", "Homer"), privilege, true, false);
         assertFalse(result);
+    }
+
+    @Test
+    public void disabledPermissionResourceConditionMustNotGrantAccess() {
+        SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
+
+        Permission enabledPermission = new Permission() {{
+            setPrivilegeKey("privKey");
+            setRoleKey(ROLE_ADMIN);
+            setResourceCondition(spelExpressionParser.parseRaw("#firstName=='Bart'"));
+        }};
+        Permission disabledPermission = new Permission() {{
+            setPrivilegeKey("privKey");
+            setRoleKey(ROLE_USER);
+            setDisabled(true);
+            setResourceCondition(spelExpressionParser.parseRaw("#firstName=='Homer'"));
+        }};
+
+        when(authentication.getAuthorities()).thenAnswer(invocation ->
+            List.of(new SimpleGrantedAuthority(ROLE_ADMIN), new SimpleGrantedAuthority(ROLE_USER)));
+        when(xmAuthenticationContextHolder.getContext()).thenReturn(xmAuthenticationContext);
+        when(xmAuthenticationContext.getRemoteAddress()).thenReturn(Optional.of("127.0.0.1"));
+        when(tenantContextHolder.getContext()).thenReturn(CONTEXT);
+        when(permissionService.getPermissions(eq("XM"))).thenReturn(Map.of(
+            ROLE_ADMIN + ":" + privilege, enabledPermission,
+            ROLE_USER + ":" + privilege, disabledPermission
+        ));
+
+        boolean result = multiRoleStrategy.checkPermission(
+            authentication, Map.of("firstName", "Homer"), privilege, true, false);
+
+        assertFalse("a disabled permission's resource condition must not be able to grant access", result);
     }
 
     private void prepareMock(String spel, Function<SpelExpression, Permission> permissionBuilder) {
