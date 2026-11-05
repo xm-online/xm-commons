@@ -81,6 +81,14 @@ public class PermissionLepConditionServiceUnitTest {
         applyFilter("#lep.filter('company')", Map.of());
     }
 
+    @Test(expected = AccessDeniedException.class)
+    public void shouldDenyWhenLepFilterReturnsBlank() {
+        when(permissionLepService.filter("company", PRIVILEGE, ROLE, Map.of(), Map.of("subject", subject)))
+            .thenReturn("   ");
+
+        applyFilter("#lep.filter('company')", Map.of());
+    }
+
     @Test
     public void shouldCallLepCheckOnlyWhenEvaluated() {
         Map<String, Object> resources = Map.of("returnObject", Map.of("typeKey", "PERSON"));

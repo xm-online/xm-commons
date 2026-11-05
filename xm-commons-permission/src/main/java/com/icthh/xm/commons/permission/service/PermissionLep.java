@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.permission.service;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.util.Map;
@@ -18,6 +19,9 @@ public class PermissionLep {
     }
 
     public boolean check(String lepSegment, Map<String, Object> params) {
+        if (StringUtils.isBlank(lepSegment)) {
+            return false;
+        }
         return permissionLepService.check(lepSegment, privilege, roleKey, params, contextParams);
     }
 
@@ -26,8 +30,11 @@ public class PermissionLep {
     }
 
     public String filter(String lepSegment, Map<String, Object> params) {
+        if (StringUtils.isBlank(lepSegment)) {
+            throw new AccessDeniedException("Access is denied");
+        }
         String filter = permissionLepService.filter(lepSegment, privilege, roleKey, params, contextParams);
-        if (filter == null) {
+        if (StringUtils.isBlank(filter)) {
             throw new AccessDeniedException("Access is denied");
         }
         return filter;
