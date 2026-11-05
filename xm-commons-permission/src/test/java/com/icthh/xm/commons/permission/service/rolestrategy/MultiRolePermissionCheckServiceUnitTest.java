@@ -43,6 +43,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.expression.Expression;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -195,6 +196,114 @@ public class MultiRolePermissionCheckServiceUnitTest {
 
         assertFalse(condition.isEmpty());
         assertEquals("(subject.userKey  =  'user key') OR (subject.userKey  =  'user key 2')", condition);
+    }
+
+    @Test
+    public void shouldCreateEmptyConditionWhenNoConditionalPermissions() {
+        doReturn(true).when(multiRolePermissionCheckService).hasPermission(any(), any());
+        doReturn(singletonList("ROLE_B2B_EXPERT")).when(multiRolePermissionCheckService).getRoleKeys(any());
+        doReturn(singletonList(mock(Permission.class)))
+            .when(multiRolePermissionCheckService).getPermissions(any(), any());
+        doReturn(Map.of()).when(multiRolePermissionCheckService).getSubjects(any());
+
+        String condition = multiRolePermissionCheckService.createCondition(
+            new TestingAuthenticationToken(new Object(), new Object()), new Object(), spelToJpqlTranslator
+        );
+
+        assertNotNull(condition);
+        assertTrue(condition.isEmpty());
+    }
+
+    @Test
+    public void shouldSkipFailingConditionAndKeepSucceeding() {
+        doReturn(true).when(multiRolePermissionCheckService).hasPermission(any(), any());
+        doReturn(asList("ROLE_B2B_EXPERT", "ROLE_B2C_EXPERT")).when(multiRolePermissionCheckService).getRoleKeys(any());
+
+        Permission failingPermission = mock(Permission.class);
+        Permission okPermission = mock(Permission.class);
+        Expression failingExpression = mock(Expression.class);
+        Expression okExpression = mock(Expression.class);
+
+        doReturn("#lep.filter('fails')").when(failingExpression).getExpressionString();
+        doReturn("subject.userKey == #subject.userKey").when(okExpression).getExpressionString();
+        doReturn(failingExpression).when(failingPermission).getResourceCondition();
+        doReturn(okExpression).when(okPermission).getResourceCondition();
+        doReturn("ROLE_B2B_EXPERT").when(failingPermission).getRoleKey();
+        doReturn("ROLE_B2C_EXPERT").when(okPermission).getRoleKey();
+        doReturn(asList(failingPermission, okPermission))
+            .when(multiRolePermissionCheckService).getPermissions(any(), any());
+
+        Subject subjectB2B = new Subject("", "user key", "ROLE_B2B_EXPERT");
+        Subject subjectB2C = new Subject("", "user key 2", "ROLE_B2C_EXPERT");
+        Map<String, Subject> subjects = new HashMap<>();
+        subjects.put("ROLE_B2B_EXPERT", subjectB2B);
+        subjects.put("ROLE_B2C_EXPERT", subjectB2C);
+        doReturn(subjects).when(multiRolePermissionCheckService).getSubjects(any());
+
+        when(permissionLepService.filter("fails", "DO_ALL_PRIVILEGE", "ROLE_B2B_EXPERT", Map.of(),
+            Map.of("subject", subjectB2B))).thenThrow(new AccessDeniedException("boom"));
+
+        String condition = multiRolePermissionCheckService.createCondition(
+            new TestingAuthenticationToken(new Object(), new Object()), "DO_ALL_PRIVILEGE", spelToJpqlTranslator
+        );
+
+        assertEquals("(subject.userKey  =  'user key 2')", condition);
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    public void shouldDenyWhenAllConditionsFail() {
+        doReturn(true).when(multiRolePermissionCheckService).hasPermission(any(), any());
+        doReturn(singletonList("ROLE_B2B_EXPERT")).when(multiRolePermissionCheckService).getRoleKeys(any());
+
+        Permission permission = mock(Permission.class);
+        Expression expression = mock(Expression.class);
+
+        doReturn("#lep.filter('fails')").when(expression).getExpressionString();
+        doReturn(expression).when(permission).getResourceCondition();
+        doReturn("ROLE_B2B_EXPERT").when(permission).getRoleKey();
+        doReturn(singletonList(permission)).when(multiRolePermissionCheckService).getPermissions(any(), any());
+
+        Subject subject = new Subject("", "user key", "ROLE_B2B_EXPERT");
+        doReturn(singletonMap("ROLE_B2B_EXPERT", subject)).when(multiRolePermissionCheckService).getSubjects(any());
+
+        when(permissionLepService.filter("fails", "DO_ALL_PRIVILEGE", "ROLE_B2B_EXPERT", Map.of(),
+            Map.of("subject", subject))).thenThrow(new AccessDeniedException("boom"));
+
+        multiRolePermissionCheckService.createCondition(
+            new TestingAuthenticationToken(new Object(), new Object()), "DO_ALL_PRIVILEGE", spelToJpqlTranslator
+        );
+    }
+
+    @Test
+    public void shouldExcludeDisabledPermissionFromCondition() {
+        doReturn(true).when(multiRolePermissionCheckService).hasPermission(any(), any());
+        doReturn(asList("ROLE_B2B_EXPERT", "ROLE_B2C_EXPERT")).when(multiRolePermissionCheckService).getRoleKeys(any());
+
+        Permission disabledPermission = mock(Permission.class);
+        Permission enabledPermission = mock(Permission.class);
+        Expression disabledExpression = mock(Expression.class);
+        Expression enabledExpression = mock(Expression.class);
+
+        doReturn("subject.userKey == #subject.userKey").when(enabledExpression).getExpressionString();
+        doReturn(disabledExpression).when(disabledPermission).getResourceCondition();
+        doReturn(enabledExpression).when(enabledPermission).getResourceCondition();
+        doReturn(true).when(disabledPermission).isDisabled();
+        doReturn(false).when(enabledPermission).isDisabled();
+        doReturn("ROLE_B2C_EXPERT").when(enabledPermission).getRoleKey();
+        doReturn(asList(disabledPermission, enabledPermission))
+            .when(multiRolePermissionCheckService).getPermissions(any(), any());
+
+        Map<String, Subject> subjects = new HashMap<>();
+        subjects.put("ROLE_B2B_EXPERT", new Subject("", "user key", "ROLE_B2B_EXPERT"));
+        subjects.put("ROLE_B2C_EXPERT", new Subject("", "user key 2", "ROLE_B2C_EXPERT"));
+        doReturn(subjects).when(multiRolePermissionCheckService).getSubjects(any());
+
+        String condition = multiRolePermissionCheckService.createCondition(
+            new TestingAuthenticationToken(new Object(), new Object()), new Object(), spelToJpqlTranslator
+        );
+
+        assertEquals("(subject.userKey  =  'user key 2')", condition);
+        verifyZeroInteractions(permissionLepService);
     }
 
     @Test
