@@ -69,13 +69,13 @@ public class PermissionCheckServiceUnitTest {
     public void shouldMultiRoleCreateCondition() {
         when(permissionCheckService.isMultiRoleEnabled(any())).thenReturn(true);
 
-        when(multiRoleStrategy.createCondition(any(), any(), any())).thenReturn("Test");
+        when(multiRoleStrategy.createCondition(any(), any(), any(), any())).thenReturn("Test");
 
         String condition = permissionCheckService.createCondition(any(), any(), any());
 
         assertNotNull(condition);
         assertFalse(condition.isEmpty());
-        verify(multiRoleStrategy, times(1)).createCondition(any(), any(), any());
+        verify(multiRoleStrategy, times(1)).createCondition(any(), any(), any(), any());
     }
 
     @Test
@@ -107,11 +107,11 @@ public class PermissionCheckServiceUnitTest {
 
     @Test
     public void shouldSingleCreateCondition() {
-        when(singleRoleStrategy.createCondition(any(), any(), any())).thenReturn("Test");
+        when(singleRoleStrategy.createCondition(any(), any(), any(), any())).thenReturn("Test");
         String condition = permissionCheckService.createCondition(any(), any(), any());
 
         assertNotNull(condition);
         assertFalse(condition.isEmpty());
-        verify(singleRoleStrategy, times(1)).createCondition(any(), any(), any());
+        verify(singleRoleStrategy, times(1)).createCondition(any(), any(), any(), any());
     }
 }
