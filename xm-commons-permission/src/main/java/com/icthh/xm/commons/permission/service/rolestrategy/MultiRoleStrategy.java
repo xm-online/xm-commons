@@ -8,6 +8,7 @@ import com.icthh.xm.commons.permission.domain.Permission;
 import com.icthh.xm.commons.permission.domain.ReactionStrategy;
 import com.icthh.xm.commons.permission.service.AuthenticationSecurityExpressionMethods;
 import com.icthh.xm.commons.permission.service.PermissionEvaluationContextBuilder;
+import com.icthh.xm.commons.permission.service.PermissionLepConditionService;
 import com.icthh.xm.commons.permission.service.PermissionService;
 import com.icthh.xm.commons.permission.service.RoleService;
 import com.icthh.xm.commons.permission.service.translator.SpelTranslator;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -65,6 +67,7 @@ public class MultiRoleStrategy implements RoleStrategy {
     private final ResourceFactory resourceFactory;
     private final RoleService roleService;
     private final PermissionEvaluationContextBuilder permissionEvaluationContextBuilder;
+    private final PermissionLepConditionService permissionLepConditionService;
 
     /**
      * Check permission for role and privilege key only.
@@ -139,10 +142,12 @@ public class MultiRoleStrategy implements RoleStrategy {
      * @param authentication the authentication
      * @param privilegeKey the privilege key
      * @param translator the spel translator
+     * @param contextParams the caller context passed to the permission filter LEP
      * @return condition if permitted, or null
      */
     public String createCondition(
-        Authentication authentication, Object privilegeKey, SpelTranslator translator
+        Authentication authentication, Object privilegeKey, SpelTranslator translator,
+        Map<String, Object> contextParams
     ) {
         if (!hasPermission(authentication, privilegeKey)) {
             throw new AccessDeniedException("Access is denied");
@@ -156,20 +161,33 @@ public class MultiRoleStrategy implements RoleStrategy {
 
         Map<String, Subject> subjects = getSubjects(roleKeys);
 
-        Collection<String> permissionsRoles = getPermissions(roleKeys, privilegeKey).stream()
-            .filter(permission -> nonNull(permission.getResourceCondition()))
-            .map(permission -> translator
-                .translate(permission.getResourceCondition().getExpressionString(), subjects.get(permission.getRoleKey())))
-            .map(condition -> format("(%s)", condition))
+        List<Permission> conditionalPermissions = getPermissions(roleKeys, privilegeKey).stream()
+            .filter(permission -> nonNull(permission.getResourceCondition()) && !permission.isDisabled())
             .collect(toList());
 
-        if (permissionsRoles.size() > 1) {
-            return String.join(" OR ", permissionsRoles);
+        List<String> permissionsRoles = new ArrayList<>();
+        boolean anyFailed = false;
+        for (Permission permission : conditionalPermissions) {
+            try {
+                Subject subject = subjects.get(permission.getRoleKey());
+                String condition = permissionLepConditionService.applyFilter(
+                    permission.getResourceCondition().getExpressionString(), privilegeKey, permission.getRoleKey(),
+                    subject, contextParams);
+                permissionsRoles.add(format("(%s)", translator.translate(condition, subject)));
+            } catch (Exception e) {
+                log.error("Failed to build resource condition for role {}: {}",
+                    permission.getRoleKey(), e.getMessage(), e);
+                anyFailed = true;
+            }
         }
 
-        return permissionsRoles.stream()
-            .findAny()
-            .orElse(EMPTY);
+        if (!permissionsRoles.isEmpty()) {
+            return String.join(" OR ", permissionsRoles);
+        }
+        if (anyFailed) {
+            throw new AccessDeniedException("Access is denied");
+        }
+        return EMPTY;
     }
 
     @SuppressWarnings("unchecked")
@@ -214,7 +232,7 @@ public class MultiRoleStrategy implements RoleStrategy {
 
         boolean validCondition = true;
 
-        if (!isConditionValid(permissions, context, Permission::getEnvCondition)) {
+        if (!isConditionValid(permissions, context, Permission::getEnvCondition, privilegeKey, resources)) {
             log(logPermission,
                 Level.ERROR,
                 "access denied: privilege={}, role={}, userKey={} due to env condition: {} with context [{}]",
@@ -231,7 +249,8 @@ public class MultiRoleStrategy implements RoleStrategy {
             validCondition = false;
         }
 
-        if (checkCondition && !isConditionValid(permissions, context, Permission::getResourceCondition)) {
+        if (checkCondition
+            && !isConditionValid(permissions, context, Permission::getResourceCondition, privilegeKey, resources)) {
             log(logPermission,
                 Level.ERROR,
                 "access denied: privilege={}, role={}, userKey={} due to resource condition: {} with context [{}] ",
@@ -306,14 +325,17 @@ public class MultiRoleStrategy implements RoleStrategy {
     }
 
     private boolean isConditionValid(Collection<Permission> permissions, EvaluationContext context,
-                                     Function<Permission, Expression> func) {
+                                     Function<Permission, Expression> func, Object privilegeKey,
+                                     Map<String, Object> resources) {
         return permissions.stream()
+            .filter(permission -> !permission.isDisabled())
             .anyMatch(permission ->
                 {
                     Expression expression = func.apply(permission);
                     if (isNull(expression) || isEmpty(expression.getExpressionString())) {
                         return true;
                     }
+                    permissionLepConditionService.bind(context, privilegeKey, permission.getRoleKey(), resources);
                     try {
                         return expression.getValue(context, Boolean.class);
                     } catch (Exception e) {

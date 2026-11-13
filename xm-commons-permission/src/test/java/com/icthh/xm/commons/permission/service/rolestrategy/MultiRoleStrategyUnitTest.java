@@ -2,10 +2,15 @@ package com.icthh.xm.commons.permission.service.rolestrategy;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.permission.domain.Permission;
+import com.icthh.xm.commons.permission.service.PermissionLepConditionService;
+import com.icthh.xm.commons.permission.service.PermissionLepService;
 import com.icthh.xm.commons.permission.service.PermissionService;
 import com.icthh.xm.commons.permission.service.XmPermissionEvaluationContextBuilder;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
@@ -19,9 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -34,6 +39,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 public class MultiRoleStrategyUnitTest {
 
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
+    public static final String ROLE_USER = "ROLE_USER";
     @Mock
     Authentication authentication;
 
@@ -49,13 +55,21 @@ public class MultiRoleStrategyUnitTest {
     @Mock
     PermissionService permissionService;
 
+    @Mock
+    PermissionLepService permissionLepService;
+
     @Spy
     XmPermissionEvaluationContextBuilder permissionEvaluationContextBuilder;
 
-    @InjectMocks
     MultiRoleStrategy multiRoleStrategy;
 
     final String privilege = "DO_ALL_PRIVILEGE";
+
+    @Before
+    public void before() {
+        multiRoleStrategy = new MultiRoleStrategy(xmAuthenticationContextHolder, tenantContextHolder, permissionService,
+            null, null, permissionEvaluationContextBuilder, new PermissionLepConditionService(permissionLepService, permissionEvaluationContextBuilder));
+    }
 
     TenantContext CONTEXT = new TenantContext() {
         @Override
@@ -101,6 +115,48 @@ public class MultiRoleStrategyUnitTest {
         }});
         boolean result = multiRoleStrategy.checkPermission(authentication, Map.of("firstName", "Homer"), privilege, true, false);
         assertTrue(result);
+        verifyNoInteractions(permissionLepService);
+    }
+
+    @Test
+    public void resourceConditionWithLepCheckMustBePassed() {
+
+        prepareMock("#firstName=='Homer' && #lep.check('family', {name: #firstName})", spelExpression -> new Permission() {{
+            setPrivilegeKey("privKey");
+            setRoleKey(ROLE_ADMIN);
+            setResourceCondition(spelExpression);
+        }});
+        when(permissionLepService.check(eq("family"), eq(privilege), eq(ROLE_ADMIN), eq(Map.of("name", "Homer")),
+            argThat(contextParams -> "Homer".equals(contextParams.get("firstName"))))).thenReturn(true);
+        boolean result = multiRoleStrategy.checkPermission(authentication, Map.of("firstName", "Homer"), privilege, true, false);
+        assertTrue(result);
+    }
+
+    @Test
+    public void resourceConditionWithLepCheckIsNotCalledWhenShortCircuited() {
+
+        prepareMock("#firstName=='Bart' && #lep.check('family')", spelExpression -> new Permission() {{
+            setPrivilegeKey("privKey");
+            setRoleKey(ROLE_ADMIN);
+            setResourceCondition(spelExpression);
+        }});
+        boolean result = multiRoleStrategy.checkPermission(authentication, Map.of("firstName", "Homer"), privilege, true, false);
+        assertFalse(result);
+        verifyNoInteractions(permissionLepService);
+    }
+
+    @Test
+    public void resourceConditionWithLepCheckMustBeDenied() {
+
+        prepareMock("#lep.check('family')", spelExpression -> new Permission() {{
+            setPrivilegeKey("privKey");
+            setRoleKey(ROLE_ADMIN);
+            setResourceCondition(spelExpression);
+        }});
+        when(permissionLepService.check(eq("family"), eq(privilege), eq(ROLE_ADMIN), eq(Map.of()), any()))
+            .thenReturn(false);
+        boolean result = multiRoleStrategy.checkPermission(authentication, Map.of("firstName", "Homer"), privilege, true, false);
+        assertFalse(result);
     }
 
     @Test
@@ -112,6 +168,38 @@ public class MultiRoleStrategyUnitTest {
         }});
         boolean result = multiRoleStrategy.checkPermission(authentication, Map.of("firstName", "Homer"), privilege, true, false);
         assertFalse(result);
+    }
+
+    @Test
+    public void disabledPermissionResourceConditionMustNotGrantAccess() {
+        SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
+
+        Permission enabledPermission = new Permission() {{
+            setPrivilegeKey("privKey");
+            setRoleKey(ROLE_ADMIN);
+            setResourceCondition(spelExpressionParser.parseRaw("#firstName=='Bart'"));
+        }};
+        Permission disabledPermission = new Permission() {{
+            setPrivilegeKey("privKey");
+            setRoleKey(ROLE_USER);
+            setDisabled(true);
+            setResourceCondition(spelExpressionParser.parseRaw("#firstName=='Homer'"));
+        }};
+
+        when(authentication.getAuthorities()).thenAnswer(invocation ->
+            List.of(new SimpleGrantedAuthority(ROLE_ADMIN), new SimpleGrantedAuthority(ROLE_USER)));
+        when(xmAuthenticationContextHolder.getContext()).thenReturn(xmAuthenticationContext);
+        when(xmAuthenticationContext.getRemoteAddress()).thenReturn(Optional.of("127.0.0.1"));
+        when(tenantContextHolder.getContext()).thenReturn(CONTEXT);
+        when(permissionService.getPermissions(eq("XM"))).thenReturn(Map.of(
+            ROLE_ADMIN + ":" + privilege, enabledPermission,
+            ROLE_USER + ":" + privilege, disabledPermission
+        ));
+
+        boolean result = multiRoleStrategy.checkPermission(
+            authentication, Map.of("firstName", "Homer"), privilege, true, false);
+
+        assertFalse("a disabled permission's resource condition must not be able to grant access", result);
     }
 
     private void prepareMock(String spel, Function<SpelExpression, Permission> permissionBuilder) {
