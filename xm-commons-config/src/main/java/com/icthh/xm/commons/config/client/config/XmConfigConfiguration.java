@@ -3,10 +3,10 @@ package com.icthh.xm.commons.config.client.config;
 import static com.icthh.xm.commons.config.client.config.XmRestTemplateConfiguration.XM_CONFIG_REST_TEMPLATE;
 
 import com.icthh.xm.commons.config.client.api.ConfigService;
+import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.config.client.listener.ApplicationReadyEventListener;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.repository.kafka.ConfigTopicConsumer;
-import com.icthh.xm.commons.config.client.repository.message.ConfigurationUpdateMessage;
 import com.icthh.xm.commons.config.client.service.CommonConfigService;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,6 +18,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
 
 @Configuration
 @Import({
@@ -48,8 +50,9 @@ public class XmConfigConfiguration {
     }
 
     @Bean
-    public ConfigTopicConsumer configTopicConsumer(ConfigService configService) {
-        return new ConfigTopicConsumer(configService);
+    public ConfigTopicConsumer configTopicConsumer(ConfigService configService,
+                                                   List<RefreshableConfiguration> refreshableConfigurations) {
+        return new ConfigTopicConsumer(configService, refreshableConfigurations);
     }
 
     @Bean
