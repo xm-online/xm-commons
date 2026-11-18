@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
+import com.icthh.xm.commons.logging.config.LoggingConfig.LogConfiguration.LogInput;
 import com.icthh.xm.commons.logging.util.LogObjectPrinter;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.JoinPoint;
@@ -104,6 +105,21 @@ public class LogObjectPrinterUnitTest {
         when(ms.getParameterNames()).thenReturn(new String[]{"param1", "password", "param3"});
         assertEquals("param1=val1,password=*****,param3=val3", LogObjectPrinter.printInputParams(joinPoint));
         assertEquals("param3=val3,password=*****", LogObjectPrinter.printInputParams(joinPoint, "param3", "password"));
+    }
+
+    @Test
+    public void testPrintInputParamsWithPrimitiveArrays() {
+
+        when(ms.getParameterNames()).thenReturn(new String[]{"bytes", "chars", "ints", "strings"});
+        when(joinPoint.getArgs()).thenReturn(new Object[]{
+            new byte[]{1, 2, 3}, new char[]{'a'}, new int[0], new String[]{"s1", "s2"}});
+
+        assertEquals("bytes=[<byte[]> length = 3],chars=[<char[]> length = 1],ints=[<int[]> length = 0],"
+                     + "strings=[s1, s2]",
+                     LogObjectPrinter.printInputParams(joinPoint));
+        assertEquals("bytes=[<byte[]> length = 3],chars=[<char[]> length = 1],ints=[<int[]> length = 0],"
+                     + "strings=[s1, s2]",
+                     LogObjectPrinter.printInputParams(joinPoint, new LogInput()));
     }
 
     @Test
