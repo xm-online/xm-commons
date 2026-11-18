@@ -1,0 +1,30 @@
+apply plugin: 'io.spring.dependency-management'
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
+    }
+}
+
+dependencies {
+    api project(':xm-commons-lep')
+    implementation project(':xm-commons-exceptions')
+
+    implementation 'org.springframework.vault:spring-vault-core'
+    implementation 'tools.jackson.core:jackson-databind'
+    implementation "com.github.ben-manes.caffeine:caffeine:${versions.caffeine}"
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.aspectj:aspectjweaver'
+}
+
+test {
+    useJUnitPlatform()
+}
