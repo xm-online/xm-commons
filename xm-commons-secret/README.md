@@ -72,21 +72,22 @@ lepContext.secrets.delete("crm-public/key")
 ```
 
 `get` is refused (`error.secret.read.denied`) for aliases matching the merged blacklist: the service property
-`application.secrets.lep-read-blacklist` plus the tenant's `tenant-config.yml`, which can only add patterns:
+`application.secrets.lep-read-blacklist` plus the tenant's `/config/tenants/{tenantName}/secrets.yml` (one file per tenant, shared by all services), which can
+only add patterns:
 
 ```yaml
-secrets:
-  lepReadBlacklist:
-    - integrations/**
+lepReadBlacklist:
+  - integrations/**
 ```
 
-A malformed `secrets.lepReadBlacklist` makes every LEP `get` of that tenant fail (`error.secret.blacklist.invalid`).
+A malformed `secrets.yml` makes every LEP `get` of that tenant fail (`error.secret.blacklist.invalid`) until the file
+is fixed or emptied.
 
 ## Errors
 
 | Error | Meaning |
 |---|---|
-| `error.secret.not.found` (404, `SecretNotFoundException`) | Secret or field missing |
+| `error.secret.not.found` (404, `BusinessNotFoundException`) | Secret or field missing |
 | `SecretStoreException` | Vault unreachable or failed; the cause is kept, no value |
 | `error.secret.alias.invalid`, `error.secret.data.invalid`, `error.secret.reference.invalid` | Bad input |
 | `error.secret.read.denied` | LEP read of a blacklisted alias |
@@ -105,4 +106,5 @@ Per service, for example `path "xm/data/+/<prefix>/*"` with the capabilities the
 ## Trust model
 
 LEP Groovy is not sandboxed: a LEP can switch the tenant. Tenant scoping and the blacklist protect against mistakes,
-not against a hostile LEP author.
+not against a hostile LEP author. A LEP can also bypass the read
+blacklist through `lepContext.secrets.secretService`, because Groovy ignores `private`.

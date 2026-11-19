@@ -5,7 +5,6 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.core.read.ListAppender;
-import com.icthh.xm.commons.config.client.service.TenantConfigService;
 import com.icthh.xm.commons.logging.aop.ServiceLoggingAspect;
 import com.icthh.xm.commons.logging.config.LoggingConfigServiceStub;
 import com.icthh.xm.commons.logging.util.BasePackageDetector;
@@ -57,7 +56,8 @@ class SecretLoggingGuardUnitTest {
         AspectJProxyFactory factory = new AspectJProxyFactory(target);
         factory.addAspect(new ServiceLoggingAspect(new LoggingConfigServiceStub(), mock(BasePackageDetector.class)));
         SecretService service = factory.getProxy();
-        LepSecrets lep = new LepSecrets(service, properties, Optional.<TenantConfigService>empty(), "lep:g:k");
+        LepSecrets lep = new LepSecrets(service, properties.getLepReadBlacklist(),
+            new TenantSecretsConfiguration(tenantHolder("xm")), "lep:g:k");
 
         List<Throwable> thrown = new ArrayList<>();
         service.put("ok", Map.of("f", VALUE));

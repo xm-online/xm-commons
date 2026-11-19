@@ -1,6 +1,7 @@
 package com.icthh.xm.commons.secret;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
+import com.icthh.xm.commons.exceptions.BusinessNotFoundException;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -99,12 +100,12 @@ class SecretServiceUnitTest {
     @Test
     void missingSecretAndFieldAreNotFound() {
         when(store.read("XM/a")).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> service.get("a")).isInstanceOf(SecretNotFoundException.class)
-            .hasFieldOrPropertyWithValue("code", SecretNotFoundException.CODE)
+        assertThatThrownBy(() -> service.get("a")).isInstanceOf(BusinessNotFoundException.class)
+            .hasFieldOrPropertyWithValue("code", SecretService.ERROR_NOT_FOUND)
             .hasMessage("Secret not found: a");
 
         when(store.read("XM/b")).thenReturn(Optional.of(Map.of("k", "v")));
-        assertThatThrownBy(() -> service.get("b", "nope")).isInstanceOf(SecretNotFoundException.class);
+        assertThatThrownBy(() -> service.get("b", "nope")).isInstanceOf(BusinessNotFoundException.class);
         assertThat(service.get("b", "k")).isEqualTo("v");
     }
 
@@ -151,13 +152,13 @@ class SecretServiceUnitTest {
         assertThat(service.get("a")).containsEntry("k", "new");
         service.delete("a");
         verify(store).delete("XM/a");
-        assertThatThrownBy(() -> service.get("a")).isInstanceOf(SecretNotFoundException.class);
+        assertThatThrownBy(() -> service.get("a")).isInstanceOf(BusinessNotFoundException.class);
     }
 
     @Test
     void missingSecretIsNotCached() {
         when(store.read("XM/a")).thenReturn(Optional.empty(), Optional.of(Map.of("k", "v")));
-        assertThatThrownBy(() -> service.get("a")).isInstanceOf(SecretNotFoundException.class);
+        assertThatThrownBy(() -> service.get("a")).isInstanceOf(BusinessNotFoundException.class);
         assertThat(service.get("a")).containsEntry("k", "v");
     }
 

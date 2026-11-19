@@ -3,7 +3,6 @@ package com.icthh.xm.commons.secret;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.icthh.xm.commons.config.client.service.TenantConfigService;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.lep.TargetProceedingLep;
 import com.icthh.xm.commons.lep.api.LepBaseKey;
@@ -32,10 +31,9 @@ class LepSecretsUnitTest {
 
     @Mock
     private SecretStore store;
-    @Mock
-    private TenantConfigService tenantConfigService;
 
     private SecretProperties properties;
+    private TenantSecretsConfiguration tenantSecrets;
     private SecretService service;
     private final ListAppender<ILoggingEvent> appender = new ListAppender<>();
     private final Logger serviceLogger = (Logger) LoggerFactory.getLogger(SecretService.class);
@@ -44,6 +42,7 @@ class LepSecretsUnitTest {
     void setUp() {
         properties = new SecretProperties();
         properties.setLepReadBlacklist(List.of("integrations/**"));
+        tenantSecrets = new TenantSecretsConfiguration(tenantHolder("xm"));
         service = new SecretService(tenantHolder("xm"), properties, provider(store));
         appender.start();
         serviceLogger.addAppender(appender);
@@ -54,13 +53,16 @@ class LepSecretsUnitTest {
         serviceLogger.detachAppender(appender);
     }
 
+    private void refresh(String yaml) {
+        tenantSecrets.onRefresh("/config/tenants/XM/secrets.yml", yaml);
+    }
+
     private LepSecrets lepSecrets() {
-        return new LepSecrets(service, properties, Optional.of(tenantConfigService), "lep:g:k");
+        return new LepSecrets(service, properties.getLepReadBlacklist(), tenantSecrets, "lep:g:k");
     }
 
     @Test
     void servicePatternBlocksReadButNotPutAndDelete() {
-        when(tenantConfigService.getConfig()).thenReturn(Map.of());
         LepSecrets secrets = lepSecrets();
 
         assertThatThrownBy(() -> secrets.get("integrations/x/y")).isInstanceOf(BusinessException.class)
@@ -73,8 +75,7 @@ class LepSecretsUnitTest {
 
     @Test
     void tenantPatternsAreAddedToServiceOnes() {
-        when(tenantConfigService.getConfig())
-            .thenReturn(Map.of("secrets", Map.of("lepReadBlacklist", List.of("crm/*"))));
+        refresh("lepReadBlacklist: [crm/*]");
         when(store.read("XM/other")).thenReturn(Optional.of(Map.of("k", "v")));
         LepSecrets secrets = lepSecrets();
 
@@ -90,23 +91,29 @@ class LepSecretsUnitTest {
     }
 
     @Test
-    void tenantWithoutSecretsSectionKeepsServicePatterns() {
-        when(tenantConfigService.getConfig()).thenReturn(Map.of("other", "x"));
+    void tenantWithoutFileKeepsServicePatterns() {
         when(store.read("XM/a")).thenReturn(Optional.of(Map.of("k", "v")));
         assertThat(lepSecrets().get("a")).containsEntry("k", "v");
     }
 
     @Test
-    void worksWithoutTenantConfigService() {
-        when(store.read("XM/a")).thenReturn(Optional.of(Map.of("k", "v")));
-        LepSecrets secrets = new LepSecrets(service, properties, Optional.empty(), "lep");
-        assertThat(secrets.get("a")).containsEntry("k", "v");
+    void scalarItemsAreStrings() {
+        refresh("lepReadBlacklist: [123, true]");
+        assertThatThrownBy(() -> lepSecrets().get("123")).isInstanceOf(BusinessException.class)
+            .hasFieldOrPropertyWithValue("code", SecretService.ERROR_READ_DENIED);
+    }
+
+    @Test
+    void blankFileRemovesTenantBlacklistAndRecovers() {
+        when(store.read("XM/crm/a")).thenReturn(Optional.of(Map.of("k", "v")));
+        refresh("lepReadBlacklist: {a: b}");
+        refresh("");
+        assertThat(lepSecrets().get("crm/a")).containsEntry("k", "v");
     }
 
     @Test
     void malformedTenantBlacklistFailsClosed() {
-        when(tenantConfigService.getConfig())
-            .thenReturn(Map.of("secrets", Map.of("lepReadBlacklist", Map.of("a", "b"))));
+        refresh("lepReadBlacklist: {a: b}");
         assertThatThrownBy(() -> lepSecrets().get("a")).isInstanceOf(BusinessException.class)
             .hasFieldOrPropertyWithValue("code", LepSecrets.ERROR_BLACKLIST_INVALID);
     }
@@ -118,10 +125,9 @@ class LepSecretsUnitTest {
         when(key.getBaseKey()).thenReturn("Base");
         TargetProceedingLep lep = mock(TargetProceedingLep.class);
         when(lep.getLepBaseKey()).thenReturn(key);
-        when(tenantConfigService.getConfig()).thenReturn(Map.of());
         when(store.read("XM/a")).thenReturn(Optional.of(Map.of("k", "v")));
 
-        SecretLepContext context = new SecretLepContext(service, properties, Optional.of(tenantConfigService));
+        SecretLepContext context = new SecretLepContext(service, properties, tenantSecrets);
         context.additionalContextValue(null, null, lep).orElseThrow().get("a");
 
         assertThat(appender.list).anySatisfy(event -> assertThat(event.getFormattedMessage())
@@ -132,7 +138,6 @@ class LepSecretsUnitTest {
 
     @Test
     void deniedIsAudited() {
-        when(tenantConfigService.getConfig()).thenReturn(Map.of());
         assertThatThrownBy(() -> lepSecrets().get("integrations/a")).isInstanceOf(BusinessException.class);
         assertThat(appender.list).anySatisfy(event -> assertThat(event.getFormattedMessage())
             .contains("alias=integrations/a").contains("result=DENIED").contains("caller=lep:g:k"));

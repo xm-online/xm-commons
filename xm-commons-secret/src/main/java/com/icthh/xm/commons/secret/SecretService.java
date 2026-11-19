@@ -3,6 +3,7 @@ package com.icthh.xm.commons.secret;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.icthh.xm.commons.exceptions.BusinessException;
+import com.icthh.xm.commons.exceptions.BusinessNotFoundException;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
@@ -29,6 +30,7 @@ public class SecretService {
     static final String ERROR_DATA_INVALID = "error.secret.data.invalid";
     static final String ERROR_REFERENCE_INVALID = "error.secret.reference.invalid";
     static final String ERROR_FIELD_REQUIRED = "error.secret.field.required";
+    static final String ERROR_NOT_FOUND = "error.secret.not.found";
     static final String ERROR_READ_DENIED = "error.secret.read.denied";
 
     private static final int MAX_ALIAS_LENGTH = 256;
@@ -147,7 +149,7 @@ public class SecretService {
             T result = action.apply(store, tenant + "/" + alias);
             audit(operation, tenant, alias, caller, "OK");
             return result;
-        } catch (SecretNotFoundException e) {
+        } catch (BusinessNotFoundException e) {
             audit(operation, tenant, alias, caller, "NOT_FOUND");
             throw e;
         } catch (RuntimeException e) {
@@ -159,7 +161,7 @@ public class SecretService {
     private Map<String, String> read(SecretStore store, String key, String alias) {
         Map<String, String> data = cache.get(key, k -> store.read(k).orElse(null));
         if (data == null) {
-            throw new SecretNotFoundException("Secret not found: " + alias);
+            throw new BusinessNotFoundException(ERROR_NOT_FOUND, "Secret not found: " + alias);
         }
         return Collections.unmodifiableMap(data);
     }
@@ -167,7 +169,7 @@ public class SecretService {
     private static String field(String alias, String field, Map<String, String> data) {
         String value = data.get(field);
         if (value == null) {
-            throw new SecretNotFoundException("Secret field not found: " + alias + "#" + field);
+            throw new BusinessNotFoundException(ERROR_NOT_FOUND, "Secret field not found: " + alias + "#" + field);
         }
         return value;
     }
@@ -192,6 +194,7 @@ public class SecretService {
         return TenantContextUtils.getRequiredTenantKeyValue(tenantContextHolder).toUpperCase();
     }
 
+    /** Walks the stack lazily, returns the first class outside this package: the service that called SecretService. */
     private static String javaCaller() {
         return WALKER.walk(frames -> frames
             .map(StackWalker.StackFrame::getDeclaringClass)

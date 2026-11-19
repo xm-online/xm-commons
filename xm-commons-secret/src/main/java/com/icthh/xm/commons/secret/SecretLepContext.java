@@ -1,6 +1,5 @@
 package com.icthh.xm.commons.secret;
 
-import com.icthh.xm.commons.config.client.service.TenantConfigService;
 import com.icthh.xm.commons.lep.TargetProceedingLep;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.commons.lep.api.LepAdditionalContext;
@@ -11,16 +10,17 @@ import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
-/** Adds {@code secrets} to lepContext. TenantConfigService exists only when xm-config is enabled. */
+/** Adds {@code secrets} to lepContext. */
 @Component
 @RequiredArgsConstructor
 public class SecretLepContext implements LepAdditionalContext<LepSecrets> {
 
     private final SecretService secretService;
     private final SecretProperties properties;
-    private final Optional<TenantConfigService> tenantConfigService;
+    private final TenantSecretsConfiguration tenantSecrets;
 
     @Override
     @IgnoreLogginAspect
@@ -31,7 +31,7 @@ public class SecretLepContext implements LepAdditionalContext<LepSecrets> {
     @Override
     @IgnoreLogginAspect
     public LepSecrets additionalContextValue() {
-        return new LepSecrets(secretService, properties, tenantConfigService, "lep");
+        return new LepSecrets(secretService, List.copyOf(properties.getLepReadBlacklist()), tenantSecrets, "lep");
     }
 
     @Override
@@ -40,7 +40,7 @@ public class SecretLepContext implements LepAdditionalContext<LepSecrets> {
                                                        TargetProceedingLep lepMethod) {
         LepBaseKey key = lepMethod.getLepBaseKey();
         String caller = "lep:" + key.getGroup() + ":" + key.getBaseKey();
-        return Optional.of(new LepSecrets(secretService, properties, tenantConfigService, caller));
+        return Optional.of(new LepSecrets(secretService, List.copyOf(properties.getLepReadBlacklist()), tenantSecrets, caller));
     }
 
     @Override
