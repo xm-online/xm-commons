@@ -80,7 +80,8 @@ lepReadBlacklist:
   - integrations/**
 ```
 
-A malformed `secrets.yml` makes every LEP `get` of that tenant fail (`error.secret.blacklist.invalid`) until the file
+A malformed `secrets.yml` (wrong types, an empty item, or any key other than `lepReadBlacklist`, so a typo or the old
+nested `secrets:` layout too) makes every LEP `get` of that tenant fail (`error.secret.blacklist.invalid`) until the file
 is fixed or emptied.
 
 ## Errors

@@ -10,6 +10,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
@@ -116,6 +118,28 @@ class LepSecretsUnitTest {
         refresh("lepReadBlacklist: {a: b}");
         assertThatThrownBy(() -> lepSecrets().get("a")).isInstanceOf(BusinessException.class)
             .hasFieldOrPropertyWithValue("code", LepSecrets.ERROR_BLACKLIST_INVALID);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "lepReadBlackList: [crm/*]",                 // typo in the key
+        "secrets:\n  lepReadBlacklist: [crm/*]",     // the old tenant-config.yml layout
+        "lepReadBlacklist:\n  - crm/*\n  -\n"        // empty item
+    })
+    void wrongLayoutFailsClosed(String yaml) {
+        refresh(yaml);
+        assertThatThrownBy(() -> lepSecrets().get("crm/a")).isInstanceOf(BusinessException.class)
+            .hasFieldOrPropertyWithValue("code", LepSecrets.ERROR_BLACKLIST_INVALID);
+    }
+
+    @Test
+    void refreshReplacesTenantPatterns() {
+        when(store.read("XM/crm/a")).thenReturn(Optional.of(Map.of("k", "v")));
+        refresh("lepReadBlacklist: [crm/*]");
+        refresh("lepReadBlacklist: [erp/*]");
+        assertThat(lepSecrets().get("crm/a")).containsEntry("k", "v");
+        assertThatThrownBy(() -> lepSecrets().get("erp/a")).isInstanceOf(BusinessException.class)
+            .hasFieldOrPropertyWithValue("code", SecretService.ERROR_READ_DENIED);
     }
 
     @Test

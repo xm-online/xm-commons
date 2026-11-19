@@ -10,11 +10,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -28,10 +28,14 @@ public class TenantSecretsConfiguration implements RefreshableConfiguration {
     private static final String PATH = "/config/tenants/{tenantName}/secrets.yml";
     private static final String TENANT_NAME = "tenantName";
 
-    private final ObjectMapper mapper = YamlMapperUtils.yamlDefaultMapper();
+    private static final Blacklist INVALID = new Blacklist(List.of(), true);
+
+    /** Unknown keys fail: a typo or a wrong layout must not leave the tenant without its blacklist. */
+    private final ObjectMapper mapper =
+        YamlMapperUtils.yamlDeserializationMapper(Map.of(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true));
     private final AntPathMatcher matcher = new AntPathMatcher();
-    private final Map<String, List<String>> blacklists = new ConcurrentHashMap<>();
-    private final Set<String> invalid = ConcurrentHashMap.newKeySet();
+    /** One entry per tenant, replaced in one step, so a reader never sees a half-applied refresh. */
+    private final Map<String, Blacklist> blacklists = new ConcurrentHashMap<>();
     private final TenantContextHolder tenantContextHolder;
 
     TenantSecretsConfiguration(TenantContextHolder tenantContextHolder) {
@@ -41,34 +45,44 @@ public class TenantSecretsConfiguration implements RefreshableConfiguration {
     /** Read blacklist patterns of the current tenant; throws when the tenant's file is malformed. */
     List<String> lepReadBlacklist() {
         String tenant = TenantContextUtils.getRequiredTenantKeyValue(tenantContextHolder).toUpperCase();
-        if (invalid.contains(tenant)) {
-            throw new BusinessException(LepSecrets.ERROR_BLACKLIST_INVALID,
-                "secrets.yml lepReadBlacklist must be a list of strings");
+        Blacklist blacklist = blacklists.get(tenant);
+        if (blacklist == null) {
+            return List.of();
         }
-        return blacklists.getOrDefault(tenant, List.of());
+        if (blacklist.invalid()) {
+            throw new BusinessException(LepSecrets.ERROR_BLACKLIST_INVALID,
+                "secrets.yml must hold only lepReadBlacklist, a list of strings");
+        }
+        return blacklist.patterns();
     }
 
     @Override
     public void onRefresh(String updatedKey, String config) {
         String tenant = matcher.extractUriTemplateVariables(PATH, updatedKey).get(TENANT_NAME).toUpperCase();
-        blacklists.remove(tenant);
-        invalid.remove(tenant);
         if (StringUtils.isBlank(config)) {
-            return;
+            blacklists.remove(tenant);
+        } else {
+            blacklists.put(tenant, parse(tenant, config));
         }
+    }
+
+    private Blacklist parse(String tenant, String config) {
         try {
             List<String> patterns = mapper.readValue(config, Settings.class).getLepReadBlacklist();
-            blacklists.put(tenant, patterns == null ? List.of() : List.copyOf(patterns));
+            return new Blacklist(patterns == null ? List.of() : List.copyOf(patterns), false);
         } catch (Exception e) {
-            invalid.add(tenant);
             log.error("Tenant {} secrets configuration is invalid, LEP secret reads are refused: {}",
                 tenant, e.getMessage());
+            return INVALID;
         }
     }
 
     @Override
     public boolean isListeningConfiguration(String updatedKey) {
         return matcher.match(PATH, updatedKey);
+    }
+
+    private record Blacklist(List<String> patterns, boolean invalid) {
     }
 
     @Data

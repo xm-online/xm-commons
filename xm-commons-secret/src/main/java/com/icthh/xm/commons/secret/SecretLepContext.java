@@ -6,8 +6,6 @@ import com.icthh.xm.commons.lep.api.LepAdditionalContext;
 import com.icthh.xm.commons.lep.api.LepAdditionalContextField;
 import com.icthh.xm.commons.lep.api.LepBaseKey;
 import com.icthh.xm.commons.lep.api.LepEngine;
-import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -15,32 +13,36 @@ import java.util.Optional;
 
 /** Adds {@code secrets} to lepContext. */
 @Component
-@RequiredArgsConstructor
 public class SecretLepContext implements LepAdditionalContext<LepSecrets> {
 
     private final SecretService secretService;
-    private final SecretProperties properties;
+    /** Service patterns do not change after start: copied once, not on every LEP call. */
+    private final List<String> servicePatterns;
     private final TenantSecretsConfiguration tenantSecrets;
 
+    SecretLepContext(SecretService secretService, SecretProperties properties,
+                     TenantSecretsConfiguration tenantSecrets) {
+        this.secretService = secretService;
+        this.servicePatterns = List.copyOf(properties.getLepReadBlacklist());
+        this.tenantSecrets = tenantSecrets;
+    }
+
     @Override
-    @IgnoreLogginAspect
     public String additionalContextKey() {
         return SecretsField.FIELD_NAME;
     }
 
     @Override
-    @IgnoreLogginAspect
     public LepSecrets additionalContextValue() {
-        return new LepSecrets(secretService, List.copyOf(properties.getLepReadBlacklist()), tenantSecrets, "lep");
+        return new LepSecrets(secretService, servicePatterns, tenantSecrets, "lep");
     }
 
     @Override
-    @IgnoreLogginAspect
     public Optional<LepSecrets> additionalContextValue(BaseLepContext lepContext, LepEngine lepEngine,
                                                        TargetProceedingLep lepMethod) {
         LepBaseKey key = lepMethod.getLepBaseKey();
         String caller = "lep:" + key.getGroup() + ":" + key.getBaseKey();
-        return Optional.of(new LepSecrets(secretService, List.copyOf(properties.getLepReadBlacklist()), tenantSecrets, caller));
+        return Optional.of(new LepSecrets(secretService, servicePatterns, tenantSecrets, caller));
     }
 
     @Override

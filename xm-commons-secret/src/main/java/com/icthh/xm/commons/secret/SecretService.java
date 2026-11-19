@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Component
-@IgnoreLogginAspect
+@IgnoreLogginAspect // no effect on a @Component today; keeps values out of the log if this ever becomes a @Service
 public class SecretService {
 
     private static final String REFERENCE_PREFIX = "secret:";
