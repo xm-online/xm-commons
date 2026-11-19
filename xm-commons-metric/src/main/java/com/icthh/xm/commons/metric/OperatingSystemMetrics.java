@@ -46,8 +46,8 @@ public class OperatingSystemMetrics implements MeterBinder {
                 .register(registry);
         }
 
-        if (!registeredMetrics.contains("freeSwapSpaceSize")) {
-            Gauge.builder("freeSwapSpaceSize", () -> invokeLong("ProcessCpuTime"))
+        if (!registeredMetrics.contains("processCpuTime")) {
+            Gauge.builder("processCpuTime", () -> invokeLong("ProcessCpuTime"))
                 .register(registry);
         }
 
