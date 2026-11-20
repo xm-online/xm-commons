@@ -424,8 +424,12 @@ public final class LogObjectPrinter {
         if (value == null) {
             return null;
         }
-        if (value.getClass().isArray()) {
+        if (value instanceof Object[]) {
             return Arrays.toString((Object[]) value);
+        }
+        if (value.getClass().isArray()) {
+            // primitive arrays (byte[], char[], int[], ...) can not be cast to Object[]: print length only
+            return printCollectionAware(value);
         }
         return value.toString();
     }
