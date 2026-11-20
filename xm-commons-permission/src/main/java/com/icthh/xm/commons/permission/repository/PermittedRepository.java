@@ -26,6 +26,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -44,6 +45,8 @@ public class PermittedRepository {
     public static final String ORDER_BY_SQL = " order by ";
     private static final String GRAPH_DELIMETER = ".";
     private static final String ROOT_ALIAS = "returnObject";
+    private static final String ENTITY_CLASS = "entityClass";
+    private static final String QUERY = "query";
     // anything except letters, digits, '.' and '_' can turn a sort property into a JPQL expression
     private static final Pattern UNSAFE_SORT_PROPERTY = Pattern.compile("[^\\p{L}\\p{N}._]",
         Pattern.UNICODE_CHARACTER_CLASS);
@@ -79,7 +82,7 @@ public class PermittedRepository {
         String selectSql = format(SELECT_ALL_SQL, entityClass.getSimpleName());
         String countSql = format(COUNT_ALL_SQL, entityClass.getSimpleName());
 
-        String orChainedPermittedCondition = createPermissionCondition(privilegeKey);
+        String orChainedPermittedCondition = createPermissionCondition(privilegeKey, contextParams(entityClass, null));
 
         if (isNotEmpty(orChainedPermittedCondition)) {
             selectSql += WHERE_SQL + orChainedPermittedCondition;
@@ -93,7 +96,7 @@ public class PermittedRepository {
 
     public <T> long count(Class<T> entityClass, String privilegeKey) {
         String countSql = format(COUNT_ALL_SQL, entityClass.getSimpleName());
-        String orChainedPermittedCondition = createPermissionCondition(privilegeKey);
+        String orChainedPermittedCondition = createPermissionCondition(privilegeKey, contextParams(entityClass, null));
         if (isNotEmpty(orChainedPermittedCondition)) {
             countSql += WHERE_SQL + orChainedPermittedCondition;
         }
@@ -158,7 +161,8 @@ public class PermittedRepository {
         selectSql += WHERE_SQL + inBrackets(whereCondition);
         countSql += WHERE_SQL + inBrackets(whereCondition);
 
-        String orChainedPermittedCondition = createPermissionCondition(privilegeKey);
+        String orChainedPermittedCondition = createPermissionCondition(privilegeKey,
+            contextParams(entityClass, whereCondition));
 
         if (isNotEmpty(orChainedPermittedCondition)) {
             selectSql += AND_SQL + inBrackets(orChainedPermittedCondition);
@@ -187,7 +191,8 @@ public class PermittedRepository {
                                        String privilegeKey) {
         String countSql = format(COUNT_ALL_SQL, entityClass.getSimpleName());
         countSql += WHERE_SQL + inBrackets(whereCondition);
-        String orChainedPermittedCondition = createPermissionCondition(privilegeKey);
+        String orChainedPermittedCondition = createPermissionCondition(privilegeKey,
+            contextParams(entityClass, whereCondition));
 
         if (isNotEmpty(orChainedPermittedCondition)) {
             countSql += AND_SQL + inBrackets(orChainedPermittedCondition);
@@ -215,12 +220,20 @@ public class PermittedRepository {
             : readPage(countSql, query, pageable);
     }
 
-    protected String createPermissionCondition(String privilegeKey) {
+    protected String createPermissionCondition(String privilegeKey, Map<String, Object> contextParams) {
         return permissionCheckService.createCondition(
             SecurityContextHolder.getContext().getAuthentication(),
             privilegeKey,
-            spelToJpqlTranslator
+            spelToJpqlTranslator,
+            contextParams
         );
+    }
+
+    private static Map<String, Object> contextParams(Class<?> entityClass, String query) {
+        Map<String, Object> contextParams = new HashMap<>();
+        contextParams.put(ENTITY_CLASS, entityClass);
+        contextParams.put(QUERY, query);
+        return contextParams;
     }
 
     // both conditions may contain a top-level OR (e.g. permissions of several roles are OR-chained),

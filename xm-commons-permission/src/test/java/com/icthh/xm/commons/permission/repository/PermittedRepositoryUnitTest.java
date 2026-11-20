@@ -66,7 +66,8 @@ public class PermittedRepositoryUnitTest {
             permissionCheckService.createCondition(
                 eq(SecurityContextHolder.getContext().getAuthentication()),
                 eq("TEST"),
-                any(SpelToJpqlTranslator.class)
+                any(SpelToJpqlTranslator.class),
+                eq(Map.of("entityClass", TestEntity.class, "query", "a = :b"))
             )
         ).thenReturn("(f = g)");
         when(selectQuery.getResultList()).thenReturn(asList(new TestEntity(1), new TestEntity(2)));
@@ -99,7 +100,8 @@ public class PermittedRepositoryUnitTest {
             permissionCheckService.createCondition(
                 eq(SecurityContextHolder.getContext().getAuthentication()),
                 eq("TEST"),
-                any(SpelToJpqlTranslator.class)
+                any(SpelToJpqlTranslator.class),
+                eq(Map.of("entityClass", TestEntity.class, "query", "a = :b"))
             )
         ).thenReturn("(f = g)");
         when(selectQuery.getResultList()).thenReturn(asList(new TestEntity(1), new TestEntity(2)));
@@ -129,7 +131,7 @@ public class PermittedRepositoryUnitTest {
     public void findByConditionKeepsPermissionForEveryOrBranch() {
         when(em.createQuery(anyString(), eq(TestEntity.class))).thenReturn(selectQuery);
         when(em.createQuery(anyString(), eq(Long.class))).thenReturn(countQuery);
-        doReturn("(a = b) OR (v = g)").when(permissionCheckService).createCondition(any(), any(), any());
+        doReturn("(a = b) OR (v = g)").when(permissionCheckService).createCondition(any(), any(), any(), any());
 
         repository.findByCondition("x = :x or y = :y", Map.of("x", 1, "y", 2), TestEntity.class, "TEST");
         repository.countByCondition("x = :x or y = :y", Map.of("x", 1, "y", 2), TestEntity.class, "TEST");
@@ -145,7 +147,7 @@ public class PermittedRepositoryUnitTest {
         when(em.createQuery(anyString(), any())).thenReturn(selectQuery);
         when(em.createQuery(anyString(), any())).thenReturn(countQuery);
 
-        doReturn("(a = b) OR (v = g)").when(permissionCheckService).createCondition(any(), any(), any());
+        doReturn("(a = b) OR (v = g)").when(permissionCheckService).createCondition(any(), any(), any(), any());
 
         repository.findAll(null, PermittedRepositoryUnitTest.class, "key");
 
@@ -157,7 +159,7 @@ public class PermittedRepositoryUnitTest {
     public void findAllSortedByMultipleProperties() {
         when(em.createQuery(anyString(), eq(Long.class))).thenReturn(countQuery);
         when(em.createQuery(anyString(), eq(TestEntity.class))).thenReturn(selectQuery);
-        when(permissionCheckService.createCondition(any(), any(), any())).thenReturn("(f = g)");
+        when(permissionCheckService.createCondition(any(), any(), any(), any())).thenReturn("(f = g)");
 
         repository.findAll(PageRequest.of(0, 10, Sort.by(Sort.Order.asc("name"), Sort.Order.desc("id"))),
             TestEntity.class, "TEST");
@@ -169,7 +171,7 @@ public class PermittedRepositoryUnitTest {
     @Test
     public void findAllRejectsExpressionInSort() {
         when(em.createQuery(anyString(), eq(Long.class))).thenReturn(countQuery);
-        when(permissionCheckService.createCondition(any(), any(), any())).thenReturn("(f = g)");
+        when(permissionCheckService.createCondition(any(), any(), any(), any())).thenReturn("(f = g)");
 
         assertThatThrownBy(() -> repository.findAll(
             PageRequest.of(0, 10, Sort.by("(CASE WHEN (select count(u) from TestEntity u) > 0 THEN id END)")),
@@ -183,7 +185,7 @@ public class PermittedRepositoryUnitTest {
     public void findAllSortedIgnoringCaseWithNullHandling() {
         when(em.createQuery(anyString(), eq(Long.class))).thenReturn(countQuery);
         when(em.createQuery(anyString(), eq(TestEntity.class))).thenReturn(selectQuery);
-        when(permissionCheckService.createCondition(any(), any(), any())).thenReturn("(f = g)");
+        when(permissionCheckService.createCondition(any(), any(), any(), any())).thenReturn("(f = g)");
 
         repository.findAll(PageRequest.of(0, 10, Sort.by(
                 Sort.Order.asc("name").ignoreCase().nullsLast(),
