@@ -5,6 +5,7 @@ import static com.icthh.xm.commons.config.defaults.XmDefaultsEnvironmentPostProc
 
 import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.api.FetchConfigurationSettings;
+import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.config.client.listener.ApplicationReadyEventListener;
 import com.icthh.xm.commons.config.client.repository.CommonConfigRepository;
 import com.icthh.xm.commons.config.client.repository.ConfigPrivateApi;
@@ -25,6 +26,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
 
 @Configuration
 @Import({
@@ -86,9 +89,13 @@ public class XmConfigConfiguration {
     }
 
     @Bean
-    public InitRefreshableConfigurationBeanPostProcessor refreshableConfigurationPostProcessor(
-            ObjectProvider<ConfigService> configServiceProvider, XmConfigProperties xmConfigProperties, FetchConfigurationSettings fetchConfigurationSettings) {
-        return new InitRefreshableConfigurationBeanPostProcessor(configServiceProvider, xmConfigProperties, fetchConfigurationSettings);
+    public InitRefreshableConfigurationProcessor refreshableConfigurationPostProcessor(
+            ObjectProvider<ConfigService> configServiceProvider, XmConfigProperties xmConfigProperties,
+            FetchConfigurationSettings fetchConfigurationSettings,
+            List<RefreshableConfiguration> refreshableConfigurations,
+            ObjectProvider<LepContextRunner> lepContextRunnerProvider) {
+        return new InitRefreshableConfigurationProcessor(configServiceProvider, xmConfigProperties,
+            fetchConfigurationSettings, refreshableConfigurations, lepContextRunnerProvider);
     }
 
     @Bean
