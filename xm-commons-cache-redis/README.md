@@ -14,9 +14,8 @@ module's own auto-configuration, gated by
 
 ```yaml
 application:
-  tenant-memory-cache:
-    enabled: true
   tenant-cache:
+    enabled: true        # also enables the dynamic cache manager and cache.yml loading
     redis:
       enabled: true
       host: localhost
@@ -24,6 +23,24 @@ application:
       database: 0
       password: ""       # optional
 ```
+
+### Migrating from `tenant-memory-cache.enabled`
+
+> **Temporary compatibility.** `application.tenant-memory-cache.enabled` is a legacy flag. It still works
+> (alone or together with `application.tenant-cache.enabled`) so existing services are not broken, but it will be
+> retired. `application.tenant-cache.enabled` is now enough on its own.
+
+| Your config today | Behaviour now | What to do |
+|---|---|---|
+| `tenant-memory-cache.enabled: true` only | unchanged (`lepCacheManager`) | nothing is required; for the `tenantCacheManager` bean add `tenant-cache.enabled: true` |
+| both flags `true` | unchanged | remove `tenant-memory-cache.enabled`, keep `tenant-cache.enabled` |
+| `tenant-cache.enabled: true` only | works, `cache.yml` is loaded and both managers are real | nothing |
+| no flags | fallback managers that only log warnings | nothing |
+
+Migration steps: upgrade `xm-commons`, delete `application.tenant-memory-cache.enabled`, check that the service still
+starts and caches from `cache.yml` are created.
+
+<!-- TODO(cache-flags-migration): remove this section after the legacy flag is retired. -->
 
 When activated, this module:
 1. Creates a `LettuceConnectionFactory` from the properties above (skipped if

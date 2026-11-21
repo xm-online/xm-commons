@@ -14,15 +14,28 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+/**
+ * Core cache infrastructure: strategy cache managers, {@code XmCacheConfigurer} (reads {@code cache.yml}) and
+ * {@code lepCacheManager}.
+ * <p>
+ * Active when {@code application.tenant-cache.enabled=true} (recommended, the only flag a service needs)
+ * or when the legacy {@code application.tenant-memory-cache.enabled=true} is set.
+ * <p>
+ * MIGRATION (cache-flags-migration): {@code application.tenant-memory-cache.enabled} is kept only for backward
+ * compatibility and is going to be retired. Services should switch to {@code application.tenant-cache.enabled}.
+ * Both flags together, or the legacy one alone, behave exactly as before.
+ * <p>
+ * TODO(cache-flags-migration): drop the legacy flag support once no service uses it.
+ */
 @Configuration
-@ConditionalOnProperty(value = "application.tenant-memory-cache.enabled", havingValue = "true")
+@Conditional(AnyCacheEnabledCondition.class)
 public class XmTenantLepCacheConfig {
 
     public final static Integer CACHE_DEFAULTS = -1;

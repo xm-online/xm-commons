@@ -1,44 +1,27 @@
 package com.icthh.xm.commons.cache.config;
 
-import com.github.benmanes.caffeine.cache.Ticker;
 import com.icthh.xm.commons.cache.TenantCacheManager;
-import com.icthh.xm.commons.cache.service.DynamicCaffeineCacheManager;
 import com.icthh.xm.commons.cache.service.DynamicTenantCacheManager;
-import com.icthh.xm.commons.cache.service.StrategyCacheManager;
 import com.icthh.xm.commons.cache.service.TenantAwareCacheManager;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import java.util.List;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Exposes the {@code tenantCacheManager} bean.
+ * <p>
+ * Infrastructure beans (ticker, strategy cache managers, {@code XmCacheConfigurer}) come from
+ * {@link XmTenantLepCacheConfig}, which is also activated by {@code application.tenant-cache.enabled=true},
+ * so {@code application.tenant-memory-cache.enabled} is not required together with it.
+ * <p>
+ * MIGRATION (cache-flags-migration): services that still set both flags keep working unchanged. They can drop
+ * {@code application.tenant-memory-cache.enabled} and leave only {@code application.tenant-cache.enabled}.
+ */
 @Configuration
 @ConditionalOnProperty(value = "application.tenant-cache.enabled", havingValue = "true")
 public class XmTenantCacheConfig {
-
-    @Bean
-    @ConditionalOnMissingBean(Ticker.class)
-    public Ticker ticker() {
-        return Ticker.systemTicker();
-    }
-
-    /**
-     * Specialized cache to be used in Java code
-     */
-    @Bean
-    @ConditionalOnMissingBean(DynamicCaffeineCacheManager.class)
-    public DynamicCaffeineCacheManager dynamicCaffeineCacheManager(Ticker ticker, MeterRegistry meterRegistry) {
-        return new DynamicCaffeineCacheManager(ticker, meterRegistry);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean(DynamicTenantCacheManager.class)
-    public DynamicTenantCacheManager dynamicTenantCacheManager(List<StrategyCacheManager> strategies) {
-        return new DynamicTenantCacheManager(strategies);
-    }
 
     @Bean("tenantCacheManager")
     public TenantCacheManager tenantAwareCacheManager(DynamicTenantCacheManager dynamicTenantCacheManager,
