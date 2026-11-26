@@ -43,7 +43,7 @@ import static com.icthh.xm.commons.logging.util.LogObjectPrinter.logWithLevel;
 public class RestLoggingAspect {
 
     private static final String XM_BASE_PACKAGE = "com.icthh.xm";
-    private static final String LOG_START_PATTERN = "START {} : {} --> {}, input: {}";
+    private static final String LOG_START_PATTERN = "START {} : {} --> {}, input: {}, active = {}";
     private static final String LOG_STOP_PATTERN = "STOP  {} : {} --> {}, result: {}, time = {} ms";
     private static final String LOG_ERROR_PATTERN = "STOP  {} : {} --> {}, error: {}, time = {} ms";
 
@@ -195,7 +195,8 @@ public class RestLoggingAspect {
                      method,
                      LogObjectPrinter.joinUrlPaths(controllerPath, methodPath),
                      LogObjectPrinter.getCallMethod(joinPoint),
-                     LogObjectPrinter.printInputParams(joinPoint));
+                     LogObjectPrinter.printInputParams(joinPoint),
+                     MdcUtils.getActiveCount());
             return;
         }
 
@@ -209,7 +210,8 @@ public class RestLoggingAspect {
                      method,
                      LogObjectPrinter.joinUrlPaths(controllerPath, methodPath),
                      LogObjectPrinter.getCallMethod(joinPoint),
-                     LogObjectPrinter.printInputParams(joinPoint, config.getLogInput()));
+                     LogObjectPrinter.printInputParams(joinPoint, config.getLogInput()),
+                     MdcUtils.getActiveCount());
     }
 
     private void logStop(final JoinPoint joinPoint, String method, final String[] controllerPath,
@@ -235,7 +237,7 @@ public class RestLoggingAspect {
                      LogObjectPrinter.joinUrlPaths(controllerPath, methodPath),
                      LogObjectPrinter.getCallMethod(joinPoint),
                      WebLogObjectPrinter.printRestResult(joinPoint, result),
-                     MdcUtils.getExecTimeMs());
+                     MdcUtils.putExecTimeMs());
             return;
         }
 
@@ -255,7 +257,7 @@ public class RestLoggingAspect {
                          LogObjectPrinter.joinUrlPaths(controllerPath, methodPath),
                          LogObjectPrinter.getCallMethod(joinPoint),
                          WebLogObjectPrinter.printRestResult(joinPoint, result, printResult),
-                         MdcUtils.getExecTimeMs());
+                         MdcUtils.putExecTimeMs());
     }
 
     private void logError(final JoinPoint joinPoint, String method, final String[] controllerPath,
@@ -272,7 +274,7 @@ public class RestLoggingAspect {
                   LogObjectPrinter.joinUrlPaths(controllerPath, methodPath),
                   LogObjectPrinter.getCallMethod(joinPoint),
                   LogObjectPrinter.printExceptionWithStackInfo(e),
-                  MdcUtils.getExecTimeMs());
+                  MdcUtils.putExecTimeMs());
     }
 
     private String renderMethod(RequestMethod[] method) {

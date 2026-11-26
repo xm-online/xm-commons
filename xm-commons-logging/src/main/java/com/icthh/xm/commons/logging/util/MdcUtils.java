@@ -18,6 +18,7 @@ public final class MdcUtils {
     private static final String EXEC_TIME_MDC_KEY = "execTime";
     private static final String TENANT_MDC_KEY = "tenant";
     private static final String CLIENT_ID_MDC_KEY = "clientId";
+    private static final String ACTIVE_MDC_KEY = "activeRequest";
 
     private MdcUtils() {
         throw new IllegalAccessError("Access not allowed");
@@ -87,6 +88,16 @@ public final class MdcUtils {
         if (clientId != null) {
             MDC.put(CLIENT_ID_MDC_KEY, clientId);
         }
+    }
+
+    public static String getActiveCount() {
+        String active = MDC.get(ACTIVE_MDC_KEY);
+        return StringUtils.isNotBlank(active) ? active : "-1";
+    }
+
+    // Active counter is maintained by XmLoggingInterceptor (xm-commons-ms-web)
+    public static void setActiveCount(int activeCount) {
+        MdcUtils.put(ACTIVE_MDC_KEY, String.valueOf(activeCount));
     }
 
     public static void clear() {

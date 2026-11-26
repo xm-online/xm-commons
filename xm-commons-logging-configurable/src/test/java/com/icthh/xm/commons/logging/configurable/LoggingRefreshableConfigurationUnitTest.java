@@ -144,7 +144,7 @@ public class LoggingRefreshableConfigurationUnitTest {
 
         //api
         testResource.testMethodFirst("firstArgValue", "secondArgValue");
-        event = TestAppender.searchByMessage("START {} : {} --> {}, input: {}");
+        event = TestAppender.searchByMessage("START {} : {} --> {}, input: {}, active = {}");
         assertEquals(Level.WARN, event.getLevel());
 
         event = TestAppender.searchByMessage("STOP  {} : {} --> {}, result: {}, time = {} ms");
@@ -190,15 +190,15 @@ public class LoggingRefreshableConfigurationUnitTest {
 
         //api include
         testResource.testMethodFirst("firstArgValue", "secondArgValue");
-        event = TestAppender.searchByMessage("START {} : {} --> {}, input: {}");
-        assertEquals("START GET : /api/first --> TestResource:testMethodFirst, input: firstArg=firstArgValue",
+        event = TestAppender.searchByMessage("START {} : {} --> {}, input: {}, active = {}");
+        assertEquals("START GET : /api/first --> TestResource:testMethodFirst, input: firstArg=firstArgValue, active = -1",
                      event.getFormattedMessage());
 
         //api exclude
         TestAppender.clearEvents();
         testResource.testMethodSecond("firstArgValue", "secondArgValue");
-        event = TestAppender.searchByMessage("START {} : {} --> {}, input: {}");
-        assertEquals("START GET : /api/second --> TestResource:testMethodSecond, input: secondArg=secondArgValue",
+        event = TestAppender.searchByMessage("START {} : {} --> {}, input: {}, active = {}");
+        assertEquals("START GET : /api/second --> TestResource:testMethodSecond, input: secondArg=secondArgValue, active = -1",
                      event.getFormattedMessage());
     }
 
@@ -243,7 +243,7 @@ public class LoggingRefreshableConfigurationUnitTest {
 
         //api
         testResource.testMethodFirst("firstArgValue", "secondArgValue");
-        event = TestAppender.searchByMessage("START {} : {} --> {}, input: {}");
+        event = TestAppender.searchByMessage("START {} : {} --> {}, input: {}, active = {}");
         assertEquals(event.getLevel(), Level.ERROR);
 
     }
