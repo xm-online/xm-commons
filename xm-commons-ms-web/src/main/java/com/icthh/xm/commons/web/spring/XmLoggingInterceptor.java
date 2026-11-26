@@ -7,16 +7,19 @@ import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantKey;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.AsyncHandlerInterceptor;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The {@link XmLoggingInterceptor} class.
  */
-public class XmLoggingInterceptor implements HandlerInterceptor {
+public class XmLoggingInterceptor implements AsyncHandlerInterceptor {
 
     public static final String IMPERSONATE_INBOUND_LOGIN = "impersonateInboundLogin";
+
+    private static final AtomicInteger ACTIVE_REQUESTS = new AtomicInteger();
 
     private final XmAuthenticationContextHolder authenticationContextHolder;
     private final TenantContextHolder tenantContextHolder;
@@ -45,7 +48,19 @@ public class XmLoggingInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         MdcUtils.putRid(MdcUtils.generateRid() + ":" + getLogin() + ":" + getTenantName());
+        MdcUtils.setActiveCount(ACTIVE_REQUESTS.incrementAndGet());
         return true;
+    }
+
+    /**
+     * Called instead of {@link #afterCompletion} when async handling starts;
+     * {@link #preHandle} runs again on the async dispatch, so decrement here to keep the counter balanced.
+     */
+    @Override
+    public void afterConcurrentHandlingStarted(HttpServletRequest request,
+                                               HttpServletResponse response,
+                                               Object handler) {
+        ACTIVE_REQUESTS.decrementAndGet();
     }
 
     /**
@@ -56,6 +71,7 @@ public class XmLoggingInterceptor implements HandlerInterceptor {
                                 HttpServletResponse response,
                                 Object handler,
                                 Exception ex) {
+        ACTIVE_REQUESTS.decrementAndGet();
         MdcUtils.clear();
     }
 
