@@ -6,6 +6,7 @@ import com.icthh.xm.commons.config.client.api.ConfigService;
 import com.icthh.xm.commons.config.client.api.ConfigurationChangedListener;
 import com.icthh.xm.commons.config.client.api.FetchConfigurationSettings;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
+import com.icthh.xm.commons.config.client.state.ConfigStateHolder;
 import com.icthh.xm.commons.config.domain.Configuration;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -29,6 +30,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
     private static final String CONFIG_PATH = "/config/tenants/{tenantName}/**";
     private static final String COMMONS = "commons";
     private final ObjectProvider<ConfigService> configServiceProvider;
+    private final ObjectProvider<ConfigStateHolder> configStateHolderProvider;
 
     private final Map<String, RefreshableConfiguration> refreshableConfigurations = new HashMap<>();
     private volatile Map<String, Configuration> configMap;
@@ -39,8 +41,10 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
 
     public InitRefreshableConfigurationBeanPostProcessor(ObjectProvider<ConfigService> configServiceProvider,
                                                          XmConfigProperties xmConfigProperties,
-                                                         FetchConfigurationSettings fetchConfigurationSettings) {
+                                                         FetchConfigurationSettings fetchConfigurationSettings,
+                                                         ObjectProvider<ConfigStateHolder> configStateHolderProvider) {
         this.configServiceProvider = configServiceProvider;
+        this.configStateHolderProvider = configStateHolderProvider;
         this.includedTenants = xmConfigProperties.getIncludeTenantUppercase();
         this.fetchConfigurationSettings = fetchConfigurationSettings;
         addLepCommons();
@@ -66,6 +70,7 @@ public class InitRefreshableConfigurationBeanPostProcessor implements BeanPostPr
     private Map<String, Configuration> getConfig() {
         if (configMap == null) {
             configMap = getConfigService().getConfigMapAntPattern(null, fetchConfigurationSettings.getMsConfigPatterns());
+            configStateHolderProvider.getObject().onConfigurationsProcessed(configMap);
         }
         return configMap;
     }
